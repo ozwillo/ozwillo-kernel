@@ -1,8 +1,8 @@
 package oasis.web;
 
-import java.io.IOException;
-
 import org.jboss.resteasy.plugins.server.netty.NettyJaxrsServer;
+
+import java.io.IOException;
 
 public class WebApp {
 
