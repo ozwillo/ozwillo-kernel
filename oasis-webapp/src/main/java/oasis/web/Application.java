@@ -1,6 +1,11 @@
 package oasis.web;
 
+
 import com.google.common.collect.ImmutableSet;
+import com.wordnik.swagger.jaxrs.listing.ApiDeclarationProvider;
+import com.wordnik.swagger.jaxrs.listing.ApiListingResourceJSON;
+import com.wordnik.swagger.jaxrs.listing.ResourceListingProvider;
+import oasis.web.example.HelloWorld;
 import oasis.web.providers.HandlebarsBodyWriter;
 
 import java.util.Set;
@@ -12,7 +17,11 @@ public class Application extends javax.ws.rs.core.Application {
     return ImmutableSet.<Class<?>>of(
             // Providers
             HandlebarsBodyWriter.class,
+            ResourceListingProvider.class,
+            ApiDeclarationProvider.class,
             //Resources
-            Home.class);
+            Home.class,
+            ApiListingResourceJSON.class,
+            HelloWorld.class);
   }
 }

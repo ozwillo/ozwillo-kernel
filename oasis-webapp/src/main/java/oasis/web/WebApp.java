@@ -1,8 +1,17 @@
 package oasis.web;
 
+import com.google.common.io.Resources;
+import com.wordnik.swagger.config.ConfigFactory;
+import com.wordnik.swagger.config.ScannerFactory;
+import com.wordnik.swagger.config.SwaggerConfig;
+import com.wordnik.swagger.jaxrs.config.DefaultJaxrsScanner;
+import com.wordnik.swagger.jaxrs.reader.DefaultJaxrsApiReader;
+import com.wordnik.swagger.reader.ClassReaders;
 import org.jboss.resteasy.plugins.server.netty.NettyJaxrsServer;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 
 public class WebApp {
 
@@ -11,6 +20,15 @@ public class WebApp {
       final NettyJaxrsServer server = new NettyJaxrsServer();
       server.getDeployment().setApplication(new Application());
       // port defaults to 8080
+
+      // Swagger configuration
+      Properties swaggerProps = new Properties();
+      try (InputStream in = Resources.getResource("swagger.properties").openStream()) {
+        swaggerProps.load(in);
+      }
+      ConfigFactory.setConfig(new SwaggerConfig(swaggerProps.getProperty("api.version"), swaggerProps.getProperty("swagger.version"), "", "", null, null));
+      ScannerFactory.setScanner(new DefaultJaxrsScanner());
+      ClassReaders.setReader(new DefaultJaxrsApiReader());
 
       Runtime.getRuntime().addShutdownHook(new Thread() {
         @Override

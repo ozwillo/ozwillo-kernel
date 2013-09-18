@@ -11,6 +11,11 @@
 
   <dependencies>
     <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>oasis-model</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
     </dependency>
@@ -22,12 +27,26 @@
       <groupId>com.github.jknack</groupId>
       <artifactId>handlebars</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.wordnik</groupId>
+      <artifactId>swagger-core_2.10</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.wordnik</groupId>
+      <artifactId>swagger-jaxrs_2.10</artifactId>
+    </dependency>
+    <!-- Required by the Swagger APIListing JAX-RS resource, even if we don't use it-->
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>servlet-api</artifactId>
+    </dependency>
   </dependencies>
   <build>
     <resources>
       <resource>
         <directory>src/main/resources</directory>
         <excludes><exclude>**/*.hbs</exclude></excludes>
+        <filtering>true</filtering>
       </resource>
       <resource>
         <directory>src/main/java</directory>
