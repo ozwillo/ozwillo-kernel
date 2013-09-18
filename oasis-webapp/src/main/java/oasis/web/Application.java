@@ -21,6 +21,7 @@ public class Application extends javax.ws.rs.core.Application {
             ApiDeclarationProvider.class,
             //Resources
             Home.class,
+            SwaggerUI.class,
             ApiListingResourceJSON.class,
             HelloWorld.class);
   }

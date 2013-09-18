@@ -26,7 +26,20 @@ public class WebApp {
       try (InputStream in = Resources.getResource("swagger.properties").openStream()) {
         swaggerProps.load(in);
       }
-      ConfigFactory.setConfig(new SwaggerConfig(swaggerProps.getProperty("api.version"), swaggerProps.getProperty("swagger.version"), "", "", null, null));
+      ConfigFactory.setConfig(new SwaggerConfig(
+              // apiVersion
+              swaggerProps.getProperty("api.version"),
+              // swaggerVersion
+              swaggerProps.getProperty("swagger.version"),
+              // basePath: the server where the API can be found
+              System.getProperty("swagger.basePath", "http://localhost:8080"),
+              // apiPath: relative path to API resources
+              "api-docs",
+              // authorizations list: https://github.com/wordnik/swagger-core/wiki/authorizations
+              null,
+              // information object: title, description, termsOfServiceUrl, contact, license, licenseUrl
+              null
+      ));
       ScannerFactory.setScanner(new DefaultJaxrsScanner());
       ClassReaders.setReader(new DefaultJaxrsApiReader());
 
