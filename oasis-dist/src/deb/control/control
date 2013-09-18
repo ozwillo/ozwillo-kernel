@@ -1,0 +1,9 @@
+Package: [[name]]
+Version: [[version]]
+Section: misc
+Priority: optional
+Architecture: all
+Depends: openjdk-7-jdk, adduser (>= 3.11), lsb-base (>= 3.2-14)
+Maintainer: Jérôme Poittevin <jpo@atolcd.com>
+Description: oasis-kernel
+Distribution: development

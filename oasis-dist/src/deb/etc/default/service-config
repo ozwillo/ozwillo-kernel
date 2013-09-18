@@ -1,0 +1,11 @@
+#
+#SERVER_HOME=${oasis.home}
+
+#
+#SERVER_USER=${oasis.user}
+
+#
+#SERVER_NAME=${oasis.desc}
+
+#
+#SERVER_GROUP=${oasis.group}
