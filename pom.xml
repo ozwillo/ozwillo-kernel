@@ -54,21 +54,7 @@
           <configuration>
             <source>7</source>
             <target>7</target>
-            <compilerId>javac-with-errorprone</compilerId>
-            <forceJavacCompilerUse>true</forceJavacCompilerUse>
           </configuration>
-          <dependencies>
-            <dependency>
-              <groupId>org.codehaus.plexus</groupId>
-              <artifactId>plexus-compiler-javac-errorprone</artifactId>
-              <version>2.3</version>
-            </dependency>
-            <dependency>
-              <groupId>org.codehaus.plexus</groupId>
-              <artifactId>plexus-compiler-javac</artifactId>
-              <version>2.3</version>
-            </dependency>
-          </dependencies>
         </plugin>
         <plugin>
           <groupId>org.codehaus.sonar</groupId>
@@ -84,4 +70,41 @@
     <module>oasis-webapp</module>
     <module>oasis-dist</module>
   </modules>
+
+  <profiles>
+    <profile>
+      <id>error-prone</id>
+      <activation>
+        <property>
+          <!-- Disable in M2Eclipse -->
+          <name>!m2e.version</name>
+        </property>
+      </activation>
+      <build>
+        <pluginManagement>
+          <plugins>
+            <plugin>
+              <artifactId>maven-compiler-plugin</artifactId>
+              <configuration>
+	            <compilerId>javac-with-errorprone</compilerId>
+	            <forceJavacCompilerUse>true</forceJavacCompilerUse>
+              </configuration>
+	          <dependencies>
+	            <dependency>
+	              <groupId>org.codehaus.plexus</groupId>
+	              <artifactId>plexus-compiler-javac-errorprone</artifactId>
+	              <version>2.3</version>
+	            </dependency>
+	            <dependency>
+	              <groupId>org.codehaus.plexus</groupId>
+	              <artifactId>plexus-compiler-javac</artifactId>
+	              <version>2.3</version>
+	            </dependency>
+	          </dependencies>
+              </plugin>
+          </plugins>
+        </pluginManagement>
+      </build>
+    </profile>
+  </profiles>
 </project>
