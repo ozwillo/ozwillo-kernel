@@ -9,6 +9,8 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+    <swagger.version>1.3.0</swagger.version>
   </properties>
 
   <dependencyManagement>
@@ -32,11 +34,22 @@
       </dependency>
       <dependency>
         <groupId>com.wordnik</groupId>
-        <artifactId>swagger-project_2.10</artifactId>
-        <version>1.3.0</version>
-        <type>pom</type>
-        <scope>import</scope>
+        <artifactId>swagger-annotations_2.10</artifactId>
+        <version>${swagger.version}</version>
       </dependency>
+      <dependency>
+        <groupId>com.wordnik</groupId>
+        <artifactId>swagger-jaxrs_2.10</artifactId>
+        <version>${swagger.version}</version>
+        <exclusions>
+          <!-- Conflicts with org.jboss.resteasy:jaxrs-api -->
+          <exclusion>
+            <groupId>javax.ws.rs</groupId>
+            <artifactId>jsr311-api</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <!-- Required by the Swagger APIListing JAX-RS resource, even if we don't use it-->
       <dependency>
         <groupId>javax.servlet</groupId>
         <artifactId>servlet-api</artifactId>

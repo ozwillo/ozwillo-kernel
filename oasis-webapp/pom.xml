@@ -29,10 +29,6 @@
     </dependency>
     <dependency>
       <groupId>com.wordnik</groupId>
-      <artifactId>swagger-core_2.10</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.wordnik</groupId>
       <artifactId>swagger-jaxrs_2.10</artifactId>
     </dependency>
     <!-- Required by the Swagger APIListing JAX-RS resource, even if we don't use it-->
