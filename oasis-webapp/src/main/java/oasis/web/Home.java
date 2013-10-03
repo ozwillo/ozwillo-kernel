@@ -1,6 +1,5 @@
 package oasis.web;
 
-
 import com.google.common.collect.ImmutableMap;
 
 import javax.ws.rs.GET;
@@ -13,7 +12,7 @@ import javax.ws.rs.core.UriInfo;
 import java.util.Date;
 
 @Path("/")
-public class Home{
+public class Home {
 
   @GET
   @Produces(MediaType.TEXT_HTML)
@@ -21,4 +20,10 @@ public class Home{
     return Response.ok(new View("oasis/web/Home.get.html", ImmutableMap.of("date", new Date()))).build();
   }
 
+  @GET
+  @Path("/favicon.ico")
+  public Response favicon() {
+    // TODO: we need a favicon!
+    return Response.status(Response.Status.NOT_FOUND).build();
+  }
 }
