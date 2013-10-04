@@ -1,18 +1,16 @@
 package oasis.model.example;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonRootName;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-
-@XmlRootElement(name = "greeting")
+@JsonRootName("greeting")
 public class Greeting {
-  @XmlElement(name = "name")
-  @ApiModelProperty(required = true, notes = "name")
+  @JsonProperty
+  @ApiModelProperty(required = true)
   private String name;
 
-  @XmlElement(name = "lastname")
-  @ApiModelProperty(required = false, notes = "lastname")
+  @JsonProperty
   private String lastname;
 
   public String getName() {
