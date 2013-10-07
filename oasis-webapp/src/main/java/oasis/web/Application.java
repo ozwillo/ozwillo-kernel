@@ -5,9 +5,11 @@ import com.google.common.collect.ImmutableSet;
 import com.wordnik.swagger.jaxrs.listing.ApiDeclarationProvider;
 import com.wordnik.swagger.jaxrs.listing.ApiListingResourceJSON;
 import com.wordnik.swagger.jaxrs.listing.ResourceListingProvider;
-import java.util.Set;
 import oasis.web.example.HelloWorld;
 import oasis.web.view.HandlebarsBodyWriter;
+import oasis.web.userdirectory.UserDirectoryResource;
+
+import java.util.Set;
 
 public class Application extends javax.ws.rs.core.Application {
 
@@ -22,6 +24,7 @@ public class Application extends javax.ws.rs.core.Application {
             Home.class,
             SwaggerUI.class,
             ApiListingResourceJSON.class,
-            HelloWorld.class);
+            HelloWorld.class,
+            UserDirectoryResource.class);
   }
 }
