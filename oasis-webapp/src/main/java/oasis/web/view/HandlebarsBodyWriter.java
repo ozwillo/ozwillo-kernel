@@ -3,18 +3,16 @@ package oasis.web.view;
 import com.github.jknack.handlebars.Context;
 import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.io.ClassPathTemplateLoader;
-
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.ext.MessageBodyWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.ext.MessageBodyWriter;
 
 public class HandlebarsBodyWriter implements MessageBodyWriter<View> {
   private static final Handlebars HANDLEBARS = new Handlebars(new ClassPathTemplateLoader());
@@ -30,7 +28,7 @@ public class HandlebarsBodyWriter implements MessageBodyWriter<View> {
   }
 
   @Override
-  public void writeTo(View view, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream) throws IOException, WebApplicationException {
+  public void writeTo(View view, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream) throws IOException {
     String encoding = mediaType.getParameters().get(MediaType.CHARSET_PARAMETER);
     if (encoding == null || encoding.isEmpty()) {
       encoding = StandardCharsets.UTF_8.name();
