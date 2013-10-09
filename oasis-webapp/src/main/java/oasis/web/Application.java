@@ -5,10 +5,9 @@ import com.google.common.collect.ImmutableSet;
 import com.wordnik.swagger.jaxrs.listing.ApiDeclarationProvider;
 import com.wordnik.swagger.jaxrs.listing.ApiListingResourceJSON;
 import com.wordnik.swagger.jaxrs.listing.ResourceListingProvider;
-import oasis.web.example.HelloWorld;
-import oasis.web.providers.HandlebarsBodyWriter;
-
 import java.util.Set;
+import oasis.web.example.HelloWorld;
+import oasis.web.view.HandlebarsBodyWriter;
 
 public class Application extends javax.ws.rs.core.Application {
 

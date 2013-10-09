@@ -10,6 +10,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.util.Date;
+import oasis.web.view.View;
 
 @Path("/")
 public class Home {
@@ -17,7 +18,7 @@ public class Home {
   @GET
   @Produces(MediaType.TEXT_HTML)
   public Response get(@Context UriInfo uriInfo) {
-    return Response.ok(new View("oasis/web/Home.get.html", ImmutableMap.of("date", new Date()))).build();
+    return Response.ok(new View(Home.class, "Home.get.html", ImmutableMap.of("date", new Date()))).build();
   }
 
   @GET

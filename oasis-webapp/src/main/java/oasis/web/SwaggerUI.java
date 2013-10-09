@@ -3,15 +3,6 @@ package oasis.web;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
 import com.wordnik.swagger.config.ConfigFactory;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -20,21 +11,25 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Date;
 import java.util.Map;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import oasis.web.view.View;
 
 @Path("/swagger-ui")
 public class SwaggerUI {
-  @Context
-  private HttpServletRequest request;
 
   @GET
-  @Path("/")
   @Produces(MediaType.TEXT_HTML)
   public Response get() {
     Map<String, String> model = ImmutableMap.of(
             "basePath", ConfigFactory.config().getBasePath(),
             "apiPath", ConfigFactory.config().getApiPath()
     );
-    return Response.ok(new View("oasis/web/SwaggerUI.get.html", model)).build();
+    return Response.ok(new View(SwaggerUI.class, "SwaggerUI.get.html", model)).build();
   }
 
   @GET
