@@ -1,17 +1,21 @@
 package oasis.web;
 
 import com.google.common.io.Resources;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import com.wordnik.swagger.config.ConfigFactory;
 import com.wordnik.swagger.config.ScannerFactory;
 import com.wordnik.swagger.config.SwaggerConfig;
 import com.wordnik.swagger.jaxrs.config.DefaultJaxrsScanner;
 import com.wordnik.swagger.jaxrs.reader.DefaultJaxrsApiReader;
 import com.wordnik.swagger.reader.ClassReaders;
-import org.jboss.resteasy.plugins.server.netty.NettyJaxrsServer;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+import oasis.web.guice.GuiceInjectorFactory;
+import oasis.web.guice.OasisGuiceModule;
+import org.jboss.resteasy.plugins.server.netty.NettyJaxrsServer;
+import org.jboss.resteasy.spi.ResteasyProviderFactory;
 
 public class WebApp {
 
@@ -20,6 +24,12 @@ public class WebApp {
       final NettyJaxrsServer server = new NettyJaxrsServer();
       server.getDeployment().setApplication(new Application());
       // port defaults to 8080
+
+      // Guice configuration
+      final Injector injector = Guice.createInjector(new OasisGuiceModule());
+      ResteasyProviderFactory providerFactory = new ResteasyProviderFactory();
+      providerFactory.setInjectorFactory(new GuiceInjectorFactory(injector));
+      server.getDeployment().setProviderFactory(providerFactory);
 
       // Swagger configuration
       Properties swaggerProps = new Properties();
