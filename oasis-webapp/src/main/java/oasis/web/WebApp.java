@@ -11,6 +11,8 @@ import com.wordnik.swagger.jaxrs.reader.DefaultJaxrsApiReader;
 import com.wordnik.swagger.reader.ClassReaders;
 import java.io.InputStream;
 import java.util.Properties;
+import javax.ws.rs.core.NewCookie;
+import oasis.web.providers.NewCookieHeaderDelegate;
 import oasis.web.guice.GuiceInjectorFactory;
 import oasis.web.guice.OasisGuiceModule;
 import org.jboss.resteasy.plugins.server.netty.NettyJaxrsServer;
@@ -28,6 +30,8 @@ public class WebApp {
     ResteasyProviderFactory providerFactory = new ResteasyProviderFactory();
     providerFactory.setInjectorFactory(new GuiceInjectorFactory(injector));
     server.getDeployment().setProviderFactory(providerFactory);
+    // workaround for https://java.net/jira/browse/JAX_RS_SPEC-430
+    providerFactory.addHeaderDelegate(NewCookie.class, new NewCookieHeaderDelegate());
 
     // Swagger configuration
     Properties swaggerProps = new Properties();
