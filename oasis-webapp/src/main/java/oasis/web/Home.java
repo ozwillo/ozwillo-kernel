@@ -1,15 +1,10 @@
 package oasis.web;
 
-import com.google.common.collect.ImmutableMap;
-
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-import java.util.Date;
 import oasis.web.view.View;
 
 @Path("/")
@@ -17,8 +12,8 @@ public class Home {
 
   @GET
   @Produces(MediaType.TEXT_HTML)
-  public Response get(@Context UriInfo uriInfo) {
-    return Response.ok(new View(Home.class, "Home.get.html", ImmutableMap.of("date", new Date()))).build();
+  public Response get() {
+    return Response.ok(new View(Home.class, "Home.get.html")).build();
   }
 
   @GET

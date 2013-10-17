@@ -16,10 +16,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import oasis.web.view.View;
 
-@Path("/swagger-ui")
+@Path("/")
 public class SwaggerUI {
 
   @GET
+  @Path("/swagger-ui.html")
   @Produces(MediaType.TEXT_HTML)
   public Response get() {
     Map<String, String> model = ImmutableMap.of(

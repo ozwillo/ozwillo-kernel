@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html>
-  <body>
-    <h1>It works : {{date}}</h1>
-  </body>
+<head>
+<title>OASIS</title>
+</head>
+<body>
+  <h1>Welcome!</h1>
+  <p>API document is available at <a href="swagger-ui.html">/swagger-ui.html</a>
+  <p>OAuth 2.0 / OpenID Connect 1.0 endpoints are:
+  <ul>
+    <li><code>/a/auth</code> for the Authorization Endpoint
+    <li><code>/a/token</code> for the Token Endpoint
+  </ul>
+  <p>In this first prototype, you must pass <code>openid</code> in the <code>scope</code>, but the endpoints currently do only OAuth 2.0 (i.e. no ID Token yet)
+</body>
 </html>
