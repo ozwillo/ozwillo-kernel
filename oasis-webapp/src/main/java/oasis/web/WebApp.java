@@ -3,6 +3,7 @@ package oasis.web;
 import com.google.common.io.Resources;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Key;
 import com.wordnik.swagger.config.ConfigFactory;
 import com.wordnik.swagger.config.ScannerFactory;
 import com.wordnik.swagger.config.SwaggerConfig;
@@ -17,6 +18,8 @@ import oasis.web.guice.GuiceInjectorFactory;
 import oasis.web.guice.OasisGuiceModule;
 import org.jboss.resteasy.plugins.server.netty.NettyJaxrsServer;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
+
+import static com.google.inject.name.Names.named;
 
 public class WebApp {
 
@@ -44,7 +47,7 @@ public class WebApp {
         // swaggerVersion
         swaggerProps.getProperty("swagger.version"),
         // basePath: the server where the API can be found
-        System.getProperty("swagger.basePath", "http://localhost:8080"),
+        injector.getInstance(Key.get(String.class, named("swagger.basePath"))),
         // apiPath: relative path to API resources
         "api-docs",
         // authorizations list: https://github.com/wordnik/swagger-core/wiki/authorizations
