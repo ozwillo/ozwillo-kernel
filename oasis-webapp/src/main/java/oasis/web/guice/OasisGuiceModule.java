@@ -28,7 +28,7 @@ public class OasisGuiceModule extends AbstractModule {
 
   private static Properties loadConfiguration() throws IOException {
     Properties defaultProps = new Properties();
-    try (Reader reader = Resources.asCharSource(Resources.getResource("/defaults.properties"), StandardCharsets.UTF_8).openStream()) {
+    try (Reader reader = Resources.asCharSource(Resources.getResource("defaults.properties"), StandardCharsets.UTF_8).openStream()) {
       defaultProps.load(reader);
     }
 
