@@ -13,7 +13,6 @@ import oasis.web.authn.OAuthAuthenticationFilter;
 import oasis.web.authn.UserAuthenticationFilter;
 import oasis.web.authz.AuthorizationEndpoint;
 import oasis.web.authz.TokenEndpoint;
-import oasis.web.example.HelloWorld;
 import oasis.web.example.OpenIdConnect;
 import oasis.web.providers.CookieParserRequestFilter;
 import oasis.web.providers.UriParamConverterProvider;
@@ -47,7 +46,6 @@ public class Application extends javax.ws.rs.core.Application {
         // Resources
         Home.class,
         UserDirectoryResource.class,
-        HelloWorld.class,
         OpenIdConnect.class);
   }
 }
