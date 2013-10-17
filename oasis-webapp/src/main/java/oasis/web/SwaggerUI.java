@@ -4,11 +4,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
 import com.wordnik.swagger.config.ConfigFactory;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Date;
 import java.util.Map;
 import javax.ws.rs.GET;
@@ -33,16 +30,50 @@ public class SwaggerUI {
   }
 
   @GET
-  @Path("/{resource: .+}")
-  public Response getResource(@PathParam("resource") String resourceName) throws IOException, URISyntaxException {
-    URL resource = Resources.getResource("swagger-ui/" + resourceName);
+  @Path("/swagger-ui/{resource: .+\\.js$}")
+  @Produces("application/javascript")
+  public Response js(@PathParam("resource") String resourceName) throws IOException {
+    return getResource(resourceName);
+  }
+
+  @GET
+  @Path("/swagger-ui/{resource: .+\\.css$}")
+  @Produces("text/css")
+  public Response css(@PathParam("resource") String resourceName) throws IOException {
+    return getResource(resourceName);
+  }
+
+  @GET
+  @Path("/swagger-ui/{resource: .+\\.png$}")
+  @Produces("image/png")
+  public Response png(@PathParam("resource") String resourceName) throws IOException {
+    return getResource(resourceName);
+  }
+
+  @GET
+  @Path("/swagger-ui/{resource: .+\\.gif$}")
+  @Produces("image/gif")
+  public Response gif(@PathParam("resource") String resourceName) throws IOException {
+    return getResource(resourceName);
+  }
+
+  private Response getResource(String resourceName) throws IOException {
+    final URL resource;
+    try {
+      resource = Resources.getResource("swagger-ui/" + resourceName);
+    } catch (IllegalArgumentException iae) {
+      return Response.status(Response.Status.NOT_FOUND).build();
+    }
+
     URLConnection conn = resource.openConnection();
-    Date lastModified = new Date(conn.getLastModified());
-    String type = Files.probeContentType(Paths.get(resource.toURI()));
-    return Response.ok()
-            .entity(conn.getInputStream())
-            .type(MediaType.valueOf(type))
-            .lastModified(lastModified)
-            .build();
+    Response.ResponseBuilder response = Response.ok()
+        .entity(conn.getInputStream());
+
+    long lastModified = conn.getLastModified();
+    if (lastModified != 0) {
+      response.lastModified(new Date(lastModified));
+    }
+
+    return response.build();
   }
 }
