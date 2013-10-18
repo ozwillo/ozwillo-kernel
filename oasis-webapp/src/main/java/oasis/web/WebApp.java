@@ -3,23 +3,19 @@ package oasis.web;
 import com.google.common.io.Resources;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.Key;
 import com.wordnik.swagger.config.ConfigFactory;
 import com.wordnik.swagger.config.ScannerFactory;
-import com.wordnik.swagger.config.SwaggerConfig;
 import com.wordnik.swagger.jaxrs.config.DefaultJaxrsScanner;
 import com.wordnik.swagger.jaxrs.reader.DefaultJaxrsApiReader;
 import com.wordnik.swagger.reader.ClassReaders;
 import java.io.InputStream;
 import java.util.Properties;
 import javax.ws.rs.core.NewCookie;
-import oasis.web.providers.NewCookieHeaderDelegate;
 import oasis.web.guice.GuiceInjectorFactory;
 import oasis.web.guice.OasisGuiceModule;
+import oasis.web.providers.NewCookieHeaderDelegate;
 import org.jboss.resteasy.plugins.server.netty.NettyJaxrsServer;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
-
-import static com.google.inject.name.Names.named;
 
 public class WebApp {
 
@@ -41,20 +37,8 @@ public class WebApp {
     try (InputStream in = Resources.getResource("swagger.properties").openStream()) {
       swaggerProps.load(in);
     }
-    ConfigFactory.setConfig(new SwaggerConfig(
-        // apiVersion
-        swaggerProps.getProperty("api.version"),
-        // swaggerVersion
-        swaggerProps.getProperty("swagger.version"),
-        // basePath: the server where the API can be found
-        injector.getInstance(Key.get(String.class, named("swagger.basePath"))),
-        // apiPath: relative path to API resources
-        "api-docs",
-        // authorizations list: https://github.com/wordnik/swagger-core/wiki/authorizations
-        null,
-        // information object: title, description, termsOfServiceUrl, contact, license, licenseUrl
-        null
-    ));
+    ConfigFactory.config().setApiVersion(swaggerProps.getProperty("api.version"));
+    // TODO: authorizations and info
     ScannerFactory.setScanner(new DefaultJaxrsScanner());
     ClassReaders.setReader(new DefaultJaxrsApiReader());
 

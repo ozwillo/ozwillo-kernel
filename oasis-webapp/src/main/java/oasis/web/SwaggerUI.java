@@ -2,7 +2,6 @@ package oasis.web;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
-import com.wordnik.swagger.config.ConfigFactory;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -12,8 +11,11 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
+import oasis.web.apidocs.ApiListing;
 import oasis.web.view.View;
 
 @Path("/")
@@ -22,10 +24,10 @@ public class SwaggerUI {
   @GET
   @Path("/swagger-ui.html")
   @Produces(MediaType.TEXT_HTML)
-  public Response get() {
+  public Response get(@Context UriInfo uriInfo) {
     Map<String, String> model = ImmutableMap.of(
-            "basePath", ConfigFactory.config().getBasePath(),
-            "apiPath", ConfigFactory.config().getApiPath()
+            "basePath", uriInfo.getBaseUriBuilder().path("/swagger-ui/").build().toString(),
+            "apiPath", uriInfo.getBaseUriBuilder().path(ApiListing.class).build().toString()
     );
     return Response.ok(new View(SwaggerUI.class, "SwaggerUI.get.html", model)).build();
   }

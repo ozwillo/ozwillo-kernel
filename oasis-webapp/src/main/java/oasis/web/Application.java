@@ -3,9 +3,9 @@ package oasis.web;
 
 import com.google.common.collect.ImmutableSet;
 import com.wordnik.swagger.jaxrs.listing.ApiDeclarationProvider;
-import com.wordnik.swagger.jaxrs.listing.ApiListingResourceJSON;
 import com.wordnik.swagger.jaxrs.listing.ResourceListingProvider;
 import java.util.Set;
+import oasis.web.apidocs.ApiListing;
 import oasis.web.authn.ClientAuthenticationFilter;
 import oasis.web.authn.Login;
 import oasis.web.authn.Logout;
@@ -17,8 +17,8 @@ import oasis.web.example.OpenIdConnect;
 import oasis.web.providers.CookieParserRequestFilter;
 import oasis.web.providers.SecureFilter;
 import oasis.web.providers.UriParamConverterProvider;
-import oasis.web.view.HandlebarsBodyWriter;
 import oasis.web.userdirectory.UserDirectoryResource;
+import oasis.web.view.HandlebarsBodyWriter;
 
 public class Application extends javax.ws.rs.core.Application {
 
@@ -35,7 +35,7 @@ public class Application extends javax.ws.rs.core.Application {
         ResourceListingProvider.class,
         ApiDeclarationProvider.class,
         SwaggerUI.class,
-        ApiListingResourceJSON.class,
+        ApiListing.class,
         // Authentication
         UserAuthenticationFilter.class,
         ClientAuthenticationFilter.class,
