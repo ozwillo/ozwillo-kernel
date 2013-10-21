@@ -9,6 +9,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
 @Path("/a/logout")
@@ -16,6 +17,7 @@ public class Logout {
   @SuppressWarnings("deprecation")
   private static final Date FAR_PAST = new Date(108, 0, 20, 11, 10);
 
+  @Context SecurityContext securityContext;
   @Context UriInfo uriInfo;
 
   @GET
@@ -33,7 +35,7 @@ public class Logout {
       continueUrl = Login.defaultContinueUrl(uriInfo);
     }
     return Response.seeOther(continueUrl)
-        .cookie(Login.createCookie(null, FAR_PAST))
+        .cookie(Login.createCookie(null, FAR_PAST, securityContext.isSecure()))
         .build();
   }
 }

@@ -28,6 +28,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import oasis.web.authn.Login;
@@ -61,6 +62,7 @@ public class OpenIdConnect {
       .setCredentialDataStore(CREDENTIALS_DATA_STORE)
       .setScopes(ImmutableSet.of("openid", "profile", "email"));
 
+  @Context SecurityContext securityContext;
   @Context UriInfo uriInfo;
 
   @GET
@@ -96,7 +98,7 @@ public class OpenIdConnect {
         .setState(state)
         .setRedirectUri(getRedirectUri());
     return Response.seeOther(authorizationUrl.toURI())
-        .cookie(new NewCookie(STATE_COOKIE_NAME, state, null, null, null, NewCookie.DEFAULT_MAX_AGE, false, true))
+        .cookie(new NewCookie(STATE_COOKIE_NAME, state, null, null, null, NewCookie.DEFAULT_MAX_AGE, securityContext.isSecure(), true))
         .header(HttpHeaders.VARY, HttpHeaders.COOKIE)
         .header(HttpHeaders.CACHE_CONTROL, "private, must-revalidate")
         .build();
@@ -138,8 +140,8 @@ public class OpenIdConnect {
     String userId = response.getAccessToken();
     Credential credential = flow.createAndStoreCredential(response, userId);
     return Response.seeOther(UriBuilder.fromResource(OpenIdConnect.class).path(OpenIdConnect.class, "protectedResource").build())
-        .cookie(new NewCookie(STATE_COOKIE_NAME, null, null, null, 0, null, 0, new Date(108, 0, 20, 11, 10), false, true))
-        .cookie(new NewCookie(COOKIE_NAME, userId, null, null, null, NewCookie.DEFAULT_MAX_AGE, false, true))
+        .cookie(new NewCookie(STATE_COOKIE_NAME, null, null, null, 0, null, 0, new Date(108, 0, 20, 11, 10), securityContext.isSecure(), true))
+        .cookie(new NewCookie(COOKIE_NAME, userId, null, null, null, NewCookie.DEFAULT_MAX_AGE, securityContext.isSecure(), true))
         .build();
   }
 
@@ -149,7 +151,7 @@ public class OpenIdConnect {
   public Response logout() {
     return Response.ok()
         .type(MediaType.TEXT_HTML_TYPE)
-        .cookie(new NewCookie(COOKIE_NAME, null, null, null, 0, null, 0, new Date(108, 0, 20, 11, 10), false, true))
+        .cookie(new NewCookie(COOKIE_NAME, null, null, null, 0, null, 0, new Date(108, 0, 20, 11, 10), securityContext.isSecure(), true))
         .entity("<!doctype html>" +
             "<html>" +
             "<head>" +

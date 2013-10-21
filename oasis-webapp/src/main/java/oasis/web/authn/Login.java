@@ -16,6 +16,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import oasis.web.Home;
@@ -25,6 +26,7 @@ import oasis.web.view.View;
 public class Login {
   public static final String CONTINUE_PARAM = "continue";
 
+  @Context SecurityContext securityContext;
   @Context UriInfo uriInfo;
 
   @GET
@@ -51,7 +53,7 @@ public class Login {
     // TODO: One-Time Password
     return Response
         .seeOther(continueUrl)
-        .cookie(createCookie(userName, null)) // TODO: remember me
+        .cookie(createCookie(userName, null, securityContext.isSecure())) // TODO: remember me
         .build();
   }
 
@@ -82,7 +84,7 @@ public class Login {
     return uriInfo.getBaseUriBuilder().path(Home.class).build();
   }
 
-  static NewCookie createCookie(String value, Date expires) {
+  static NewCookie createCookie(String value, Date expires, boolean secure) {
     return new NewCookie(
         UserAuthenticationFilter.COOKIE_NAME,   // name
         value,                                  // value
@@ -92,7 +94,7 @@ public class Login {
         null,                                   // comment
         NewCookie.DEFAULT_MAX_AGE,              // max-age
         expires,                                // expiry
-        false,                                  // TODO: secure (once we have SSL)
+        secure,                                 // TODO: secure (once we have SSL)
         true                                    // http-only
     );
   }
