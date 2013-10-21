@@ -33,6 +33,8 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import oasis.web.authn.Login;
 import oasis.web.authn.Logout;
+import oasis.web.authz.AuthorizationEndpoint;
+import oasis.web.authz.TokenEndpoint;
 
 @Path("/test-openidconnect")
 public class OpenIdConnect {
@@ -50,26 +52,34 @@ public class OpenIdConnect {
     }
   }
 
-  private static AuthorizationCodeFlow.Builder FLOW_BUILDER = new AuthorizationCodeFlow.Builder(
-          BearerToken.authorizationHeaderAccessMethod(),
-          new NetHttpTransport(),
-          new JacksonFactory(),
-          new GenericUrl("http://localhost:8080/a/token"),
-          new BasicAuthentication("test", "password"),
-          "test",
-          "http://localhost:8080/a/auth"
-      )
-      .setCredentialDataStore(CREDENTIALS_DATA_STORE)
-      .setScopes(ImmutableSet.of("openid", "profile", "email"));
+  private AuthorizationCodeFlow flow;
 
   @Context SecurityContext securityContext;
-  @Context UriInfo uriInfo;
+  private UriInfo uriInfo;
+
+  @Context
+  public void setUriInfo(UriInfo uriInfo) {
+    this.uriInfo = uriInfo;
+
+    // XXX: this should be a constant (static final), but we don't want to hard-code or parameterize URLs here (this demo runs from the same server as the IdP)
+    flow = new AuthorizationCodeFlow.Builder(
+            BearerToken.authorizationHeaderAccessMethod(),
+            new NetHttpTransport(),
+            new JacksonFactory(),
+            new GenericUrl(uriInfo.getBaseUriBuilder().path(TokenEndpoint.class).build()), // This would be a fixed value IRL
+            new BasicAuthentication("test", "password"),
+            "test",
+            uriInfo.getBaseUriBuilder().path(AuthorizationEndpoint.class).build().toString() // This would be a fixed value IRL
+        )
+        .setCredentialDataStore(CREDENTIALS_DATA_STORE)
+        .setScopes(ImmutableSet.of("openid", "profile", "email"))
+        .build();
+  }
 
   @GET
   @Path("/index.html")
   @Produces(MediaType.TEXT_HTML)
   public Response protectedResource(@CookieParam(COOKIE_NAME) String sid) throws IOException {
-    AuthorizationCodeFlow flow = FLOW_BUILDER.build();
     if (sid != null && !sid.isEmpty()) {
       Credential credential = flow.loadCredential(sid);
       // note: we can't use @Authenticated @User as we want to redirect to the OpenID Connect endpoint for authentication
@@ -131,7 +141,6 @@ public class OpenIdConnect {
           .entity("Mismatching state (or missing state)")
           .build();
     }
-    AuthorizationCodeFlow flow = FLOW_BUILDER.build();
     // TODO: use IdTokenResponse.execute() once we send an IdToken
 //    IdTokenResponse response = IdTokenResponse.execute(flow.newTokenRequest(code).setRedirectUri(getRedirectUri()));
 //    IdToken token = response.parseIdToken();
