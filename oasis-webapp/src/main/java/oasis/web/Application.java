@@ -2,10 +2,10 @@ package oasis.web;
 
 
 import com.google.common.collect.ImmutableSet;
-import com.wordnik.swagger.jaxrs.listing.ApiDeclarationProvider;
+import com.wordnik.swagger.jaxrs.listing.ApiListingResourceJSON;
 import com.wordnik.swagger.jaxrs.listing.ResourceListingProvider;
 import java.util.Set;
-import oasis.web.apidocs.ApiListing;
+import oasis.web.apidocs.ApiDeclarationProvider;
 import oasis.web.authn.ClientAuthenticationFilter;
 import oasis.web.authn.Login;
 import oasis.web.authn.Logout;
@@ -33,9 +33,9 @@ public class Application extends javax.ws.rs.core.Application {
         HandlebarsBodyWriter.class,
         // Swagger
         ResourceListingProvider.class,
-        ApiDeclarationProvider.class,
+        ApiListingResourceJSON.class,
         SwaggerUI.class,
-        ApiListing.class,
+        ApiDeclarationProvider.class, // Note: this is our own implementation
         // Authentication
         UserAuthenticationFilter.class,
         ClientAuthenticationFilter.class,
