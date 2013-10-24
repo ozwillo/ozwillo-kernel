@@ -1,11 +1,12 @@
 package oasis.web.guice;
 
-import com.google.inject.Injector;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
+
 import javax.ws.rs.WebApplicationException;
+
 import org.jboss.resteasy.core.InjectorFactoryImpl;
 import org.jboss.resteasy.core.ValueInjector;
 import org.jboss.resteasy.spi.ApplicationException;
@@ -21,6 +22,8 @@ import org.jboss.resteasy.spi.metadata.Parameter;
 import org.jboss.resteasy.spi.metadata.ResourceClass;
 import org.jboss.resteasy.spi.metadata.ResourceConstructor;
 import org.jboss.resteasy.spi.metadata.ResourceLocator;
+
+import com.google.inject.Injector;
 
 public class GuiceInjectorFactory implements InjectorFactory {
   private final InjectorFactory delegate = new InjectorFactoryImpl();

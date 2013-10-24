@@ -1,13 +1,11 @@
 package oasis.web;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.io.Resources;
-import com.wordnik.swagger.jaxrs.listing.ApiListingResourceJSON;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Date;
 import java.util.Map;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -16,6 +14,11 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.io.Resources;
+import com.wordnik.swagger.jaxrs.listing.ApiListingResourceJSON;
+
 import oasis.web.view.View;
 
 @Path("/")

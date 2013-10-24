@@ -1,9 +1,7 @@
 package oasis.web.authz;
 
-import com.google.api.client.auth.oauth2.TokenErrorResponse;
-import com.google.api.client.auth.oauth2.TokenResponse;
-import com.google.common.base.Splitter;
 import java.util.List;
+
 import javax.annotation.Nullable;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
@@ -15,6 +13,11 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+
+import com.google.api.client.auth.oauth2.TokenErrorResponse;
+import com.google.api.client.auth.oauth2.TokenResponse;
+import com.google.common.base.Splitter;
+
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.Client;
 

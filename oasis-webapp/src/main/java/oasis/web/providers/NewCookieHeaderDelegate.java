@@ -1,12 +1,14 @@
 package oasis.web.providers;
 
-import com.google.common.base.CharMatcher;
 import java.util.Date;
+
 import javax.ws.rs.ConstrainedTo;
 import javax.ws.rs.RuntimeType;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.ext.RuntimeDelegate;
 import javax.ws.rs.ext.RuntimeDelegate.HeaderDelegate;
+
+import com.google.common.base.CharMatcher;
 
 /**
  * Implementation of a {@link HeaderDelegate} for {@link NewCookie} that follows RFC 6265.

@@ -1,14 +1,16 @@
 package oasis.web.guice;
 
-import com.google.common.io.Files;
-import com.google.common.io.Resources;
-import com.google.inject.AbstractModule;
-import com.google.inject.name.Names;
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
+
+import com.google.common.io.Files;
+import com.google.common.io.Resources;
+import com.google.inject.AbstractModule;
+import com.google.inject.name.Names;
+
 import oasis.model.directory.DirectoryRepository;
 import oasis.services.directory.DummyDirectoryRepository;
 

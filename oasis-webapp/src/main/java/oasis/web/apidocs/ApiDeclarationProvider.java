@@ -1,14 +1,16 @@
 package oasis.web.apidocs;
 
-import com.wordnik.swagger.model.ApiListing;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriInfo;
+
+import com.wordnik.swagger.model.ApiListing;
 
 /**
  * Hijacks Swagger's MessageBodyWriter for ApiListing so we can dynamically provide the {@code basePath} depending on the requested URI.

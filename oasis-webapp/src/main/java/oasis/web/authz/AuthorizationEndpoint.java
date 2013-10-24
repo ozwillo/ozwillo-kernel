@@ -1,12 +1,9 @@
 package oasis.web.authz;
 
-import com.google.common.base.Splitter;
-import com.google.common.base.Strings;
-import com.google.common.escape.Escaper;
-import com.google.common.net.UrlEscapers;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.ws.rs.BadRequestException;
@@ -23,6 +20,12 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
+
+import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
+import com.google.common.escape.Escaper;
+import com.google.common.net.UrlEscapers;
+
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.User;
 

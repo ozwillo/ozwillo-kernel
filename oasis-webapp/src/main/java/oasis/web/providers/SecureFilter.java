@@ -2,11 +2,13 @@ package oasis.web.providers;
 
 import java.io.IOException;
 import java.security.Principal;
+
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.PreMatching;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
+
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 
 /**

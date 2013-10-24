@@ -1,8 +1,8 @@
 package oasis.web.authn;
 
-import com.google.common.collect.ImmutableMap;
 import java.net.URI;
 import java.util.Date;
+
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -19,6 +19,9 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
+
+import com.google.common.collect.ImmutableMap;
+
 import oasis.web.Home;
 import oasis.web.view.View;
 

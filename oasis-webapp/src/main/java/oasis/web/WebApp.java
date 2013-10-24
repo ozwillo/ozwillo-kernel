@@ -1,5 +1,13 @@
 package oasis.web;
 
+import java.io.InputStream;
+import java.util.Properties;
+
+import javax.ws.rs.core.NewCookie;
+
+import org.jboss.resteasy.plugins.server.netty.NettyJaxrsServer;
+import org.jboss.resteasy.spi.ResteasyProviderFactory;
+
 import com.google.common.io.Resources;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -8,14 +16,10 @@ import com.wordnik.swagger.config.ScannerFactory;
 import com.wordnik.swagger.jaxrs.config.DefaultJaxrsScanner;
 import com.wordnik.swagger.jaxrs.reader.DefaultJaxrsApiReader;
 import com.wordnik.swagger.reader.ClassReaders;
-import java.io.InputStream;
-import java.util.Properties;
-import javax.ws.rs.core.NewCookie;
+
 import oasis.web.guice.GuiceInjectorFactory;
 import oasis.web.guice.OasisGuiceModule;
 import oasis.web.providers.NewCookieHeaderDelegate;
-import org.jboss.resteasy.plugins.server.netty.NettyJaxrsServer;
-import org.jboss.resteasy.spi.ResteasyProviderFactory;
 
 public class WebApp {
 

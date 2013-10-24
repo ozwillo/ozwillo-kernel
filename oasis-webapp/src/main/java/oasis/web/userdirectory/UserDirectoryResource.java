@@ -1,12 +1,6 @@
 package oasis.web.userdirectory;
 
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
-import oasis.model.accounts.AgentAccount;
-import oasis.model.directory.DirectoryRepository;
-import oasis.model.directory.Group;
+import java.util.Collection;
 
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
@@ -16,7 +10,15 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.Collection;
+
+import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiOperation;
+import com.wordnik.swagger.annotations.ApiResponse;
+import com.wordnik.swagger.annotations.ApiResponses;
+
+import oasis.model.accounts.AgentAccount;
+import oasis.model.directory.DirectoryRepository;
+import oasis.model.directory.Group;
 
 @Path("/d")
 @Produces(MediaType.APPLICATION_JSON)

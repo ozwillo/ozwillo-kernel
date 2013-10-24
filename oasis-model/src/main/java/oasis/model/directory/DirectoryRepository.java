@@ -1,8 +1,8 @@
 package oasis.model.directory;
 
-import oasis.model.accounts.AgentAccount;
-
 import java.util.Collection;
+
+import oasis.model.accounts.AgentAccount;
 
 public interface DirectoryRepository {
   Group getGroup(String id);

@@ -1,12 +1,11 @@
 package oasis.web.authn;
 
-import com.google.common.base.Splitter;
-import com.google.common.io.BaseEncoding;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.util.List;
+
 import javax.annotation.Priority;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -16,6 +15,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.ext.Provider;
+
+import com.google.common.base.Splitter;
+import com.google.common.io.BaseEncoding;
 
 /**
  * Implements HTTP Basic authentication, used when client applications authenticate to some OAuth 2.0 endpoints.

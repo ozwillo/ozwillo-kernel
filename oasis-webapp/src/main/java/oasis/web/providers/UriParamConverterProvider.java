@@ -1,13 +1,15 @@
 package oasis.web.providers;
 
-import com.google.common.net.UrlEscapers;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.net.URI;
+
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.ext.ParamConverter;
 import javax.ws.rs.ext.ParamConverterProvider;
 import javax.ws.rs.ext.Provider;
+
+import com.google.common.net.UrlEscapers;
 
 /**
  * "Lenient" parser for URIs.

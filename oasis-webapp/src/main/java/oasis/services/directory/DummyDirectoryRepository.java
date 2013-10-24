@@ -1,11 +1,11 @@
 package oasis.services.directory;
 
+import java.util.Collection;
+
 import oasis.model.accounts.AgentAccount;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Group;
 import oasis.model.directory.Organization;
-
-import java.util.Collection;
 
 public class DummyDirectoryRepository implements DirectoryRepository{
   @Override

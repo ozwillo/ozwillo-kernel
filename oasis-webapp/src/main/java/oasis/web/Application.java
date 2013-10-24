@@ -1,10 +1,11 @@
 package oasis.web;
 
+import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
 import com.wordnik.swagger.jaxrs.listing.ApiListingResourceJSON;
 import com.wordnik.swagger.jaxrs.listing.ResourceListingProvider;
-import java.util.Set;
+
 import oasis.web.apidocs.ApiDeclarationProvider;
 import oasis.web.authn.ClientAuthenticationFilter;
 import oasis.web.authn.Login;
