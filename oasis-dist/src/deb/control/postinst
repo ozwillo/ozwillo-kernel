@@ -1,0 +1,5 @@
+#! /bin/sh
+
+update-rc.d [[name]] defaults > /dev/null
+
+invoke-rc.d [[name]] start

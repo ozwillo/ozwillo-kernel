@@ -1,0 +1,6 @@
+#! /bin/sh
+
+update-rc.d [[name]] remove > /dev/null
+
+#TODO:
+# remove user and group on purge
