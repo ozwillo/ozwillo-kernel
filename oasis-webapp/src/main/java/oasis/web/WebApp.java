@@ -1,5 +1,6 @@
 package oasis.web;
 
+import java.io.File;
 import java.io.InputStream;
 import java.util.Properties;
 
@@ -7,6 +8,9 @@ import javax.ws.rs.core.NewCookie;
 
 import org.jboss.resteasy.plugins.server.netty.NettyJaxrsServer;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
+import org.kohsuke.args4j.CmdLineException;
+import org.kohsuke.args4j.CmdLineParser;
+import org.kohsuke.args4j.Option;
 
 import com.google.common.io.Resources;
 import com.google.inject.Guice;
@@ -23,10 +27,20 @@ import oasis.web.providers.NewCookieHeaderDelegate;
 
 public class WebApp {
 
+  private static final class CmdLineArgs {
+    @Option(name = "-c", usage = "Configuration file", metaVar = "file")
+    public File configurationFile;
+
+    @Option(name = "-l", usage = "Log4j configuration file", metaVar = "file")
+    public File log4jConfig;
+  }
+
   public static void main(String[] args) throws Throwable {
+    CmdLineArgs a = parseArgs(args);
+
     final NettyJaxrsServer server = new NettyJaxrsServer();
     server.getDeployment().setApplication(new Application());
-    // port defaults to 8080
+    //server.setPort(8080); // TODO: get port from settings
 
     // Guice configuration
     final Injector injector = Guice.createInjector(new OasisGuiceModule());
@@ -55,8 +69,27 @@ public class WebApp {
     });
 
     server.start();
-
     System.out.println(String.format("JAX-RS app started on port %d;", server.getPort()));
+  }
+
+  private static CmdLineArgs parseArgs(String[] args) {
+    CmdLineArgs result = new CmdLineArgs();
+    CmdLineParser parser = new CmdLineParser(result);
+
+    try {
+      parser.parseArgument(args);
+    } catch (CmdLineException e) {
+      printUsage(e);
+      System.exit(1);
+    }
+
+    return result;
+  }
+
+  private static void printUsage(CmdLineException e) {
+    // TODO: detailed usage description
+    System.err.println(e.getMessage());
+    e.getParser().printUsage(System.err);
   }
 
   private WebApp() { /* non instantiable */ }

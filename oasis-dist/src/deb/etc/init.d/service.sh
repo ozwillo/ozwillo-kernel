@@ -17,18 +17,21 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="${oasis.desc}"
 NAME="${oasis.service}"
 DAEMON="${oasis.home}/${oasis.service}"
-DAEMON_ARGS=""
 PIDFILE="/var/run/${oasis.service}.pid"
 SCRIPTNAME="/etc/init.d/${oasis.service}"
 
 SERVICE_USER="${oasis.user}"
 SERVICE_GROUP="${oasis.group}"
+CONF_DIR="/etc/${oasis.service}"
+EXTRA_ARGS=""
 
 # Exit if the package is not installed
 [ -x "$DAEMON" ] || exit 0
 
 # Read configuration variable file if it is present
 [ -r /etc/default/$NAME ] && . /etc/default/$NAME
+
+DAEMON_ARGS="-l $CONF_DIR/log4j2.xml -c $CONF_DIR/oasis.conf $EXTRA_ARGS"
 
 # Load the VERBOSE setting and other rcS variables
 . /lib/init/vars.sh

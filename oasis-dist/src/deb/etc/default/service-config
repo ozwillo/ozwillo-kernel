@@ -3,3 +3,9 @@
 
 #
 #SERVICE_GROUP=${oasis.group}
+
+#
+#CONF_DIR="/etc/${oasis.service}"
+
+#
+#EXTRA_ARGS=""
