@@ -8,4 +8,10 @@
 #CONF_DIR="/etc/${oasis.service}"
 
 #
+#LOG_DIR="/var/log/${oasis.service}"
+
+#
 #EXTRA_ARGS=""
+
+#
+#JAVA_OPTS=""

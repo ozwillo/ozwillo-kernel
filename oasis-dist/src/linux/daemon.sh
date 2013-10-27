@@ -2,4 +2,4 @@
 
 cd $(dirname $0)
 
-exec java -cp 'lib/*' oasis.web.WebApp "$@"
+exec java $JAVA_OPTS -cp 'lib/*' oasis.web.WebApp "$@"

@@ -78,6 +78,28 @@
                   </mapper>
                 </data>
                 <data>
+                  <type>template</type>
+                  <paths>
+                    <path>var/log/${oasis.service}</path>
+                  </paths>
+                  <mapper>
+                    <type>perm</type>
+                    <user>${oasis.user}</user>
+                    <group>${oasis.group}</group>
+                  </mapper>
+                </data>
+                <data>
+                  <src>${project.build.directory}/${project.build.finalName}/linux/etc</src>
+                  <dst>etc/${oasis.service}</dst>
+                  <type>directory</type>
+                  <mapper>
+                    <type>perm</type>
+                    <prefix>etc/${oasis.service}</prefix>
+                    <user>${oasis.user}</user>
+                    <group>${oasis.group}</group>
+                  </mapper>
+                </data>
+                <data>
                   <src>${project.build.directory}/${project.build.finalName}/linux/daemon.sh</src>
                   <dst>${oasis.service}</dst>
                   <type>file</type>

@@ -23,7 +23,9 @@ SCRIPTNAME="/etc/init.d/${oasis.service}"
 SERVICE_USER="${oasis.user}"
 SERVICE_GROUP="${oasis.group}"
 CONF_DIR="/etc/${oasis.service}"
+LOG_DIR="/var/log/${oasis.service}"
 EXTRA_ARGS=""
+JAVA_OPTS=""
 
 # Exit if the package is not installed
 [ -x "$DAEMON" ] || exit 0
@@ -32,6 +34,11 @@ EXTRA_ARGS=""
 [ -r /etc/default/$NAME ] && . /etc/default/$NAME
 
 DAEMON_ARGS="-l $CONF_DIR/log4j2.xml -c $CONF_DIR/oasis.conf $EXTRA_ARGS"
+
+export LOG_DIR
+
+TIMESTAMP=`date +%Y%m%d-%H%M%S`
+export JAVA_OPTS="-Xloggc:$LOG_DIR/gc-$TIMESTAMP.log -XX:+PrintGCDetails -XX:+PrintTenuringDistribution $JAVA_OPTS"
 
 # Load the VERBOSE setting and other rcS variables
 . /lib/init/vars.sh

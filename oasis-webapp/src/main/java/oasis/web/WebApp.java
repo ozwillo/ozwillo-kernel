@@ -11,6 +11,8 @@ import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.io.Resources;
 import com.google.inject.Guice;
@@ -26,6 +28,10 @@ import oasis.web.guice.OasisGuiceModule;
 import oasis.web.providers.NewCookieHeaderDelegate;
 
 public class WebApp {
+  // logger is not a static field to be initialized once log4j is configured
+  private static Logger logger() {
+    return LoggerFactory.getLogger(WebApp.class);
+  }
 
   private static final class CmdLineArgs {
     @Option(name = "-c", usage = "Configuration file", metaVar = "file")
@@ -37,6 +43,21 @@ public class WebApp {
 
   public static void main(String[] args) throws Throwable {
     CmdLineArgs a = parseArgs(args);
+
+    if (a.log4jConfig != null && a.log4jConfig.isFile() && a.log4jConfig.canRead()) {
+      System.setProperty("log4j.configurationFile", a.log4jConfig.getCanonicalPath());
+    } else {
+      // use default log4j configuration: all INFO and more to stdout
+      System.setProperty("org.apache.logging.log4j.level", "INFO");
+
+      if (a.log4jConfig != null) {
+        if (!a.log4jConfig.isFile() || !a.log4jConfig.canRead()) {
+          logger().warn("log4j2 configuration file not found or not readable. Using default configuration.");
+        }
+      } else {
+        logger().debug("No log4j2 configuration file specified. Using default configuration.");
+      }
+    }
 
     final NettyJaxrsServer server = new NettyJaxrsServer();
     server.getDeployment().setApplication(new Application());
@@ -63,13 +84,13 @@ public class WebApp {
     Runtime.getRuntime().addShutdownHook(new Thread() {
       @Override
       public void run() {
-        System.err.print("stopping");
         server.stop();
+        logger().info("JAX-RS app stopped.");
       }
     });
 
     server.start();
-    System.out.println(String.format("JAX-RS app started on port %d;", server.getPort()));
+    logger().info("JAX-RS app started on port {};", server.getPort());
   }
 
   private static CmdLineArgs parseArgs(String[] args) {

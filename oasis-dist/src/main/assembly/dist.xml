@@ -7,7 +7,6 @@
   <includeBaseDirectory>false</includeBaseDirectory>
   <baseDirectory>${project.name}-${project.version}</baseDirectory>
 
-
   <fileSets>
     <fileSet>
       <directory>${project.basedir}/src/linux/</directory>
@@ -17,6 +16,11 @@
     <fileSet>
       <directory>${project.basedir}/src/deb/etc/</directory>
       <outputDirectory>/linux/deb/etc/</outputDirectory>
+      <filtered>true</filtered>
+    </fileSet>
+    <fileSet>
+      <directory>${project.basedir}/src/etc/</directory>
+      <outputDirectory>/linux/etc/</outputDirectory>
       <filtered>true</filtered>
     </fileSet>
   </fileSets>

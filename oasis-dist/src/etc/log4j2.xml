@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration monitorInterval="60" shutdownHook="disable">
+  <Appenders>
+    <Async name="AsyncLogFile">
+      <AppenderRef ref="LogFile" />
+    </Async>
+    <RollingFile name="LogFile"
+      fileName="${env:LOG_DIR}/oasis.log"
+      filePattern="${env:LOG_DIR}/oasis-%d{yyyy-MM-dd}.log.gz">
+      <PatternLayout>
+        <Pattern>%d %p %c{1.} [%t] %m%n</Pattern>
+      </PatternLayout>
+      <Policies>
+        <TimeBasedTriggeringPolicy />
+      </Policies>
+    </RollingFile>
+  </Appenders>
+  <Loggers>
+    <Root level="info">
+      <AppenderRef ref="AsyncLogFile" />
+    </Root>
+  </Loggers>
+</Configuration>
