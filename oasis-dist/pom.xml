@@ -85,6 +85,8 @@
                     <type>perm</type>
                     <prefix>${oasis.home}</prefix>
                     <filemode>755</filemode>
+                    <user>${oasis.user}</user>
+                    <group>${oasis.group}</group>
                   </mapper>
                 </data>
                 <data>
