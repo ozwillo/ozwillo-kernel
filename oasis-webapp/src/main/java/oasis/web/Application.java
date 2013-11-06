@@ -8,6 +8,9 @@ import com.wordnik.swagger.jaxrs.listing.ResourceListingProvider;
 
 import oasis.web.providers.HttpInterceptor;
 import oasis.web.apidocs.ApiDeclarationProvider;
+import oasis.web.apps.ApplicationDirectoryResource;
+import oasis.web.apps.DataProviderDirectoryResource;
+import oasis.web.apps.ServiceProviderDirectoryResource;
 import oasis.web.authn.ClientAuthenticationFilter;
 import oasis.web.authn.Login;
 import oasis.web.authn.Logout;
@@ -23,6 +26,7 @@ import oasis.web.userdirectory.UserDirectoryResource;
 import oasis.web.view.HandlebarsBodyWriter;
 
 public class Application extends javax.ws.rs.core.Application {
+  public final static int SC_PRECONDITION_REQUIRED = 428;
 
   @Override
   public Set<Class<?>> getClasses() {
@@ -52,6 +56,10 @@ public class Application extends javax.ws.rs.core.Application {
         // Resources
         Home.class,
         UserDirectoryResource.class,
-        OpenIdConnect.class);
+        OpenIdConnect.class,
+        ApplicationDirectoryResource.class,
+        ServiceProviderDirectoryResource.class,
+        DataProviderDirectoryResource.class
+        );
   }
 }

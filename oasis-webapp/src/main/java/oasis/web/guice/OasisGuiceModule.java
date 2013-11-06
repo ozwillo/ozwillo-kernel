@@ -11,7 +11,9 @@ import oasis.audit.AuditService;
 import oasis.audit.NoopAuditService;
 import oasis.audit.log4j.Log4JAuditService;
 import oasis.audit.log4j.Log4JSupplier;
+import oasis.model.applications.ApplicationRepository;
 import oasis.model.directory.DirectoryRepository;
+import oasis.services.applications.DummyApplicationRepository;
 import oasis.services.directory.DummyDirectoryRepository;
 import oasis.web.NettyOasisServer;
 import oasis.web.OasisServer;
@@ -35,6 +37,7 @@ public class OasisGuiceModule extends AbstractModule {
     bind(Settings.class).toInstance(settings);
 
     bind(DirectoryRepository.class).to(DummyDirectoryRepository.class);
+    bind(ApplicationRepository.class).to(DummyApplicationRepository.class);
     bind(OasisServer.class).to(NettyOasisServer.class);
 
     Class<? extends AuditService> auditServiceImplClass = getAuditServiceImplClass(settings);
