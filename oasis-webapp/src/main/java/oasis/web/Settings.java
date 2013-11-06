@@ -12,9 +12,15 @@ public class Settings {
   public static class Builder {
 
     private int nettyPort;
+    private String swaggerApiVersion;
 
     public Builder setNettyPort(int nettyPort) {
       this.nettyPort = nettyPort;
+      return this;
+    }
+
+    public Builder setSwaggerApiVersion(String swaggerApiVersion) {
+      this.swaggerApiVersion = swaggerApiVersion;
       return this;
     }
 
@@ -25,7 +31,10 @@ public class Settings {
 
   public final int nettyPort;
 
+  public final String swaggerApiVersion;
+
   private Settings(Builder builder) {
     this.nettyPort = builder.nettyPort;
+    this.swaggerApiVersion = builder.swaggerApiVersion;
   }
 }

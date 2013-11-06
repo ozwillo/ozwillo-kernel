@@ -44,9 +44,10 @@ public class SettingsLoader {
 
   public static Builder fromConfig(Builder builder, Config config) {
     Path confDir = getDir(config, null, "oasis.conf-dir");
-    builder.setNettyPort(config.getInt("oasis.netty.port"));
 
-    // TODO
+    builder.setNettyPort(config.getInt("oasis.netty.port"));
+    builder.setSwaggerApiVersion(config.getString("swagger.api.version"));
+
     return builder;
   }
 
