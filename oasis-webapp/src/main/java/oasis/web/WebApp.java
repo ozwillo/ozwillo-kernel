@@ -1,7 +1,8 @@
 package oasis.web;
 
-import java.io.File;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Properties;
 
 import javax.ws.rs.core.NewCookie;
@@ -35,23 +36,23 @@ public class WebApp {
 
   private static final class CmdLineArgs {
     @Option(name = "-c", usage = "Configuration file", metaVar = "file")
-    public File configurationFile;
+    public Path configurationPath;
 
     @Option(name = "-l", usage = "Log4j configuration file", metaVar = "file")
-    public File log4jConfig;
+    public Path log4jConfig;
   }
 
   public static void main(String[] args) throws Throwable {
     CmdLineArgs a = parseArgs(args);
 
-    if (a.log4jConfig != null && a.log4jConfig.isFile() && a.log4jConfig.canRead()) {
-      System.setProperty("log4j.configurationFile", a.log4jConfig.getCanonicalPath());
+    if (a.log4jConfig != null && Files.isRegularFile(a.log4jConfig) && Files.isReadable(a.log4jConfig)) {
+      System.setProperty("log4j.configurationFile", a.log4jConfig.toRealPath().toString());
     } else {
       // use default log4j configuration: all INFO and more to stdout
       System.setProperty("org.apache.logging.log4j.level", "INFO");
 
       if (a.log4jConfig != null) {
-        if (!a.log4jConfig.isFile() || !a.log4jConfig.canRead()) {
+        if (!Files.isRegularFile(a.log4jConfig) || !Files.isReadable(a.log4jConfig)) {
           logger().warn("log4j2 configuration file not found or not readable. Using default configuration.");
         }
       } else {
@@ -59,12 +60,14 @@ public class WebApp {
       }
     }
 
+    Settings settings = SettingsLoader.load(a.configurationPath);
+
     final NettyJaxrsServer server = new NettyJaxrsServer();
     server.getDeployment().setApplication(new Application());
-    //server.setPort(8080); // TODO: get port from settings
+    server.setPort(settings.nettyPort);
 
     // Guice configuration
-    final Injector injector = Guice.createInjector(new OasisGuiceModule());
+    final Injector injector = Guice.createInjector(new OasisGuiceModule(settings));
     ResteasyProviderFactory providerFactory = new ResteasyProviderFactory();
     providerFactory.setInjectorFactory(new GuiceInjectorFactory(injector));
     server.getDeployment().setProviderFactory(providerFactory);
