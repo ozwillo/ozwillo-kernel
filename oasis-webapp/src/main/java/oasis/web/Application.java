@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableSet;
 import com.wordnik.swagger.jaxrs.listing.ApiListingResourceJSON;
 import com.wordnik.swagger.jaxrs.listing.ResourceListingProvider;
 
+import oasis.web.providers.HttpInterceptor;
 import oasis.web.apidocs.ApiDeclarationProvider;
 import oasis.web.authn.ClientAuthenticationFilter;
 import oasis.web.authn.Login;
@@ -46,6 +47,8 @@ public class Application extends javax.ws.rs.core.Application {
         // Authorization
         AuthorizationEndpoint.class,
         TokenEndpoint.class,
+        // Audit
+        HttpInterceptor.class,
         // Resources
         Home.class,
         UserDirectoryResource.class,

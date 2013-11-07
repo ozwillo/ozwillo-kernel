@@ -48,6 +48,9 @@ public class SettingsLoader {
     builder.setNettyPort(config.getInt("oasis.netty.port"));
     builder.setSwaggerApiVersion(config.getString("swagger.api.version"));
 
+    builder.setAuditDisabled(config.getBoolean("oasis.audit.disabled"));
+    builder.setAuditService(config.getString("oasis.audit.service"));
+
     return builder;
   }
 

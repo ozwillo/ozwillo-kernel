@@ -13,6 +13,8 @@ public class Settings {
 
     private int nettyPort;
     private String swaggerApiVersion;
+    private boolean auditDisabled;
+    private String auditService;
 
     public Builder setNettyPort(int nettyPort) {
       this.nettyPort = nettyPort;
@@ -21,6 +23,16 @@ public class Settings {
 
     public Builder setSwaggerApiVersion(String swaggerApiVersion) {
       this.swaggerApiVersion = swaggerApiVersion;
+      return this;
+    }
+
+    public Builder setAuditDisabled(boolean auditDisabled) {
+      this.auditDisabled = auditDisabled;
+      return this;
+    }
+
+    public Builder setAuditService(String auditService) {
+      this.auditService = auditService;
       return this;
     }
 
@@ -33,8 +45,13 @@ public class Settings {
 
   public final String swaggerApiVersion;
 
+  public final boolean auditDisabled;
+  public final String auditService;
+
   private Settings(Builder builder) {
     this.nettyPort = builder.nettyPort;
     this.swaggerApiVersion = builder.swaggerApiVersion;
+    this.auditDisabled = builder.auditDisabled;
+    this.auditService = builder.auditService;
   }
 }
