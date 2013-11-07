@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.net.URI;
 
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -25,7 +26,7 @@ public class ApiDeclarationProvider extends com.wordnik.swagger.jaxrs.listing.Ap
     data = new ApiListing(
         data.apiVersion(),
         data.swaggerVersion(),
-        uriInfo.getBaseUri().toASCIIString(), // overwrite basePath
+        getCanonicalBaseUri(), // overwrite basePath
         data.resourcePath(),
         data.produces(),
         data.consumes(),
@@ -37,5 +38,13 @@ public class ApiDeclarationProvider extends com.wordnik.swagger.jaxrs.listing.Ap
         data.position()
     );
     super.writeTo(data, type, genericType, annotations, mediaType, headers, out);
+  }
+
+  private String getCanonicalBaseUri() {
+    final String baseUri = uriInfo.getBaseUri().toASCIIString();
+    if(baseUri.endsWith("/")) {
+      return baseUri.substring(0, baseUri.length()-1);
+    }
+    return baseUri;
   }
 }
