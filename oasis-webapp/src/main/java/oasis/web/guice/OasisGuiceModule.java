@@ -9,6 +9,8 @@ import com.google.inject.AbstractModule;
 
 import oasis.audit.AuditService;
 import oasis.audit.NoopAuditService;
+import oasis.audit.log4j.Log4JAuditService;
+import oasis.audit.log4j.Log4JSupplier;
 import oasis.model.directory.DirectoryRepository;
 import oasis.services.directory.DummyDirectoryRepository;
 import oasis.web.NettyOasisServer;
@@ -35,7 +37,16 @@ public class OasisGuiceModule extends AbstractModule {
     bind(DirectoryRepository.class).to(DummyDirectoryRepository.class);
     bind(OasisServer.class).to(NettyOasisServer.class);
 
-    bind(AuditService.class).to(getAuditServiceImplClass(settings));
+    Class<? extends AuditService> auditServiceImplClass = getAuditServiceImplClass(settings);
+    if (Log4JAuditService.class.isAssignableFrom(auditServiceImplClass)) {
+      Class<? extends Log4JSupplier> log4JSupplierImplClass = getLog4JSupplierImplClass(settings);
+      if (log4JSupplierImplClass == null) {
+        auditServiceImplClass = DEFAULT_AUDIT_SERVICE;
+      } else {
+        bind(Log4JSupplier.class).to(log4JSupplierImplClass);
+      }
+    }
+    bind(AuditService.class).to(auditServiceImplClass);
   }
 
   private Class<? extends AuditService> getAuditServiceImplClass(Settings settings) {
@@ -49,6 +60,19 @@ public class OasisGuiceModule extends AbstractModule {
       }
     }
     return DEFAULT_AUDIT_SERVICE;
+  }
+
+  private Class<? extends Log4JSupplier> getLog4JSupplierImplClass(Settings settings) {
+    try {
+      return getClassFromString(settings.auditLog4JSupplier, Log4JSupplier.class);
+    } catch (ClassNotFoundException e1) {
+      logger.error("{} class does not exists or is unreachable. NoopAuditService used instead of {}.",
+          new Object[]{settings.auditLog4JSupplier, settings.auditService, e1});
+    } catch (ClassCastException e2) {
+      logger.error("{} class is not a subclass of Log4JSupplier. NoopAuditService used instead of {}.",
+          new Object[]{settings.auditLog4JSupplier, settings.auditService, e2});
+    }
+    return null;
   }
 
   @SuppressWarnings("unchecked")

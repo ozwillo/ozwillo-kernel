@@ -50,6 +50,8 @@ public class SettingsLoader {
 
     builder.setAuditDisabled(config.getBoolean("oasis.audit.disabled"));
     builder.setAuditService(config.getString("oasis.audit.service"));
+    builder.setAuditLog4JSupplier(config.getString("oasis.audit.log4j.supplier"));
+    builder.setAuditCubeUrl(config.getString("oasis.audit.log4j.cube.url"));
 
     return builder;
   }
