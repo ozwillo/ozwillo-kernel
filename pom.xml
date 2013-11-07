@@ -144,6 +144,7 @@
     <module>oasis-webapp</module>
     <module>oasis-dist</module>
     <module>log4j2-cube</module>
+    <module>log4j2-fluentd</module>
   </modules>
 
   <profiles>

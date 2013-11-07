@@ -17,6 +17,8 @@ public class Settings {
     private String auditService;
     private String auditLog4JSupplier;
     private String auditCubeUrl;
+    private String auditFluentdUrl;
+    private String auditFluentdTag;
 
     public Builder setNettyPort(int nettyPort) {
       this.nettyPort = nettyPort;
@@ -48,6 +50,16 @@ public class Settings {
       return this;
     }
 
+    public Builder setAuditFluentdUrl(String auditFluentdUrl) {
+      this.auditFluentdUrl = auditFluentdUrl;
+      return this;
+    }
+
+    public Builder setAuditFluentdTag(String auditFluentdTag) {
+      this.auditFluentdTag = auditFluentdTag;
+      return this;
+    }
+
     public Settings build() {
       return new Settings(this);
     }
@@ -61,6 +73,8 @@ public class Settings {
   public final String auditService;
   public final String auditLog4JSupplier;
   public final String auditCubeUrl;
+  public final String auditFluentdUrl;
+  public final String auditFluentdTag;
 
   private Settings(Builder builder) {
     this.nettyPort = builder.nettyPort;
@@ -69,5 +83,7 @@ public class Settings {
     this.auditService = builder.auditService;
     this.auditLog4JSupplier = builder.auditLog4JSupplier;
     this.auditCubeUrl = builder.auditCubeUrl;
+    this.auditFluentdUrl = builder.auditFluentdUrl;
+    this.auditFluentdTag = builder.auditFluentdTag;
   }
 }

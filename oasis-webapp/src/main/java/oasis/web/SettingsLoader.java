@@ -52,6 +52,8 @@ public class SettingsLoader {
     builder.setAuditService(config.getString("oasis.audit.service"));
     builder.setAuditLog4JSupplier(config.getString("oasis.audit.log4j.supplier"));
     builder.setAuditCubeUrl(config.getString("oasis.audit.log4j.cube.url"));
+    builder.setAuditFluentdUrl(config.getString("oasis.audit.log4j.fluentd.url"));
+    builder.setAuditFluentdTag(config.getString("oasis.audit.log4j.fluentd.tag"));
 
     return builder;
   }
