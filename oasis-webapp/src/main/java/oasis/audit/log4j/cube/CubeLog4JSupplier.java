@@ -12,17 +12,16 @@ import com.atolcd.logging.log4j.cube.CubeAppender;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
-import oasis.audit.LogEvent;
 import oasis.audit.JsonMessage;
+import oasis.audit.LogEvent;
 import oasis.audit.log4j.Log4JSupplier;
-import oasis.web.Settings;
 
 public class CubeLog4JSupplier implements Log4JSupplier {
 
-  private final Settings settings;
+  private final CubeLog4JAuditModule.Settings settings;
 
   @Inject
-  public CubeLog4JSupplier(Settings settings) {
+  public CubeLog4JSupplier(CubeLog4JAuditModule.Settings settings) {
     this.settings = settings;
   }
 
@@ -39,6 +38,6 @@ public class CubeLog4JSupplier implements Log4JSupplier {
 
   @Override
   public Appender createAppender(String appenderName) {
-    return CubeAppender.createAppender(appenderName, settings.auditCubeUrl, null, null, null);
+    return CubeAppender.createAppender(appenderName, settings.cubeUrl, null, null, null);
   }
 }

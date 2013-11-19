@@ -9,9 +9,20 @@ import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.typesafe.config.Config;
+import com.wordnik.swagger.config.ConfigFactory;
+import com.wordnik.swagger.config.ScannerFactory;
+import com.wordnik.swagger.jaxrs.config.DefaultJaxrsScanner;
+import com.wordnik.swagger.jaxrs.reader.DefaultJaxrsApiReader;
+import com.wordnik.swagger.reader.ClassReaders;
 
+import oasis.audit.log4j.fluentd.FluentdLog4JAuditModule;
+import oasis.audit.noop.NoopAuditModule;
+import oasis.http.HttpServer;
+import oasis.http.HttpServerModule;
 import oasis.web.guice.OasisGuiceModule;
 
 public class WebApp {
@@ -46,9 +57,21 @@ public class WebApp {
       }
     }
 
-    final Injector injector = Guice.createInjector(new OasisGuiceModule(a.configurationPath));
+    final Config config = SettingsLoader.load(a.configurationPath);
 
-    final OasisServer server = injector.getInstance(OasisServer.class);
+    AbstractModule auditModule = (config.getBoolean("oasis.audit.disabled")) ?
+        new NoopAuditModule() :
+        FluentdLog4JAuditModule.create(config.withOnlyPath("oasis.audit.fluentd"));
+
+    final Injector injector = Guice.createInjector(
+        new OasisGuiceModule(),
+        auditModule,
+        HttpServerModule.create(config.withOnlyPath("oasis.http"))
+    );
+
+    final HttpServer server = injector.getInstance(HttpServer.class);
+
+    initSwagger(config);
 
     Runtime.getRuntime().addShutdownHook(new Thread() {
       @Override
@@ -58,6 +81,14 @@ public class WebApp {
     });
 
     server.start();
+  }
+
+  private static void initSwagger(Config config) {
+    ConfigFactory.config().setApiVersion(config.getString("swagger.api.version"));
+
+    // TODO: authorizations and info
+    ScannerFactory.setScanner(new DefaultJaxrsScanner());
+    ClassReaders.setReader(new DefaultJaxrsApiReader());
   }
 
   private static CmdLineArgs parseArgs(String[] args) {

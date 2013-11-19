@@ -6,7 +6,6 @@ import com.google.common.collect.ImmutableSet;
 import com.wordnik.swagger.jaxrs.listing.ApiListingResourceJSON;
 import com.wordnik.swagger.jaxrs.listing.ResourceListingProvider;
 
-import oasis.web.providers.HttpInterceptor;
 import oasis.web.apidocs.ApiDeclarationProvider;
 import oasis.web.apps.ApplicationDirectoryResource;
 import oasis.web.apps.DataProviderDirectoryResource;
@@ -20,6 +19,7 @@ import oasis.web.authz.AuthorizationEndpoint;
 import oasis.web.authz.TokenEndpoint;
 import oasis.web.example.OpenIdConnect;
 import oasis.web.providers.CookieParserRequestFilter;
+import oasis.web.providers.HttpInterceptor;
 import oasis.web.providers.SecureFilter;
 import oasis.web.providers.UriParamConverterProvider;
 import oasis.web.userdirectory.UserDirectoryResource;

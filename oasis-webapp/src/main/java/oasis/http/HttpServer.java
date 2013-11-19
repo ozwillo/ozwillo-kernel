@@ -1,4 +1,4 @@
-package oasis.web;
+package oasis.http;
 
 import javax.inject.Inject;
 import javax.ws.rs.core.NewCookie;
@@ -9,31 +9,26 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Injector;
-import com.wordnik.swagger.config.ConfigFactory;
-import com.wordnik.swagger.config.ScannerFactory;
-import com.wordnik.swagger.jaxrs.config.DefaultJaxrsScanner;
-import com.wordnik.swagger.jaxrs.reader.DefaultJaxrsApiReader;
-import com.wordnik.swagger.reader.ClassReaders;
 
+import oasis.web.Application;
 import oasis.web.guice.GuiceInjectorFactory;
 import oasis.web.providers.NewCookieHeaderDelegate;
 
-public class NettyOasisServer implements OasisServer {
-  private final static Logger logger = LoggerFactory.getLogger(NettyOasisServer.class);
+public class HttpServer {
+  private final static Logger logger = LoggerFactory.getLogger(HttpServer.class);
 
   private final Injector injector;
 
-  private final Settings settings;
+  private final HttpServerModule.Settings settings;
 
   private NettyJaxrsServer server;
 
   @Inject
-  NettyOasisServer(Injector injector, Settings settings) {
+  HttpServer(Injector injector, HttpServerModule.Settings settings) {
     this.injector = injector;
     this.settings = settings;
   }
 
-  @Override
   public void start() {
     server = new NettyJaxrsServer();
     server.getDeployment().setApplication(new Application());
@@ -45,17 +40,10 @@ public class NettyOasisServer implements OasisServer {
     // workaround for https://java.net/jira/browse/JAX_RS_SPEC-430
     providerFactory.addHeaderDelegate(NewCookie.class, new NewCookieHeaderDelegate());
 
-    // Swagger initialisation
-    ConfigFactory.config().setApiVersion(settings.swaggerApiVersion);
-    // TODO: authorizations and info
-    ScannerFactory.setScanner(new DefaultJaxrsScanner());
-    ClassReaders.setReader(new DefaultJaxrsApiReader());
-
     server.start();
     logger.info("Oasis server started on port {};", server.getPort());
   }
 
-  @Override
   public void stop() {
     server.stop();
     logger.info("Oasis server stopped.");

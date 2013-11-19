@@ -11,16 +11,15 @@ import org.apache.logging.log4j.message.Message;
 import com.atolcd.logging.log4j.fluentd.FluentdAppender;
 import com.google.common.collect.ImmutableMap;
 
-import oasis.audit.LogEvent;
 import oasis.audit.JsonMessage;
+import oasis.audit.LogEvent;
 import oasis.audit.log4j.Log4JSupplier;
-import oasis.web.Settings;
 
 public class FluentdLog4JSupplier implements Log4JSupplier {
-  private final Settings settings;
+  private final FluentdLog4JAuditModule.Settings settings;
 
   @Inject
-  public FluentdLog4JSupplier(Settings settings) {
+  public FluentdLog4JSupplier(FluentdLog4JAuditModule.Settings settings) {
     this.settings = settings;
   }
 
@@ -37,6 +36,6 @@ public class FluentdLog4JSupplier implements Log4JSupplier {
 
   @Override
   public Appender createAppender(String appenderName) {
-    return FluentdAppender.createAppender(appenderName, settings.auditFluentdUrl, settings.auditFluentdTag, null, null, null);
+    return FluentdAppender.createAppender(appenderName, settings.fluentdUrl, settings.fluentdTag, null, null, null);
   }
 }
