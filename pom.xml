@@ -56,9 +56,14 @@
       <dependency>
         <groupId>org.jboss.resteasy</groupId>
         <artifactId>resteasy-bom</artifactId>
-        <version>3.0.4.Final</version>
+        <version>3.0.5.Final</version>
         <type>pom</type>
         <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>io.netty</groupId>
+        <artifactId>netty-all</artifactId>
+        <version>4.0.12.Final</version>
       </dependency>
       <dependency>
         <groupId>com.github.jknack</groupId>
