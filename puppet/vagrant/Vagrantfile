@@ -34,6 +34,7 @@ Vagrant::Config.run do |config|
   config.vm.forward_port 8080, 8080 # Oasis
   config.vm.forward_port 9200, 9200 # ElasticSearch port
   config.vm.forward_port 9880, 9880 # Fluentd in_http port
+  config.vm.forward_port 27017, 27017 # Mongodb
 
   # Share an additional folder to the guest VM. The first argument is
   # an identifier, the second is the path on the guest to mount the

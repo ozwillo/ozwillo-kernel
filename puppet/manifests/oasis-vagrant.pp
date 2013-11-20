@@ -3,11 +3,6 @@ node 'oasis-box.atolcd.priv' {
     admin_mail => 'jpo@atolcd.com',
   }
 
-  class {'::oasis':
-    package_url       => '/project/oasis-dist/target/oasis-dist_0.3.0+SNAPSHOT_all.deb',
-  }
-
-  # elasticsearch
   class { '::elasticsearch':
     package_url       => download_file('files', 'elasticsearch/elasticsearch-0.90.7.deb', 'https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-0.90.7.deb'),
     java_install      => true,
@@ -18,5 +13,13 @@ node 'oasis-box.atolcd.priv' {
     }
   }
 
+  class { '::mongodb':
+    no_prealloc => true,
+  }
+
+  class {'::oasis':
+    package_url => '/project/oasis-dist/target/oasis-dist_0.3.0+SNAPSHOT_all.deb',
+    require     => Class['mongodb', 'elasticsearch'],
+  }
 }
 

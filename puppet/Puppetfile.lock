@@ -61,6 +61,13 @@ GIT
     java (0.0.1)
 
 GIT
+  remote: http://gerrit.atolcd.priv/atolcd/puppet-modules/mongodb.git
+  ref: 52b88174b5a67fa8e48cd78665d6f59e9c0fd047
+  sha: 52b88174b5a67fa8e48cd78665d6f59e9c0fd047
+  specs:
+    mongodb (0.0.1)
+
+GIT
   remote: http://gerrit.atolcd.priv/atolcd/puppet-modules/ntp.git
   ref: a00b999bc610d93caa9c496d00a22888e9e682ba
   sha: a00b999bc610d93caa9c496d00a22888e9e682ba
@@ -126,6 +133,7 @@ DEPENDENCIES
   firewall (>= 0)
   fluentd (>= 0)
   java (>= 0)
+  mongodb (>= 0)
   ntp (>= 0)
   puppet (>= 0)
   ruby (>= 0)
