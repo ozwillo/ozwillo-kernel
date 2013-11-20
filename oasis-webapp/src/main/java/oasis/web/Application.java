@@ -18,6 +18,7 @@ import oasis.web.authn.UserAuthenticationFilter;
 import oasis.web.authz.AuthorizationEndpoint;
 import oasis.web.authz.TokenEndpoint;
 import oasis.web.example.OpenIdConnect;
+import oasis.web.kibana.ElasticSearchProxy;
 import oasis.web.kibana.Kibana;
 import oasis.web.providers.CookieParserRequestFilter;
 import oasis.web.providers.HttpInterceptor;
@@ -61,8 +62,9 @@ public class Application extends javax.ws.rs.core.Application {
         ApplicationDirectoryResource.class,
         ServiceProviderDirectoryResource.class,
         DataProviderDirectoryResource.class,
-        // Kibana
-        Kibana.class
+        // Kibana and ElasticSearch proxy
+        Kibana.class,
+        ElasticSearchProxy.class
         );
   }
 }
