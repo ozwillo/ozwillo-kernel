@@ -3,22 +3,19 @@ class oasis (
   $package_url        = false,
 ) {
 
-  # dependencies
-  # java
-  package { 'openjdk-7-jdk':
-    ensure => present,
+  if ! defined(Package['openjdk-7-jdk']) {
+    package { 'openjdk-7-jdk':
+      ensure => present,
+    }
   }
 
-  # fluentd
   class {'::fluentd': }
   fluentd::in::http {'all':}
   fluentd::out::elasticsearch {'default':
     host => $elasticsearch_host,
   }
 
-  # oasis
   if $package_url {
-
     # create a local copy of the package
     $filename_array = split($package_url, '/')
     $base_filename = $filename_array[-1]
@@ -30,6 +27,7 @@ class oasis (
       group  => 'root',
       backup => false,
     }
+
     package { 'oasis':
       ensure   => latest,
       provider => 'dpkg',
@@ -39,8 +37,9 @@ class oasis (
     }
 
     service {'oasis':
-      ensure    => running,
-      enable    => true,
+      ensure => running,
+      enable => true,
     }
   }
 }
+
