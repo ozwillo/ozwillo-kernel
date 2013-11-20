@@ -44,7 +44,7 @@ Vagrant::Config.run do |config|
   config.vm.provision :puppet do |puppet|
     puppet.manifests_path = "../manifests"
     puppet.manifest_file  = "oasis-vagrant.pp"
-    puppet.module_path    = "../modules","../project_modules"
+    puppet.module_path    = "../modules/deps","../modules/project"
   end
 
   config.vm.customize ["modifyvm", :id, "--memory", "1024"]

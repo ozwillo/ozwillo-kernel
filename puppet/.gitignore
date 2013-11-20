@@ -1,3 +1,2 @@
-modules/
-.librarian/
+modules/deps/
 .tmp/
