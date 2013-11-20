@@ -2,6 +2,7 @@ package oasis.web.apps;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collection;
 
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
@@ -32,6 +33,8 @@ import com.wordnik.swagger.annotations.ApiResponses;
 
 import oasis.model.applications.Application;
 import oasis.model.applications.ApplicationRepository;
+import oasis.model.applications.DataProvider;
+import oasis.model.applications.ServiceProvider;
 
 @Path("/d/app")
 @Produces(MediaType.APPLICATION_JSON)
@@ -163,5 +166,51 @@ public class ApplicationDirectoryResource {
     applications.deleteApplication(applicationId);
     return Response.noContent()
         .build();
+  }
+
+  @GET
+  @Path("/{applicationId}/dataproviders")
+  @ApiOperation(value = "Retrieve data providers of an application",
+      notes = "Returns data providers array",
+      response = DataProvider.class,
+      responseContainer = "Array")
+  @ApiResponses({@ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
+      message = "The requested application does not exist, or no application id has been sent"),
+      @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
+          message = "The current user cannot access the requested application")})
+  public Response getDataProviders(@PathParam("applicationId") String applicationId) {
+    Collection<DataProvider> dataProviders = applications.getDataProviders(applicationId);
+    if (dataProviders != null) {
+      return Response.ok()
+          .entity(dataProviders)
+          .build();
+    } else {
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity("The requested application does not exist")
+          .build();
+    }
+  }
+
+  @GET
+  @Path("/{applicationId}/serviceproviders")
+  @ApiOperation(value = "Retrieve service providers of an application",
+      notes = "Returns service providers array",
+      response = ServiceProvider.class,
+      responseContainer = "Array")
+  @ApiResponses({@ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
+      message = "The requested application does not exist, or no application id has been sent"),
+      @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
+          message = "The current user cannot access the requested application")})
+  public Response getServiceProviders(@PathParam("applicationId") String applicationId) {
+    Collection<ServiceProvider> serviceProviders = applications.getServiceProviders(applicationId);
+    if (serviceProviders != null) {
+      return Response.ok()
+          .entity(serviceProviders)
+          .build();
+    } else {
+      return Response.status(Response.Status.NOT_FOUND)
+          .entity("The requested application does not exist")
+          .build();
+    }
   }
 }

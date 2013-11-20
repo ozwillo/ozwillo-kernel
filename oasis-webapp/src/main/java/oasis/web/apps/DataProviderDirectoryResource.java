@@ -34,38 +34,13 @@ import oasis.model.applications.ApplicationRepository;
 import oasis.model.applications.DataProvider;
 import oasis.model.applications.Scopes;
 
-@Path("/d/app/{applicationId}/dataproviders")
+@Path("/d/dataprovider")
 @Produces(MediaType.APPLICATION_JSON)
-@Api(value = "/d/app/{applicationId}/dataproviders", description = "Application data providers directory API")
+@Api(value = "/d/dataprovider", description = "Application data providers directory API")
 public class DataProviderDirectoryResource {
 
   @Inject
   private ApplicationRepository applications;
-
-  @PathParam("applicationId")
-  private String applicationId;
-
-  @GET
-  @ApiOperation(value = "Retrieve data providers of an application",
-                notes = "Returns data providers array",
-                response = DataProvider.class,
-                responseContainer = "Array")
-  @ApiResponses({ @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
-                               message = "The requested application does not exist, or no application id has been sent"),
-                  @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
-                               message = "The current user cannot access the requested application") })
-  public Response getDataProviders() {
-    Collection<DataProvider> dataProviders = applications.getDataProviders(applicationId);
-    if (dataProviders != null) {
-      return Response.ok()
-          .entity(dataProviders)
-          .build();
-    } else {
-      return Response.status(Response.Status.NOT_FOUND)
-          .entity("The requested application does not exist")
-          .build();
-    }
-  }
 
   @GET
   @Path("/{dataProviderId}")
@@ -77,7 +52,7 @@ public class DataProviderDirectoryResource {
                   @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
                                message = "The current user cannot access the requested application") })
   public Response getDataProvider(@PathParam("dataProviderId") String dataProviderId) {
-    DataProvider dataProvider = applications.getDataProvider(applicationId, dataProviderId);
+    DataProvider dataProvider = applications.getDataProvider(dataProviderId);
     if (dataProvider != null) {
       EntityTag etag = new EntityTag(Long.toString(dataProvider.getModified()));
       return Response.ok()
@@ -101,7 +76,7 @@ public class DataProviderDirectoryResource {
                   @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
                                message = "The current user cannot access the requested application") })
   public Response getDataProviderScopes(@PathParam("dataProviderId") String dataProviderId) {
-    Scopes scopes = applications.getProvidedScopes(applicationId, dataProviderId);
+    Scopes scopes = applications.getProvidedScopes(dataProviderId);
     if (scopes != null) {
       EntityTag etag = new EntityTag(Long.toString(scopes.getModified()));
       return Response.ok()
@@ -126,14 +101,7 @@ public class DataProviderDirectoryResource {
   public Response postDataProvider(
       @Context UriInfo uriInfo,
       @ApiParam DataProvider dataProvider) throws URISyntaxException {
-    Application app = applications.getApplication(applicationId);
-    if (app == null) {
-      return Response.status(Response.Status.NOT_FOUND)
-          .entity("The requested application does not exist")
-          .build();
-    }
-
-    String dataProviderId = applications.createDataProvider(applicationId, dataProvider);
+    String dataProviderId = applications.createDataProvider(dataProvider);
     EntityTag etag = new EntityTag(Long.toString(dataProvider.getModified()));
     URI res = new URI(uriInfo.getRequestUri().toString() + dataProviderId);
     return Response.created(res)
@@ -158,24 +126,18 @@ public class DataProviderDirectoryResource {
       @HeaderParam("If-Match") @ApiParam(required = true) String etagStr,
       @PathParam("dataProviderId") String dataProviderId,
       @ApiParam DataProvider dataProvider) {
-    Application app = applications.getApplication(applicationId);
-    if (app == null) {
-      return Response.status(Response.Status.NOT_FOUND)
-          .entity("The requested application does not exist")
-          .build();
-    }
     if (Strings.isNullOrEmpty(etagStr)) {
       return Response.status(oasis.web.Application.SC_PRECONDITION_REQUIRED).build();
     }
 
-    DataProvider dp = applications.getDataProvider(applicationId, dataProviderId);
+    DataProvider dp = applications.getDataProvider(dataProviderId);
     EntityTag etag = new EntityTag(Long.toString(dp.getModified()));
     Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(etag);
     if (responseBuilder != null) {
       return responseBuilder.build();
     }
 
-    applications.updateDataProvider(applicationId, dataProviderId, dataProvider);
+    applications.updateDataProvider(dataProviderId, dataProvider);
     etag = new EntityTag(Long.toString(dataProvider.getModified()));
     return Response.noContent()
         .tag(etag)
@@ -202,21 +164,21 @@ public class DataProviderDirectoryResource {
     if (Strings.isNullOrEmpty(etagStr)) {
       return Response.status(oasis.web.Application.SC_PRECONDITION_REQUIRED).build();
     }
-    DataProvider dp = applications.getDataProvider(applicationId, dataProviderId);
+    DataProvider dp = applications.getDataProvider(dataProviderId);
     if (dp == null) {
       return Response.status(Response.Status.NOT_FOUND)
           .entity("The requested application/data provider does not exist")
           .build();
     }
 
-    Scopes s = applications.getProvidedScopes(applicationId, dataProviderId);
+    Scopes s = applications.getProvidedScopes(dataProviderId);
     EntityTag etag = new EntityTag(Long.toString(s.getModified()));
     Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(etag);
     if (responseBuilder != null) {
       return responseBuilder.build();
     }
 
-    applications.updateDataProviderScopes(applicationId, dataProviderId, scopes);
+    applications.updateDataProviderScopes(dataProviderId, scopes);
     etag = new EntityTag(Long.toString(scopes.getModified()));
     return Response.noContent()
         .tag(etag)
@@ -242,7 +204,7 @@ public class DataProviderDirectoryResource {
       return Response.status(oasis.web.Application.SC_PRECONDITION_REQUIRED).build();
     }
 
-    DataProvider dp = applications.getDataProvider(applicationId, dataProviderId);
+    DataProvider dp = applications.getDataProvider(dataProviderId);
     if (dp == null) {
       return Response.status(Response.Status.NOT_FOUND)
           .entity("The requested application/data provider does not exist")
@@ -255,7 +217,7 @@ public class DataProviderDirectoryResource {
       return responseBuilder.build();
     }
 
-    applications.deleteDataProvider(applicationId, dataProviderId);
+    applications.deleteDataProvider(dataProviderId);
     return Response.noContent()
         .build();
   }

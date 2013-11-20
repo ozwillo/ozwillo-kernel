@@ -2,7 +2,6 @@ package oasis.web.apps;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Collection;
 
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
@@ -29,43 +28,17 @@ import com.wordnik.swagger.annotations.ApiParam;
 import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
 
-import oasis.model.applications.Application;
 import oasis.model.applications.ApplicationRepository;
 import oasis.model.applications.ScopeCardinalities;
 import oasis.model.applications.ServiceProvider;
 
-@Path("/d/app/{applicationId}/serviceproviders")
+@Path("/d/serviceprovider")
 @Produces(MediaType.APPLICATION_JSON)
-@Api(value = "/d/app/{applicationId}/serviceproviders", description = "Application service providers directory API")
+@Api(value = "/d/serviceprovider", description = "Application service providers directory API")
 public class ServiceProviderDirectoryResource {
 
   @Inject
   private ApplicationRepository applications;
-
-  @PathParam("applicationId")
-  private String applicationId;
-
-  @GET
-  @ApiOperation(value = "Retrieve service providers of an application",
-                notes = "Returns service providers array",
-                response = ServiceProvider.class,
-                responseContainer = "Array")
-  @ApiResponses({ @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
-                               message = "The requested application does not exist, or no application id has been sent"),
-                  @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
-                               message = "The current user cannot access the requested application") })
-  public Response getServiceProviders() {
-    Collection<ServiceProvider> serviceProviders = applications.getServiceProviders(applicationId);
-    if (serviceProviders != null) {
-      return Response.ok()
-          .entity(serviceProviders)
-          .build();
-    } else {
-      return Response.status(Response.Status.NOT_FOUND)
-          .entity("The requested application does not exist")
-          .build();
-    }
-  }
 
   @GET
   @Path("/{serviceProviderId}")
@@ -78,7 +51,7 @@ public class ServiceProviderDirectoryResource {
                                message = "The current user cannot access the requested application") })
   public Response getServiceProvider(
       @PathParam("serviceProviderId") String serviceProviderId) {
-    ServiceProvider serviceProvider = applications.getServiceProvider(applicationId, serviceProviderId);
+    ServiceProvider serviceProvider = applications.getServiceProvider(serviceProviderId);
     if (serviceProvider != null) {
       EntityTag etag = new EntityTag(Long.toString(serviceProvider.getModified()));
       return Response.ok()
@@ -103,7 +76,7 @@ public class ServiceProviderDirectoryResource {
                                message = "The current user cannot access the requested application") })
   public Response getServiceProviderScopes(
       @PathParam("serviceProviderId") String serviceProviderId) {
-    ScopeCardinalities cardinalities = applications.getRequiredScopes(applicationId, serviceProviderId);
+    ScopeCardinalities cardinalities = applications.getRequiredScopes(serviceProviderId);
     if (cardinalities != null) {
       EntityTag etag = new EntityTag(Long.toString(cardinalities.getModified()));
       return Response.ok()
@@ -128,14 +101,7 @@ public class ServiceProviderDirectoryResource {
   public Response postServiceProvider(
       @Context UriInfo uriInfo,
       @ApiParam ServiceProvider serviceProvider) throws URISyntaxException {
-    Application app = applications.getApplication(applicationId);
-    if (app == null) {
-      return Response.status(Response.Status.NOT_FOUND)
-          .entity("The requested application does not exist")
-          .build();
-    }
-
-    String serviceProviderId = applications.createServiceProvider(applicationId, serviceProvider);
+    String serviceProviderId = applications.createServiceProvider(serviceProvider);
     EntityTag etag = new EntityTag(Long.toString(serviceProvider.getModified()));
     URI res = new URI(uriInfo.getRequestUri().toString() + serviceProviderId);
     return Response.created(res)
@@ -160,24 +126,18 @@ public class ServiceProviderDirectoryResource {
       @HeaderParam("If-Match") @ApiParam(required = true) String etagStr,
       @PathParam("serviceProviderId") String serviceProviderId,
       @ApiParam ServiceProvider serviceProvider) {
-    Application app = applications.getApplication(applicationId);
-    if (app == null) {
-      return Response.status(Response.Status.NOT_FOUND)
-          .entity("The requested application does not exist")
-          .build();
-    }
     if (Strings.isNullOrEmpty(etagStr)) {
       return Response.status(oasis.web.Application.SC_PRECONDITION_REQUIRED).build();
     }
 
-    ServiceProvider sp = applications.getServiceProvider(applicationId, serviceProviderId);
+    ServiceProvider sp = applications.getServiceProvider(serviceProviderId);
     EntityTag etag = new EntityTag(Long.toString(sp.getModified()));
     Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(etag);
     if (responseBuilder != null) {
       return responseBuilder.build();
     }
 
-    applications.updateServiceProvider(applicationId, serviceProviderId, serviceProvider);
+    applications.updateServiceProvider(serviceProviderId, serviceProvider);
     etag = new EntityTag(Long.toString(serviceProvider.getModified()));
     return Response.noContent()
         .tag(etag)
@@ -204,21 +164,21 @@ public class ServiceProviderDirectoryResource {
     if (Strings.isNullOrEmpty(etagStr)) {
       return Response.status(oasis.web.Application.SC_PRECONDITION_REQUIRED).build();
     }
-    ServiceProvider sp = applications.getServiceProvider(applicationId, serviceProviderId);
+    ServiceProvider sp = applications.getServiceProvider(serviceProviderId);
     if (sp == null) {
       return Response.status(Response.Status.NOT_FOUND)
           .entity("The requested application/service provider does not exist")
           .build();
     }
 
-    ScopeCardinalities s = applications.getRequiredScopes(applicationId, serviceProviderId);
+    ScopeCardinalities s = applications.getRequiredScopes(serviceProviderId);
     EntityTag etag = new EntityTag(Long.toString(s.getModified()));
     Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(etag);
     if (responseBuilder != null) {
       return responseBuilder.build();
     }
 
-    applications.updateServiceProviderScopes(applicationId, serviceProviderId, scopeCardinalities);
+    applications.updateServiceProviderScopes(serviceProviderId, scopeCardinalities);
     etag = new EntityTag(Long.toString(scopeCardinalities.getModified()));
     return Response.noContent()
         .tag(etag)
@@ -244,7 +204,7 @@ public class ServiceProviderDirectoryResource {
       return Response.status(oasis.web.Application.SC_PRECONDITION_REQUIRED).build();
     }
 
-    ServiceProvider sp = applications.getServiceProvider(applicationId, serviceProviderId);
+    ServiceProvider sp = applications.getServiceProvider(serviceProviderId);
     if (sp == null) {
       return Response.status(Response.Status.NOT_FOUND)
           .entity("The requested application/service provider does not exist")
@@ -257,7 +217,7 @@ public class ServiceProviderDirectoryResource {
       return responseBuilder.build();
     }
 
-    applications.deleteServiceProvider(applicationId, serviceProviderId);
+    applications.deleteServiceProvider(serviceProviderId);
     return Response.noContent()
         .build();
   }

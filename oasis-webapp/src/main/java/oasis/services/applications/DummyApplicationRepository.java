@@ -41,32 +41,32 @@ public class DummyApplicationRepository implements ApplicationRepository {
   }
 
   @Override
-  public DataProvider getDataProvider(String applicationId, String dataProviderId) {
+  public DataProvider getDataProvider(String dataProviderId) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public Scopes getProvidedScopes(String applicationId, String dataProviderId) {
+  public Scopes getProvidedScopes(String dataProviderId) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public String createDataProvider(String applicationId, DataProvider dataProvider) {
+  public String createDataProvider(DataProvider dataProvider) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void updateDataProvider(String applicationId, String dataProviderId, DataProvider dataProvider) {
+  public void updateDataProvider(String dataProviderId, DataProvider dataProvider) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void updateDataProviderScopes(String applicationId, String dataProviderId, Scopes scopes) {
+  public void updateDataProviderScopes(String dataProviderId, Scopes scopes) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void deleteDataProvider(String applicationId, String dataProviderId) {
+  public void deleteDataProvider(String dataProviderId) {
     throw new UnsupportedOperationException();
   }
 
@@ -76,32 +76,32 @@ public class DummyApplicationRepository implements ApplicationRepository {
   }
 
   @Override
-  public ServiceProvider getServiceProvider(String applicationId, String serviceProviderId) {
+  public ServiceProvider getServiceProvider(String serviceProviderId) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public ScopeCardinalities getRequiredScopes(String applicationId, String serviceProviderId) {
+  public ScopeCardinalities getRequiredScopes(String serviceProviderId) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public String createServiceProvider(String applicationId, ServiceProvider serviceProvider) {
+  public String createServiceProvider(ServiceProvider serviceProvider) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void updateServiceProvider(String applicationId, String serviceProviderId, ServiceProvider serviceProvider) {
+  public void updateServiceProvider(String serviceProviderId, ServiceProvider serviceProvider) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void updateServiceProviderScopes(String applicationId, String serviceProviderId, ScopeCardinalities scopeCardinalities) {
+  public void updateServiceProviderScopes(String serviceProviderId, ScopeCardinalities scopeCardinalities) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void deleteServiceProvider(String applicationId, String serviceProviderId) {
+  public void deleteServiceProvider(String serviceProviderId) {
     throw new UnsupportedOperationException();
   }
 }
