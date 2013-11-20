@@ -23,6 +23,8 @@ import oasis.audit.log4j.fluentd.FluentdLog4JAuditModule;
 import oasis.audit.noop.NoopAuditModule;
 import oasis.http.HttpServer;
 import oasis.http.HttpServerModule;
+import oasis.storage.JongoModule;
+import oasis.storage.JongoService;
 import oasis.web.guice.OasisGuiceModule;
 
 public class WebApp {
@@ -65,11 +67,13 @@ public class WebApp {
 
     final Injector injector = Guice.createInjector(
         new OasisGuiceModule(),
+        JongoModule.create(config.withOnlyPath("oasis.mongo")),
         auditModule,
         HttpServerModule.create(config.withOnlyPath("oasis.http"))
     );
 
     final HttpServer server = injector.getInstance(HttpServer.class);
+    final JongoService jongo = injector.getInstance(JongoService.class);
 
     initSwagger(config);
 
@@ -77,9 +81,11 @@ public class WebApp {
       @Override
       public void run() {
         server.stop();
+        jongo.stop();
       }
     });
 
+    jongo.start();
     server.start();
   }
 
