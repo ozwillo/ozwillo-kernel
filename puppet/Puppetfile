@@ -24,7 +24,7 @@ mod "apt",
 
 mod "download_file",
   :git => "http://gerrit.atolcd.priv/atolcd/puppet-download_file.git",
-  :ref => '179cfd20bc828d21d189fdc608c7afbf1cc62b01'
+  :ref => 'e4e4144447ee8ad54d6a1e359535b3586a727d47'
 
 mod "augeas",
   :git => "git://github.com/camptocamp/puppet-augeas.git",
@@ -59,4 +59,26 @@ mod "firewall",
 mod "java",
   :git => "http://gerrit.atolcd.priv/atolcd/puppet-modules/java.git",
   :ref => 'd21ee3ed43a8de0cf7c627f92c5b5859d54d12c4'
+
+mod "fluentd",
+  :git => "http://gerrit.atolcd.priv/atolcd/puppet-modules/fluentd.git",
+  :ref => "1d28c2c3fc7df014f4fa8c6296b03ff4a713d69c"
+
+# needed by fluentd :
+# * augeasproviders
+# * ruby
+
+mod "augeasproviders",
+  :git => "git://github.com/hercules-team/augeasproviders.git",
+  :ref => 'be18e2ee3803bfe39dced1fa9113b4e87139e857'
+
+mod "ruby",
+  :git => "http://gerrit.atolcd.priv/atolcd/puppet-modules/ruby.git",
+  :ref => "e96f7889ce9d62007624d89dbdc89d74ddc57a39"
+
+# end of fluentd dependencies
+
+mod "elasticsearch",
+  :git => "https://github.com/elasticsearch/puppet-elasticsearch.git",
+  :ref => "0244c435e65d29eb3f5b800c38c55bc0a7eb384e"
 
