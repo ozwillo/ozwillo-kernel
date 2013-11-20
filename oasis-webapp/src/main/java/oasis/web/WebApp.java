@@ -24,6 +24,7 @@ import oasis.audit.noop.NoopAuditModule;
 import oasis.http.HttpServer;
 import oasis.http.HttpServerModule;
 import oasis.web.guice.OasisGuiceModule;
+import oasis.web.kibana.KibanaModule;
 
 public class WebApp {
   // logger is not a static field to be initialized once log4j is configured
@@ -66,7 +67,8 @@ public class WebApp {
     final Injector injector = Guice.createInjector(
         new OasisGuiceModule(),
         auditModule,
-        HttpServerModule.create(config.withOnlyPath("oasis.http"))
+        HttpServerModule.create(config.withOnlyPath("oasis.http")),
+        KibanaModule.create(config.withOnlyPath("oasis.kibana"))
     );
 
     final HttpServer server = injector.getInstance(HttpServer.class);
