@@ -51,6 +51,5 @@ public class HttpServerModule extends AbstractModule {
   @Override
   protected void configure() {
     bind(Settings.class).toInstance(settings);
-    bind(HttpServer.class).to(HttpServer.class);
   }
 }
