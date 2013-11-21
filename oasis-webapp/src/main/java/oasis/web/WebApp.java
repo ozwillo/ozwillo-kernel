@@ -26,6 +26,7 @@ import oasis.http.HttpServerModule;
 import oasis.storage.JongoModule;
 import oasis.storage.JongoService;
 import oasis.web.guice.OasisGuiceModule;
+import oasis.web.kibana.KibanaModule;
 
 public class WebApp {
   // logger is not a static field to be initialized once log4j is configured
@@ -69,7 +70,8 @@ public class WebApp {
         new OasisGuiceModule(),
         JongoModule.create(config.withOnlyPath("oasis.mongo")),
         auditModule,
-        HttpServerModule.create(config.withOnlyPath("oasis.http"))
+        HttpServerModule.create(config.withOnlyPath("oasis.http")),
+        KibanaModule.create(config.withOnlyPath("oasis.kibana"))
     );
 
     final HttpServer server = injector.getInstance(HttpServer.class);
