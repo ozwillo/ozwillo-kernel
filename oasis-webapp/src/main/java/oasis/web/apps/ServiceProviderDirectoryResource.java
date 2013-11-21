@@ -32,9 +32,9 @@ import oasis.model.applications.ApplicationRepository;
 import oasis.model.applications.ScopeCardinalities;
 import oasis.model.applications.ServiceProvider;
 
-@Path("/d/serviceprovider")
+@Path("/d/serviceproviders")
 @Produces(MediaType.APPLICATION_JSON)
-@Api(value = "/d/serviceprovider", description = "Application service providers directory API")
+@Api(value = "/d/serviceproviders", description = "Application service providers directory API")
 public class ServiceProviderDirectoryResource {
 
   @Inject
@@ -46,9 +46,9 @@ public class ServiceProviderDirectoryResource {
                 notes = "Returns a service provider",
                 response = ServiceProvider.class)
   @ApiResponses({ @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
-                               message = "The requested application/service provider does not exist, or no application/service provider id has been sent"),
+                               message = "The requested service provider does not exist, or no service provider id has been sent"),
                   @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
-                               message = "The current user cannot access the requested application") })
+                               message = "The current user cannot access the requested service provider") })
   public Response getServiceProvider(
       @PathParam("serviceProviderId") String serviceProviderId) {
     ServiceProvider serviceProvider = applications.getServiceProvider(serviceProviderId);
@@ -60,7 +60,7 @@ public class ServiceProviderDirectoryResource {
           .build();
     } else {
       return Response.status(Response.Status.NOT_FOUND)
-          .entity("The requested application/service provider does not exist")
+          .entity("The requested service provider does not exist")
           .build();
     }
   }
@@ -71,9 +71,9 @@ public class ServiceProviderDirectoryResource {
                 notes = "Returns a ScopeCardinality array",
                 response = ScopeCardinalities.class)
   @ApiResponses({ @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
-                               message = "The requested application/service provider does not exist, or no application/service provider id has been sent"),
+                               message = "The requested service provider does not exist, or no service provider id has been sent"),
                   @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
-                               message = "The current user cannot access the requested application") })
+                               message = "The current user cannot access the requested service provider") })
   public Response getServiceProviderScopes(
       @PathParam("serviceProviderId") String serviceProviderId) {
     ScopeCardinalities cardinalities = applications.getRequiredScopes(serviceProviderId);
@@ -85,7 +85,7 @@ public class ServiceProviderDirectoryResource {
           .build();
     } else {
       return Response.status(Response.Status.NOT_FOUND)
-          .entity("The requested application/service provider does not exist")
+          .entity("The requested service provider does not exist")
           .build();
     }
   }
@@ -94,10 +94,8 @@ public class ServiceProviderDirectoryResource {
   @Path("/")
   @Consumes(MediaType.APPLICATION_JSON)
   @ApiOperation(value = "Creates a service provider")
-  @ApiResponses({ @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
-                               message = "The requested application does not exist, or no application id has been sent"),
-                  @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
-                               message = "The current user cannot access the requested application") })
+  @ApiResponses({ @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
+                               message = "The current user cannot access the requested service provider") })
   public Response postServiceProvider(
       @Context UriInfo uriInfo,
       @ApiParam ServiceProvider serviceProvider) throws URISyntaxException {
@@ -115,10 +113,8 @@ public class ServiceProviderDirectoryResource {
   @ApiOperation(value = "Updates a service provider")
   @ApiResponses({ @ApiResponse(code = oasis.web.Application.SC_PRECONDITION_REQUIRED,
                                message = "The If-Match header is mandatory"),
-                  @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
-                               message = "The requested application does not exist, or no application id has been sent"),
                   @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
-                               message = "The current user cannot access the requested application"),
+                               message = "The current user cannot access the requested service provider"),
                   @ApiResponse(code = HttpServletResponse.SC_PRECONDITION_FAILED,
                                message = "Mismatching etag") })
   public Response putServiceProvider(
@@ -151,9 +147,9 @@ public class ServiceProviderDirectoryResource {
   @ApiResponses({ @ApiResponse(code = oasis.web.Application.SC_PRECONDITION_REQUIRED,
                                message = "The If-Match header is mandatory"),
                   @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
-                               message = "The requested application/service provider does not exist, or no application/service provider id has been sent"),
+                               message = "The requested service provider does not exist, or no service provider id has been sent"),
                   @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
-                               message = "The current user cannot access the requested application"),
+                               message = "The current user cannot access the requested service provider"),
                   @ApiResponse(code = HttpServletResponse.SC_PRECONDITION_FAILED,
                                message = "Mismatching etag") })
   public Response putServiceProviderScopes(
@@ -167,7 +163,7 @@ public class ServiceProviderDirectoryResource {
     ServiceProvider sp = applications.getServiceProvider(serviceProviderId);
     if (sp == null) {
       return Response.status(Response.Status.NOT_FOUND)
-          .entity("The requested application/service provider does not exist")
+          .entity("The requested service provider does not exist")
           .build();
     }
 
@@ -191,7 +187,7 @@ public class ServiceProviderDirectoryResource {
   @ApiResponses({ @ApiResponse(code = oasis.web.Application.SC_PRECONDITION_REQUIRED,
                                message = "The If-Match header is mandatory"),
                   @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
-                               message = "The requested application/service provider does not exist, or no application id has been sent"),
+                               message = "The requested service provider does not exist"),
                   @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
                                message = "The current user cannot access or delete the requested service provider") ,
                   @ApiResponse(code = HttpServletResponse.SC_PRECONDITION_FAILED,
@@ -207,7 +203,7 @@ public class ServiceProviderDirectoryResource {
     ServiceProvider sp = applications.getServiceProvider(serviceProviderId);
     if (sp == null) {
       return Response.status(Response.Status.NOT_FOUND)
-          .entity("The requested application/service provider does not exist")
+          .entity("The requested service provider does not exist")
           .build();
     }
 
