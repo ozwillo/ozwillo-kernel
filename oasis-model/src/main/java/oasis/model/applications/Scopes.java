@@ -9,16 +9,16 @@ import com.wordnik.swagger.annotations.ApiModelProperty;
 public class Scopes {
   @JsonProperty
   @ApiModelProperty()
-  private String[] values;
+  private Scope[] values;
 
   @JsonIgnore
   private long modified;
 
-  public String[] getValues() {
+  public Scope[] getValues() {
     return values;
   }
 
-  public void setValues(String[] values) {
+  public void setValues(Scope[] values) {
     this.values = values;
   }
 
