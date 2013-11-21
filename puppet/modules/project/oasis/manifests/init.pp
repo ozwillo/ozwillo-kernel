@@ -12,7 +12,8 @@ class oasis (
   class {'::fluentd': }
   fluentd::in::http {'all':}
   fluentd::out::elasticsearch {'default':
-    host => $elasticsearch_host,
+    host            => $elasticsearch_host,
+    logstash_format => true,
   }
 
   if $package_url {
