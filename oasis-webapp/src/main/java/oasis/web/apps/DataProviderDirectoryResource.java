@@ -48,9 +48,9 @@ public class DataProviderDirectoryResource {
                 notes = "Returns a data provider",
                 response = DataProvider.class)
   @ApiResponses({ @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
-                               message = "The requested application/data provider does not exist, or no application/data provider id has been sent"),
+                               message = "The requested data provider does not exist, or no data provider id has been sent"),
                   @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
-                               message = "The current user cannot access the requested application") })
+                               message = "The current user cannot access the requested data provider") })
   public Response getDataProvider(@PathParam("dataProviderId") String dataProviderId) {
     DataProvider dataProvider = applications.getDataProvider(dataProviderId);
     if (dataProvider != null) {
@@ -61,7 +61,7 @@ public class DataProviderDirectoryResource {
           .build();
     } else {
       return Response.status(Response.Status.NOT_FOUND)
-          .entity("The requested application/data provider does not exist")
+          .entity("The requested data provider does not exist")
           .build();
     }
   }
@@ -72,9 +72,9 @@ public class DataProviderDirectoryResource {
                 notes = "Returns a Scope array",
                 response = Scopes.class)
   @ApiResponses({ @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
-                               message = "The requested application/data provider does not exist, or no application/data provider id has been sent"),
+                               message = "The requested data provider does not exist, or no data provider id has been sent"),
                   @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
-                               message = "The current user cannot access the requested application") })
+                               message = "The current user cannot access the requested data provider") })
   public Response getDataProviderScopes(@PathParam("dataProviderId") String dataProviderId) {
     Scopes scopes = applications.getProvidedScopes(dataProviderId);
     if (scopes != null) {
@@ -85,7 +85,7 @@ public class DataProviderDirectoryResource {
           .build();
     } else {
       return Response.status(Response.Status.NOT_FOUND)
-          .entity("The requested application/data provider does not exist")
+          .entity("The requested data provider does not exist")
           .build();
     }
   }
@@ -94,10 +94,8 @@ public class DataProviderDirectoryResource {
   @Path("/")
   @Consumes(MediaType.APPLICATION_JSON)
   @ApiOperation(value = "Creates or updates a data provider")
-  @ApiResponses({ @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
-                               message = "The requested application does not exist, or no application id has been sent"),
-                  @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
-                               message = "The current user cannot access the requested application") })
+  @ApiResponses({ @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
+                               message = "The current user cannot access the requested data provider") })
   public Response postDataProvider(
       @Context UriInfo uriInfo,
       @ApiParam DataProvider dataProvider) throws URISyntaxException {
@@ -115,10 +113,8 @@ public class DataProviderDirectoryResource {
   @ApiOperation(value = "Creates or updates a data provider")
   @ApiResponses({ @ApiResponse(code = oasis.web.Application.SC_PRECONDITION_REQUIRED,
                                message = "The If-Match header is mandatory"),
-                  @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
-                               message = "The requested application does not exist, or no application id has been sent"),
                   @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
-                               message = "The current user cannot access the requested application"),
+                               message = "The current user cannot access the requested data provider"),
                   @ApiResponse(code = HttpServletResponse.SC_PRECONDITION_FAILED,
                                message = "Mismatching etag") })
   public Response putDataProvider(
@@ -151,9 +147,9 @@ public class DataProviderDirectoryResource {
   @ApiResponses({ @ApiResponse(code = oasis.web.Application.SC_PRECONDITION_REQUIRED,
                                message = "The If-Match header is mandatory"),
                   @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
-                               message = "The requested application/data provider does not exist, or no application/data provider id has been sent"),
+                               message = "The requested data provider does not exist, or no data provider id has been sent"),
                   @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
-                               message = "The current user cannot access the requested application"),
+                               message = "The current user cannot access the requested data provider"),
                   @ApiResponse(code = HttpServletResponse.SC_PRECONDITION_FAILED,
                                message = "Mismatching etag") })
   public Response putDataProviderScopes(
@@ -167,7 +163,7 @@ public class DataProviderDirectoryResource {
     DataProvider dp = applications.getDataProvider(dataProviderId);
     if (dp == null) {
       return Response.status(Response.Status.NOT_FOUND)
-          .entity("The requested application/data provider does not exist")
+          .entity("The requested data provider does not exist")
           .build();
     }
 
@@ -191,12 +187,12 @@ public class DataProviderDirectoryResource {
   @ApiResponses({ @ApiResponse(code = oasis.web.Application.SC_PRECONDITION_REQUIRED,
                                message = "The If-Match header is mandatory"),
                   @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
-                               message = "The requested application/data provider does not exist, or no application id has been sent"),
+                               message = "The requested data provider does not exist"),
                   @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
                                message = "The current user cannot access or delete the requested data provider"),
                   @ApiResponse(code = HttpServletResponse.SC_PRECONDITION_FAILED,
                                message = "Mismatching etag") })
-  public Response deleteApplication(
+  public Response deleteDataProvider(
       @Context Request request,
       @HeaderParam("If-Match") @ApiParam(required = true) String etagStr,
       @PathParam("dataProviderId") String dataProviderId) {
@@ -207,7 +203,7 @@ public class DataProviderDirectoryResource {
     DataProvider dp = applications.getDataProvider(dataProviderId);
     if (dp == null) {
       return Response.status(Response.Status.NOT_FOUND)
-          .entity("The requested application/data provider does not exist")
+          .entity("The requested data provider does not exist")
           .build();
     }
 
