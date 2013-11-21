@@ -62,7 +62,7 @@ mod "java",
 
 mod "fluentd",
   :git => "http://gerrit.atolcd.priv/atolcd/puppet-modules/fluentd.git",
-  :ref => "1d28c2c3fc7df014f4fa8c6296b03ff4a713d69c"
+  :ref => "d02473fed093b6668007e22cb76023a80457af10"
 
 # needed by fluentd :
 # * augeasproviders
