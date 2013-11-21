@@ -5,6 +5,7 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.jongo.Jongo;
+import org.jongo.marshall.jackson.JacksonIdFieldSelector;
 import org.jongo.marshall.jackson.JacksonMapper;
 
 import com.google.common.base.Preconditions;
@@ -33,6 +34,7 @@ public class JongoService implements Provider<Jongo> {
   public void start() throws Exception {
     mongoConnection = new MongoClient(settings.mongoURI);
     jongoConnection = new Jongo(mongoConnection.getDB(settings.mongoURI.getDatabase()), new JacksonMapper.Builder()
+        .withObjectIdUpdater(new OasisIdUpdater(new JacksonIdFieldSelector()))
         .build());
   }
 
