@@ -3,7 +3,7 @@ package oasis.model.accounts;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
-public class UserAccount extends Account {
+public class UserAccount extends Account implements AccountWithPassword {
   @JsonProperty
   @ApiModelProperty(required = true)
   private String emailAddress;
@@ -11,6 +11,14 @@ public class UserAccount extends Account {
   @JsonProperty
   @ApiModelProperty(required = true)
   private String identityId;
+
+  @JsonProperty
+  @ApiModelProperty(required = true)
+  private String password;
+
+  @JsonProperty
+  @ApiModelProperty(required = true)
+  private String passwordSalt;
 
   public String getEmailAddress() {
     return emailAddress;
@@ -26,5 +34,21 @@ public class UserAccount extends Account {
 
   public void setIdentityId(String identityId) {
     this.identityId = identityId;
+  }
+
+  public String getPassword() {
+    return password;
+  }
+
+  public void setPassword(String password) {
+    this.password = password;
+  }
+
+  public String getPasswordSalt() {
+    return passwordSalt;
+  }
+
+  public void setPasswordSalt(String passwordSalt) {
+    this.passwordSalt = passwordSalt;
   }
 }

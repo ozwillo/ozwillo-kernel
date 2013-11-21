@@ -114,6 +114,10 @@
       <artifactId>bson4jackson</artifactId>
       <version>2.2.0</version>
     </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+    </dependency>
   </dependencies>
   <build>
     <resources>

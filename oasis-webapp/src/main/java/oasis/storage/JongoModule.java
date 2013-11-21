@@ -6,6 +6,9 @@ import com.google.inject.AbstractModule;
 import com.mongodb.MongoClientURI;
 import com.typesafe.config.Config;
 
+import oasis.services.auth.login.PasswordHasher;
+import oasis.services.auth.login.SShaPasswordHasher;
+
 public class JongoModule extends AbstractModule {
 
   public static class Settings {

@@ -3,6 +3,7 @@ package oasis.web.authn;
 import java.net.URI;
 import java.util.Date;
 
+import javax.inject.Inject;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -22,6 +23,8 @@ import javax.ws.rs.core.UriInfo;
 
 import com.google.common.collect.ImmutableMap;
 
+import oasis.model.accounts.Account;
+import oasis.services.auth.UserPasswordAuthenticator;
 import oasis.web.Home;
 import oasis.web.view.View;
 
@@ -29,13 +32,16 @@ import oasis.web.view.View;
 public class Login {
   public static final String CONTINUE_PARAM = "continue";
 
+  @Inject
+  UserPasswordAuthenticator userPasswordAuthenticator;
+
   @Context SecurityContext securityContext;
   @Context UriInfo uriInfo;
 
   @GET
   @Produces(MediaType.TEXT_HTML)
   public Response get(@QueryParam(CONTINUE_PARAM) URI continueUrl) {
-    return loginForm(Response.ok(), continueUrl);
+    return loginForm(Response.ok(), continueUrl, null);
   }
 
   @POST
@@ -45,25 +51,38 @@ public class Login {
       @FormParam("continue") URI continueUrl
   ) {
     if (userName.isEmpty()) {
-      return loginForm(Response.status(Response.Status.BAD_REQUEST), continueUrl);
+      return loginForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, null);
     }
     if (continueUrl == null) {
       continueUrl = defaultContinueUrl();
     }
 
-    // TODO: authenticate
-    // TODO: generate session ID
-    // TODO: One-Time Password
-    return Response
-        .seeOther(continueUrl)
-        .cookie(createCookie(userName, null, securityContext.isSecure())) // TODO: remember me
-        .build();
+    // Attempt auth
+    try {
+      // Attempt auth
+      Account account = userPasswordAuthenticator.authenticate(userName, password);
+
+      // TODO: generate session ID
+      // TODO: One-Time Password
+      return Response
+          .seeOther(continueUrl)
+          .cookie(createCookie(account.getId(), null, securityContext.isSecure())) // TODO: remember me
+      .build();
+    } catch (Throwable e) {
+      return loginForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, e.toString());
+    }
   }
 
-  private Response loginForm(Response.ResponseBuilder builder, URI continueUrl) {
+  private Response loginForm(Response.ResponseBuilder builder, URI continueUrl, String errorMessage) {
     if (continueUrl == null) {
       continueUrl = defaultContinueUrl();
     }
+
+    // Initialise un message d'erreur vide au besoin
+    if ( errorMessage == null ) {
+      errorMessage = "";
+    }
+
     // TODO: CSRF (entêtes no-cache en prévision)
     return builder
         .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store")
@@ -74,7 +93,8 @@ public class Login {
         .header("X-XSS-Protection", "1; mode=block")
         .entity(new View("oasis/web/authn/Login.get.html", ImmutableMap.of(
             "formAction", UriBuilder.fromResource(Login.class).build(),
-            "continue", continueUrl
+            "continue", continueUrl,
+            "errorMessage", errorMessage
         )))
         .build();
   }
