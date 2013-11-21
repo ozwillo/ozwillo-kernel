@@ -84,4 +84,4 @@ mod "elasticsearch",
 
 mod "mongodb",
   :git => "http://gerrit.atolcd.priv/atolcd/puppet-modules/mongodb.git",
-  :ref => "52b88174b5a67fa8e48cd78665d6f59e9c0fd047"
+  :ref => "0049818b740cdfb3cc04b27617ee6a881e69fdf0"
