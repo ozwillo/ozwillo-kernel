@@ -76,6 +76,7 @@ public class ApplicationDirectoryResource {
           .build();
     } else {
       return Response.status(Response.Status.NOT_FOUND)
+          .type(MediaType.TEXT_PLAIN)
           .entity("The requested application does not exist")
           .build();
     }
@@ -153,6 +154,7 @@ public class ApplicationDirectoryResource {
     Application app = applications.getApplication(applicationId);
     if (app == null) {
       return Response.status(Response.Status.NOT_FOUND)
+          .type(MediaType.TEXT_PLAIN)
           .entity("The requested application does not exist")
           .build();
     }
@@ -186,6 +188,7 @@ public class ApplicationDirectoryResource {
           .build();
     } else {
       return Response.status(Response.Status.NOT_FOUND)
+          .type(MediaType.TEXT_PLAIN)
           .entity("The requested application does not exist")
           .build();
     }
@@ -209,6 +212,7 @@ public class ApplicationDirectoryResource {
           .build();
     } else {
       return Response.status(Response.Status.NOT_FOUND)
+          .type(MediaType.TEXT_PLAIN)
           .entity("The requested application does not exist")
           .build();
     }

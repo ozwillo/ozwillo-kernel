@@ -61,6 +61,7 @@ public class DataProviderDirectoryResource {
           .build();
     } else {
       return Response.status(Response.Status.NOT_FOUND)
+          .type(MediaType.TEXT_PLAIN)
           .entity("The requested data provider does not exist")
           .build();
     }
@@ -85,6 +86,7 @@ public class DataProviderDirectoryResource {
           .build();
     } else {
       return Response.status(Response.Status.NOT_FOUND)
+          .type(MediaType.TEXT_PLAIN)
           .entity("The requested data provider does not exist")
           .build();
     }
@@ -163,6 +165,7 @@ public class DataProviderDirectoryResource {
     DataProvider dp = applications.getDataProvider(dataProviderId);
     if (dp == null) {
       return Response.status(Response.Status.NOT_FOUND)
+          .type(MediaType.TEXT_PLAIN)
           .entity("The requested data provider does not exist")
           .build();
     }
@@ -203,6 +206,7 @@ public class DataProviderDirectoryResource {
     DataProvider dp = applications.getDataProvider(dataProviderId);
     if (dp == null) {
       return Response.status(Response.Status.NOT_FOUND)
+          .type(MediaType.TEXT_PLAIN)
           .entity("The requested data provider does not exist")
           .build();
     }

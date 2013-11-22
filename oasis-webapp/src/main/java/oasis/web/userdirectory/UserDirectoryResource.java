@@ -42,12 +42,13 @@ public class UserDirectoryResource {
     Collection<AgentAccount> accounts = directory.getOrganizationMembers(organizationId);
     if (accounts != null){
       return Response.ok()
-              .entity(accounts)
-              .build();
+          .entity(accounts)
+          .build();
     } else {
       return Response.status(Response.Status.NOT_FOUND)
-              .entity("The requested organization does not exist")
-              .build();
+          .type(MediaType.TEXT_PLAIN)
+          .entity("The requested organization does not exist")
+          .build();
     }
   }
 
@@ -65,12 +66,13 @@ public class UserDirectoryResource {
     Collection<Group> groups = directory.getGroups(organizationId);
     if (groups != null){
       return Response.ok()
-              .entity(groups)
-              .build();
+          .entity(groups)
+          .build();
     } else {
       return Response.status(Response.Status.NOT_FOUND)
-              .entity("The requested organization does not exist")
-              .build();
+          .type(MediaType.TEXT_PLAIN)
+          .entity("The requested organization does not exist")
+          .build();
     }
   }
 
@@ -88,12 +90,13 @@ public class UserDirectoryResource {
     Collection<AgentAccount> agents = directory.getGroupMembers(groupId);
     if (agents != null){
       return Response.ok()
-              .entity(agents)
-              .build();
+          .entity(agents)
+          .build();
     } else {
       return Response.status(Response.Status.NOT_FOUND)
-              .entity("The requested group does not exist")
-              .build();
+          .type(MediaType.TEXT_PLAIN)
+          .entity("The requested group does not exist")
+          .build();
     }
   }
 }
