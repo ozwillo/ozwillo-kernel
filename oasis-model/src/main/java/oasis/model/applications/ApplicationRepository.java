@@ -25,7 +25,7 @@ public interface ApplicationRepository {
 
   public void deleteDataProvider(String dataProviderId);
 
-  public Iterable<ServiceProvider> getServiceProviders(String appId);
+  public ServiceProvider getServiceProviderFromApplication(String appId);
 
   public ServiceProvider getServiceProvider(String serviceProviderId);
 

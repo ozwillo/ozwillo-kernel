@@ -29,7 +29,7 @@ public class Application {
 
   @JsonProperty
   @ApiModelProperty
-  private List<ServiceProvider> serviceProviders;
+  private ServiceProvider serviceProvider;
 
   @JsonProperty
   @ApiModelProperty
@@ -67,12 +67,12 @@ public class Application {
     this.dataProviders = dataProviders;
   }
 
-  public List<ServiceProvider> getServiceProviders() {
-    return serviceProviders;
+  public ServiceProvider getServiceProvider() {
+    return serviceProvider;
   }
 
-  public void setServiceProviders(List<ServiceProvider> serviceProviders) {
-    this.serviceProviders = serviceProviders;
+  public void setServiceProvider(ServiceProvider serviceProvider) {
+    this.serviceProvider = serviceProvider;
   }
 
   public long getModified() {

@@ -27,9 +27,9 @@ import oasis.model.applications.ApplicationRepository;
 import oasis.model.applications.ScopeCardinalities;
 import oasis.model.applications.ServiceProvider;
 
-@Path("/d/serviceproviders")
+@Path("/d/serviceprovider")
 @Produces(MediaType.APPLICATION_JSON)
-@Api(value = "/d/serviceproviders", description = "Application service providers directory API")
+@Api(value = "/d/serviceprovider", description = "Application service providers directory API")
 public class ServiceProviderDirectoryResource {
 
   @Inject
