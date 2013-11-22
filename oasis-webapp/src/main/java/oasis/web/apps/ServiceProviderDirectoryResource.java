@@ -1,15 +1,11 @@
 package oasis.web.apps;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -19,7 +15,6 @@ import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 
 import com.google.common.base.Strings;
 import com.wordnik.swagger.annotations.Api;
@@ -92,29 +87,14 @@ public class ServiceProviderDirectoryResource {
     }
   }
 
-  @POST
-  @Path("/")
-  @Consumes(MediaType.APPLICATION_JSON)
-  @ApiOperation(value = "Creates a service provider")
-  @ApiResponses({ @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
-                               message = "The current user cannot access the requested service provider") })
-  public Response postServiceProvider(
-      @Context UriInfo uriInfo,
-      @ApiParam ServiceProvider serviceProvider) throws URISyntaxException {
-    String serviceProviderId = applications.createServiceProvider(serviceProvider);
-    EntityTag etag = new EntityTag(Long.toString(serviceProvider.getModified()));
-    URI res = new URI(uriInfo.getRequestUri().toString() + serviceProviderId);
-    return Response.created(res)
-        .tag(etag)
-        .build();
-  }
-
   @PUT
   @Path("/{serviceProviderId}")
   @Consumes(MediaType.APPLICATION_JSON)
   @ApiOperation(value = "Updates a service provider")
   @ApiResponses({ @ApiResponse(code = oasis.web.Application.SC_PRECONDITION_REQUIRED,
                                message = "The If-Match header is mandatory"),
+                  @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
+                               message = "The requested service provider does not exist, or no service provider id has been sent"),
                   @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
                                message = "The current user cannot access the requested service provider"),
                   @ApiResponse(code = HttpServletResponse.SC_PRECONDITION_FAILED,
@@ -129,6 +109,12 @@ public class ServiceProviderDirectoryResource {
     }
 
     ServiceProvider sp = applications.getServiceProvider(serviceProviderId);
+    if (sp == null){
+      return Response.status(Response.Status.NOT_FOUND)
+          .type(MediaType.TEXT_PLAIN)
+          .entity("The requested service provider does not exist")
+          .build();
+    }
     EntityTag etag = new EntityTag(Long.toString(sp.getModified()));
     Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(etag);
     if (responseBuilder != null) {
@@ -162,6 +148,7 @@ public class ServiceProviderDirectoryResource {
     if (Strings.isNullOrEmpty(etagStr)) {
       return Response.status(oasis.web.Application.SC_PRECONDITION_REQUIRED).build();
     }
+
     ServiceProvider sp = applications.getServiceProvider(serviceProviderId);
     if (sp == null) {
       return Response.status(Response.Status.NOT_FOUND)

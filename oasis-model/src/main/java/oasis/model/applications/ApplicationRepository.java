@@ -1,9 +1,7 @@
 package oasis.model.applications;
 
-import java.util.Collection;
-
 public interface ApplicationRepository {
-  public Collection<Application> getApplications(int start, int limit);
+  public Iterable<Application> getApplications(int start, int limit);
 
   public Application getApplication(String appId);
 
@@ -13,13 +11,13 @@ public interface ApplicationRepository {
 
   public void deleteApplication(String appId);
 
-  public Collection<DataProvider> getDataProviders(String appId);
+  public Iterable<DataProvider> getDataProviders(String appId);
 
   public DataProvider getDataProvider(String dataProviderId);
 
   public Scopes getProvidedScopes(String dataProviderId);
 
-  public String createDataProvider(DataProvider dataProvider);
+  public String createDataProvider(String appId, DataProvider dataProvider);
 
   public void updateDataProvider(String dataProviderId, DataProvider dataProvider);
 
@@ -27,13 +25,13 @@ public interface ApplicationRepository {
 
   public void deleteDataProvider(String dataProviderId);
 
-  public Collection<ServiceProvider> getServiceProviders(String appId);
+  public Iterable<ServiceProvider> getServiceProviders(String appId);
 
   public ServiceProvider getServiceProvider(String serviceProviderId);
 
   public ScopeCardinalities getRequiredScopes(String serviceProviderId);
 
-  public String createServiceProvider(ServiceProvider serviceProvider);
+  public String createServiceProvider(String appId, ServiceProvider serviceProvider);
 
   public void updateServiceProvider(String serviceProviderId, ServiceProvider serviceProvider);
 

@@ -51,7 +51,7 @@ public class DummyApplicationRepository implements ApplicationRepository {
   }
 
   @Override
-  public String createDataProvider(DataProvider dataProvider) {
+  public String createDataProvider(String appId, DataProvider dataProvider) {
     throw new UnsupportedOperationException();
   }
 
@@ -86,7 +86,7 @@ public class DummyApplicationRepository implements ApplicationRepository {
   }
 
   @Override
-  public String createServiceProvider(ServiceProvider serviceProvider) {
+  public String createServiceProvider(String appId, ServiceProvider serviceProvider) {
     throw new UnsupportedOperationException();
   }
 

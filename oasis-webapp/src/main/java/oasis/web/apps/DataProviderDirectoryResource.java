@@ -1,16 +1,11 @@
 package oasis.web.apps;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Collection;
-
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -20,7 +15,6 @@ import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 
 import com.google.common.base.Strings;
 import com.wordnik.swagger.annotations.Api;
@@ -29,7 +23,6 @@ import com.wordnik.swagger.annotations.ApiParam;
 import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
 
-import oasis.model.applications.Application;
 import oasis.model.applications.ApplicationRepository;
 import oasis.model.applications.DataProvider;
 import oasis.model.applications.Scopes;
@@ -61,7 +54,6 @@ public class DataProviderDirectoryResource {
           .build();
     } else {
       return Response.status(Response.Status.NOT_FOUND)
-          .type(MediaType.TEXT_PLAIN)
           .entity("The requested data provider does not exist")
           .build();
     }
@@ -84,28 +76,10 @@ public class DataProviderDirectoryResource {
           .entity(scopes)
           .tag(etag)
           .build();
-    } else {
-      return Response.status(Response.Status.NOT_FOUND)
-          .type(MediaType.TEXT_PLAIN)
-          .entity("The requested data provider does not exist")
-          .build();
     }
-  }
-
-  @POST
-  @Path("/")
-  @Consumes(MediaType.APPLICATION_JSON)
-  @ApiOperation(value = "Creates or updates a data provider")
-  @ApiResponses({ @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
-                               message = "The current user cannot access the requested data provider") })
-  public Response postDataProvider(
-      @Context UriInfo uriInfo,
-      @ApiParam DataProvider dataProvider) throws URISyntaxException {
-    String dataProviderId = applications.createDataProvider(dataProvider);
-    EntityTag etag = new EntityTag(Long.toString(dataProvider.getModified()));
-    URI res = new URI(uriInfo.getRequestUri().toString() + dataProviderId);
-    return Response.created(res)
-        .tag(etag)
+    return Response.status(Response.Status.NOT_FOUND)
+        .type(MediaType.TEXT_PLAIN)
+        .entity("The requested data provider does not exist")
         .build();
   }
 
@@ -115,6 +89,8 @@ public class DataProviderDirectoryResource {
   @ApiOperation(value = "Creates or updates a data provider")
   @ApiResponses({ @ApiResponse(code = oasis.web.Application.SC_PRECONDITION_REQUIRED,
                                message = "The If-Match header is mandatory"),
+                  @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
+                               message = "The requested data provider does not exist, or no data provider id has been sent"),
                   @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
                                message = "The current user cannot access the requested data provider"),
                   @ApiResponse(code = HttpServletResponse.SC_PRECONDITION_FAILED,
@@ -129,6 +105,13 @@ public class DataProviderDirectoryResource {
     }
 
     DataProvider dp = applications.getDataProvider(dataProviderId);
+    if (dp == null) {
+      return  Response.status(Response.Status.NOT_FOUND)
+          .type(MediaType.TEXT_PLAIN)
+          .entity("The requested data provider does not exist")
+          .build();
+    }
+
     EntityTag etag = new EntityTag(Long.toString(dp.getModified()));
     Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(etag);
     if (responseBuilder != null) {

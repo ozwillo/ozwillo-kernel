@@ -1,8 +1,6 @@
 package oasis.web.apps;
 
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Collection;
 
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
@@ -22,7 +20,7 @@ import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.core.UriBuilder;
 
 import com.google.common.base.Strings;
 import com.wordnik.swagger.annotations.Api;
@@ -89,12 +87,13 @@ public class ApplicationDirectoryResource {
   @ApiResponses({ @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
                                message = "The current user cannot create applications") })
   public Response postApplication(
-      @Context UriInfo uriInfo,
-      @ApiParam("application") Application application) throws URISyntaxException {
+      @ApiParam("application") Application application) {
 
     String applicationId = applications.createApplication(application);
     EntityTag etag = new EntityTag(Long.toString(application.getModified()));
-    URI res = new URI(uriInfo.getRequestUri().toString() + applicationId);
+    URI res = UriBuilder.fromResource(ApplicationDirectoryResource.class)
+        .path(ApplicationDirectoryResource.class, "getApplication")
+        .build(applicationId);
     return Response.created(res)
         .tag(etag)
         .build();
@@ -173,15 +172,15 @@ public class ApplicationDirectoryResource {
   @GET
   @Path("/{applicationId}/dataproviders")
   @ApiOperation(value = "Retrieve data providers of an application",
-      notes = "Returns data providers array",
-      response = DataProvider.class,
-      responseContainer = "Array")
-  @ApiResponses({@ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
-      message = "The requested application does not exist, or no application id has been sent"),
-      @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
-          message = "The current user cannot access the requested application")})
+                notes = "Returns data providers array",
+                response = DataProvider.class,
+                responseContainer = "Array")
+  @ApiResponses({ @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
+                               message = "The requested application does not exist, or no application id has been sent"),
+                  @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
+                               message = "The current user cannot access the requested application")})
   public Response getDataProviders(@PathParam("applicationId") String applicationId) {
-    Collection<DataProvider> dataProviders = applications.getDataProviders(applicationId);
+    Iterable<DataProvider> dataProviders = applications.getDataProviders(applicationId);
     if (dataProviders != null) {
       return Response.ok()
           .entity(dataProviders)
@@ -194,18 +193,50 @@ public class ApplicationDirectoryResource {
     }
   }
 
+  @POST
+  @Path("/{applicationId}/dataproviders")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @ApiOperation(value = "Creates a data provider")
+  @ApiResponses({ @ApiResponse(code = oasis.web.Application.SC_PRECONDITION_REQUIRED,
+                               message = "The If-Match header is mandatory"),
+                  @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
+                               message = "The requested application does not exist, or no application id has been sent"),
+                  @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
+                               message = "The current user cannot access the requested application") })
+  public Response postDataProvider(
+      @PathParam("applicationId") String applicationId,
+      @ApiParam DataProvider dataProvider) {
+    Application app = applications.getApplication(applicationId);
+    if (app == null) {
+      return Response.status(Response.Status.NOT_FOUND)
+          .type(MediaType.TEXT_PLAIN)
+          .entity("The requested application does not exist")
+          .build();
+    }
+
+    String dataProviderId = applications.createDataProvider(applicationId, dataProvider);
+    EntityTag etag = new EntityTag(Long.toString(dataProvider.getModified()));
+    URI res = UriBuilder.fromResource(DataProviderDirectoryResource.class)
+        .path(DataProviderDirectoryResource.class, "getDataProvider")
+        .build(dataProviderId);
+
+    return Response.created(res)
+        .tag(etag)
+        .build();
+  }
+
   @GET
   @Path("/{applicationId}/serviceproviders")
   @ApiOperation(value = "Retrieve service providers of an application",
-      notes = "Returns service providers array",
-      response = ServiceProvider.class,
-      responseContainer = "Array")
-  @ApiResponses({@ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
-      message = "The requested application does not exist, or no application id has been sent"),
-      @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
-          message = "The current user cannot access the requested application")})
+                notes = "Returns service providers array",
+                response = ServiceProvider.class,
+                responseContainer = "Array")
+  @ApiResponses({ @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
+                               message = "The requested application does not exist, or no application id has been sent"),
+                  @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
+                               message = "The current user cannot access the requested application")})
   public Response getServiceProviders(@PathParam("applicationId") String applicationId) {
-    Collection<ServiceProvider> serviceProviders = applications.getServiceProviders(applicationId);
+    Iterable<ServiceProvider> serviceProviders = applications.getServiceProviders(applicationId);
     if (serviceProviders != null) {
       return Response.ok()
           .entity(serviceProviders)
@@ -216,5 +247,35 @@ public class ApplicationDirectoryResource {
           .entity("The requested application does not exist")
           .build();
     }
+  }
+
+  @POST
+  @Path("/{applicationId}/serviceproviders")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @ApiOperation(value = "Creates a service provider")
+  @ApiResponses({ @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
+                               message = "The requested application does not exist, or no application id has been sent"),
+                  @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
+                               message = "The current user cannot access the requested application") })
+  public Response postServiceProvider(
+      @PathParam("applicationId") String applicationId,
+      @ApiParam ServiceProvider serviceProvider) {
+    Application app = applications.getApplication(applicationId);
+    if (app == null) {
+      return Response.status(Response.Status.NOT_FOUND)
+          .type(MediaType.TEXT_PLAIN)
+          .entity("The requested application does not exist")
+          .build();
+    }
+
+    String serviceProviderId = applications.createServiceProvider(applicationId, serviceProvider);
+    EntityTag etag = new EntityTag(Long.toString(serviceProvider.getModified()));
+    URI res = UriBuilder.fromResource(ServiceProviderDirectoryResource.class)
+        .path(ServiceProviderDirectoryResource.class, "getServiceProvider")
+        .build(serviceProviderId);
+
+    return Response.created(res)
+        .tag(etag)
+        .build();
   }
 }

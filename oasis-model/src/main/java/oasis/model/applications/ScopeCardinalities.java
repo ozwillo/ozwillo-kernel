@@ -1,26 +1,35 @@
 package oasis.model.applications;
 
-import java.util.Collection;
+import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
 @JsonRootName("scopeCardinalities")
 public class ScopeCardinalities {
+
+  private String serviceProviderId;
+
   @JsonProperty
   @ApiModelProperty()
-  private ScopeCardinality[] values;
+  private List<ScopeCardinality> values;
 
-  @JsonIgnore
   private long modified;
 
-  public ScopeCardinality[] getValues() {
+  public String getServiceProviderId() {
+    return serviceProviderId;
+  }
+
+  public void setServiceProviderId(String serviceProviderId) {
+    this.serviceProviderId = serviceProviderId;
+  }
+
+  public List<ScopeCardinality> getValues() {
     return values;
   }
 
-  public void setValues(ScopeCardinality[] values) {
+  public void setValues(List<ScopeCardinality> values) {
     this.values = values;
   }
 
