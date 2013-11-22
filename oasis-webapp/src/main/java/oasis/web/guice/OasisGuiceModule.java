@@ -10,7 +10,7 @@ import oasis.model.applications.ApplicationRepository;
 import oasis.model.authorizations.AuthorizationRepository;
 import oasis.model.directory.DirectoryRepository;
 import oasis.services.accounts.JongoAccountRepository;
-import oasis.services.applications.DummyApplicationRepository;
+import oasis.services.applications.JongoApplicationRepository;
 import oasis.services.authorizations.JongoAuthorizationRepository;
 import oasis.services.directory.DummyDirectoryRepository;
 
@@ -19,7 +19,7 @@ public class OasisGuiceModule extends AbstractModule {
   protected void configure() {
     bind(AccountRepository.class).to(JongoAccountRepository.class);
     bind(DirectoryRepository.class).to(DummyDirectoryRepository.class);
-    bind(ApplicationRepository.class).to(DummyApplicationRepository.class);
+    bind(ApplicationRepository.class).to(JongoApplicationRepository.class);
     bind(AuthorizationRepository.class).to(JongoAuthorizationRepository.class);
     bind(JsonFactory.class).to(JacksonFactory.class);
     bind(Clock.class).toInstance(Clock.SYSTEM);
