@@ -11,7 +11,7 @@
   <properties>
     <log4j.version>2.0-beta9</log4j.version>
     <slf4j.version>1.7.5</slf4j.version>
-    <resteasy.version>3.0.4.Final</resteasy.version>
+    <resteasy.version>3.0.5.Final</resteasy.version>
     <guava.version>15.0</guava.version>
   </properties>
 
