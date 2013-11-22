@@ -60,6 +60,7 @@ public class ServiceProviderDirectoryResource {
           .build();
     } else {
       return Response.status(Response.Status.NOT_FOUND)
+          .type(MediaType.TEXT_PLAIN)
           .entity("The requested service provider does not exist")
           .build();
     }
@@ -85,6 +86,7 @@ public class ServiceProviderDirectoryResource {
           .build();
     } else {
       return Response.status(Response.Status.NOT_FOUND)
+          .type(MediaType.TEXT_PLAIN)
           .entity("The requested service provider does not exist")
           .build();
     }
@@ -163,6 +165,7 @@ public class ServiceProviderDirectoryResource {
     ServiceProvider sp = applications.getServiceProvider(serviceProviderId);
     if (sp == null) {
       return Response.status(Response.Status.NOT_FOUND)
+          .type(MediaType.TEXT_PLAIN)
           .entity("The requested service provider does not exist")
           .build();
     }
@@ -203,6 +206,7 @@ public class ServiceProviderDirectoryResource {
     ServiceProvider sp = applications.getServiceProvider(serviceProviderId);
     if (sp == null) {
       return Response.status(Response.Status.NOT_FOUND)
+          .type(MediaType.TEXT_PLAIN)
           .entity("The requested service provider does not exist")
           .build();
     }
