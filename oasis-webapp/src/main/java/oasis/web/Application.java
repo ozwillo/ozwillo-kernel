@@ -22,6 +22,7 @@ import oasis.web.kibana.ElasticSearchProxy;
 import oasis.web.kibana.Kibana;
 import oasis.web.providers.CookieParserRequestFilter;
 import oasis.web.providers.HttpInterceptor;
+import oasis.web.providers.JacksonContextResolver;
 import oasis.web.providers.SecureFilter;
 import oasis.web.providers.UriParamConverterProvider;
 import oasis.web.userdirectory.UserDirectoryResource;
@@ -37,6 +38,8 @@ public class Application extends javax.ws.rs.core.Application {
         UriParamConverterProvider.class,
         CookieParserRequestFilter.class,
         SecureFilter.class,
+        // Providers
+        JacksonContextResolver.class,
         // Views
         HandlebarsBodyWriter.class,
         // Swagger
