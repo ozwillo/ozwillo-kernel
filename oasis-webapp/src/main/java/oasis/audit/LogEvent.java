@@ -1,28 +1,32 @@
 package oasis.audit;
 
-import java.util.Date;
+import org.joda.time.Instant;
 
 import com.google.common.collect.ImmutableMap;
 
 public abstract class LogEvent {
   private final String eventType;
   private final ImmutableMap.Builder<String, Object> contextMapBuilder;
-  private final Date date;
+  private final Instant date;
   private ImmutableMap<String, Object> contextMap;
   private AuditService auditService;
 
   public LogEvent(String eventType) {
+    this(eventType, new Instant());
+  }
+
+  public LogEvent(String eventType, Instant date) {
     this.eventType = eventType;
     this.contextMapBuilder = ImmutableMap.builder();
 
-    this.date = new Date();
+    this.date = date;
   }
 
   public String getEventType() {
     return eventType;
   }
 
-  public Date getDate() {
+  public Instant getDate() {
     return date;
   }
 

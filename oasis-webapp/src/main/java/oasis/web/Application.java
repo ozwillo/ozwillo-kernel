@@ -58,6 +58,7 @@ public class Application extends javax.ws.rs.core.Application {
         TokenEndpoint.class,
         // Audit
         HttpInterceptor.class,
+        Audit.class,
         // Resources
         Home.class,
         UserDirectoryResource.class,
