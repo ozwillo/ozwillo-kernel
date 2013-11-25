@@ -28,12 +28,16 @@ public class OpenIdConnectModule extends AbstractModule {
 
       return Settings.builder()
           .setKeyPair(KeyPairLoader.loadOrGenerateKeyPair(privateKeyPath, publicKeyPath))
+          .setAccessTokenExpirationSeconds(config.getLong("oasis.oauth.access-token-expiration-seconds"))
+          .setIdTokenExpirationSeconds(config.getLong("oasis.openid-connect.id-token-expiration-seconds"))
           .build();
     }
 
     public static class Builder {
 
       private KeyPair keyPair;
+      private long accessTokenExpirationSeconds;
+      private long idTokenExpirationSeconds;
 
       public Settings build() {
         return new Settings(this);
@@ -43,12 +47,26 @@ public class OpenIdConnectModule extends AbstractModule {
         this.keyPair = keyPair;
         return this;
       }
+
+      public Builder setAccessTokenExpirationSeconds(long accessTokenExpirationSeconds) {
+        this.accessTokenExpirationSeconds = accessTokenExpirationSeconds;
+        return this;
+      }
+
+      public Builder setIdTokenExpirationSeconds(long idTokenExpirationSeconds) {
+        this.idTokenExpirationSeconds = idTokenExpirationSeconds;
+        return this;
+      }
     }
 
-    final public KeyPair keyPair;
+    public final KeyPair keyPair;
+    public final long accessTokenExpirationSeconds;
+    public final long idTokenExpirationSeconds;
 
     private Settings(Builder builder) {
       this.keyPair = builder.keyPair;
+      this.accessTokenExpirationSeconds = builder.accessTokenExpirationSeconds;
+      this.idTokenExpirationSeconds = builder.idTokenExpirationSeconds;
     }
   }
 

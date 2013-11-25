@@ -73,7 +73,9 @@ public class WebApp {
         auditModule,
         HttpServerModule.create(config.withOnlyPath("oasis.http")),
         KibanaModule.create(config.withOnlyPath("oasis.kibana")),
-        OpenIdConnectModule.create(config.withOnlyPath("oasis.openid-connect").withFallback(config.withOnlyPath("oasis.conf-dir")))
+        OpenIdConnectModule.create(config.withOnlyPath("oasis.openid-connect")
+            .withFallback(config.withOnlyPath("oasis.oauth"))
+            .withFallback(config.withOnlyPath("oasis.conf-dir")))
     );
 
     final HttpServer server = injector.getInstance(HttpServer.class);

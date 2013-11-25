@@ -1,23 +1,35 @@
 package oasis.web.authz;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
 
 import com.google.api.client.auth.oauth2.TokenErrorResponse;
-import com.google.api.client.auth.oauth2.TokenResponse;
+import com.google.api.client.auth.openidconnect.IdToken;
+import com.google.api.client.auth.openidconnect.IdTokenResponse;
+import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.webtoken.JsonWebSignature;
+import com.google.api.client.util.Clock;
 import com.google.common.base.Splitter;
 
+import oasis.openidconnect.OpenIdConnectModule;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.Client;
 
@@ -26,13 +38,21 @@ import oasis.web.authn.Client;
 public class TokenEndpoint {
 
   private static final Splitter CODE_SPLITTER = Splitter.on(':').limit(2);
+  private static final JsonWebSignature.Header JWS_HEADER = new JsonWebSignature.Header().setType("JWS").setAlgorithm("RS256");
+
+  @Inject OpenIdConnectModule.Settings settings;
+  @Inject JsonFactory jsonFactory;
+  @Inject Clock clock;
+
+  @Context UriInfo uriInfo;
+  @Context SecurityContext securityContext;
 
   private MultivaluedMap<String, String> params;
 
   @POST
   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response validate(MultivaluedMap<String, String> params) {
+  public Response validate(MultivaluedMap<String, String> params) throws GeneralSecurityException, IOException {
     this.params = params;
 
     String grant_type = getRequiredParameter("grant_type");
@@ -50,16 +70,31 @@ public class TokenEndpoint {
 
     // TODO: validate auth code
     // TODO: generate access token
-    String accessToken = parts.get(0) + ":" + System.currentTimeMillis(); // FIXME: bad for tests!
+    String userId = parts.get(0);
+    String accessToken = userId + ":" + clock.currentTimeMillis();
     // TODO: get scopes authorized by the user
     String scope = parts.get(1);
 
-    // TODO: use IdTokenResponse
-    TokenResponse response = new TokenResponse();
+    long issuedAt = TimeUnit.MILLISECONDS.toSeconds(clock.currentTimeMillis());
+
+    IdTokenResponse response = new IdTokenResponse();
     response.setAccessToken(accessToken);
     response.setTokenType("Bearer");
-    response.setExpiresInSeconds(3600L); // TODO: make configurable
+    response.setExpiresInSeconds(settings.accessTokenExpirationSeconds);
     response.setScope(scope);
+    response.setIdToken(JsonWebSignature.signUsingRsaSha256(
+        settings.keyPair.getPrivate(),
+        jsonFactory,
+        JWS_HEADER,
+        new IdToken.Payload()
+            .setIssuer(uriInfo.getBaseUri().toString())
+            .setSubject(userId)
+            .setAudience(securityContext.getUserPrincipal().getName())
+            .setExpirationTimeSeconds(issuedAt + settings.idTokenExpirationSeconds)
+            .setIssuedAtTimeSeconds(issuedAt)
+        //.setNonce() // TODO: Get a nonce token from the client and use it for the auth_token
+        //.setAuthorizationTimeSeconds() // TODO: required if a max_age request is made or if auth_time is requested
+    ));
 
     return response(Response.Status.OK, response);
   }
