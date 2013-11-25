@@ -23,6 +23,7 @@ import oasis.audit.log4j.fluentd.FluentdLog4JAuditModule;
 import oasis.audit.noop.NoopAuditModule;
 import oasis.http.HttpServer;
 import oasis.http.HttpServerModule;
+import oasis.openidconnect.OpenIdConnectModule;
 import oasis.storage.JongoModule;
 import oasis.storage.JongoService;
 import oasis.web.guice.OasisGuiceModule;
@@ -71,7 +72,8 @@ public class WebApp {
         JongoModule.create(config.withOnlyPath("oasis.mongo")),
         auditModule,
         HttpServerModule.create(config.withOnlyPath("oasis.http")),
-        KibanaModule.create(config.withOnlyPath("oasis.kibana"))
+        KibanaModule.create(config.withOnlyPath("oasis.kibana")),
+        OpenIdConnectModule.create(config.withOnlyPath("oasis.openid-connect").withFallback(config.withOnlyPath("oasis.conf-dir")))
     );
 
     final HttpServer server = injector.getInstance(HttpServer.class);
