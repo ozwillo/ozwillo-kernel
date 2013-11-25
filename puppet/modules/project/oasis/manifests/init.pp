@@ -1,6 +1,7 @@
 class oasis (
-  $elasticsearch_host = 'localhost',
-  $package_url        = false,
+  $elasticsearch_host     = 'localhost',
+  $elasticsearch_cluster  = 'elasticsearch',
+  $package_url            = false,
 ) {
 
   if ! defined(Package['openjdk-7-jdk']) {
@@ -9,11 +10,18 @@ class oasis (
     }
   }
 
-  class {'::fluentd': }
-  fluentd::in::http {'all':}
-  fluentd::out::elasticsearch {'default':
-    host            => $elasticsearch_host,
-    logstash_format => true,
+  class {'::logstash':
+    provider => 'custom',
+    jarfile  => download_file('files', 'logstash/logstash-1.2.2-flatjar.jar', 'https://download.elasticsearch.org/logstash/logstash/logstash-1.2.2-flatjar.jar'),
+  }
+  logstash::input::tcp {'tcp_input':
+    type            => 'oasis',
+    port            => 11111,
+    format          => 'json',
+  }
+
+  logstash::output::elasticsearch {'es_output':
+    cluster         => $elasticsearch_cluster,
   }
 
   if $package_url {

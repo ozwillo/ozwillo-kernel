@@ -15,7 +15,8 @@ node 'atolcd-oasis-demo.hosting.atolcd.priv' {
   $url = "http://nexus.atolcd.priv/service/local/artifact/maven/content?g=${::oasis::params::group_id}&a=${::oasis::params::artifact_id}&v=${version}&r=releases&p=deb"
 
   class {'::oasis':
-    elasticsearch_host => 'atolcd-elasticsearch-1.hosting.atolcd.priv',
-    package_url        => download_file('files', "oasis/${::oasis::params::artifact_id}-${version}.deb", $url),
+    elasticsearch_host        => 'atolcd-elasticsearch-1.hosting.atolcd.priv',
+    elasticsearch_cluster     => 'elasticsearch',
+    package_url               => download_file('files', "oasis/${::oasis::params::artifact_id}-${version}.deb", $url),
   }
 }

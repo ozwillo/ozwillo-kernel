@@ -33,7 +33,7 @@ Vagrant::Config.run do |config|
   # computers to access the VM, whereas host only networking does not.
   config.vm.forward_port 8080, 8080 # Oasis
   config.vm.forward_port 9200, 9200 # ElasticSearch port
-  config.vm.forward_port 9880, 9880 # Fluentd in_http port
+  config.vm.forward_port 11111, 11111 # Logstash in TCP port
   config.vm.forward_port 27017, 27017 # Mongodb
 
   # Share an additional folder to the guest VM. The first argument is
