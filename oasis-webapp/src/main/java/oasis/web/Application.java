@@ -20,6 +20,7 @@ import oasis.web.authz.TokenEndpoint;
 import oasis.web.example.OpenIdConnect;
 import oasis.web.kibana.ElasticSearchProxy;
 import oasis.web.kibana.Kibana;
+import oasis.web.notifications.NotificationEndpoint;
 import oasis.web.providers.CookieParserRequestFilter;
 import oasis.web.providers.HttpInterceptor;
 import oasis.web.providers.SecureFilter;
@@ -55,6 +56,8 @@ public class Application extends javax.ws.rs.core.Application {
         TokenEndpoint.class,
         // Audit
         HttpInterceptor.class,
+        // Notification
+        NotificationEndpoint.class,
         // Resources
         Home.class,
         UserDirectoryResource.class,
