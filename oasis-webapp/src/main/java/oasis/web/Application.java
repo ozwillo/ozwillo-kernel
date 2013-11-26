@@ -17,6 +17,7 @@ import oasis.web.authn.OAuthAuthenticationFilter;
 import oasis.web.authn.UserAuthenticationFilter;
 import oasis.web.authz.AuthorizationEndpoint;
 import oasis.web.authz.TokenEndpoint;
+import oasis.web.eventbus.EventBusEndpoint;
 import oasis.web.example.OpenIdConnect;
 import oasis.web.kibana.ElasticSearchProxy;
 import oasis.web.kibana.Kibana;
@@ -55,6 +56,8 @@ public class Application extends javax.ws.rs.core.Application {
         TokenEndpoint.class,
         // Audit
         HttpInterceptor.class,
+        // EventBus
+        EventBusEndpoint.class,
         // Resources
         Home.class,
         UserDirectoryResource.class,
