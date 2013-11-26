@@ -1,7 +1,9 @@
 package oasis.model.applications;
 
 public interface ApplicationRepository {
-  public Iterable<Application> getApplications(int start, int limit);
+  public Iterable<Application> getCatalogApplications(int start, int limit);
+
+  public Iterable<Application> getApplicationInstances(int start, int limit);
 
   public Application getApplication(String appId);
 

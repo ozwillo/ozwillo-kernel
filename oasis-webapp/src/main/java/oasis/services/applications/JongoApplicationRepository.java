@@ -4,12 +4,16 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 import org.jongo.Jongo;
 import org.jongo.MongoCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
 
 import oasis.model.applications.Application;
 import oasis.model.applications.ApplicationRepository;
@@ -25,21 +29,26 @@ public class JongoApplicationRepository implements ApplicationRepository {
   private Jongo jongo;
 
   @Override
-  public Iterable<Application> getApplications(int start, int limit) {
-    return getApplicationsCollection()
-        .find()
-        .skip(start)
-        .limit(limit)
-        .projection("{id:1, name:1, iconUri:1, modified:1}")
-        .as(Application.class);
+  public Iterable<Application> getApplicationInstances(int start, int limit) {
+    return getApplications("{applicationType:'INSTANCE'}", start, limit);
+  }
+
+  @Override
+  public Iterable<Application> getCatalogApplications(int start, int limit) {
+    return getApplications("{exposed:true}", start, limit);
   }
 
   @Override
   public Application getApplication(String appId) {
-    return getApplicationsCollection()
+    Application app = getApplicationsCollection()
         .findOne("{id: #}", appId)
         .projection("{id:1, name:1, iconUri:1, modified:1}")
         .as(Application.class);
+
+    if (app.isTenant()) {
+      populateTenant(app);
+    }
+    return app;
   }
 
   @Override
@@ -52,6 +61,12 @@ public class JongoApplicationRepository implements ApplicationRepository {
 
   @Override
   public void updateApplication(String appId, Application app) {
+    if (app.isTenant()
+        && (app.getDataProviders() != null || app.getServiceProvider() != null)) {
+      logger.warn("Tenant applications cannot specify providers");
+      decimateTenant(app);
+    }
+
     long modified = System.nanoTime();
     List<Object> updateParameters = new ArrayList<>(3);
     StringBuilder updateObject = new StringBuilder("modified:#");
@@ -73,7 +88,7 @@ public class JongoApplicationRepository implements ApplicationRepository {
         .with("{$set: {" + updateObject.toString() + "}}", updateParameters.toArray())
         .getN();
 
-    if (nbResults != 1 && logger.isWarnEnabled()){
+    if (nbResults != 1) {
       logger.warn("More than one application with id: {}", appId);
     }
     app.setModified(modified);
@@ -89,9 +104,14 @@ public class JongoApplicationRepository implements ApplicationRepository {
   public Iterable<DataProvider> getDataProviders(String appId) {
     Application app = getApplicationsCollection()
         .findOne("{id: #}", appId)
+        .projection("{id:1, dataProviders:1, applicationType: 1, instanciationType: 1, parentApplicationId: 1 }")
         .as(Application.class);
     if (app == null) {
       return null;
+    }
+    if (app.isTenant()) {
+      // TODO: "instantiate" scopes
+      return getDataProviders(app.getParentApplicationId());
     }
     if (app.getDataProviders() == null) {
       return Collections.emptyList();
@@ -133,7 +153,7 @@ public class JongoApplicationRepository implements ApplicationRepository {
         .update("{id: #}", appId)
         .with("{$push:{dataProviders:#}}", dataProvider)
         .getN();
-    if (nbResults != 1 && logger.isWarnEnabled()){
+    if (nbResults != 1) {
       logger.warn("More than one application with id: {}", appId);
     }
 
@@ -163,7 +183,7 @@ public class JongoApplicationRepository implements ApplicationRepository {
         .with("{$set: {" + updateObject.toString() + "}}", updateParameters.toArray())
         .getN();
 
-    if (nbResults != 1 && logger.isWarnEnabled()){
+    if (nbResults != 1) {
       logger.warn("More than one data provider with id: {}", dataProviderId);
     }
     dataProvider.setModified(modified);
@@ -178,7 +198,7 @@ public class JongoApplicationRepository implements ApplicationRepository {
         .with("{$set: {dataProviders.$.scopes:#, dataProviders.$.modified:#}}", scopes.getValues(), modified)
         .getN();
 
-    if (nbResults != 1 && logger.isWarnEnabled()){
+    if (nbResults != 1) {
       logger.warn("More than one data provider with id: {}", dataProviderId);
     }
     scopes.setModified(modified);
@@ -192,7 +212,7 @@ public class JongoApplicationRepository implements ApplicationRepository {
         .with("{$pull:{dataProviders: {id:#}}}", dataProviderId)
         .getN();
 
-    if (nbResults != 1 && logger.isWarnEnabled()){
+    if (nbResults != 1) {
       logger.warn("More than one data provider with id: {}", dataProviderId);
     }
   }
@@ -201,11 +221,14 @@ public class JongoApplicationRepository implements ApplicationRepository {
   public ServiceProvider getServiceProviderFromApplication(String appId) {
     Application app = getApplicationsCollection()
         .findOne("{id: #}", appId)
+        .projection("{id:1, serviceProvider:1, instanciationType: 1, applicationType: 1, parentApplicationId: 1 }")
         .as(Application.class);
     if (app == null) {
       return null;
     }
-
+    if (app.isTenant()) {
+      return getServiceProviderFromApplication(app.getParentApplicationId());
+    }
     return app.getServiceProvider();
   }
 
@@ -241,7 +264,7 @@ public class JongoApplicationRepository implements ApplicationRepository {
         .update("{id: #}", appId)
         .with("{$set:{serviceProvider:#}}", serviceProvider)
         .getN();
-    if (nbResults != 1 && logger.isWarnEnabled()){
+    if (nbResults != 1) {
       logger.warn("More than one application with id: {}", appId);
     }
 
@@ -271,7 +294,7 @@ public class JongoApplicationRepository implements ApplicationRepository {
         .with("{$set: {" + updateObject.toString() + "}}", updateParameters.toArray())
         .getN();
 
-    if (nbResults != 1 && logger.isWarnEnabled()){
+    if (nbResults != 1) {
       logger.warn("More than one service provider with id: {}", serviceProviderId);
     }
     serviceProvider.setModified(modified);
@@ -286,7 +309,7 @@ public class JongoApplicationRepository implements ApplicationRepository {
         .with("{$set: {serviceProvider.scopeCardinalities:#, serviceProvider.modified:#}}", scopeCardinalities.getValues(), modified)
         .getN();
 
-    if (nbResults != 1 && logger.isWarnEnabled()){
+    if (nbResults != 1) {
       logger.warn("More than one service provider with id: {}", serviceProviderId);
     }
     scopeCardinalities.setModified(modified);
@@ -300,12 +323,49 @@ public class JongoApplicationRepository implements ApplicationRepository {
         .with("{$unset:{serviceProvider:''}}")
         .getN();
 
-    if (nbResults != 1 && logger.isWarnEnabled()){
+    if (nbResults != 1) {
       logger.warn("More than one service provider with id: {}", serviceProviderId);
     }
   }
 
   private MongoCollection getApplicationsCollection() {
     return jongo.getCollection("applications");
+  }
+
+  private void populateTenant(Application app) {
+    if (app.getParentApplicationId() != null) {
+      Application parent = getApplication(app.getParentApplicationId());
+      // TODO: "instantiate" scopes
+      app.setDataProviders(parent.getDataProviders());
+      app.setServiceProvider(parent.getServiceProvider());
+    } else {
+      logger.error("Parent application not found for tenant : " + app.getId());
+    }
+  }
+
+  private void decimateTenant(Application app){
+    app.setDataProviders(null);
+    app.setServiceProvider(null);
+  }
+
+  private Iterable<Application> getApplications(String query, int start, int limit) {
+    Iterable<Application> apps = getApplicationsCollection()
+        .find(query)
+        .skip(start)
+        .limit(limit)
+        .as(Application.class);
+
+    return Iterables.transform(apps, new Function<Application, Application>() {
+      @Nullable
+      @Override
+      public Application apply(@Nullable Application input) {
+        if (input == null) { return null; }
+
+        if (input.isTenant()) {
+          populateTenant(input);
+        }
+        return input;
+      }
+    });
   }
 }
