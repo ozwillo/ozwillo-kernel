@@ -22,6 +22,7 @@ import oasis.web.eventbus.EventBusEndpoint;
 import oasis.web.example.OpenIdConnect;
 import oasis.web.kibana.ElasticSearchProxy;
 import oasis.web.kibana.Kibana;
+import oasis.web.notifications.NotificationEndpoint;
 import oasis.web.providers.CookieParserRequestFilter;
 import oasis.web.providers.HttpInterceptor;
 import oasis.web.providers.JacksonContextResolver;
@@ -60,8 +61,10 @@ public class Application extends javax.ws.rs.core.Application {
         TokenEndpoint.class,
         KeysEndpoint.class,
         // Audit
-        HttpInterceptor.class,
         Audit.class,
+        HttpInterceptor.class,
+        // Notification
+        NotificationEndpoint.class,
         // EventBus
         EventBusEndpoint.class,
         // Resources
