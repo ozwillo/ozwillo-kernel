@@ -7,11 +7,18 @@
 <body>
 <h1>Login to OASIS</h1>
 <form method=POST action={{formAction}}>
-<input type=hidden name=_utf8 value="&#9731;">
-<input type=hidden name=continue value={{continue}}>
+<input type="hidden" name="_utf8" value="&#9731;">
+<input type="hidden" name="continue" value="{{continue}}">
 <p>
-In this early prototype, just enter an email address (no sign-up, no authentication):
-<input type=email name=u>
-<button type=submit>Sign in</button>
+Enter an email and a password :
+<input type="email" name="u" placeholder="Email address">
+<input type="password" name="pwd" placeholder="Password">
+<button type="submit">Sign in</button>
 </p>
+
+{{#if errorMessage}}
+<p style="color:red">
+{{errorMessage}}
+</p>
+{{/if}}
 </form>
