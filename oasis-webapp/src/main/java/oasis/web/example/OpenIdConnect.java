@@ -25,6 +25,8 @@ import com.google.api.client.auth.oauth2.AuthorizationCodeResponseUrl;
 import com.google.api.client.auth.oauth2.BearerToken;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.auth.oauth2.TokenResponse;
+import com.google.api.client.auth.openidconnect.IdToken;
+import com.google.api.client.auth.openidconnect.IdTokenResponse;
 import com.google.api.client.http.BasicAuthentication;
 import com.google.api.client.http.GenericUrl;
 import com.google.api.client.http.javanet.NetHttpTransport;
@@ -144,12 +146,9 @@ public class OpenIdConnect {
           .entity("Mismatching state (or missing state)")
           .build();
     }
-    // TODO: use IdTokenResponse.execute() once we send an IdToken
-//    IdTokenResponse response = IdTokenResponse.execute(flow.newTokenRequest(code).setRedirectUri(getRedirectUri()));
-//    IdToken token = response.parseIdToken();
-//    String userId = token.getPayload().getSubject();
-    TokenResponse response = flow.newTokenRequest(code).setRedirectUri(getRedirectUri()).execute();
-    String userId = response.getAccessToken();
+    IdTokenResponse response = IdTokenResponse.execute(flow.newTokenRequest(code).setRedirectUri(getRedirectUri()));
+    IdToken token = response.parseIdToken();
+    String userId = token.getPayload().getSubject();
     Credential credential = flow.createAndStoreCredential(response, userId);
     return Response.seeOther(UriBuilder.fromResource(OpenIdConnect.class).path(OpenIdConnect.class, "protectedResource").build())
         .cookie(new NewCookie(STATE_COOKIE_NAME, null, null, null, 0, null, 0, new Date(108, 0, 20, 11, 10), securityContext.isSecure(), true))

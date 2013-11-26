@@ -16,6 +16,7 @@ import oasis.web.authn.Logout;
 import oasis.web.authn.OAuthAuthenticationFilter;
 import oasis.web.authn.UserAuthenticationFilter;
 import oasis.web.authz.AuthorizationEndpoint;
+import oasis.web.authz.KeysEndpoint;
 import oasis.web.authz.TokenEndpoint;
 import oasis.web.eventbus.EventBusEndpoint;
 import oasis.web.example.OpenIdConnect;
@@ -57,6 +58,7 @@ public class Application extends javax.ws.rs.core.Application {
         // Authorization
         AuthorizationEndpoint.class,
         TokenEndpoint.class,
+        KeysEndpoint.class,
         // Audit
         HttpInterceptor.class,
         Audit.class,
