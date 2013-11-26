@@ -1,7 +1,5 @@
 package oasis.model.applications;
 
-import java.util.Objects;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.wordnik.swagger.annotations.ApiModelProperty;
@@ -10,7 +8,7 @@ import com.wordnik.swagger.annotations.ApiModelProperty;
 public class ScopeCardinality {
   @JsonProperty
   @ApiModelProperty(required = true)
-  private String scope;
+  private String scopeId;
 
   @JsonProperty
   @ApiModelProperty
@@ -20,12 +18,17 @@ public class ScopeCardinality {
   @ApiModelProperty
   private Integer max;
 
-  public String getScope() {
-    return scope;
+  // TODO: Manage I18N
+  @JsonProperty
+  @ApiModelProperty
+  private String motivations;
+
+  public String getScopeId() {
+    return scopeId;
   }
 
-  public void setScope(String scope) {
-    this.scope = scope;
+  public void setScopeId(String scopeId) {
+    this.scopeId = scopeId;
   }
 
   public Integer getMin() {
@@ -42,5 +45,13 @@ public class ScopeCardinality {
 
   public void setMax(Integer max) {
     this.max = max;
+  }
+
+  public String getMotivations() {
+    return motivations;
+  }
+
+  public void setMotivations(String motivations) {
+    this.motivations = motivations;
   }
 }
