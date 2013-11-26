@@ -60,8 +60,8 @@ public class Application extends javax.ws.rs.core.Application {
         AuthorizationEndpoint.class,
         TokenEndpoint.class,
         KeysEndpoint.class,
-        // Audit
-        Audit.class,
+        // AuditLog
+        AuditLog.class,
         HttpInterceptor.class,
         // Notification
         NotificationEndpoint.class,

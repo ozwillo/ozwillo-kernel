@@ -1,4 +1,4 @@
-package oasis.audit.log4j.fluentd;
+package oasis.auditlog.log4j.fluentd;
 
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
@@ -11,24 +11,24 @@ import org.apache.logging.log4j.message.Message;
 import com.atolcd.logging.log4j.fluentd.FluentdAppender;
 import com.google.common.collect.ImmutableMap;
 
-import oasis.audit.JsonMessage;
-import oasis.audit.LogEvent;
-import oasis.audit.log4j.Log4JSupplier;
+import oasis.auditlog.JsonMessage;
+import oasis.auditlog.AuditLogEvent;
+import oasis.auditlog.log4j.Log4JSupplier;
 
 public class FluentdLog4JSupplier implements Log4JSupplier {
-  private final FluentdLog4JAuditModule.Settings settings;
+  private final FluentdLog4JAuditLogModule.Settings settings;
 
   @Inject
-  public FluentdLog4JSupplier(FluentdLog4JAuditModule.Settings settings) {
+  public FluentdLog4JSupplier(FluentdLog4JAuditLogModule.Settings settings) {
     this.settings = settings;
   }
 
   @Override
-  public Message generateMessage(LogEvent logEvent) {
+  public Message generateMessage(AuditLogEvent auditLogEvent) {
     ImmutableMap<String, Object> data = ImmutableMap.<String, Object>of(
-        "type", logEvent.getEventType(),
-        "time", logEvent.getDate(),
-        "data", logEvent.getContextMap()
+        "type", auditLogEvent.getEventType(),
+        "time", auditLogEvent.getDate(),
+        "data", auditLogEvent.getContextMap()
     );
 
     return new JsonMessage(data, new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX"), TimeZone.getTimeZone("UTC"));

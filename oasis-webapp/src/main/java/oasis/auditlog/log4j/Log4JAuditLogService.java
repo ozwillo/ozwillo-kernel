@@ -1,4 +1,4 @@
-package oasis.audit.log4j;
+package oasis.auditlog.log4j;
 
 import javax.inject.Inject;
 
@@ -10,33 +10,33 @@ import org.apache.logging.log4j.core.async.AsyncLoggerConfig;
 import org.apache.logging.log4j.core.config.BaseConfiguration;
 import org.slf4j.LoggerFactory;
 
-import oasis.audit.AuditService;
-import oasis.audit.LogEvent;
+import oasis.auditlog.AuditLogService;
+import oasis.auditlog.AuditLogEvent;
 
-public class Log4JAuditService extends AuditService {
+public class Log4JAuditLogService extends AuditLogService {
   private static final String LOGGER_NAME = "OASIS_AUDIT_LOGGER";
   private static final String APPENDER_NAME = "OASIS_AUDIT_APPENDER";
-  private static final org.slf4j.Logger logger = LoggerFactory.getLogger(Log4JAuditService.class);
+  private static final org.slf4j.Logger logger = LoggerFactory.getLogger(Log4JAuditLogService.class);
 
   private final Log4JSupplier log4JSupplier;
   private Logger auditLogger;
 
   @Inject
-  protected Log4JAuditService(Log4JSupplier log4JSupplier) {
+  protected Log4JAuditLogService(Log4JSupplier log4JSupplier) {
     super();
 
     this.log4JSupplier = log4JSupplier;
   }
 
   @Override
-  protected void log(LogEvent logEvent) {
+  protected void log(AuditLogEvent auditLogEvent) {
     synchronized (this) {
       if (auditLogger == null) {
         initLogger();
       }
     }
 
-    auditLogger.info(this.log4JSupplier.generateMessage(logEvent));
+    auditLogger.info(this.log4JSupplier.generateMessage(auditLogEvent));
   }
 
   private void initLogger() {
@@ -44,7 +44,7 @@ public class Log4JAuditService extends AuditService {
     Appender appender = this.log4JSupplier.createAppender(APPENDER_NAME);
 
     if(appender == null) {
-      logger.warn("Audit service cannot be used without Log4J Appender. Audit logger is now disabled.");
+      logger.warn("Audit log service cannot be used without Log4J Appender. Audit logger is now disabled.");
       auditLogger.setLevel(Level.OFF);
       return;
     }

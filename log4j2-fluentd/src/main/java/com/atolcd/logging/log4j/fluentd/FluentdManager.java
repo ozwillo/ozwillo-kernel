@@ -38,7 +38,7 @@ public class FluentdManager extends AbstractManager {
         LOGGER.error("The request to the fluentd server has failed : {}", response.readEntity(String.class));
       }
     } catch(ProcessingException e) {
-      LOGGER.error("The audit event can't reach the fluentd server.", e);
+      LOGGER.error("The audit log event can't reach the fluentd server.", e);
     }
   }
 }

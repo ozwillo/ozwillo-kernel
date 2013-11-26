@@ -1,4 +1,4 @@
-package oasis.audit.log4j.logstash;
+package oasis.auditlog.log4j.logstash;
 
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
@@ -11,9 +11,9 @@ import org.apache.logging.log4j.message.Message;
 import com.atolcd.logging.log4j.logstash.LogstashAppender;
 import com.google.common.collect.ImmutableMap;
 
-import oasis.audit.JsonMessage;
-import oasis.audit.LogEvent;
-import oasis.audit.log4j.Log4JSupplier;
+import oasis.auditlog.AuditLogEvent;
+import oasis.auditlog.JsonMessage;
+import oasis.auditlog.log4j.Log4JSupplier;
 
 public class LogstashLog4JSupplier implements Log4JSupplier {
   private final LogstashLog4JAuditModule.Settings settings;
@@ -24,7 +24,7 @@ public class LogstashLog4JSupplier implements Log4JSupplier {
   }
 
   @Override
-  public Message generateMessage(LogEvent logEvent) {
+  public Message generateMessage(AuditLogEvent logEvent) {
     ImmutableMap<String, Object> data = ImmutableMap.<String, Object>of(
         "type", logEvent.getEventType(),
         "time", logEvent.getDate(),

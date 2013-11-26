@@ -1,21 +1,21 @@
-package oasis.audit;
+package oasis.auditlog;
 
 import org.joda.time.Instant;
 
 import com.google.common.collect.ImmutableMap;
 
-public abstract class LogEvent {
+public abstract class AuditLogEvent {
   private final String eventType;
   private final ImmutableMap.Builder<String, Object> contextMapBuilder;
   private final Instant date;
   private ImmutableMap<String, Object> contextMap;
-  private AuditService auditService;
+  private AuditLogService auditLogService;
 
-  public LogEvent(String eventType) {
+  public AuditLogEvent(String eventType) {
     this(eventType, new Instant());
   }
 
-  public LogEvent(String eventType, Instant date) {
+  public AuditLogEvent(String eventType, Instant date) {
     this.eventType = eventType;
     this.contextMapBuilder = ImmutableMap.builder();
 
@@ -30,8 +30,8 @@ public abstract class LogEvent {
     return date;
   }
 
-  protected final void setAuditService(AuditService auditService) {
-    this.auditService = auditService;
+  protected final void setAuditLogService(AuditLogService auditLogService) {
+    this.auditLogService = auditLogService;
   }
 
   public ImmutableMap<String, Object> getContextMap() {
@@ -54,7 +54,7 @@ public abstract class LogEvent {
    */
   public void log() {
     if (checkBeforeBuild()) {
-      auditService.log(this);
+      auditLogService.log(this);
     }
   }
 }

@@ -13,14 +13,14 @@ import javax.ws.rs.ext.Provider;
 
 import com.google.common.collect.ImmutableMap;
 
-import oasis.audit.AuditService;
-import oasis.audit.HttpLogEvent;
+import oasis.auditlog.AuditLogService;
+import oasis.auditlog.HttpAuditLogEvent;
 
 @Provider
 public class HttpInterceptor implements ContainerRequestFilter, ContainerResponseFilter {
 
   @Inject
-  private AuditService auditService;
+  private AuditLogService auditLogService;
 
   @Override
   public void filter(ContainerRequestContext requestContext) throws IOException {
@@ -42,7 +42,7 @@ public class HttpInterceptor implements ContainerRequestFilter, ContainerRespons
       headersMapBuilder.put(entry.getKey(), entry.getValue());
     }
 
-    auditService.event(HttpLogEvent.class)
+    auditLogService.event(HttpAuditLogEvent.class)
         .setUrl(requestContext.getUriInfo().getRequestUri().toString())
         .setMethod(requestContext.getMethod())
         .setHeaders(headersMapBuilder.build())
