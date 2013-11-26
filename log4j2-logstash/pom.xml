@@ -5,14 +5,12 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.atolcd.logging.log4j</groupId>
-  <artifactId>log4j2-fluentd</artifactId>
+  <artifactId>log4j2-logstash</artifactId>
   <version>1.0-SNAPSHOT</version>
 
   <properties>
     <log4j.version>2.0-beta9</log4j.version>
-    <resteasy.version>3.0.5.Final</resteasy.version>
-    <guava.version>15.0</guava.version>
-    <fluentd.version>0.2.11</fluentd.version>
+    <logstash.version>1.2.2</logstash.version>
   </properties>
 
   <dependencies>
@@ -25,21 +23,6 @@
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-core</artifactId>
       <version>${log4j.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-      <version>${guava.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.jboss.resteasy</groupId>
-      <artifactId>resteasy-jackson2-provider</artifactId>
-      <version>${resteasy.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.jboss.resteasy</groupId>
-      <artifactId>resteasy-client</artifactId>
-      <version>${resteasy.version}</version>
     </dependency>
   </dependencies>
 

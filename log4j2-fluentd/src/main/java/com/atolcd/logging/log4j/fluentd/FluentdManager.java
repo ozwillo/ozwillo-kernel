@@ -7,15 +7,12 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 
 import org.apache.logging.log4j.core.appender.AbstractManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.escape.Escaper;
 import com.google.common.net.UrlEscapers;
 
 public class FluentdManager extends AbstractManager {
 
-  private static final Logger logger = LoggerFactory.getLogger(FluentdManager.class);
   private final String url;
   private final String tag;
 
@@ -38,10 +35,10 @@ public class FluentdManager extends AbstractManager {
     try {
       Response response = target.request().post(null);
       if (!response.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
-        logger.error("The request to the fluentd server has failed : {}", response.readEntity(String.class));
+        LOGGER.error("The request to the fluentd server has failed : {}", response.readEntity(String.class));
       }
     } catch(ProcessingException e) {
-      logger.error("The audit event can't reach the fluentd server.", e);
+      LOGGER.error("The audit event can't reach the fluentd server.", e);
     }
   }
 }

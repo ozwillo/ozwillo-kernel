@@ -19,7 +19,7 @@ import com.wordnik.swagger.jaxrs.config.DefaultJaxrsScanner;
 import com.wordnik.swagger.jaxrs.reader.DefaultJaxrsApiReader;
 import com.wordnik.swagger.reader.ClassReaders;
 
-import oasis.audit.log4j.fluentd.FluentdLog4JAuditModule;
+import oasis.audit.log4j.logstash.LogstashLog4JAuditModule;
 import oasis.audit.noop.NoopAuditModule;
 import oasis.http.HttpServer;
 import oasis.http.HttpServerModule;
@@ -65,7 +65,7 @@ public class WebApp {
 
     AbstractModule auditModule = (config.getBoolean("oasis.audit.disabled")) ?
         new NoopAuditModule() :
-        FluentdLog4JAuditModule.create(config.withOnlyPath("oasis.audit.fluentd"));
+        LogstashLog4JAuditModule.create(config.withOnlyPath("oasis.audit.logstash"));
 
     final Injector injector = Guice.createInjector(
         new OasisGuiceModule(),

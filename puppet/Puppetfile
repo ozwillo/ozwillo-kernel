@@ -60,24 +60,6 @@ mod "java",
   :git => "http://gerrit.atolcd.priv/atolcd/puppet-modules/java.git",
   :ref => 'd21ee3ed43a8de0cf7c627f92c5b5859d54d12c4'
 
-mod "fluentd",
-  :git => "http://gerrit.atolcd.priv/atolcd/puppet-modules/fluentd.git",
-  :ref => "d02473fed093b6668007e22cb76023a80457af10"
-
-# needed by fluentd :
-# * augeasproviders
-# * ruby
-
-mod "augeasproviders",
-  :git => "git://github.com/hercules-team/augeasproviders.git",
-  :ref => 'be18e2ee3803bfe39dced1fa9113b4e87139e857'
-
-mod "ruby",
-  :git => "http://gerrit.atolcd.priv/atolcd/puppet-modules/ruby.git",
-  :ref => "e96f7889ce9d62007624d89dbdc89d74ddc57a39"
-
-# end of fluentd dependencies
-
 mod "elasticsearch",
   :git => "https://github.com/elasticsearch/puppet-elasticsearch.git",
   :ref => "0244c435e65d29eb3f5b800c38c55bc0a7eb384e"
@@ -85,3 +67,6 @@ mod "elasticsearch",
 mod "mongodb",
   :git => "http://gerrit.atolcd.priv/atolcd/puppet-modules/mongodb.git",
   :ref => "0049818b740cdfb3cc04b27617ee6a881e69fdf0"
+
+mod "logstash",
+  :git => "https://github.com/logstash/puppet-logstash.git"

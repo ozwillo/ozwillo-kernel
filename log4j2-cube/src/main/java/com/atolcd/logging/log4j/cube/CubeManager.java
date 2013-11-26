@@ -8,12 +8,9 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 
 import org.apache.logging.log4j.core.appender.AbstractManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class CubeManager extends AbstractManager {
 
-  private static final Logger logger = LoggerFactory.getLogger(CubeManager.class);
   private final String url;
 
   private CubeManager(String name, String url) {
@@ -32,10 +29,10 @@ public class CubeManager extends AbstractManager {
     try {
       Response response = target.request().post(Entity.json(json));
       if (!response.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
-        logger.error("The request to the cube server has failed : {}", response.readEntity(String.class));
+        LOGGER.error("The request to the cube server has failed : {}", response.readEntity(String.class));
       }
     } catch (ProcessingException e) {
-      logger.error("The audit event can't reach the cube server.", e);
+      LOGGER.error("The audit event can't reach the cube server.", e);
     }
   }
 }
