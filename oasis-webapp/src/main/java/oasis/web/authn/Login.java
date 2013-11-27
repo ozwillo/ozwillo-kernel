@@ -24,6 +24,7 @@ import javax.ws.rs.core.UriInfo;
 import com.google.common.collect.ImmutableMap;
 
 import oasis.model.accounts.Account;
+import oasis.services.auth.JongoTokenHandler;
 import oasis.services.auth.UserPasswordAuthenticator;
 import oasis.web.Home;
 import oasis.web.view.View;
@@ -67,7 +68,7 @@ public class Login {
       return Response
           .seeOther(continueUrl)
           .cookie(createCookie(account.getId(), null, securityContext.isSecure())) // TODO: remember me
-      .build();
+          .build();
     } catch (Throwable e) {
       return loginForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, e.toString());
     }
@@ -87,7 +88,7 @@ public class Login {
     return builder
         .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store")
         .header("Pragma", "no-cache")
-        // cf. https://www.owasp.org/index.php/List_of_useful_HTTP_headers
+            // cf. https://www.owasp.org/index.php/List_of_useful_HTTP_headers
         .header("X-Frame-Options", "DENY")
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
