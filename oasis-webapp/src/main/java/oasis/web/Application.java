@@ -10,6 +10,7 @@ import oasis.web.apidocs.ApiDeclarationProvider;
 import oasis.web.apps.ApplicationDirectoryResource;
 import oasis.web.apps.DataProviderDirectoryResource;
 import oasis.web.apps.ServiceProviderDirectoryResource;
+import oasis.web.auditlog.AuditLogEndPoint;
 import oasis.web.authn.ClientAuthenticationFilter;
 import oasis.web.authn.Login;
 import oasis.web.authn.Logout;
@@ -61,7 +62,7 @@ public class Application extends javax.ws.rs.core.Application {
         TokenEndpoint.class,
         KeysEndpoint.class,
         // AuditLog
-        AuditLog.class,
+        AuditLogEndPoint.class,
         HttpInterceptor.class,
         // Notification
         NotificationEndpoint.class,
