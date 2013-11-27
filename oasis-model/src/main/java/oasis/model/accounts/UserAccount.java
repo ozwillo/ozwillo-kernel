@@ -3,7 +3,7 @@ package oasis.model.accounts;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
-public class UserAccount extends Account implements AccountWithPassword {
+public abstract class UserAccount extends Account implements AccountWithPassword {
   @JsonProperty
   @ApiModelProperty(required = true)
   private String emailAddress;
