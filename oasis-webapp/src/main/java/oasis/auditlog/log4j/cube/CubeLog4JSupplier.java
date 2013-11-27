@@ -1,4 +1,4 @@
-package oasis.audit.log4j.cube;
+package oasis.auditlog.log4j.cube;
 
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
@@ -12,25 +12,25 @@ import com.atolcd.logging.log4j.cube.CubeAppender;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
-import oasis.audit.JsonMessage;
-import oasis.audit.LogEvent;
-import oasis.audit.log4j.Log4JSupplier;
+import oasis.auditlog.AuditLogEvent;
+import oasis.auditlog.JsonMessage;
+import oasis.auditlog.log4j.Log4JSupplier;
 
 public class CubeLog4JSupplier implements Log4JSupplier {
 
-  private final CubeLog4JAuditModule.Settings settings;
+  private final CubeLog4JAuditLogModule.Settings settings;
 
   @Inject
-  public CubeLog4JSupplier(CubeLog4JAuditModule.Settings settings) {
+  public CubeLog4JSupplier(CubeLog4JAuditLogModule.Settings settings) {
     this.settings = settings;
   }
 
   @Override
-  public Message generateMessage(LogEvent logEvent) {
+  public Message generateMessage(AuditLogEvent auditLogEvent) {
     ImmutableList<Object> data = ImmutableList.<Object>of(ImmutableMap.<String, Object>of(
-        "type", logEvent.getEventType(),
-        "time", logEvent.getDate(),
-        "data", logEvent.getContextMap()
+        "type", auditLogEvent.getEventType(),
+        "time", auditLogEvent.getDate(),
+        "data", auditLogEvent.getContextMap()
     ));
 
     return new JsonMessage(data, new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX"), TimeZone.getTimeZone("UTC"));

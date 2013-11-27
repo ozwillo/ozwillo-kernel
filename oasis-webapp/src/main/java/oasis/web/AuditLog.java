@@ -16,15 +16,15 @@ import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 import com.wordnik.swagger.annotations.ApiOperation;
 
-import oasis.audit.AuditService;
-import oasis.audit.RemoteLogEvent;
+import oasis.auditlog.AuditLogService;
+import oasis.auditlog.RemoteAuditLogEvent;
 
 @Path("/l")
 @Api(value = "/l", description = "Audit log API")
-public class Audit {
+public class AuditLog {
 
   @Inject
-  AuditService auditService;
+  AuditLogService auditLogService;
 
   @Path("/event")
   @POST
@@ -32,8 +32,8 @@ public class Audit {
   @ApiOperation(value = "Log an event in the audit log service")
   public Response json(RemoteEvent remoteEvent) {
 
-    // XXX: generate LogEvent.eventType from remote application ?
-    auditService.event(RemoteLogEvent.class, remoteEvent.time)
+    // XXX: generate AuditLogEvent.eventType from remote application ?
+    auditLogService.event(RemoteAuditLogEvent.class, remoteEvent.time)
         .setLog(remoteEvent.log)
         .log();
 

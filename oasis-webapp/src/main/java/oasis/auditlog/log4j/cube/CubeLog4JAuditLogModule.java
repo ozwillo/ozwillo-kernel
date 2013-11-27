@@ -1,13 +1,13 @@
-package oasis.audit.log4j.cube;
+package oasis.auditlog.log4j.cube;
 
 import com.google.inject.AbstractModule;
 import com.typesafe.config.Config;
 
-import oasis.audit.AuditService;
-import oasis.audit.log4j.Log4JAuditService;
-import oasis.audit.log4j.Log4JSupplier;
+import oasis.auditlog.AuditLogService;
+import oasis.auditlog.log4j.Log4JAuditLogService;
+import oasis.auditlog.log4j.Log4JSupplier;
 
-public class CubeLog4JAuditModule extends AbstractModule {
+public class CubeLog4JAuditLogModule extends AbstractModule {
 
   public static class Settings {
 
@@ -36,15 +36,15 @@ public class CubeLog4JAuditModule extends AbstractModule {
     }
   }
 
-  public static CubeLog4JAuditModule build(Config config) {
-    return new CubeLog4JAuditModule(Settings.builder()
-        .setCubeUrl(config.getString("oasis.audit.cube.url"))
+  public static CubeLog4JAuditLogModule build(Config config) {
+    return new CubeLog4JAuditLogModule(Settings.builder()
+        .setCubeUrl(config.getString("oasis.auditlog.cube.url"))
         .build());
   }
 
   private final Settings settings;
 
-  private CubeLog4JAuditModule(Settings settings) {
+  private CubeLog4JAuditLogModule(Settings settings) {
     this.settings = settings;
   }
 
@@ -52,6 +52,6 @@ public class CubeLog4JAuditModule extends AbstractModule {
   protected void configure() {
     bind(Settings.class).toInstance(settings);
     bind(Log4JSupplier.class).to(CubeLog4JSupplier.class);
-    bind(AuditService.class).to(Log4JAuditService.class);
+    bind(AuditLogService.class).to(Log4JAuditLogService.class);
   }
 }

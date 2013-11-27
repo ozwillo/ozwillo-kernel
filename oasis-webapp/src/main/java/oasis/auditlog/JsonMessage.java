@@ -1,4 +1,4 @@
-package oasis.audit;
+package oasis.auditlog;
 
 import java.text.DateFormat;
 import java.util.TimeZone;
@@ -41,7 +41,7 @@ public class JsonMessage implements Message {
     try {
       return objectMapper.writeValueAsString(object);
     } catch (JsonProcessingException e) {
-      logger.error("Error during the transformation of the LogEvent into a JSON string.", e);
+      logger.error("Error during the transformation of the AuditLogEvent into a JSON string.", e);
     }
     return null;
   }

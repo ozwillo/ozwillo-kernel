@@ -29,7 +29,7 @@ public class LogstashManager extends AbstractManager {
       socket.getOutputStream().write(json.getBytes(StandardCharsets.UTF_8));
       socket.getOutputStream().write(LF);
     } catch (Exception e) {
-      LOGGER.error("The audit event can't reach the logstash server", e);
+      LOGGER.error("The audit log event can't reach the logstash server", e);
     }
   }
 }

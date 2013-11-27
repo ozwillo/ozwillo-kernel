@@ -1,11 +1,11 @@
-package oasis.audit.log4j.logstash;
+package oasis.auditlog.log4j.logstash;
 
 import com.google.inject.AbstractModule;
 import com.typesafe.config.Config;
 
-import oasis.audit.AuditService;
-import oasis.audit.log4j.Log4JAuditService;
-import oasis.audit.log4j.Log4JSupplier;
+import oasis.auditlog.AuditLogService;
+import oasis.auditlog.log4j.Log4JAuditLogService;
+import oasis.auditlog.log4j.Log4JSupplier;
 
 public class LogstashLog4JAuditModule extends AbstractModule {
 
@@ -17,8 +17,8 @@ public class LogstashLog4JAuditModule extends AbstractModule {
 
     public static Settings fromConfig(Config config) {
       return Settings.builder()
-          .setHost(config.getString("oasis.audit.logstash.host"))
-          .setPort(config.getInt("oasis.audit.logstash.port"))
+          .setHost(config.getString("oasis.auditlog.logstash.host"))
+          .setPort(config.getInt("oasis.auditlog.logstash.port"))
           .build();
     }
 
@@ -66,6 +66,6 @@ public class LogstashLog4JAuditModule extends AbstractModule {
   protected void configure() {
     bind(Settings.class).toInstance(settings);
     bind(Log4JSupplier.class).to(LogstashLog4JSupplier.class);
-    bind(AuditService.class).to(Log4JAuditService.class);
+    bind(AuditLogService.class).to(Log4JAuditLogService.class);
   }
 }

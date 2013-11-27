@@ -32,7 +32,7 @@ public class CubeManager extends AbstractManager {
         LOGGER.error("The request to the cube server has failed : {}", response.readEntity(String.class));
       }
     } catch (ProcessingException e) {
-      LOGGER.error("The audit event can't reach the cube server.", e);
+      LOGGER.error("The audit log event can't reach the cube server.", e);
     }
   }
 }
