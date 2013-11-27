@@ -51,12 +51,11 @@ public class EventBusEndpoint {
   }
 
   @DELETE
-  @Path("/{appId}/subscription/{eventType}")
+  @Path("/subscription/{subscriptionId}")
   @Consumes(MediaType.APPLICATION_JSON)
-  @ApiOperation(value = "Unsubscribe to a typed event from the event bus.")
+  @ApiOperation(value = "Delete a subscription.")
   public Response unsubscribe(
-      @PathParam("appId") String appId,
-      @PathParam("eventType") String eventType // Unique (gives the application for an organisation)
+      @PathParam("subscriptionId") String subscriptionId
   ) {
     //TODO: Code that don't make us cry
     throw new UnsupportedOperationException();
