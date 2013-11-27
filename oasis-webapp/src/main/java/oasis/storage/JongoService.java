@@ -35,6 +35,7 @@ public class JongoService implements Provider<Jongo> {
     mongoConnection = new MongoClient(settings.mongoURI);
     jongoConnection = new Jongo(mongoConnection.getDB(settings.mongoURI.getDatabase()), new JacksonMapper.Builder()
         .withObjectIdUpdater(new OasisIdUpdater(new JacksonIdFieldSelector()))
+        .withQueryFactory(new OasisIdQueryFactory())
         .build());
   }
 
