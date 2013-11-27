@@ -8,35 +8,17 @@ import java.util.List;
 import javax.inject.Inject;
 
 import org.joda.time.Instant;
-import org.jongo.Jongo;
-import org.jongo.MongoCollection;
 
 import oasis.model.accounts.AccessToken;
 import oasis.model.accounts.Account;
 import oasis.model.accounts.OneTimeToken;
+import oasis.model.accounts.RefreshToken;
 import oasis.model.accounts.Token;
 
-/**
- * Token manager using Jongo as backend storage
- * TODO : Split this class into a JongoTokenRepository and a TokenHandler.
- */
-public class JongoTokenHandler {
+public class TokenHandler {
+
   @Inject
-  Jongo jongo;
-
-  protected MongoCollection getAccountCollection() {
-    return jongo.getCollection("account");
-  }
-
-  protected void registerToken(Account account, Token token) {
-    checkNotNull(account);
-
-    // Register the new access token in memory
-    account.addToken(token);
-
-    // Add the new access token in mongo
-    this.getAccountCollection().update("{id:#}", account.getId()).with("{$push:{tokens:#}}", token);
-  }
+  JongoTokenRepository tokenRepository;
 
   /**
    * Remove expired tokens
@@ -44,7 +26,7 @@ public class JongoTokenHandler {
   public void cleanUpTokens(Account account) {
     checkNotNull(account);
 
-    List<String> removeList = new ArrayList<>();
+    List<Token> removeList = new ArrayList<>();
 
     // Process each token to see if it is valid
     for(Token token : this.getAllTokens(account)) {
@@ -56,17 +38,11 @@ public class JongoTokenHandler {
       // Check is the token is not valid
       if (!this.checkTokenValidity(account, token)) {
         // Add the TokenId to the removeList
-        removeList.add(token.getId());
-
-        // Remove the token in memory
-        account.removeToken(token);
+        removeList.add(token);
       }
     }
 
-    // If we have to remove tokens, use a mongo query
-    if ( !removeList.isEmpty() ) {
-      this.getAccountCollection().update("{id:#}", account.getId()).with("{$pullAll:{tokens:{id:#}}}", removeList.toArray());
-    }
+    tokenRepository.revokeTokens(account, removeList.toArray(new Token[removeList.size()]));
   }
 
   public List<Token> getAllTokens(Account account) {
@@ -95,10 +71,10 @@ public class JongoTokenHandler {
   }
 
   public AccessToken createAccessToken(Account account) {
-    return this.createAccessToken(account, 3600);
+    return this.createAccessToken(account, 3600, null);
   }
 
-  public AccessToken createAccessToken(Account account, long ttl) {
+  public AccessToken createAccessToken(Account account, long ttl, RefreshToken refreshToken) {
     checkNotNull(account);
 
     AccessToken newAccessToken = new AccessToken();
@@ -106,7 +82,11 @@ public class JongoTokenHandler {
     newAccessToken.setCreationTime(Instant.now().toDate());
     newAccessToken.setTimeToLive(ttl);
 
-    this.registerToken(account, newAccessToken);
+    if ( refreshToken != null ) {
+      newAccessToken.setRefreshTokenId(refreshToken.getId());
+    }
+
+    tokenRepository.registerToken(account, newAccessToken);
 
     // Return the new access token
     return newAccessToken;
@@ -120,10 +100,22 @@ public class JongoTokenHandler {
     newOneTimeToken.setTimeToLive(60);
 
     // Register the new access token in memory
-    this.registerToken(account, newOneTimeToken);
+    tokenRepository.registerToken(account, newOneTimeToken);
 
     // Return the new token
     return newOneTimeToken;
+  }
+
+  public RefreshToken createRefreshToken(Account account) {
+    RefreshToken refreshToken = new RefreshToken();
+
+    refreshToken.setCreationTime(Instant.now().toDate());
+    // 100 years
+    refreshToken.setTimeToLive(100*365*24*3600);
+
+    tokenRepository.registerToken(account, refreshToken);
+
+    return refreshToken;
   }
 
   /**
@@ -134,23 +126,12 @@ public class JongoTokenHandler {
     // We must have a valid token to create a new AccessToken
     checkArgument(checkTokenValidity(account, oneTimeToken));
 
-    this.revokeToken(account, oneTimeToken);
+    tokenRepository.revokeToken(account, oneTimeToken);
 
     return createAccessToken(account);
   }
 
   public void revokeToken(Account account, Token token) {
-    checkArgument(account != null && token.getId() == null && token.getId().isEmpty());
-
-    // Check if the token is a valid token (trying to revoke an invalid token is useless)
-    if ( !this.checkTokenValidity(account, token) ) {
-      return;
-    }
-
-    // Remove the access token
-    account.removeToken(token);
-
-    // Remove the token in mongo
-    this.getAccountCollection().update("{id:#}", account.getId()).with("{$pull:{tokens:{id:#}}}", token.getId());
+    tokenRepository.revokeToken(account, token);
   }
 }

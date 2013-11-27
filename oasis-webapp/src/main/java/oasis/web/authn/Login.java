@@ -24,7 +24,6 @@ import javax.ws.rs.core.UriInfo;
 import com.google.common.collect.ImmutableMap;
 
 import oasis.model.accounts.Account;
-import oasis.services.auth.JongoTokenHandler;
 import oasis.services.auth.UserPasswordAuthenticator;
 import oasis.web.Home;
 import oasis.web.view.View;

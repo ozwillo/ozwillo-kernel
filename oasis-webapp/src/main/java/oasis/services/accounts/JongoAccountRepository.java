@@ -7,6 +7,7 @@ import org.jongo.MongoCollection;
 
 import oasis.model.accounts.Account;
 import oasis.model.accounts.AccountRepository;
+import oasis.model.accounts.Token;
 import oasis.model.accounts.UserAccount;
 
 public class JongoAccountRepository implements AccountRepository {
@@ -20,6 +21,11 @@ public class JongoAccountRepository implements AccountRepository {
   @Override
   public Account getAccount(String id) {
     return this.getAccountCollection().findOne("{id:#}", id).as(Account.class);
+  }
+
+  @Override
+  public Account getAccountByToken(Token token) {
+    return this.getAccountCollection().findOne("{tokens.id:#}", token.getId()).as(Account.class);
   }
 
   @Override
