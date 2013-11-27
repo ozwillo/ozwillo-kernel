@@ -10,7 +10,7 @@ import oasis.model.annotations.Id;
 public class OasisIdHelper {
   private static final Map<Class<?>, Field> oasisFieldCache = new HashMap<>();
 
-  public static void updateOasisIdField(Object target){
+  public static void updateOasisIdField(Object target) {
     Field idField = OasisIdHelper.findOasisIdField(target.getClass());
     if (idField != null) {
       if (!idField.getType().equals(String.class)) {
@@ -19,7 +19,9 @@ public class OasisIdHelper {
 
       idField.setAccessible(true);
       try {
-        idField.set(target, UUID.randomUUID().toString());
+        if (idField.get(target) == null) {
+          idField.set(target, UUID.randomUUID().toString());
+        }
       } catch (IllegalAccessException e) {
         throw new IllegalArgumentException("Unable to set Oasis Id on class: " + target.getClass() + " (id field is not accessible)");
       }
