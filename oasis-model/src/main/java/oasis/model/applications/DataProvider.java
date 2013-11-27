@@ -1,23 +1,29 @@
 package oasis.model.applications;
 
-import java.util.Objects;
+import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
+import oasis.model.annotations.Id;
+
 @JsonRootName("dataProvider")
 public class DataProvider {
-  @JsonProperty
+  @Id
   @ApiModelProperty(required = true)
   private String id;
+
+  @JsonProperty
+  @ApiModelProperty
+  private List<String> scopes;
 
   @JsonProperty
   @ApiModelProperty(required = true)
   private String name;
 
-  @JsonIgnore
+  @JsonProperty
+  @ApiModelProperty
   private long modified;
 
   public String getId() {
@@ -34,6 +40,14 @@ public class DataProvider {
 
   public void setName(String name) {
     this.name = name;
+  }
+
+  public List<String> getScopes() {
+    return scopes;
+  }
+
+  public void setScopes(List<String> scopes) {
+    this.scopes = scopes;
   }
 
   public long getModified() {
