@@ -14,11 +14,14 @@ import oasis.model.accounts.Account;
 import oasis.model.accounts.OneTimeToken;
 import oasis.model.accounts.RefreshToken;
 import oasis.model.accounts.Token;
+import oasis.model.auth.TokenRepository;
 
 public class TokenHandler {
+  private final TokenRepository tokenRepository;
 
-  @Inject
-  JongoTokenRepository tokenRepository;
+  @Inject TokenHandler(TokenRepository tokenRepository) {
+    this.tokenRepository = tokenRepository;
+  }
 
   /**
    * Remove expired tokens

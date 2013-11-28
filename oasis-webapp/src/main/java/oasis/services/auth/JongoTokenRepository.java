@@ -12,10 +12,14 @@ import org.jongo.MongoCollection;
 
 import oasis.model.accounts.Account;
 import oasis.model.accounts.Token;
+import oasis.model.auth.TokenRepository;
 
-public class JongoTokenRepository {
-  @Inject
-  Jongo jongo;
+public class JongoTokenRepository implements TokenRepository {
+  private final Jongo jongo;
+
+  @Inject JongoTokenRepository(Jongo jongo) {
+    this.jongo = jongo;
+  }
 
   protected MongoCollection getAccountCollection() {
     return jongo.getCollection("account");
@@ -44,14 +48,14 @@ public class JongoTokenRepository {
   public void revokeTokens(Account account, Token[] tokens) {
     checkNotNull(account);
 
-    if ( tokens.length == 0 ) {
+    if (tokens.length == 0) {
       return;
     }
 
     // Get only token ids
     List<String> removeList = new ArrayList<>(tokens.length);
 
-    for(Token token : tokens) {
+    for (Token token : tokens) {
       account.removeToken(token);
       removeList.add(token.getId());
     }
