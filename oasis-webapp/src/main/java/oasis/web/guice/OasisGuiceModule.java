@@ -10,16 +10,19 @@ import oasis.model.applications.ApplicationRepository;
 import oasis.model.auth.TokenRepository;
 import oasis.model.authorizations.AuthorizationRepository;
 import oasis.model.directory.DirectoryRepository;
+import oasis.model.social.IdentityRepository;
 import oasis.services.accounts.JongoAccountRepository;
 import oasis.services.applications.JongoApplicationRepository;
 import oasis.services.auth.JongoTokenRepository;
 import oasis.services.authorizations.JongoAuthorizationRepository;
 import oasis.services.directory.DummyDirectoryRepository;
+import oasis.services.social.JongoIdentityRepository;
 
 public class OasisGuiceModule extends AbstractModule {
   @Override
   protected void configure() {
     bind(AccountRepository.class).to(JongoAccountRepository.class);
+    bind(IdentityRepository.class).to(JongoIdentityRepository.class);
     bind(DirectoryRepository.class).to(DummyDirectoryRepository.class);
     bind(ApplicationRepository.class).to(JongoApplicationRepository.class);
     bind(AuthorizationRepository.class).to(JongoAuthorizationRepository.class);
