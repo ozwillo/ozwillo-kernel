@@ -198,44 +198,32 @@ public class JongoApplicationRepository implements ApplicationRepository {
   }
 
   @Override
-  public Iterable<ServiceProvider> getServiceProviders(String appId) {
+  public ServiceProvider getServiceProviderFromApplication(String appId) {
     Application app = getApplicationsCollection()
         .findOne("{id: #}", appId)
         .as(Application.class);
     if (app == null) {
       return null;
     }
-    if (app.getServiceProviders() == null) {
-      return Collections.emptyList();
-    }
 
-    return app.getServiceProviders();
+    return app.getServiceProvider();
   }
 
   @Override
   public ServiceProvider getServiceProvider(String serviceProviderId) {
     Application app = getApplicationsCollection()
-        .findOne("{serviceProviders: { $elemMatch: { id: # } } }", serviceProviderId)
-        .projection("{id:1, serviceProviders: { $elemMatch: { id: # } } }", serviceProviderId)
+        .findOne("{serviceProvider.id: # }", serviceProviderId)
+        .projection("{id:1, serviceProvider:1 }")
         .as(Application.class);
-    if (app == null || app.getServiceProviders().isEmpty()) {
+    if (app == null) {
       return null;
     }
-
-    return app.getServiceProviders().get(0);
+    return app.getServiceProvider();
   }
 
   @Override
   public ScopeCardinalities getRequiredScopes(String serviceProviderId) {
-    Application app = getApplicationsCollection()
-        .findOne("{serviceProviders: { $elemMatch: { id: # } } }", serviceProviderId)
-        .projection("{id:1, serviceProviders: { $elemMatch: { id: # } } }", serviceProviderId)
-        .as(Application.class);
-    if (app == null || app.getServiceProviders().isEmpty()) {
-      return null;
-    }
-
-    ServiceProvider sp = app.getServiceProviders().get(0);
+    ServiceProvider sp = getServiceProvider(serviceProviderId);
     ScopeCardinalities res = new ScopeCardinalities();
     res.setServiceProviderId(serviceProviderId);
     res.setValues(sp.getScopeCardinalities());
@@ -251,7 +239,7 @@ public class JongoApplicationRepository implements ApplicationRepository {
     // TODO : check modified
     int nbResults = getApplicationsCollection()
         .update("{id: #}", appId)
-        .with("{$push:{serviceProviders:#}}", serviceProvider)
+        .with("{$set:{serviceProvider:#}}", serviceProvider)
         .getN();
     if (nbResults != 1 && logger.isWarnEnabled()){
       logger.warn("More than one application with id: {}", appId);
@@ -264,22 +252,22 @@ public class JongoApplicationRepository implements ApplicationRepository {
   public void updateServiceProvider(String serviceProviderId, ServiceProvider serviceProvider) {
     long modified = System.nanoTime();
     List<Object> updateParameters = new ArrayList<>(3);
-    StringBuilder updateObject = new StringBuilder("serviceProviders.$.modified:#");
+    StringBuilder updateObject = new StringBuilder("serviceProvider.modified:#");
     updateParameters.add(modified);
 
     if (serviceProvider.getName() != null) {
-      updateObject.append(",serviceProviders.$.name:#");
+      updateObject.append(",serviceProvider.name:#");
       updateParameters.add(serviceProvider.getName());
     }
 
     if (serviceProvider.getScopeCardinalities() != null) {
-      updateObject.append(",serviceProviders.$.scopeCardinalities:#");
+      updateObject.append(",serviceProvider.scopeCardinalities:#");
       updateParameters.add(serviceProvider.getScopeCardinalities());
     }
 
     // TODO : check modified
     int nbResults = getApplicationsCollection()
-        .update("{serviceProviders.id:#}", serviceProviderId)
+        .update("{serviceProvider.id:#}", serviceProviderId)
         .with("{$set: {" + updateObject.toString() + "}}", updateParameters.toArray())
         .getN();
 
@@ -294,8 +282,8 @@ public class JongoApplicationRepository implements ApplicationRepository {
     long modified = System.nanoTime();
     // TODO : check modified
     int nbResults = getApplicationsCollection()
-        .update("{serviceProviders.id:#}", serviceProviderId)
-        .with("{$set: {serviceProviders.$.scopeCardinalities:#, serviceProviders.$.modified:#}}", scopeCardinalities.getValues(), modified)
+        .update("{serviceProvider.id:#}", serviceProviderId)
+        .with("{$set: {serviceProvider.scopeCardinalities:#, serviceProvider.modified:#}}", scopeCardinalities.getValues(), modified)
         .getN();
 
     if (nbResults != 1 && logger.isWarnEnabled()){
@@ -308,8 +296,8 @@ public class JongoApplicationRepository implements ApplicationRepository {
   public void deleteServiceProvider(String serviceProviderId) {
     // TODO : check modified
     int nbResults = getApplicationsCollection()
-        .update("{serviceProviders: { $elemMatch: { id: # } } }", serviceProviderId)
-        .with("{$pull:{serviceProviders: {id:#}}}", serviceProviderId)
+        .update("{serviceProvider.id:#}", serviceProviderId)
+        .with("{$unset:{serviceProvider:''}}")
         .getN();
 
     if (nbResults != 1 && logger.isWarnEnabled()){

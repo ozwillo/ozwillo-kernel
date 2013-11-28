@@ -226,35 +226,34 @@ public class ApplicationDirectoryResource {
   }
 
   @GET
-  @Path("/{applicationId}/serviceproviders")
-  @ApiOperation(value = "Retrieve service providers of an application",
-                notes = "Returns service providers array",
-                response = ServiceProvider.class,
-                responseContainer = "Array")
+  @Path("/{applicationId}/serviceprovider")
+  @ApiOperation(value = "Retrieve the service provider of an application",
+                notes = "Returns a service provider",
+                response = ServiceProvider.class)
   @ApiResponses({ @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
-                               message = "The requested application does not exist, or no application id has been sent"),
+                               message = "The requested application does not exist, no application id has been sent or the application does not contain a service provider"),
                   @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
                                message = "The current user cannot access the requested application")})
-  public Response getServiceProviders(@PathParam("applicationId") String applicationId) {
-    Iterable<ServiceProvider> serviceProviders = applications.getServiceProviders(applicationId);
-    if (serviceProviders != null) {
+  public Response getServiceProvider(@PathParam("applicationId") String applicationId) {
+    ServiceProvider serviceProvider = applications.getServiceProviderFromApplication(applicationId);
+    if (serviceProvider != null) {
       return Response.ok()
-          .entity(serviceProviders)
+          .entity(serviceProvider)
           .build();
     } else {
       return Response.status(Response.Status.NOT_FOUND)
           .type(MediaType.TEXT_PLAIN)
-          .entity("The requested application does not exist")
+          .entity("The requested application does not exist or does not contain a service provider")
           .build();
     }
   }
 
   @POST
-  @Path("/{applicationId}/serviceproviders")
+  @Path("/{applicationId}/serviceprovider")
   @Consumes(MediaType.APPLICATION_JSON)
   @ApiOperation(value = "Creates a service provider")
   @ApiResponses({ @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
-                               message = "The requested application does not exist, or no application id has been sent"),
+                               message = "The requested application does not exist, no application id has been sent"),
                   @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
                                message = "The current user cannot access the requested application") })
   public Response postServiceProvider(
