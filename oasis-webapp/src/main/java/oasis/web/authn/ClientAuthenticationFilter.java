@@ -1,7 +1,9 @@
 package oasis.web.authn;
 
-import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.util.List;
@@ -42,7 +44,7 @@ public class ClientAuthenticationFilter implements ContainerRequestFilter {
   private static final Splitter CREDENTIALS_SPLITTER = Splitter.on(':').limit(2);
 
   @Override
-  public void filter(ContainerRequestContext requestContext) throws IOException {
+  public void filter(ContainerRequestContext requestContext) {
     String authorization = requestContext.getHeaderString(HttpHeaders.AUTHORIZATION);
 
     List<String> parts = AUTH_SCHEME_SPLITTER.splitToList(authorization);
@@ -54,9 +56,9 @@ public class ClientAuthenticationFilter implements ContainerRequestFilter {
 
     String credentials;
     try {
-      // TODO: use CharsetDecoder to detect malformed input and unmappable character sequences
-      credentials = new String(BaseEncoding.base64().decode(parts.get(1)), CREDENTIALS_ENCODING);
-    } catch (IllegalArgumentException iae) {
+      CharsetDecoder charsetDecoder = CREDENTIALS_ENCODING.newDecoder();
+      credentials = charsetDecoder.decode(ByteBuffer.wrap(BaseEncoding.base64().decode(parts.get(1)))).toString();
+    } catch (CharacterCodingException e) {
       malformedCredentials(requestContext);
       return;
     }
