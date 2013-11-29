@@ -1,4 +1,4 @@
-package oasis.web;
+package oasis.web.auditlog;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -21,7 +21,7 @@ import oasis.auditlog.RemoteAuditLogEvent;
 
 @Path("/l")
 @Api(value = "/l", description = "Audit log API")
-public class AuditLog {
+public class AuditLogEndPoint {
 
   @Inject
   AuditLogService auditLogService;
