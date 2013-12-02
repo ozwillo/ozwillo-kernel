@@ -2,6 +2,7 @@ package oasis.web.authz;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -26,6 +27,9 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
@@ -42,6 +46,7 @@ import oasis.model.applications.ScopeCardinalities;
 import oasis.model.applications.ScopeCardinality;
 import oasis.model.applications.ServiceProvider;
 import oasis.model.authorizations.AuthorizationRepository;
+import oasis.model.authorizations.AuthorizedScopes;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.User;
 import oasis.web.view.View;
@@ -51,6 +56,7 @@ import oasis.web.view.View;
 @User
 @Produces(MediaType.TEXT_HTML)
 public class AuthorizationEndpoint {
+  private static final Logger logger = LoggerFactory.getLogger(AuthorizationEndpoint.class);
 
   private static final String APPROVE_PATH = "/approve";
 
@@ -131,7 +137,13 @@ public class AuthorizationEndpoint {
     // TODO: OpenID Connect specifics
     String userId = securityContext.getUserPrincipal().getName();
 
-    ImmutableSet<String> grantedScopeIds = ImmutableSet.copyOf(authorizationRepository.getAuthorizedScopes(userId, client_id).getScopeIds());
+    AuthorizedScopes authorizedScopes = authorizationRepository.getAuthorizedScopes(userId, client_id);
+    Set<String> grantedScopeIds;
+    if (authorizedScopes != null) {
+      grantedScopeIds = authorizedScopes.getScopeIds();
+    } else {
+      grantedScopeIds = Collections.emptySet();
+    }
 
     if (grantedScopeIds.containsAll(scopeIds)) {
       // User already granted all requested scopes, let it be a "transparent" redirect
@@ -140,10 +152,12 @@ public class AuthorizationEndpoint {
       return Response.seeOther(URI.create(redirectUriBuilder.toString())).build();
     }
 
-    ScopeCardinalities scopeCardinalities = applicationRepository.getRequiredScopes(client_id);
     Set<String> globalClaimedScopeIds = Sets.newHashSet();
-    for (ScopeCardinality scopeCardinality : scopeCardinalities.getValues()) {
-      globalClaimedScopeIds.add(scopeCardinality.getScopeId());
+    ScopeCardinalities scopeCardinalities = applicationRepository.getRequiredScopes(client_id);
+    if (scopeCardinalities != null) {
+      for (ScopeCardinality scopeCardinality : scopeCardinalities.getValues()) {
+        globalClaimedScopeIds.add(scopeCardinality.getScopeId());
+      }
     }
 
     Iterable<Scope> globalClaimedScopes;
@@ -213,7 +227,13 @@ public class AuthorizationEndpoint {
     // TODO: CSRF Validation
     String userId = securityContext.getUserPrincipal().getName();
 
-    ImmutableSet<String> grantedScopeIds = ImmutableSet.copyOf(authorizationRepository.getAuthorizedScopes(userId, client_id).getScopeIds());
+    AuthorizedScopes authorizedScopes = authorizationRepository.getAuthorizedScopes(userId, client_id);
+    Set<String> grantedScopeIds;
+    if (authorizedScopes != null) {
+      grantedScopeIds = authorizedScopes.getScopeIds();
+    } else {
+      grantedScopeIds = Collections.emptySet();
+    }
 
     ImmutableSet<String> newGrantedScopeIds = Sets.union(scopeIds, grantedScopeIds).immutableCopy();
 

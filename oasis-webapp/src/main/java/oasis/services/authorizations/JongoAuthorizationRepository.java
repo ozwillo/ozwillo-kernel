@@ -8,6 +8,7 @@ import org.jongo.Jongo;
 import org.jongo.MongoCollection;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
 
 import oasis.model.applications.Scope;
 import oasis.model.authorizations.AuthorizationRepository;
@@ -53,7 +54,7 @@ public class JongoAuthorizationRepository implements AuthorizationRepository {
     AuthorizedScopes authorizedScopes = new AuthorizedScopes();
     authorizedScopes.setAccountId(accountId);
     authorizedScopes.setServiceProviderId(serviceProviderId);
-    authorizedScopes.setScopeIds(scopesId.toArray(new String[scopesId.size()]));
+    authorizedScopes.setScopeIds(Sets.newHashSet(scopesId));
     getAuthorizedScopesCollection()
         .update("{userAccountId:#, serviceProviderId:#}", accountId, serviceProviderId)
         .upsert().merge(authorizedScopes);
