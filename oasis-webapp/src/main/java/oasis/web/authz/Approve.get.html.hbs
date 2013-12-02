@@ -18,6 +18,7 @@
         </p>
         <ul>
             {{#each scopes.requiredScopes}}
+                <input type="hidden" name="scope" value="{{id}}" />
                 <dl>
                     <dt>{{title}}</dt>
                     <dd>{{description}}</dd>
@@ -37,7 +38,7 @@
         </p>
         <ul>
             {{#each scopes.optionalScopes}}
-            <input type="checkbox" name="scope" value="{{scope.code}}" />
+            <input type="checkbox" name="scope" value="{{id}}" />
             <dl>
                 <dt>{{title}}</dt>
                 <dd>{{description}}</dd>

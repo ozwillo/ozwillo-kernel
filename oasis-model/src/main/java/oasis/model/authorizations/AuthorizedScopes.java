@@ -1,5 +1,7 @@
 package oasis.model.authorizations;
 
+import java.util.Set;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.wordnik.swagger.annotations.ApiModelProperty;
@@ -14,7 +16,7 @@ public class AuthorizedScopes {
   private String serviceProviderId;
   @JsonProperty
   @ApiModelProperty(required = true)
-  private String[] scopeIds;
+  private Set<String> scopeIds;
 
   public String getAccountId() {
     return accountId;
@@ -32,11 +34,11 @@ public class AuthorizedScopes {
     this.serviceProviderId = serviceProviderId;
   }
 
-  public String[] getScopeIds() {
+  public Set<String> getScopeIds() {
     return scopeIds;
   }
 
-  public void setScopeIds(String[] scopeIds) {
+  public void setScopeIds(Set<String> scopeIds) {
     this.scopeIds = scopeIds;
   }
 }
