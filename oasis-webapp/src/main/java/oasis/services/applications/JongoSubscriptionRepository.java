@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import com.mongodb.WriteResult;
 
+import oasis.model.applications.Application;
 import oasis.model.applications.Subscription;
 import oasis.model.applications.SubscriptionRepository;
 
@@ -51,6 +52,19 @@ public class JongoSubscriptionRepository implements SubscriptionRepository {
           n, subscriptionId);
     }
     return n > 0;
+  }
+
+  @Override
+  public Subscription getSomeSubscriptionForEventType(String eventType) {
+    Application app = getApplicationsCollection()
+        .findOne("{ subscriptions.eventType: # }", eventType)
+        .projection("{ id: 1, subscriptions.$: 1}")
+        .as(Application.class);
+    if (app == null || app.getSubscriptions() == null || app.getSubscriptions().isEmpty()) {
+      return null;
+    }
+
+    return app.getSubscriptions().get(0);
   }
 
   private MongoCollection getApplicationsCollection() {
