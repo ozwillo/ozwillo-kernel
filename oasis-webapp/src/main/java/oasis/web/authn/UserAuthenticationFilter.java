@@ -1,9 +1,9 @@
 package oasis.web.authn;
 
 import java.io.IOException;
-import java.security.Principal;
 
 import javax.annotation.Priority;
+import javax.inject.Inject;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
@@ -14,12 +14,19 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.ext.Provider;
 
+import com.google.common.base.Supplier;
+
+import oasis.model.accounts.Account;
+import oasis.model.accounts.AccountRepository;
+
 @Authenticated @User
 @Provider
 @Priority(Priorities.AUTHENTICATION)
 public class UserAuthenticationFilter implements ContainerRequestFilter {
 
   static final String COOKIE_NAME = System.getProperty("oasis.authn.cookieName", "SID");
+
+  @Inject AccountRepository accountRepository;
 
   @Override
   public void filter(ContainerRequestContext requestContext) throws IOException {
@@ -38,19 +45,15 @@ public class UserAuthenticationFilter implements ContainerRequestFilter {
       return;
     }
 
-    // TODO: get user principal
-    final Principal principal = new Principal() {
-      @Override
-      public String getName() {
-        return sid.getValue();
-      }
-    };
+    // TODO: validate SID
+
+    final AccountPrincipal accountPrincipal = new AccountPrincipal(accountRepository, sid.getValue());
 
     final SecurityContext oldSecurityContext = requestContext.getSecurityContext();
     requestContext.setSecurityContext(new SecurityContext() {
       @Override
-      public Principal getUserPrincipal() {
-        return principal;
+      public AccountPrincipal getUserPrincipal() {
+        return accountPrincipal;
       }
 
       @Override
