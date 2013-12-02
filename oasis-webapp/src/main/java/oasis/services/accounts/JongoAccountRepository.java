@@ -53,7 +53,7 @@ public class JongoAccountRepository implements AccountRepository {
 
   @Override
   public String createAgentAccount(String organizationId, AgentAccount agent) {
-    agent.setModified(System.nanoTime());
+    agent.setModified(System.currentTimeMillis());
     agent.setOrganizationId(organizationId);
     getAccountCollection().insert(agent);
     return agent.getId();
