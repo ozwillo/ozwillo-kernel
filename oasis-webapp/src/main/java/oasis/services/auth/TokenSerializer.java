@@ -8,6 +8,9 @@ import java.util.Map;
 
 import javax.ws.rs.core.UriBuilder;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
@@ -18,13 +21,14 @@ import oasis.model.accounts.Token;
 import oasis.model.accounts.TokenViews;
 
 public class TokenSerializer {
+  private static final Logger logger = LoggerFactory.getLogger(TokenSerializer.class);
+
   /**
    * Create a string containing various token info, ready to give to the client.
    * @param token The token we need to serialize
-   * @return A base64 encoded json object containg : ID, Creation Time and TTL
-   * @throws com.fasterxml.jackson.core.JsonProcessingException
+   * @return A base64 encoded json object containg : ID, Creation Time and TTL.
    */
-  public static String serialize(Token token) throws JsonProcessingException {
+  public static String serialize(Token token) {
     // We can't serialize a null token
     if ( token == null ) {
       return null;
@@ -33,14 +37,13 @@ public class TokenSerializer {
     ObjectMapper objectMapper = new ObjectMapper();
     BaseEncoding base64Encoder = BaseEncoding.base64();
 
-    Map<String, Object> tokenMap = ImmutableMap.<String, Object>of(
-        "id", token.getId(),
-        "creationTime", token.getCreationTime(),
-        "timeToLive", token.getTimeToLive()
-    );
-
     // Return base64 encoded json
-    return base64Encoder.encode(objectMapper.writeValueAsBytes(tokenMap));
+    try {
+      return base64Encoder.encode(objectMapper.writerWithView(TokenViews.Serializer.class).writeValueAsBytes(token));
+    } catch (JsonProcessingException e) {
+      logger.error("Can't serialize the given token {}", token.getId(), e);
+      return null;
+    }
   }
 
   /**
@@ -48,16 +51,15 @@ public class TokenSerializer {
    * @param tokenSerial String created with serialize()
    * @return A partially filled Token object usable for authentication
    */
-  public static Token unserialize(String tokenSerial) throws IOException {
+  public static Token unserialize(String tokenSerial) {
     BaseEncoding base64Encoder = BaseEncoding.base64();
     ObjectMapper objectMapper = new ObjectMapper();
 
-    Iterator<Token> tokens = objectMapper.readerWithView(TokenViews.Serializer.class).withType(Token.class).readValues(base64Encoder.decode(tokenSerial));
-
-    if ( tokens.hasNext() ) {
-      return tokens.next();
+    try {
+      return objectMapper.readerWithView(TokenViews.Serializer.class).withType(Token.class).readValue(base64Encoder.decode(tokenSerial));
+    } catch (IOException e) {
+      logger.error("Can't unserialize the given string {}", tokenSerial, e);
+      return null;
     }
-
-    throw new InvalidParameterException();
   }
 }
