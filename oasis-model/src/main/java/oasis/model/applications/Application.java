@@ -1,6 +1,7 @@
 package oasis.model.applications;
 
 
+import java.util.List;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -21,6 +22,10 @@ public class Application {
   @JsonProperty
   @ApiModelProperty(required = true)
   private String iconUri;
+
+  @JsonProperty
+  @ApiModelProperty
+  private List<Subscription> subscriptions;
 
   @JsonIgnore
   private long modified;
@@ -55,5 +60,13 @@ public class Application {
 
   public void setModified(long modified) {
     this.modified = modified;
+  }
+
+  public List<Subscription> getSubscriptions() {
+    return subscriptions;
+  }
+
+  public void setSubscriptions(List<Subscription> subscriptions) {
+    this.subscriptions = subscriptions;
   }
 }

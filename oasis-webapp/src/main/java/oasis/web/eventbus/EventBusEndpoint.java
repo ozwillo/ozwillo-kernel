@@ -16,6 +16,7 @@ import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 import com.wordnik.swagger.annotations.ApiOperation;
 
+import oasis.model.applications.Subscription;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.Client;
 
@@ -62,22 +63,6 @@ public class EventBusEndpoint {
   }
 
   //TODO : Other functions here ?
-
-  @ApiModel
-  static class Subscription {
-
-    @JsonProperty()
-    @ApiModelProperty
-    String webHook;
-
-    @JsonProperty()
-    @ApiModelProperty
-    String secret;
-
-    @JsonProperty()
-    @ApiModelProperty
-    String eventType; // Unique (gives the application for an organisation)
-  }
 
   @ApiModel
   static class Event {
