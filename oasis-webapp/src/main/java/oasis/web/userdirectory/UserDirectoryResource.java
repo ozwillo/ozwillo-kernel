@@ -16,6 +16,7 @@ import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
 
+import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.AgentAccount;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Group;
@@ -28,6 +29,9 @@ public class UserDirectoryResource {
   @Inject
   private DirectoryRepository directory;
 
+  @Inject
+  private AccountRepository account;
+
   @GET
   @Path("/org/{organizationId}/members")
   @ApiOperation(value = "Retrieve members of an organization",
@@ -39,7 +43,7 @@ public class UserDirectoryResource {
                   @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
                                message = "The current user cannot access the requested organization") })
   public Response getAccounts(@PathParam("organizationId") String organizationId) {
-    Collection<AgentAccount> accounts = directory.getOrganizationMembers(organizationId);
+    Iterable<AgentAccount> accounts = account.getAgentsForOrganization(organizationId, 0, 25);
     if (accounts != null){
       return Response.ok()
           .entity(accounts)
@@ -79,15 +83,15 @@ public class UserDirectoryResource {
   @GET
   @Path("/group/{groupId}/members")
   @ApiOperation(value = "Retrieve members of a group",
-                notes = "Returns agents array",
-                response = AgentAccount.class,
+                notes = "Returns agents id array",
+                response = String.class,
                 responseContainer = "Array")
   @ApiResponses({ @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
                                message = "The requested group does not exist, or no group id has been sent"),
                   @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
                                message = "The current user cannot access the requested group") })
   public Response getMembers(@PathParam("groupId") String groupId) {
-    Collection<AgentAccount> agents = directory.getGroupMembers(groupId);
+    Collection<String> agents = directory.getGroupMembers(groupId);
     if (agents != null){
       return Response.ok()
           .entity(agents)
