@@ -6,9 +6,11 @@ import com.google.api.client.util.Clock;
 import com.google.inject.AbstractModule;
 
 import oasis.model.applications.ApplicationRepository;
+import oasis.model.applications.SubscriptionRepository;
 import oasis.model.authorizations.AuthorizationRepository;
 import oasis.model.directory.DirectoryRepository;
 import oasis.services.applications.DummyApplicationRepository;
+import oasis.services.applications.JongoSubscriptionRepository;
 import oasis.services.authorizations.JongoAuthorizationRepository;
 import oasis.services.directory.DummyDirectoryRepository;
 
@@ -18,6 +20,8 @@ public class OasisGuiceModule extends AbstractModule {
     bind(DirectoryRepository.class).to(DummyDirectoryRepository.class);
     bind(ApplicationRepository.class).to(DummyApplicationRepository.class);
     bind(AuthorizationRepository.class).to(JongoAuthorizationRepository.class);
+    bind(SubscriptionRepository.class).to(JongoSubscriptionRepository.class);
+
     bind(JsonFactory.class).to(JacksonFactory.class);
     bind(Clock.class).toInstance(Clock.SYSTEM);
   }
