@@ -33,6 +33,10 @@ public class Application {
 
   @JsonProperty
   @ApiModelProperty
+  private List<Subscription> subscriptions;
+
+  @JsonProperty
+  @ApiModelProperty
   private long modified;
 
   public String getId() {
@@ -73,6 +77,15 @@ public class Application {
 
   public void setServiceProvider(ServiceProvider serviceProvider) {
     this.serviceProvider = serviceProvider;
+  }
+
+
+  public List<Subscription> getSubscriptions() {
+    return subscriptions;
+  }
+
+  public void setSubscriptions(List<Subscription> subscriptions) {
+    this.subscriptions = subscriptions;
   }
 
   public long getModified() {
