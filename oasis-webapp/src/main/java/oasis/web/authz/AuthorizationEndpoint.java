@@ -39,6 +39,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.escape.Escaper;
 import com.google.common.net.UrlEscapers;
+import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.applications.ApplicationRepository;
 import oasis.model.applications.Scope;
@@ -55,6 +57,7 @@ import oasis.web.view.View;
 @Authenticated
 @User
 @Produces(MediaType.TEXT_HTML)
+@Api(value = "/a/auth", description = "Authorization Endpoint.")
 public class AuthorizationEndpoint {
   private static final Logger logger = LoggerFactory.getLogger(AuthorizationEndpoint.class);
 
@@ -79,12 +82,14 @@ public class AuthorizationEndpoint {
   private StringBuilder redirectUriBuilder;
 
   @GET
+  @ApiOperation("See http://tools.ietf.org/html/rfc6749#section-3.1 and http://openid.net/specs/openid-connect-basic-1_0.html#AuthorizationRequest")
   public Response get(@Context UriInfo uriInfo) {
     return post(uriInfo.getQueryParameters());
   }
 
   @POST
   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+  @ApiOperation("See http://tools.ietf.org/html/rfc6749#section-3.1 and http://openid.net/specs/openid-connect-basic-1_0.html#AuthorizationRequest")
   public Response post(MultivaluedMap<String, String> params) {
     this.params = params;
 
