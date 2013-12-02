@@ -28,6 +28,8 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.webtoken.JsonWebSignature;
 import com.google.api.client.util.Clock;
 import com.google.common.base.Splitter;
+import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.openidconnect.OpenIdConnectModule;
 import oasis.web.authn.Authenticated;
@@ -35,6 +37,7 @@ import oasis.web.authn.Client;
 
 @Path("/a/token")
 @Authenticated @Client
+@Api(value = "/a/token", description = "Token Endpoint.")
 public class TokenEndpoint {
 
   private static final Splitter CODE_SPLITTER = Splitter.on(':').limit(2);
@@ -52,6 +55,7 @@ public class TokenEndpoint {
   @POST
   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
   @Produces(MediaType.APPLICATION_JSON)
+  @ApiOperation("See http://tools.ietf.org/html/rfc6749#section-3.2 and http://openid.net/specs/openid-connect-basic-1_0.html#ObtainingTokens")
   public Response validate(MultivaluedMap<String, String> params) throws GeneralSecurityException, IOException {
     this.params = params;
 
