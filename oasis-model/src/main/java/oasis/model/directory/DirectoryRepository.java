@@ -2,16 +2,34 @@ package oasis.model.directory;
 
 import java.util.Collection;
 
-import oasis.model.accounts.AgentAccount;
-
 public interface DirectoryRepository {
-  Group getGroup(String id);
+  Organization getOrganization(String organizationId);
 
-  Collection<AgentAccount> getGroupMembers(String groupId);
-
-  Organization getOrganization(String id);
-
-  Collection<AgentAccount> getOrganizationMembers(String organizationId);
+  Organization getOrganizationFromGroup(String groupId);
 
   Collection<Group> getGroups(String organizationId);
+
+  String createOrganization(Organization organization);
+
+  void updateOrganization(String organizationId, Organization organization);
+
+  boolean deleteOrganization(String organizationId);
+
+  Iterable<Organization> getOrganizations();
+
+  Group getGroup(String groupId);
+
+  Collection<String> getGroupMembers(String groupId);
+
+  void addGroupMember(String groupId, String agentId);
+
+  boolean removeGroupMember(String groupId, String agentId);
+
+  String createGroup(String organizationId, Group group);
+
+  void updateGroup(String groupId, Group group);
+
+  boolean deleteGroup(String groupId);
+
+  Collection<Group> getGroupsForAgent(String agentId);
 }

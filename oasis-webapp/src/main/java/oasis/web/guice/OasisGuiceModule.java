@@ -17,7 +17,7 @@ import oasis.services.applications.JongoApplicationRepository;
 import oasis.services.applications.JongoSubscriptionRepository;
 import oasis.services.auth.JongoTokenRepository;
 import oasis.services.authorizations.JongoAuthorizationRepository;
-import oasis.services.directory.DummyDirectoryRepository;
+import oasis.services.directory.JongoDirectoryRepository;
 import oasis.services.social.JongoIdentityRepository;
 
 public class OasisGuiceModule extends AbstractModule {
@@ -25,7 +25,7 @@ public class OasisGuiceModule extends AbstractModule {
   protected void configure() {
     bind(AccountRepository.class).to(JongoAccountRepository.class);
     bind(IdentityRepository.class).to(JongoIdentityRepository.class);
-    bind(DirectoryRepository.class).to(DummyDirectoryRepository.class);
+    bind(DirectoryRepository.class).to(JongoDirectoryRepository.class);
     bind(ApplicationRepository.class).to(JongoApplicationRepository.class);
     bind(AuthorizationRepository.class).to(JongoAuthorizationRepository.class);
     bind(TokenRepository.class).to(JongoTokenRepository.class);

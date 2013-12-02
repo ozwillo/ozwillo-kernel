@@ -20,6 +20,10 @@ public abstract class UserAccount extends Account implements AccountWithPassword
   @ApiModelProperty(required = true)
   private String passwordSalt;
 
+  @JsonProperty
+  @ApiModelProperty
+  private long modified;
+
   public String getEmailAddress() {
     return emailAddress;
   }
@@ -50,5 +54,13 @@ public abstract class UserAccount extends Account implements AccountWithPassword
 
   public void setPasswordSalt(String passwordSalt) {
     this.passwordSalt = passwordSalt;
+  }
+
+  public long getModified() {
+    return modified;
+  }
+
+  public void setModified(long modified) {
+    this.modified = modified;
   }
 }
