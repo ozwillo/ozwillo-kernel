@@ -164,6 +164,7 @@ public class AuthorizationEndpoint {
         globalClaimedScopeIds.add(scopeCardinality.getScopeId());
       }
     }
+    globalClaimedScopeIds.addAll(scopeIds);
 
     Iterable<Scope> globalClaimedScopes;
     try {
