@@ -224,6 +224,10 @@ public class JongoApplicationRepository implements ApplicationRepository {
   @Override
   public ScopeCardinalities getRequiredScopes(String serviceProviderId) {
     ServiceProvider sp = getServiceProvider(serviceProviderId);
+    if (sp == null) {
+      logger.warn("The service provider {} does not exist.");
+      return null;
+    }
     ScopeCardinalities res = new ScopeCardinalities();
     res.setServiceProviderId(serviceProviderId);
     res.setValues(sp.getScopeCardinalities());

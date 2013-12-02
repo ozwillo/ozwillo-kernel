@@ -159,7 +159,7 @@ public class AuthorizationEndpoint {
 
     Set<String> globalClaimedScopeIds = Sets.newHashSet();
     ScopeCardinalities scopeCardinalities = applicationRepository.getRequiredScopes(client_id);
-    if (scopeCardinalities != null) {
+    if (scopeCardinalities != null && scopeCardinalities.getValues() != null) {
       for (ScopeCardinality scopeCardinality : scopeCardinalities.getValues()) {
         globalClaimedScopeIds.add(scopeCardinality.getScopeId());
       }
@@ -168,7 +168,7 @@ public class AuthorizationEndpoint {
     Iterable<Scope> globalClaimedScopes;
     try {
       globalClaimedScopes = authorizationRepository.getScopes(globalClaimedScopeIds);
-    } catch (NullPointerException e) {
+    } catch (IllegalArgumentException e) {
       throw error("invalid_scope", e.getMessage());
     }
 
@@ -188,6 +188,9 @@ public class AuthorizationEndpoint {
 
     // TODO: Get the application in order to have more informations
     ServiceProvider serviceProvider = applicationRepository.getServiceProvider(client_id);
+    if (serviceProvider == null) {
+      throw accessDenied("Unknown client id");
+    }
 
     // TODO: Make a URI Service in order to move the URI logic outside of the JAX-RS resource
     // redirectUriBuilder is now used for creating the cancel Uri for the authorization step with the user
@@ -259,6 +262,10 @@ public class AuthorizationEndpoint {
 
   private WebApplicationException invalidRequest(String message) {
     return error("invalid_request", message);
+  }
+
+  private WebApplicationException accessDenied(String message) {
+    return error("access_denied", message);
   }
 
   private WebApplicationException error(String error, @Nullable String description) {
