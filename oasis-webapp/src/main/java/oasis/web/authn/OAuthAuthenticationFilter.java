@@ -1,10 +1,11 @@
 package oasis.web.authn;
 
 import java.io.IOException;
-import java.security.Principal;
 import java.util.List;
 
 import javax.annotation.Priority;
+import javax.inject.Inject;
+import javax.security.auth.login.LoginException;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
@@ -15,6 +16,13 @@ import javax.ws.rs.ext.Provider;
 
 import com.google.common.base.Splitter;
 
+import oasis.model.accounts.AccessToken;
+import oasis.model.accounts.Account;
+import oasis.model.accounts.Token;
+import oasis.services.auth.TokenAuthenticator;
+import oasis.services.auth.TokenHandler;
+import oasis.services.auth.TokenSerializer;
+
 /**
  * Implements Bearer Token authentication.
  *
@@ -24,10 +32,11 @@ import com.google.common.base.Splitter;
 @Provider
 @Priority(Priorities.AUTHENTICATION)
 public class OAuthAuthenticationFilter implements ContainerRequestFilter {
-
   private static final String AUTH_SCHEME = "Bearer";
-
   private static final Splitter AUTH_SCHEME_SPLITTER = Splitter.on(' ').omitEmptyStrings().trimResults();
+
+  @Inject TokenAuthenticator tokenAuthenticator;
+  @Inject TokenHandler tokenHandler;
 
   @Override
   public void filter(ContainerRequestContext requestContext) throws IOException {
@@ -48,21 +57,42 @@ public class OAuthAuthenticationFilter implements ContainerRequestFilter {
       return;
     }
 
-    // TODO: get user principal
-    // TODO: add configurable 'scope' (will be used when access_token is validated)
-    final String userName = parts.get(1);
-    final Principal principal = new Principal() {
-      @Override
-      public String getName() {
-        return userName;
-      }
-    };
+    Token token;
+    try {
+      token = TokenSerializer.unserialize(parts.get(1));
+    } catch (Exception e) {
+      invalidToken(requestContext);
+      return;
+    }
 
+    Account account;
+    try {
+      account = tokenAuthenticator.authenticate(token);
+    } catch (LoginException e) {
+      invalidToken(requestContext);
+      return;
+    }
+
+    AccessToken accessToken = getAccessTokenFromAccount(account, token.getId()); // Can't trust the received token
+
+    if (!tokenHandler.checkTokenValidity(account, accessToken)) {
+      invalidToken(requestContext);
+      return;
+    }
+
+    if (accessToken == null) {
+      invalidToken(requestContext);
+      return;
+    }
+
+    // TODO: load account lazily
+    final OAuthPrincipal accountPrincipal = new OAuthPrincipal(account, accessToken);
     final SecurityContext oldSecurityContext = requestContext.getSecurityContext();
+
     requestContext.setSecurityContext(new SecurityContext() {
       @Override
-      public Principal getUserPrincipal() {
-        return principal;
+      public OAuthPrincipal getUserPrincipal() {
+        return accountPrincipal;
       }
 
       @Override
@@ -82,6 +112,18 @@ public class OAuthAuthenticationFilter implements ContainerRequestFilter {
     });
   }
 
+  private AccessToken getAccessTokenFromAccount(Account account, String tokenId) {
+    for (Token t : account.getTokens()) {
+      if (t.getId().equals(tokenId)) {
+        if (t instanceof AccessToken) {
+          return (AccessToken) t;
+        }
+        return null;
+      }
+    }
+    return null;
+  }
+
   private void challenge(ContainerRequestContext requestContext) {
     requestContext.abortWith(Response
         .status(Response.Status.UNAUTHORIZED)
@@ -93,6 +135,13 @@ public class OAuthAuthenticationFilter implements ContainerRequestFilter {
     requestContext.abortWith(Response
         .status(Response.Status.BAD_REQUEST)
         .header(HttpHeaders.WWW_AUTHENTICATE, AUTH_SCHEME + " error=\"invalid_request\"")
+        .build());
+  }
+
+  private void invalidToken(ContainerRequestContext requestContext) {
+    requestContext.abortWith(Response
+        .status(Response.Status.BAD_REQUEST)
+        .header(HttpHeaders.WWW_AUTHENTICATE, AUTH_SCHEME + " error=\"invalid_token\"")
         .build());
   }
 }
