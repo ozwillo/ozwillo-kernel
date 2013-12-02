@@ -10,21 +10,11 @@ import com.wordnik.swagger.annotations.ApiModelProperty;
 public class AuthorizedScopes {
   @JsonProperty
   @ApiModelProperty(required = true)
-  private String accountId;
-  @JsonProperty
-  @ApiModelProperty(required = true)
   private String serviceProviderId;
+
   @JsonProperty
   @ApiModelProperty(required = true)
   private Set<String> scopeIds;
-
-  public String getAccountId() {
-    return accountId;
-  }
-
-  public void setAccountId(String accountId) {
-    this.accountId = accountId;
-  }
 
   public String getServiceProviderId() {
     return serviceProviderId;

@@ -235,17 +235,7 @@ public class AuthorizationEndpoint {
     // TODO: CSRF Validation
     String userId = securityContext.getUserPrincipal().getName();
 
-    AuthorizedScopes authorizedScopes = authorizationRepository.getAuthorizedScopes(userId, client_id);
-    Set<String> grantedScopeIds;
-    if (authorizedScopes != null) {
-      grantedScopeIds = authorizedScopes.getScopeIds();
-    } else {
-      grantedScopeIds = Collections.emptySet();
-    }
-
-    ImmutableSet<String> newGrantedScopeIds = Sets.union(scopeIds, grantedScopeIds).immutableCopy();
-
-    authorizationRepository.authorize(userId, client_id, newGrantedScopeIds);
+    authorizationRepository.authorize(userId, client_id, scopeIds);
 
     return Response.seeOther(continueUrl).build();
   }

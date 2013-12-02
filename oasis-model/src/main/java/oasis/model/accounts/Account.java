@@ -7,7 +7,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.wordnik.swagger.annotations.ApiModelProperty;
+
 import oasis.model.annotations.Id;
+import oasis.model.authorizations.AuthorizedScopes;
 
 @JsonRootName("account")
 @JsonTypeInfo(use = JsonTypeInfo.Id.MINIMAL_CLASS, property = "type")
@@ -20,6 +22,10 @@ public abstract class Account {
   @JsonProperty
   @ApiModelProperty()
   private List<Token> tokens;
+
+  @JsonProperty
+  @ApiModelProperty
+  private List<AuthorizedScopes> authorizedScopes;
 
   public String getId() {
     return id;
@@ -51,5 +57,13 @@ public abstract class Account {
     }
 
     this.getTokens().remove(token);
+  }
+
+  public List<AuthorizedScopes> getAuthorizedScopes() {
+    return authorizedScopes;
+  }
+
+  public void setAuthorizedScopes(List<AuthorizedScopes> authorizedScopes) {
+    this.authorizedScopes = authorizedScopes;
   }
 }
