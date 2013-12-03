@@ -2,45 +2,57 @@ package oasis.web.userinfo;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
+
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.webtoken.JsonWebSignature;
 import com.google.api.client.json.webtoken.JsonWebToken;
 import com.google.api.client.util.Key;
-import com.google.common.base.Splitter;
 
+import oasis.model.accounts.AccessToken;
+import oasis.model.accounts.UserAccount;
+import oasis.model.social.Identity;
+import oasis.model.social.IdentityRepository;
 import oasis.openidconnect.OpenIdConnectModule;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
+import oasis.web.authn.OAuthPrincipal;
 
 @Authenticated @OAuth
 @Path("/u/userinfo")
 public class UserInfoEndpoint {
-  private static final Splitter AUTH_SCHEME_SPLITTER = Splitter.on(' ').omitEmptyStrings().trimResults();
   private static final JsonWebSignature.Header JWS_HEADER = new JsonWebSignature.Header().setType("JWS").setAlgorithm("RS256");
+  private static final DateTimeFormatter BIRTHDATE_FORMATTER = ISODateTimeFormat.date().withDefaultYear(0);
+  private static final String EMAIL_SCOPE = "email";
+  private static final String PROFILE_SCOPE = "profile";
+  private static final String PHONE_SCOPE = "phone";
+  private static final String ADDRESS_SCOPE = "address";
   private static final String APPLICATION_JWT = "application/jwt";
 
   @Context SecurityContext securityContext;
   @Inject OpenIdConnectModule.Settings settings;
   @Inject JsonFactory jsonFactory;
+  @Inject IdentityRepository identityRepository;
 
   @GET
   @Produces(APPLICATION_JWT)
-  public Response getSigned(@HeaderParam(HttpHeaders.AUTHORIZATION) String authorizationHeader) throws GeneralSecurityException, IOException {
-    // TODO: Validate the access token
-
+  public Response getSigned() throws GeneralSecurityException, IOException {
     UserInfo userInfo = getUserInfo();
     userInfo.setSubject(securityContext.getUserPrincipal().getName());
 
@@ -55,9 +67,7 @@ public class UserInfoEndpoint {
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public Response getUnsigned(@HeaderParam(HttpHeaders.AUTHORIZATION) String authorizationHeader) throws IOException {
-    // TODO: Validate the access token
-
+  public Response getUnsigned() throws IOException {
     UserInfo userInfo = getUserInfo();
     userInfo.setSubject(securityContext.getUserPrincipal().getName());
 
@@ -67,58 +77,111 @@ public class UserInfoEndpoint {
 
   @POST
   @Produces("application/jwt")
-  public Response postSigned(@HeaderParam(HttpHeaders.AUTHORIZATION) String authorizationHeader) throws GeneralSecurityException, IOException {
-    return getSigned(authorizationHeader);
+  public Response postSigned() throws GeneralSecurityException, IOException {
+    return getSigned();
   }
 
   @POST
   @Produces(MediaType.APPLICATION_JSON)
-  public Response postUnsigned(@HeaderParam(HttpHeaders.AUTHORIZATION) String authorizationHeader) throws IOException {
-    return getUnsigned(authorizationHeader);
+  public Response postUnsigned() throws IOException {
+    return getUnsigned();
   }
 
   private UserInfo getUserInfo() {
+    OAuthPrincipal oAuthPrincipal = (OAuthPrincipal) securityContext.getUserPrincipal();
+
+    if (!(oAuthPrincipal.getAccount() instanceof UserAccount)) {
+      throw invalidTokenResponse();
+    }
+    UserAccount userAccount = (UserAccount) oAuthPrincipal.getAccount();
+
+    AccessToken accessToken = oAuthPrincipal.getAccessToken();
+    assert accessToken != null;
+
+    Set<String> scopeIds = accessToken.getScopeIds();
+
+    Identity identity = identityRepository.getIdentity(userAccount.getIdentityId());
+    return getUserInfo(userAccount, identity, scopeIds);
+  }
+
+  private UserInfo getUserInfo(UserAccount userAccount, Identity identity, Set<String> scopeIds) {
     UserInfo userInfo = new UserInfo();
 
-    // TODO: Fill the UserInfo instance
+    if (scopeIds.contains(PROFILE_SCOPE)) {
+      String birthDate = identity.getBirthdate() != null ? identity.getBirthdate().toString(BIRTHDATE_FORMATTER) : null;
+      userInfo.setName(identity.getName())
+          .setFamilyName(identity.getFamilyName())
+          .setGivenName(identity.getGivenName())
+          .setMiddleName(identity.getMiddleName())
+          .setNickname(identity.getNickname())
+          .setPicture(userAccount.getPicture())
+          .setGender(identity.getGender())
+          .setBirthdate(birthDate)
+          .setZoneinfo(userAccount.getZoneInfo())
+          .setLocale(userAccount.getLocale());
+    }
+
+    if (scopeIds.contains(EMAIL_SCOPE) && userAccount.getEmailAddress() != null) {
+      userInfo.setEmail(userAccount.getEmailAddress());
+      userInfo.setEmailVerified(true); // A user account is created only if the email is verified
+    }
+
+    if (scopeIds.contains(ADDRESS_SCOPE) && identity.getAddress() != null) {
+      UserInfo.Address address = new UserInfo.Address()
+          .setStreetAddress(identity.getAddress().getStreetAddress())
+          .setLocality(identity.getAddress().getLocality())
+          .setRegion(identity.getAddress().getRegion())
+          .setPostalCode(identity.getAddress().getPostalCode())
+          .setCountry(identity.getAddress().getCountry());
+      userInfo.setAddress(address);
+    }
+
+    if (scopeIds.contains(PHONE_SCOPE) && identity.getPhoneNumber() != null) {
+      userInfo.setPhone(identity.getPhoneNumber());
+      userInfo.setPhoneVerified(identity.isPhoneNumberVerified());
+    }
+
+    long updatedAt = Math.max(userAccount.getModified(), identity.getModified());
+    if (updatedAt > 0) {
+      userInfo.setUpdatedAt(TimeUnit.MILLISECONDS.toSeconds(updatedAt));
+    }
 
     return userInfo;
   }
 
-  private Response insufficientScopeResponse() {
+  private WebApplicationException insufficientScopeResponse() {
     return errorResponse(Response.Status.FORBIDDEN, "insufficient_scope");
   }
 
-  private Response invalidTokenResponse() {
+  private WebApplicationException invalidTokenResponse() {
     return errorResponse(Response.Status.UNAUTHORIZED, "invalid_token");
   }
 
-  private Response errorResponse(Response.Status status, String errorCode) {
-    return Response.status(status).header(HttpHeaders.WWW_AUTHENTICATE, "Bearer error=\"" + errorCode + "\"").build();
+  private WebApplicationException errorResponse(Response.Status status, String errorCode) {
+    return new WebApplicationException(Response.status(status).header(HttpHeaders.WWW_AUTHENTICATE, "Bearer error=\"" + errorCode + "\"").build());
   }
 
   private static class UserInfo extends JsonWebToken.Payload {
     // Profile
-    private String name;
-    private String family_name;
-    private String given_name;
-    private String middle_name;
-    private String nickname;
-    private String picture;
-    private String gender;
-    private String birthdate;
-    private String zoneinfo;
-    private String locale;
-    private Long updated_at;
-
+    @Key private String name;
+    @Key private String family_name;
+    @Key private String given_name;
+    @Key private String middle_name;
+    @Key private String nickname;
+    @Key private String picture;
+    @Key private String gender;
+    @Key private String birthdate;
+    @Key private String zoneinfo;
+    @Key private String locale;
+    @Key private Long updated_at;
     // Email
-    private String email;
-    private Boolean email_verified;
+    @Key private String email;
+    @Key private Boolean email_verified;
     // Address
-    private Address address;
+    @Key private Address address;
     // Phone
-    private String phone;
-    private Boolean phone_verified;
+    @Key private String phone;
+    @Key private Boolean phone_verified;
 
     public String getName() {
       return name;
@@ -319,11 +382,11 @@ public class UserInfoEndpoint {
     }
 
     private static class Address {
-      private String street_address;
-      private String locality;
-      private String region;
-      private String postal_code;
-      private String country;
+      @Key private String street_address;
+      @Key private String locality;
+      @Key private String region;
+      @Key private String postal_code;
+      @Key private String country;
 
       public String getStreetAddress() {
         return street_address;

@@ -22,6 +22,18 @@ public abstract class UserAccount extends Account implements AccountWithPassword
 
   @JsonProperty
   @ApiModelProperty
+  private String picture;
+
+  @JsonProperty
+  @ApiModelProperty
+  private String zoneInfo;
+
+  @JsonProperty
+  @ApiModelProperty
+  private String locale;
+
+  @JsonProperty
+  @ApiModelProperty
   private long modified;
 
   public String getEmailAddress() {
@@ -54,6 +66,30 @@ public abstract class UserAccount extends Account implements AccountWithPassword
 
   public void setPasswordSalt(String passwordSalt) {
     this.passwordSalt = passwordSalt;
+  }
+
+  public String getPicture() {
+    return picture;
+  }
+
+  public void setPicture(String picture) {
+    this.picture = picture;
+  }
+
+  public String getZoneInfo() {
+    return zoneInfo;
+  }
+
+  public void setZoneInfo(String zoneInfo) {
+    this.zoneInfo = zoneInfo;
+  }
+
+  public String getLocale() {
+    return locale;
+  }
+
+  public void setLocale(String locale) {
+    this.locale = locale;
   }
 
   public long getModified() {
