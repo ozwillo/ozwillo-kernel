@@ -13,5 +13,5 @@ public interface AuthorizationRepository {
 
   public void authorize(String accountId, String serviceProviderId, Collection<String> scopesId);
 
-  public void revoke(String accountId, String serviceProviderId);
+  public boolean revoke(String accountId, String serviceProviderId);
 }
