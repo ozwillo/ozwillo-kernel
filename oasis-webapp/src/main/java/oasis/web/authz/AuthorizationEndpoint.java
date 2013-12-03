@@ -82,14 +82,22 @@ public class AuthorizationEndpoint {
   private StringBuilder redirectUriBuilder;
 
   @GET
-  @ApiOperation("See http://tools.ietf.org/html/rfc6749#section-3.1 and http://openid.net/specs/openid-connect-basic-1_0.html#AuthorizationRequest")
+  @ApiOperation(
+      value = "Grant authorizations to the client application.",
+      notes = "See the <a href=\"http://tools.ietf.org/html/rfc6749#section-3.1\">OAuth 2.0 RFC</a> and " +
+          "<a href=\"http://openid.net/specs/openid-connect-basic-1_0.html#AuthorizationRequest\">OpenID Connect RFC</a> for more information."
+  )
   public Response get(@Context UriInfo uriInfo) {
     return post(uriInfo.getQueryParameters());
   }
 
   @POST
   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-  @ApiOperation("See http://tools.ietf.org/html/rfc6749#section-3.1 and http://openid.net/specs/openid-connect-basic-1_0.html#AuthorizationRequest")
+  @ApiOperation(
+      value = "Grant authorizations to the client application.",
+      notes = "See the <a href=\"http://tools.ietf.org/html/rfc6749#section-3.1\">OAuth 2.0 RFC</a> and " +
+          "<a href=\"http://openid.net/specs/openid-connect-basic-1_0.html#AuthorizationRequest\">OpenID Connect RFC</a> for more information."
+  )
   public Response post(MultivaluedMap<String, String> params) {
     this.params = params;
 

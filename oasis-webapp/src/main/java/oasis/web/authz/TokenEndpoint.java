@@ -55,7 +55,11 @@ public class TokenEndpoint {
   @POST
   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
   @Produces(MediaType.APPLICATION_JSON)
-  @ApiOperation("See http://tools.ietf.org/html/rfc6749#section-3.2 and http://openid.net/specs/openid-connect-basic-1_0.html#ObtainingTokens")
+  @ApiOperation(
+      value = "Exchange an authorization code for an access token.",
+      notes = "See the <a href=\"http://tools.ietf.org/html/rfc6749#section-3.2\">OAuth 2.0 RFC</a> and " +
+          "<a href=\"http://openid.net/specs/openid-connect-basic-1_0.html#ObtainingTokens\">OpenID Connect RFC</a> for more information."
+  )
   public Response validate(MultivaluedMap<String, String> params) throws GeneralSecurityException, IOException {
     this.params = params;
 
