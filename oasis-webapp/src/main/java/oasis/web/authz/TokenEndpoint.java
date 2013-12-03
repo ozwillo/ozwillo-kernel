@@ -27,11 +27,20 @@ import com.google.api.client.auth.openidconnect.IdTokenResponse;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.webtoken.JsonWebSignature;
 import com.google.api.client.util.Clock;
-import com.google.common.base.Splitter;
+import com.google.common.base.Joiner;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
+import oasis.model.accounts.AccessToken;
+import oasis.model.accounts.Account;
+import oasis.model.accounts.AccountRepository;
+import oasis.model.accounts.AuthorizationCode;
+import oasis.model.accounts.RefreshToken;
+import oasis.model.accounts.Token;
+import oasis.model.authn.TokenRepository;
 import oasis.openidconnect.OpenIdConnectModule;
+import oasis.services.authn.TokenHandler;
+import oasis.services.authn.TokenSerializer;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.Client;
 
@@ -39,13 +48,16 @@ import oasis.web.authn.Client;
 @Authenticated @Client
 @Api(value = "/a/token", description = "Token Endpoint.")
 public class TokenEndpoint {
-
-  private static final Splitter CODE_SPLITTER = Splitter.on(':').limit(2);
+  private static final Joiner SCOPE_JOINER = Joiner.on(' ').skipNulls();
   private static final JsonWebSignature.Header JWS_HEADER = new JsonWebSignature.Header().setType("JWS").setAlgorithm("RS256");
 
   @Inject OpenIdConnectModule.Settings settings;
   @Inject JsonFactory jsonFactory;
   @Inject Clock clock;
+
+  @Inject AccountRepository accountRepository;
+  @Inject TokenRepository tokenRepository;
+  @Inject TokenHandler tokenHandler;
 
   @Context UriInfo uriInfo;
   @Context SecurityContext securityContext;
@@ -64,29 +76,57 @@ public class TokenEndpoint {
     this.params = params;
 
     String grant_type = getRequiredParameter("grant_type");
+
+    // TODO: support other kind of tokens (refresh_token, jwt-bearer?)
     if (!grant_type.equals("authorization_code")) {
-      return errorResponse("unsupported_grant", null);
+      return errorResponse("unsupported_grant_type", null);
     }
 
     String code = getRequiredParameter("code");
-    String redirect_uri = getRequiredParameter("redirect_uri");
 
-    List<String> parts = CODE_SPLITTER.splitToList(code);
-    if (parts.size() != 2) {
-      return errorResponse("invalid_grant", null);
+    // Get the token behind the given code
+    Token token = TokenSerializer.unserialize(code);
+
+    if (token == null) {
+      return errorResponse("invalid_token", null);
     }
 
-    // TODO: validate auth code
-    // TODO: generate access token
-    String userId = parts.get(0);
-    String accessToken = userId + ":" + clock.currentTimeMillis();
-    // TODO: get scopes authorized by the user
-    String scope = parts.get(1);
+    // If someone fakes a token, at least it should ensure it hasn't expired
+    // It saves us a database lookup.
+    if (!tokenHandler.checkTokenValidity(token)) {
+      return errorResponse("invalid_token", null);
+    }
+
+    Token realToken = tokenRepository.getToken(token.getId());
+    if (realToken == null || !tokenHandler.checkTokenValidity(realToken)) {
+      // token does not exist, is not an AccessToken, or has expired
+      return errorResponse("invalid_token", null);
+    }
+
+    Account account = accountRepository.getAccountByTokenId(token.getId());
+
+    if (account == null  || !tokenHandler.checkTokenValidity(realToken) || !(token instanceof AuthorizationCode)) {
+      return errorResponse("invalid_token", null);
+    }
+
+    // Container for the new accessToken
+    AccessToken accessToken;
+
+    accessToken = tokenHandler.createAccessToken(account.getId(), (RefreshToken)realToken);
+
+    if (accessToken == null) {
+      return Response.serverError().build();
+    }
+
+    String access_token = TokenSerializer.serialize(accessToken);
+
+    // Get scopes authorized by the user
+    String scope = SCOPE_JOINER.join(accessToken.getScopeIds());
 
     long issuedAt = TimeUnit.MILLISECONDS.toSeconds(clock.currentTimeMillis());
 
     IdTokenResponse response = new IdTokenResponse();
-    response.setAccessToken(accessToken);
+    response.setAccessToken(access_token);
     response.setTokenType("Bearer");
     response.setExpiresInSeconds(settings.accessTokenExpirationSeconds);
     response.setScope(scope);
@@ -96,7 +136,7 @@ public class TokenEndpoint {
         JWS_HEADER,
         new IdToken.Payload()
             .setIssuer(uriInfo.getBaseUri().toString())
-            .setSubject(userId)
+            .setSubject(account.getId())
             .setAudience(securityContext.getUserPrincipal().getName())
             .setExpirationTimeSeconds(issuedAt + settings.idTokenExpirationSeconds)
             .setIssuedAtTimeSeconds(issuedAt)

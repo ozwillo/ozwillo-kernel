@@ -1,6 +1,7 @@
 package oasis.model.accounts;
 
-import java.util.Date;
+import org.joda.time.Duration;
+import org.joda.time.Instant;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -19,12 +20,12 @@ public abstract class Token {
   @JsonView(TokenViews.Serializer.class)
   @JsonProperty
   @ApiModelProperty(required = true)
-  private Date creationTime;
+  private Instant creationTime;
 
   @JsonView(TokenViews.Serializer.class)
   @JsonProperty
   @ApiModelProperty(required = true)
-  private long timeToLive;
+  private Duration timeToLive;
 
   public String getId() {
     return id;
@@ -34,19 +35,19 @@ public abstract class Token {
     this.id = id;
   }
 
-  public Date getCreationTime() {
+  public Instant getCreationTime() {
     return creationTime;
   }
 
-  public void setCreationTime(Date creationTime) {
+  public void setCreationTime(Instant creationTime) {
     this.creationTime = creationTime;
   }
 
-  public long getTimeToLive() {
+  public Duration getTimeToLive() {
     return timeToLive;
   }
 
-  public void setTimeToLive(long timeToLive) {
+  public void setTimeToLive(Duration timeToLive) {
     this.timeToLive = timeToLive;
   }
 

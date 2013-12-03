@@ -30,7 +30,6 @@ import javax.ws.rs.core.UriInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
@@ -41,6 +40,7 @@ import com.google.common.net.UrlEscapers;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
+import oasis.model.accounts.Token;
 import oasis.model.applications.ApplicationRepository;
 import oasis.model.applications.Scope;
 import oasis.model.applications.ScopeCardinalities;
@@ -48,6 +48,8 @@ import oasis.model.applications.ScopeCardinality;
 import oasis.model.applications.ServiceProvider;
 import oasis.model.authz.AuthorizationRepository;
 import oasis.model.authz.AuthorizedScopes;
+import oasis.services.authn.TokenHandler;
+import oasis.services.authn.TokenSerializer;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.User;
 import oasis.web.view.View;
@@ -69,13 +71,13 @@ public class AuthorizationEndpoint {
   private static final String SCOPE = "scope";
 
   private static final Splitter SPACE_SPLITTER = Splitter.on(' ').omitEmptyStrings();
-  private static final Joiner COMMA_JOINER = Joiner.on(", ").skipNulls();
 
   @Context SecurityContext securityContext;
   @Context UriInfo uriInfo;
 
   @Inject AuthorizationRepository authorizationRepository;
   @Inject ApplicationRepository applicationRepository;
+  @Inject TokenHandler tokenHandler;
 
   private MultivaluedMap<String, String> params;
   private StringBuilder redirectUriBuilder;
@@ -159,7 +161,14 @@ public class AuthorizationEndpoint {
 
     if (grantedScopeIds.containsAll(scopeIds)) {
       // User already granted all requested scopes, let it be a "transparent" redirect
-      String auth_code = securityContext.getUserPrincipal().getName() + ":" + scope; // TODO: generate auth_code
+      Token authCode = tokenHandler.createAuthorizationCode(userId);
+
+      if (authCode == null) {
+        return Response.serverError().build();
+      }
+
+      String auth_code = TokenSerializer.serialize(authCode);
+
       appendQueryParam(redirectUriBuilder, "code", auth_code);
       return Response.seeOther(URI.create(redirectUriBuilder.toString())).build();
     }
@@ -215,19 +224,19 @@ public class AuthorizationEndpoint {
         .entity(new View("oasis/web/authz/Approve.get.html",
             ImmutableMap.of(
                 "urls", ImmutableMap.of(
-                  "continue", uriInfo.getRequestUri(),
-                  "cancel", redirectUriBuilder.toString(),
-                  "formAction", UriBuilder.fromResource(AuthorizationEndpoint.class).path(APPROVE_PATH).build()
-                ),
+                "continue", uriInfo.getRequestUri(),
+                "cancel", redirectUriBuilder.toString(),
+                "formAction", UriBuilder.fromResource(AuthorizationEndpoint.class).path(APPROVE_PATH).build()
+            ),
                 "scopes", ImmutableMap.of(
-                  "requiredScopes", requiredScopes,
-                  "optionalScopes", optionalScopes,
-                  "alreadyGrantedScopes", alreadyGrantedScopes
-                ),
+                "requiredScopes", requiredScopes,
+                "optionalScopes", optionalScopes,
+                "alreadyGrantedScopes", alreadyGrantedScopes
+            ),
                 "app", ImmutableMap.of(
-                  "id", client_id,
-                  "name", serviceProvider.getName()
-                )
+                "id", client_id,
+                "name", serviceProvider.getName()
+            )
             )
         ))
         .build();

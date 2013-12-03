@@ -3,7 +3,7 @@ package oasis.model.accounts;
 public interface AccountRepository {
   Account getAccount(String id);
 
-  Account getAccountByToken(Token token);
+  Account getAccountByTokenId(String tokenId);
 
   UserAccount getUserAccountByEmail(String email);
 

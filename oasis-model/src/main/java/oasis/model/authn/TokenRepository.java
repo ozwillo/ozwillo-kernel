@@ -1,12 +1,11 @@
 package oasis.model.authn;
 
-import oasis.model.accounts.Account;
 import oasis.model.accounts.Token;
 
 public interface TokenRepository {
-  public void registerToken(Account account, Token token);
+  public Token getToken(String tokenId);
 
-  public void revokeToken(Account account, Token token);
+  public boolean registerToken(String accountId, Token token);
 
-  public void revokeTokens(Account account, Token[] tokens);
+  public boolean revokeToken(String accountId, Token token);
 }

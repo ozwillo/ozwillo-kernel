@@ -5,7 +5,6 @@ import java.util.List;
 
 import javax.annotation.Priority;
 import javax.inject.Inject;
-import javax.security.auth.login.LoginException;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
@@ -18,8 +17,9 @@ import com.google.common.base.Splitter;
 
 import oasis.model.accounts.AccessToken;
 import oasis.model.accounts.Account;
+import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.Token;
-import oasis.services.authn.TokenAuthenticator;
+import oasis.model.authn.TokenRepository;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 
@@ -35,7 +35,8 @@ public class OAuthAuthenticationFilter implements ContainerRequestFilter {
   private static final String AUTH_SCHEME = "Bearer";
   private static final Splitter AUTH_SCHEME_SPLITTER = Splitter.on(' ').omitEmptyStrings().trimResults();
 
-  @Inject TokenAuthenticator tokenAuthenticator;
+  @Inject AccountRepository accountRepository;
+  @Inject TokenRepository tokenRepository;
   @Inject TokenHandler tokenHandler;
 
   @Override
@@ -65,28 +66,23 @@ public class OAuthAuthenticationFilter implements ContainerRequestFilter {
       return;
     }
 
-    Account account;
-    try {
-      account = tokenAuthenticator.authenticate(token);
-    } catch (LoginException e) {
+    Account account = accountRepository.getAccountByTokenId(token.getId());
+
+    if (account == null) {
       invalidToken(requestContext);
       return;
     }
 
-    AccessToken accessToken = getAccessTokenFromAccount(account, token.getId()); // Can't trust the received token
+    // Get real information for the token
+    token = tokenRepository.getToken(token.getId());
 
-    if (!tokenHandler.checkTokenValidity(account, accessToken)) {
-      invalidToken(requestContext);
-      return;
-    }
-
-    if (accessToken == null) {
+    if (token == null || !(token instanceof AccessToken) || !tokenHandler.checkTokenValidity(token)) {
       invalidToken(requestContext);
       return;
     }
 
     // TODO: load account lazily
-    final OAuthPrincipal accountPrincipal = new OAuthPrincipal(account, accessToken);
+    final OAuthPrincipal accountPrincipal = new OAuthPrincipal(account, (AccessToken) token);
     final SecurityContext oldSecurityContext = requestContext.getSecurityContext();
 
     requestContext.setSecurityContext(new SecurityContext() {
@@ -110,18 +106,6 @@ public class OAuthAuthenticationFilter implements ContainerRequestFilter {
         return "OAUTH_BEARER";
       }
     });
-  }
-
-  private AccessToken getAccessTokenFromAccount(Account account, String tokenId) {
-    for (Token t : account.getTokens()) {
-      if (t.getId().equals(tokenId)) {
-        if (t instanceof AccessToken) {
-          return (AccessToken) t;
-        }
-        return null;
-      }
-    }
-    return null;
   }
 
   private void challenge(ContainerRequestContext requestContext) {
