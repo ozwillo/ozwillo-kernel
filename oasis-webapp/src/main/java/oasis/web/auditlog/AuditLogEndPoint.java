@@ -7,13 +7,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.joda.time.Instant;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiModel;
-import com.wordnik.swagger.annotations.ApiModelProperty;
 import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.auditlog.AuditLogService;
@@ -38,16 +32,5 @@ public class AuditLogEndPoint {
         .log();
 
     return Response.noContent().build();
-  }
-
-  @ApiModel
-  static class RemoteEvent {
-    @JsonProperty()
-    @ApiModelProperty(required = true)
-    Instant time;
-
-    @JsonProperty()
-    @ApiModelProperty(required = true)
-    ObjectNode log;
   }
 }

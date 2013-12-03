@@ -11,11 +11,8 @@ import javax.ws.rs.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.io.BaseEncoding;
 import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiModel;
-import com.wordnik.swagger.annotations.ApiModelProperty;
 import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.openidconnect.OpenIdConnectModule;
@@ -44,39 +41,5 @@ public class KeysEndpoint {
     jsonWebKeySet.rsaJsonWebKeys = new RsaJsonWebKey[]{rsaJsonWebKey};
 
     return Response.ok().entity(jsonWebKeySet).build();
-  }
-
-  @ApiModel
-  private static class JsonWebKeySet {
-    @JsonProperty("keys")
-    @ApiModelProperty(required = true)
-    private RsaJsonWebKey[] rsaJsonWebKeys;
-  }
-
-  @ApiModel
-  private static class RsaJsonWebKey {
-    @JsonProperty("kty")
-    @ApiModelProperty(required = true)
-    private String keyType = "RSA";
-
-    @JsonProperty("use")
-    @ApiModelProperty(required = true)
-    private String keyUse = "sig";
-
-    @JsonProperty("alg")
-    @ApiModelProperty()
-    private String algorithm = "RS256";
-
-    @JsonProperty("kid")
-    @ApiModelProperty()
-    private String keyId;
-
-    @JsonProperty("n")
-    @ApiModelProperty(required = true, value = "Base 64 encoded string")
-    private String modulus;
-
-    @JsonProperty("e")
-    @ApiModelProperty(required = true, value = "Base 64 encoded string")
-    private String exponent;
   }
 }

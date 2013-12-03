@@ -16,10 +16,7 @@ import javax.ws.rs.core.UriBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiModel;
-import com.wordnik.swagger.annotations.ApiModelProperty;
 import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.applications.Subscription;
@@ -117,21 +114,4 @@ public class EventBusEndpoint {
 
     return Response.noContent().build();
   }
-
-  @ApiModel
-  static class Event {
-
-    @JsonProperty()
-    @ApiModelProperty
-    String message;
-
-    @JsonProperty()
-    @ApiModelProperty
-    String data;
-
-    @JsonProperty()
-    @ApiModelProperty
-    String eventType; // Unique (gives the application for an organisation)
-  }
-
 }

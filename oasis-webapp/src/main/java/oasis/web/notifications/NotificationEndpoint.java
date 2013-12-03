@@ -10,12 +10,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.joda.time.Instant;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiModel;
-import com.wordnik.swagger.annotations.ApiModelProperty;
 import com.wordnik.swagger.annotations.ApiOperation;
 
 @Path("/n")
@@ -61,47 +56,4 @@ public class NotificationEndpoint {
 
   //TODO : Other functions here ?
 
-  @ApiModel
-  static class Mark {
-
-    @JsonProperty
-    @ApiModelProperty
-    String[] messageIds;
-
-    @JsonProperty
-    @ApiModelProperty
-    String status;
-  }
-
-  @ApiModel
-  static class Notification {
-
-    @JsonProperty
-    @ApiModelProperty
-    String data;
-
-    @JsonProperty
-    @ApiModelProperty
-    String message;
-
-    @JsonProperty
-    @ApiModelProperty
-    Instant time;
-  }
-
-  @ApiModel
-  static class IncomingNotification {
-
-    @JsonProperty
-    @ApiModelProperty
-    String[] userIds;
-
-    @JsonProperty
-    @ApiModelProperty
-    String[] groupIds;
-
-    @JsonProperty
-    @ApiModelProperty
-    Notification notification;
-  }
 }
