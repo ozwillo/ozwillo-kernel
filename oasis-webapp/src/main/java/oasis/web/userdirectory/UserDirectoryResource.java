@@ -51,9 +51,13 @@ public class UserDirectoryResource {
       notes = "The returned location URL get access to the organization (retrieve, update, delete this organization)",
       response = Organization.class)
   public Response createOrganization(Organization organization) {
-    String organizationId = directory.createOrganization(organization);
-    URI uri = UriBuilder.fromResource(UserDirectoryResource.class).path(UserDirectoryResource.class, "getOrganization").build(organizationId);
-    return Response.created(uri).contentLocation(uri).entity(organization).build();
+    Organization res = directory.createOrganization(organization);
+    URI uri = UriBuilder.fromResource(UserDirectoryResource.class).path(UserDirectoryResource.class, "getOrganization").build(res.getId());
+    return Response
+        .created(uri)
+        .contentLocation(uri)
+        .entity(res)
+        .build();
   }
 
   @GET
@@ -132,9 +136,13 @@ public class UserDirectoryResource {
           .entity("The requested organization does not exist")
           .build();
     }
-    String groupId = directory.createGroup(organizationId, group);
-    URI uri = UriBuilder.fromResource(UserDirectoryResource.class).path(UserDirectoryResource.class, "getGroup").build(groupId);
-    return Response.created(uri).contentLocation(uri).entity(group).build();
+    Group res = directory.createGroup(organizationId, group);
+    URI uri = UriBuilder.fromResource(UserDirectoryResource.class).path(UserDirectoryResource.class, "getGroup").build(res.getId());
+    return Response
+        .created(uri)
+        .contentLocation(uri)
+        .entity(res)
+        .build();
   }
 
   @GET

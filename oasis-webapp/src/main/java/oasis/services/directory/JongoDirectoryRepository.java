@@ -51,11 +51,10 @@ public class JongoDirectoryRepository implements DirectoryRepository {
   }
 
   @Override
-  public String createOrganization(Organization organization) {
+  public Organization createOrganization(Organization organization) {
     JongoOrganization jongoOrganization = new JongoOrganization(organization);
     getOrganizationCollection().insert(jongoOrganization);
-    organization.setId(jongoOrganization.getId());
-    return jongoOrganization.getId();
+    return jongoOrganization;
   }
 
   @Override
@@ -126,7 +125,7 @@ public class JongoDirectoryRepository implements DirectoryRepository {
   }
 
   @Override
-  public String createGroup(String organizationId, Group group) {
+  public Group createGroup(String organizationId, Group group) {
     JongoGroup jongoGroup = new JongoGroup(group);
 
     // TODO : check modified
@@ -137,8 +136,7 @@ public class JongoDirectoryRepository implements DirectoryRepository {
       // TODO: more precise message
       logger.warn("The organization {} does not exist", organizationId);
     }
-    group.setId(jongoGroup.getId());
-    return jongoGroup.getId();
+    return jongoGroup;
   }
 
   @Override

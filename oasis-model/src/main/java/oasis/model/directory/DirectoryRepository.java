@@ -9,7 +9,7 @@ public interface DirectoryRepository {
 
   Collection<Group> getGroups(String organizationId);
 
-  String createOrganization(Organization organization);
+  Organization createOrganization(Organization organization);
 
   void updateOrganization(String organizationId, Organization organization);
 
@@ -25,7 +25,7 @@ public interface DirectoryRepository {
 
   boolean removeGroupMember(String groupId, String agentId);
 
-  String createGroup(String organizationId, Group group);
+  Group createGroup(String organizationId, Group group);
 
   void updateGroup(String groupId, Group group);
 
