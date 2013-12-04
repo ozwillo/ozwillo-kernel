@@ -8,6 +8,7 @@ import com.wordnik.swagger.jaxrs.listing.ResourceListingProvider;
 
 import oasis.web.apidocs.ApiDeclarationProvider;
 import oasis.web.apps.ApplicationDirectoryResource;
+import oasis.web.apps.ApplicationMarketResource;
 import oasis.web.apps.DataProviderDirectoryResource;
 import oasis.web.apps.ServiceProviderDirectoryResource;
 import oasis.web.auditlog.AuditLogEndPoint;
@@ -34,6 +35,7 @@ import oasis.web.userinfo.UserInfoEndpoint;
 import oasis.web.view.HandlebarsBodyWriter;
 
 public class Application extends javax.ws.rs.core.Application {
+  public final static int SC_UNPROCESSABLE_ENTITY = 422;
   public final static int SC_PRECONDITION_REQUIRED = 428;
 
   @Override
@@ -76,6 +78,7 @@ public class Application extends javax.ws.rs.core.Application {
         UserDirectoryResource.class,
         OpenIdConnect.class,
         ApplicationDirectoryResource.class,
+        ApplicationMarketResource.class,
         ServiceProviderDirectoryResource.class,
         DataProviderDirectoryResource.class,
         // Kibana and ElasticSearch proxy

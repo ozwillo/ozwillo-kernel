@@ -11,6 +11,14 @@ import oasis.model.annotations.Id;
 
 @JsonRootName("application")
 public class Application {
+  public enum ApplicationType {
+    CLASS, INSTANCE
+  }
+
+  public enum InstantiationType {
+    COPY, TENANT
+  }
+
   @Id
   @ApiModelProperty(required = true)
   private String id;
@@ -34,6 +42,35 @@ public class Application {
   @JsonProperty
   @ApiModelProperty
   private List<Subscription> subscriptions;
+
+  @JsonProperty
+  @ApiModelProperty
+  private String instanceAdmin;
+
+  @JsonProperty
+  @ApiModelProperty
+  private String classAdmin;
+
+  /**
+   * Applications exposed in catalog:
+   *  - template application (ApplicationType == CLASS)
+   *  - single-instance application (ApplicationType == INSTANCE && parentApplicationId == null)
+   */
+  @JsonProperty
+  @ApiModelProperty
+  private boolean exposedInCatalog;
+
+  @JsonProperty
+  @ApiModelProperty
+  private ApplicationType applicationType;
+
+  @JsonProperty
+  @ApiModelProperty
+  private InstantiationType instantiationType;
+
+  @JsonProperty
+  @ApiModelProperty
+  private String parentApplicationId;
 
   @JsonProperty
   @ApiModelProperty
@@ -88,11 +125,69 @@ public class Application {
     this.subscriptions = subscriptions;
   }
 
+  public String getInstanceAdmin() {
+    return instanceAdmin;
+  }
+
+  public void setInstanceAdmin(String instanceAdmin) {
+    this.instanceAdmin = instanceAdmin;
+  }
+
+  public String getClassAdmin() {
+    return classAdmin;
+  }
+
+  public void setClassAdmin(String classAdmin) {
+    this.classAdmin = classAdmin;
+  }
+
+  public boolean isExposedInCatalog() {
+    return exposedInCatalog;
+  }
+
+  public void setExposedInCatalog(boolean exposedInCatalog) {
+    this.exposedInCatalog = exposedInCatalog;
+  }
+
+  public ApplicationType getApplicationType() {
+    return applicationType;
+  }
+
+  public void setApplicationType(ApplicationType applicationType) {
+    this.applicationType = applicationType;
+    computeExposition();
+  }
+
+  public InstantiationType getInstantiationType() {
+    return instantiationType;
+  }
+
+  public void setInstantiationType(InstantiationType instantiationType) {
+    this.instantiationType = instantiationType;
+  }
+
+  public String getParentApplicationId() {
+    return parentApplicationId;
+  }
+
+  public void setParentApplicationId(String parentApplicationId) {
+    this.parentApplicationId = parentApplicationId;
+    computeExposition();
+  }
+
   public long getModified() {
     return modified;
   }
 
   public void setModified(long modified) {
     this.modified = modified;
+  }
+
+  public boolean isTenant(){
+    return (ApplicationType.INSTANCE == applicationType && InstantiationType.TENANT == instantiationType);
+  }
+
+  public void computeExposition() {
+    this.exposedInCatalog = (Application.ApplicationType.CLASS == this.applicationType || this.parentApplicationId == null);
   }
 }

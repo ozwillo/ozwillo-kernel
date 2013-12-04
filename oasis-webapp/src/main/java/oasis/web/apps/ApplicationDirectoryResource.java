@@ -51,7 +51,7 @@ public class ApplicationDirectoryResource {
       @DefaultValue("0") @QueryParam("start") int start,
       @DefaultValue("25") @QueryParam("limit") int limit) {
     return Response.ok()
-        .entity(applications.getApplications(start, limit))
+        .entity(applications.getApplicationInstances(start, limit).iterator())
         .build();
   }
 
@@ -88,7 +88,6 @@ public class ApplicationDirectoryResource {
                                message = "The current user cannot create applications") })
   public Response postApplication(
       @ApiParam("application") Application application) {
-
     String applicationId = applications.createApplication(application);
     EntityTag etag = new EntityTag(Long.toString(application.getModified()));
     URI res = UriBuilder.fromResource(ApplicationDirectoryResource.class)
@@ -107,6 +106,8 @@ public class ApplicationDirectoryResource {
                                message = "The If-Match header is mandatory"),
                   @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
                                message = "The current user cannot create applications"),
+                  @ApiResponse(code = oasis.web.Application.SC_UNPROCESSABLE_ENTITY,
+                               message = "The requested application instance cannot be updated"),
                   @ApiResponse(code = HttpServletResponse.SC_PRECONDITION_FAILED,
                                message = "Mismatching etag") })
   public Response putApplication(
@@ -122,6 +123,14 @@ public class ApplicationDirectoryResource {
     Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(etag);
     if (responseBuilder != null) {
       return responseBuilder.build();
+    }
+
+    if (app.isTenant()
+        && (application.getDataProviders() != null || application.getServiceProvider() != null)) {
+      return Response.status(oasis.web.Application.SC_UNPROCESSABLE_ENTITY)
+          .type(MediaType.TEXT_PLAIN)
+          .entity("The requested application instance cannot be updated: you cannot specify providers")
+          .build();
     }
 
     applications.updateApplication(applicationId, application);
@@ -201,6 +210,8 @@ public class ApplicationDirectoryResource {
                                message = "The If-Match header is mandatory"),
                   @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
                                message = "The requested application does not exist, or no application id has been sent"),
+                  @ApiResponse(code = oasis.web.Application.SC_UNPROCESSABLE_ENTITY,
+                               message = "The requested application instance cannot be updated"),
                   @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
                                message = "The current user cannot access the requested application") })
   public Response postDataProvider(
@@ -211,6 +222,13 @@ public class ApplicationDirectoryResource {
       return Response.status(Response.Status.NOT_FOUND)
           .type(MediaType.TEXT_PLAIN)
           .entity("The requested application does not exist")
+          .build();
+    }
+
+    if (app.isTenant()) {
+      return Response.status(oasis.web.Application.SC_UNPROCESSABLE_ENTITY)
+          .type(MediaType.TEXT_PLAIN)
+          .entity("The requested application instance cannot be updated")
           .build();
     }
 
@@ -253,7 +271,9 @@ public class ApplicationDirectoryResource {
   @Consumes(MediaType.APPLICATION_JSON)
   @ApiOperation(value = "Creates a service provider")
   @ApiResponses({ @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
-                               message = "The requested application does not exist, no application id has been sent"),
+                               message = "The requested application does not exist, no application id has been sent or no service provider can be found for this application"),
+                  @ApiResponse(code = oasis.web.Application.SC_UNPROCESSABLE_ENTITY,
+                               message = "The requested application instance cannot be updated"),
                   @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
                                message = "The current user cannot access the requested application") })
   public Response postServiceProvider(
@@ -264,6 +284,14 @@ public class ApplicationDirectoryResource {
       return Response.status(Response.Status.NOT_FOUND)
           .type(MediaType.TEXT_PLAIN)
           .entity("The requested application does not exist")
+          .build();
+    }
+
+    if (Application.ApplicationType.INSTANCE.equals(app.getApplicationType())
+        && Application.InstantiationType.TENANT.equals(app.getInstantiationType())) {
+      return Response.status(oasis.web.Application.SC_UNPROCESSABLE_ENTITY)
+          .type(MediaType.TEXT_PLAIN)
+          .entity("The requested application instance cannot be updated")
           .build();
     }
 
