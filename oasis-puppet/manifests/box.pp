@@ -1,6 +1,7 @@
 node 'oasis-box.atolcd.priv' {
+
   class { '::system_tools::server::box' :
-    admin_mail => 'jpo@atolcd.com',
+    admin_mail  => 'jpo@atolcd.com'
   }
 
   class { '::elasticsearch':
@@ -23,4 +24,3 @@ node 'oasis-box.atolcd.priv' {
     require                   => Class['mongodb', 'elasticsearch'],
   }
 }
-
