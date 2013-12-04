@@ -1,7 +1,5 @@
 package oasis.model.directory;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.wordnik.swagger.annotations.ApiModelProperty;
@@ -19,13 +17,17 @@ public class Organization {
   @ApiModelProperty(required = true)
   private String name;
 
-  @JsonProperty
-  @ApiModelProperty
-  private List<Group> groups;
+  public Organization() {
+  }
 
-  @JsonProperty
-  @ApiModelProperty
-  private long modified;
+  /**
+   * Copy constructor.
+   * <p>
+   * Does not copy {@link #id} field.
+   */
+  public Organization(Organization other) {
+    this.name = other.getName();
+  }
 
   public String getId() {
     return id;
@@ -43,19 +45,4 @@ public class Organization {
     this.name = name;
   }
 
-  public List<Group> getGroups() {
-    return groups;
-  }
-
-  public void setGroups(List<Group> groups) {
-    this.groups = groups;
-  }
-
-  public long getModified() {
-    return modified;
-  }
-
-  public void setModified(long modified) {
-    this.modified = modified;
-  }
 }

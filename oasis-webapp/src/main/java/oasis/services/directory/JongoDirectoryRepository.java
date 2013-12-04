@@ -52,9 +52,10 @@ public class JongoDirectoryRepository implements DirectoryRepository {
 
   @Override
   public String createOrganization(Organization organization) {
-    organization.setModified(System.currentTimeMillis());
-    getOrganizationCollection().insert(organization);
-    return organization.getId();
+    JongoOrganization jongoOrganization = new JongoOrganization(organization);
+    getOrganizationCollection().insert(jongoOrganization);
+    organization.setId(jongoOrganization.getId());
+    return jongoOrganization.getId();
   }
 
   @Override
@@ -78,8 +79,6 @@ public class JongoDirectoryRepository implements DirectoryRepository {
       // TODO: more precise message
       logger.warn("The organization {} does not exist", organizationId);
     }
-
-    organization.setModified(modified);
   }
 
   @Override
@@ -92,16 +91,16 @@ public class JongoDirectoryRepository implements DirectoryRepository {
 
   @Override
   public Group getGroup(String groupId) {
-    Organization organization = getOrganizationCollection()
+    JongoOrganization organization = getOrganizationCollection()
         .findOne("{ groups.id: # }", groupId)
         .projection("{ id:1, groups.$: 1}")
-        .as(Organization.class);
+        .as(JongoOrganization.class);
 
     if (organization == null) {
       return null;
     }
 
-    if (organization == null || organization.getGroups().isEmpty()) {
+    if (organization.getGroups() == null || organization.getGroups().isEmpty()) {
       return null;
     }
 
@@ -110,35 +109,36 @@ public class JongoDirectoryRepository implements DirectoryRepository {
 
   @Override
   public Collection<Group> getGroups(String organizationId) {
-    Organization organization = getOrganizationCollection()
+    JongoOrganization organization = getOrganizationCollection()
         .findOne("{ id: # }", organizationId)
         .projection("{ id: 1, groups: 1 }")
-        .as(Organization.class);
+        .as(JongoOrganization.class);
 
     if (organization == null) {
       return null;
     }
 
-    if (organization == null) {
+    if (organization.getGroups() == null) {
       return Collections.emptyList();
     }
 
-    return organization.getGroups();
+    return (Collection<Group>) (Collection<?>) organization.getGroups();
   }
 
   @Override
   public String createGroup(String organizationId, Group group) {
-    long modified = System.currentTimeMillis();
-    group.setModified(modified);
+    JongoGroup jongoGroup = new JongoGroup(group);
+
     // TODO : check modified
     WriteResult wr = getOrganizationCollection()
         .update("{ id: # }", organizationId)
-        .with("{ $push: { groups: # } }", group);
+        .with("{ $push: { groups: # } }", jongoGroup);
     if (wr.getN() != 1) {
       // TODO: more precise message
       logger.warn("The organization {} does not exist", organizationId);
     }
-    return group.getId();
+    group.setId(jongoGroup.getId());
+    return jongoGroup.getId();
   }
 
   @Override
@@ -153,11 +153,6 @@ public class JongoDirectoryRepository implements DirectoryRepository {
       updateParameters.add(group.getName());
     }
 
-    if (group.getAgentIds() != null) {
-      updateObject.append(",groups.$.agentIds:#");
-      updateParameters.add(group.getAgentIds());
-    }
-
     // TODO : check modified
     WriteResult wr = getOrganizationCollection()
         .update("{ groups.id: # }", groupId)
@@ -167,7 +162,6 @@ public class JongoDirectoryRepository implements DirectoryRepository {
       // TODO: more precise message
       logger.warn("The group {} does not exist", groupId);
     }
-    group.setModified(modified);
   }
 
   @Override
@@ -182,10 +176,10 @@ public class JongoDirectoryRepository implements DirectoryRepository {
 
   @Override
   public Collection<Group> getGroupsForAgent(final String agentId) {
-    Organization organization = getOrganizationCollection()
+    JongoOrganization organization = getOrganizationCollection()
         .findOne("{ groups.agentIds : # }", agentId)
         .projection("{ id: 1, groups: 1 }")
-        .as(Organization.class);
+        .as(JongoOrganization.class);
     if (organization == null) {
       return null;
     }
@@ -193,9 +187,9 @@ public class JongoDirectoryRepository implements DirectoryRepository {
       return Collections.emptyList();
     }
 
-    return Collections2.filter(organization.getGroups(), new Predicate<Group>() {
+    return (Collection<Group>) (Collection<?>) Collections2.filter(organization.getGroups(), new Predicate<JongoGroup>() {
       @Override
-      public boolean apply(@Nullable Group input) {
+      public boolean apply(@Nullable JongoGroup input) {
         return input.getAgentIds() != null && input.getAgentIds().contains(agentId);
       }
     });
@@ -203,7 +197,7 @@ public class JongoDirectoryRepository implements DirectoryRepository {
 
   @Override
   public Collection<String> getGroupMembers(String groupId) {
-    Group group = getGroup(groupId);
+    JongoGroup group = (JongoGroup) getGroup(groupId);
     if (group == null) {
       return null;
     }
