@@ -20,6 +20,7 @@ import javax.ws.rs.core.UriBuilder;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
+import oasis.etag.EtagService;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.AgentAccount;
 import oasis.model.directory.DirectoryRepository;
@@ -41,6 +42,9 @@ public class UserDirectoryResource {
   @Inject
   private AccountRepository account;
 
+  @Inject
+  private EtagService etagService;
+
   /*
    * Organization
    */
@@ -57,6 +61,7 @@ public class UserDirectoryResource {
         .created(uri)
         .contentLocation(uri)
         .entity(res)
+        .tag(etagService.getEtag(res))
         .build();
   }
 
@@ -71,7 +76,11 @@ public class UserDirectoryResource {
           .entity("The requested organization does not exist")
           .build();
     }
-    return Response.ok().entity(organization).build();
+    return Response
+        .ok()
+        .entity(organization)
+        .tag(etagService.getEtag(organization))
+        .build();
   }
 
   @PUT
@@ -142,6 +151,7 @@ public class UserDirectoryResource {
         .created(uri)
         .contentLocation(uri)
         .entity(res)
+        .tag(etagService.getEtag(res))
         .build();
   }
 
@@ -156,7 +166,11 @@ public class UserDirectoryResource {
           .entity("The requested group does not exist")
           .build();
     }
-    return Response.ok().entity(group).build();
+    return Response
+        .ok()
+        .entity(group)
+        .tag(etagService.getEtag(group))
+        .build();
   }
 
   @PUT
@@ -198,7 +212,12 @@ public class UserDirectoryResource {
           .build();
     }
     URI uri = UriBuilder.fromResource(UserDirectoryResource.class).path(UserDirectoryResource.class, "getOrganization").build(organization.getId());
-    return Response.ok().contentLocation(uri).entity(organization).build();
+    return Response
+        .ok()
+        .contentLocation(uri)
+        .entity(organization)
+        .tag(etagService.getEtag(organization))
+        .build();
   }
 
   /*

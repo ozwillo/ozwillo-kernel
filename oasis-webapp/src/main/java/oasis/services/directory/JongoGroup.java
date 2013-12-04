@@ -6,10 +6,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
+import oasis.etag.HasModified;
 import oasis.model.directory.Group;
 
 @JsonRootName("group")
-class JongoGroup extends Group {
+class JongoGroup extends Group implements HasModified {
 
   @JsonProperty
   @ApiModelProperty
