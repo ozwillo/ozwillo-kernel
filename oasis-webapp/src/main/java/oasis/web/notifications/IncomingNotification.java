@@ -20,7 +20,11 @@ class IncomingNotification {
 
   @JsonProperty
   @ApiModelProperty
-  Notification notification;
+  String data;
+
+  @JsonProperty
+  @ApiModelProperty
+  String message;
 
   // For swagger
   public String[] getUserIds() {
@@ -33,8 +37,13 @@ class IncomingNotification {
   }
 
   // For swagger
-  public Notification getNotification() {
-    return notification;
+  public String getData() {
+    return data;
+  }
+
+  // For swagger
+  public String getMessage() {
+    return message;
   }
 }
 

@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
+import oasis.model.notification.Notification;
+
 /*
  * Extracted from {@link NotificationEndpoint} for swagger.
  */
@@ -15,8 +17,8 @@ class Mark {
   String[] messageIds;
 
   @JsonProperty
-  @ApiModelProperty
-  String status;
+  @ApiModelProperty(dataType = "String", allowableValues = "READ,UNREAD")
+  Notification.Status status;
 
   // For swagger
   public String[] getMessageIds() {
@@ -24,7 +26,7 @@ class Mark {
   }
 
   // For swagger
-  public String getStatus() {
+  public Notification.Status getStatus() {
     return status;
   }
 }
