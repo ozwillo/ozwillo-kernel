@@ -5,6 +5,8 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.Clock;
 import com.google.inject.AbstractModule;
 
+import oasis.etag.EtagService;
+import oasis.etag.JongoEtagService;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.applications.ApplicationRepository;
 import oasis.model.applications.SubscriptionRepository;
@@ -30,6 +32,7 @@ public class OasisGuiceModule extends AbstractModule {
     bind(AuthorizationRepository.class).to(JongoAuthorizationRepository.class);
     bind(TokenRepository.class).to(JongoTokenRepository.class);
     bind(SubscriptionRepository.class).to(JongoSubscriptionRepository.class);
+    bind(EtagService.class).to(JongoEtagService.class);
 
     bind(JsonFactory.class).to(JacksonFactory.class);
     bind(Clock.class).toInstance(Clock.SYSTEM);
