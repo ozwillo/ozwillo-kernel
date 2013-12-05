@@ -12,6 +12,7 @@ import org.jongo.marshall.jackson.configuration.Mapping;
 import org.jongo.query.Query;
 import org.jongo.query.QueryFactory;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.BasicDBList;
 import com.mongodb.DBObject;
 import com.mongodb.util.JSON;
@@ -24,9 +25,9 @@ public class OasisIdQueryFactory implements QueryFactory {
   private final Marshaller marshaller;
   private final Pattern pattern;
 
-  public OasisIdQueryFactory() {
+  public OasisIdQueryFactory(ObjectMapper mapper) {
     this.marshaller = new JacksonEngine(
-        new Mapping.Builder().build()
+        new Mapping.Builder(mapper).build()
     );
     this.pattern = Pattern.compile(token);
   }

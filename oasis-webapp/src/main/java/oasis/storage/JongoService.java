@@ -7,7 +7,14 @@ import javax.inject.Singleton;
 import org.jongo.Jongo;
 import org.jongo.marshall.jackson.JacksonIdFieldSelector;
 import org.jongo.marshall.jackson.JacksonMapper;
+import org.jongo.marshall.jackson.bson4jackson.BsonModule;
+import org.jongo.marshall.jackson.bson4jackson.MongoBsonFactory;
+import org.jongo.marshall.jackson.configuration.MapperModifier;
+import org.jongo.marshall.jackson.configuration.PropertyModifier;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.joda.JodaModule;
 import com.google.common.base.Preconditions;
 import com.mongodb.Mongo;
 import com.mongodb.MongoClient;
@@ -32,10 +39,22 @@ public class JongoService implements Provider<Jongo> {
   }
 
   public void start() throws Exception {
+    // Build a ObjetMapper for JacksonMapper and OasisIdUpdater
+    ObjectMapper mapper = new ObjectMapper(MongoBsonFactory.createFactory());
+
     mongoConnection = new MongoClient(settings.mongoURI);
-    jongoConnection = new Jongo(mongoConnection.getDB(settings.mongoURI.getDatabase()), new JacksonMapper.Builder()
+    jongoConnection = new Jongo(mongoConnection.getDB(settings.mongoURI.getDatabase()), new JacksonMapper.Builder(mapper)
         .withObjectIdUpdater(new OasisIdUpdater(new JacksonIdFieldSelector()))
-        .withQueryFactory(new OasisIdQueryFactory())
+        .withQueryFactory(new OasisIdQueryFactory(mapper))
+        .registerModule(new BsonModule())
+        .addModifier(new PropertyModifier())
+        .registerModule(new JodaModule())
+        .addModifier(new MapperModifier() {
+          @Override
+          public void modify(ObjectMapper mapper) {
+            mapper.setSerializationInclusion(Include.NON_EMPTY); // instead of NON_NULL
+          }
+        })
         .build());
   }
 
