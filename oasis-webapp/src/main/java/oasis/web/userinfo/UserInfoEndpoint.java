@@ -54,7 +54,6 @@ public class UserInfoEndpoint {
   @Produces(APPLICATION_JWT)
   public Response getSigned() throws GeneralSecurityException, IOException {
     UserInfo userInfo = getUserInfo();
-    userInfo.setSubject(securityContext.getUserPrincipal().getName());
 
     String signedJwt = JsonWebSignature.signUsingRsaSha256(
         settings.keyPair.getPrivate(),
@@ -69,7 +68,6 @@ public class UserInfoEndpoint {
   @Produces(MediaType.APPLICATION_JSON)
   public Response getUnsigned() throws IOException {
     UserInfo userInfo = getUserInfo();
-    userInfo.setSubject(securityContext.getUserPrincipal().getName());
 
     String json = jsonFactory.toString(userInfo);
     return Response.ok().entity(json).build();
@@ -101,7 +99,9 @@ public class UserInfoEndpoint {
     Set<String> scopeIds = accessToken.getScopeIds();
 
     Identity identity = identityRepository.getIdentity(userAccount.getIdentityId());
-    return getUserInfo(userAccount, identity, scopeIds);
+    UserInfo userInfo = getUserInfo(userAccount, identity, scopeIds);
+    userInfo.setSubject(userAccount.getId());
+    return userInfo;
   }
 
   private UserInfo getUserInfo(UserAccount userAccount, Identity identity, Set<String> scopeIds) {
