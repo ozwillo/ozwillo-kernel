@@ -20,7 +20,7 @@ import javax.ws.rs.core.UriBuilder;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
-import oasis.etag.EtagService;
+import oasis.services.etag.EtagService;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.AgentAccount;
 import oasis.model.directory.DirectoryRepository;

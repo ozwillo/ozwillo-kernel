@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
 import oasis.model.annotations.Id;
-import oasis.model.authorizations.AuthorizedScopes;
+import oasis.model.authz.AuthorizedScopes;
 
 @JsonRootName("account")
 @JsonTypeInfo(use = JsonTypeInfo.Id.MINIMAL_CLASS, property = "type")

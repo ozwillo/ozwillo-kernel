@@ -19,9 +19,9 @@ import com.google.common.base.Splitter;
 import oasis.model.accounts.AccessToken;
 import oasis.model.accounts.Account;
 import oasis.model.accounts.Token;
-import oasis.services.auth.TokenAuthenticator;
-import oasis.services.auth.TokenHandler;
-import oasis.services.auth.TokenSerializer;
+import oasis.services.authn.TokenAuthenticator;
+import oasis.services.authn.TokenHandler;
+import oasis.services.authn.TokenSerializer;
 
 /**
  * Implements Bearer Token authentication.

@@ -24,8 +24,8 @@ import oasis.auditlog.noop.NoopAuditLogModule;
 import oasis.http.HttpServer;
 import oasis.http.HttpServerModule;
 import oasis.openidconnect.OpenIdConnectModule;
-import oasis.storage.JongoModule;
-import oasis.storage.JongoService;
+import oasis.jongo.guice.JongoModule;
+import oasis.jongo.JongoService;
 import oasis.web.guice.OasisGuiceModule;
 import oasis.web.kibana.KibanaModule;
 

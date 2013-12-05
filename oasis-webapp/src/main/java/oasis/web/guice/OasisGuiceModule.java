@@ -5,24 +5,24 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.Clock;
 import com.google.inject.AbstractModule;
 
-import oasis.etag.EtagService;
-import oasis.etag.JongoEtagService;
+import oasis.services.etag.EtagService;
+import oasis.jongo.etag.JongoEtagService;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.applications.ApplicationRepository;
 import oasis.model.applications.SubscriptionRepository;
-import oasis.model.auth.TokenRepository;
-import oasis.model.authorizations.AuthorizationRepository;
+import oasis.model.authn.TokenRepository;
+import oasis.model.authz.AuthorizationRepository;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.notification.NotificationRepository;
 import oasis.model.social.IdentityRepository;
-import oasis.services.accounts.JongoAccountRepository;
-import oasis.services.applications.JongoApplicationRepository;
-import oasis.services.applications.JongoSubscriptionRepository;
-import oasis.services.auth.JongoTokenRepository;
-import oasis.services.authorizations.JongoAuthorizationRepository;
-import oasis.services.directory.JongoDirectoryRepository;
-import oasis.services.notification.JongoNotificationRepository;
-import oasis.services.social.JongoIdentityRepository;
+import oasis.jongo.accounts.JongoAccountRepository;
+import oasis.jongo.applications.JongoApplicationRepository;
+import oasis.jongo.applications.JongoSubscriptionRepository;
+import oasis.jongo.authn.JongoTokenRepository;
+import oasis.jongo.authz.JongoAuthorizationRepository;
+import oasis.jongo.directory.JongoDirectoryRepository;
+import oasis.jongo.notification.JongoNotificationRepository;
+import oasis.jongo.social.JongoIdentityRepository;
 
 public class OasisGuiceModule extends AbstractModule {
   @Override
