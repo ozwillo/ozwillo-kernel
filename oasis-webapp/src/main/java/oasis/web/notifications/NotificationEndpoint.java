@@ -1,5 +1,6 @@
 package oasis.web.notifications;
 
+import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -7,27 +8,51 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 
+import com.google.common.collect.Lists;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.notification.Notification;
+import oasis.model.notification.NotificationRepository;
+import oasis.services.notification.NotificationService;
+import oasis.web.authn.Authenticated;
+import oasis.web.authn.OAuth;
+import oasis.web.authn.OAuthPrincipal;
 
 @Path("/n")
 @Api(value = "/n", description = "Notification API")
+// TODO: authentication
+//@Authenticated
+//@OAuth
 public class NotificationEndpoint {
+
+  @Inject
+  NotificationRepository notificationRepository;
+
+  @Inject
+  NotificationService notificationService;
 
   @POST
   @Path("/publish")
   @Consumes(MediaType.APPLICATION_JSON)
   @ApiOperation(value = "Publish a notification targeted to some users and/or groups")
-  public Response publish(
-      IncomingNotification incomingNotification
+  public Response publish(IncomingNotification incomingNotification
+      //, @Context SecurityContext securityContext
   ) {
-    //TODO: Make some cool stuff
-    throw new UnsupportedOperationException();
+    // TODO: get applicationId from authentication
+//    String applicationId = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getServiceProviderId();
+    String applicationId = "FAKE";
+
+    notificationService.createNotifications(incomingNotification.groupIds, incomingNotification.userIds, incomingNotification.data,
+        incomingNotification.message, applicationId);
+
+    return Response.noContent().build();
   }
 
   @GET
@@ -40,8 +65,14 @@ public class NotificationEndpoint {
       @PathParam("userId") String userId,
       @QueryParam("appId") String appId
   ) {
-    //TODO: Put some funky code here
-    throw new UnsupportedOperationException();
+    if (appId == null) {
+      return Response.ok()
+          .entity(Entity.json(notificationRepository.getNotifications(userId)))
+          .build();
+    }
+    return Response.ok()
+        .entity(Entity.json(notificationRepository.getNotifications(userId, appId)))
+        .build();
   }
 
   @POST
@@ -52,10 +83,7 @@ public class NotificationEndpoint {
       @PathParam("userId") String userId,
       Mark mark
   ) {
-    //TODO: Make some magic
-    throw new UnsupportedOperationException();
+    notificationRepository.markNotifications(userId, Lists.newArrayList(mark.messageIds), mark.status);
+    return Response.noContent().build();
   }
-
-  //TODO : Other functions here ?
-
 }
