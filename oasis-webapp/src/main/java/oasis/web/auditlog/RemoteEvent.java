@@ -8,7 +8,7 @@ import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
 /*
- * Extracted from {@link AuditLogEndPoint} for swagger.
+ * Extracted from {@link AuditLogEndpoint} for swagger.
  */
 @ApiModel
 class RemoteEvent {

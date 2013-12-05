@@ -37,7 +37,7 @@ import oasis.model.applications.ServiceProvider;
 @Path("/d/app")
 @Produces(MediaType.APPLICATION_JSON)
 @Api(value = "/d/app", description = "Application directory API")
-public class ApplicationDirectoryResource {
+public class ApplicationDirectoryEndpoint {
 
   @Inject
   private ApplicationRepository applications;
@@ -90,8 +90,8 @@ public class ApplicationDirectoryResource {
       @ApiParam("application") Application application) {
     String applicationId = applications.createApplication(application);
     EntityTag etag = new EntityTag(Long.toString(application.getModified()));
-    URI res = UriBuilder.fromResource(ApplicationDirectoryResource.class)
-        .path(ApplicationDirectoryResource.class, "getApplication")
+    URI res = UriBuilder.fromResource(ApplicationDirectoryEndpoint.class)
+        .path(ApplicationDirectoryEndpoint.class, "getApplication")
         .build(applicationId);
     return Response.created(res)
         .tag(etag)
@@ -234,8 +234,8 @@ public class ApplicationDirectoryResource {
 
     String dataProviderId = applications.createDataProvider(applicationId, dataProvider);
     EntityTag etag = new EntityTag(Long.toString(dataProvider.getModified()));
-    URI res = UriBuilder.fromResource(DataProviderDirectoryResource.class)
-        .path(DataProviderDirectoryResource.class, "getDataProvider")
+    URI res = UriBuilder.fromResource(DataProviderDirectoryEndpoint.class)
+        .path(DataProviderDirectoryEndpoint.class, "getDataProvider")
         .build(dataProviderId);
 
     return Response.created(res)
@@ -297,8 +297,8 @@ public class ApplicationDirectoryResource {
 
     String serviceProviderId = applications.createServiceProvider(applicationId, serviceProvider);
     EntityTag etag = new EntityTag(Long.toString(serviceProvider.getModified()));
-    URI res = UriBuilder.fromResource(ServiceProviderDirectoryResource.class)
-        .path(ServiceProviderDirectoryResource.class, "getServiceProvider")
+    URI res = UriBuilder.fromResource(ServiceProviderDirectoryEndpoint.class)
+        .path(ServiceProviderDirectoryEndpoint.class, "getServiceProvider")
         .build(serviceProviderId);
 
     return Response.created(res)

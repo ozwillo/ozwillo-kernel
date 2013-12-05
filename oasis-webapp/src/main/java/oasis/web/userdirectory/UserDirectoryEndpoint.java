@@ -34,7 +34,7 @@ import oasis.model.directory.Organization;
 @Path("/d")
 @Produces(MediaType.APPLICATION_JSON)
 @Api(value = "/d", description = "User directory API")
-public class UserDirectoryResource {
+public class UserDirectoryEndpoint {
 
   @Inject
   private DirectoryRepository directory;
@@ -56,7 +56,7 @@ public class UserDirectoryResource {
       response = Organization.class)
   public Response createOrganization(Organization organization) {
     Organization res = directory.createOrganization(organization);
-    URI uri = UriBuilder.fromResource(UserDirectoryResource.class).path(UserDirectoryResource.class, "getOrganization").build(res.getId());
+    URI uri = UriBuilder.fromResource(UserDirectoryEndpoint.class).path(UserDirectoryEndpoint.class, "getOrganization").build(res.getId());
     return Response
         .created(uri)
         .contentLocation(uri)
@@ -146,7 +146,7 @@ public class UserDirectoryResource {
           .build();
     }
     Group res = directory.createGroup(organizationId, group);
-    URI uri = UriBuilder.fromResource(UserDirectoryResource.class).path(UserDirectoryResource.class, "getGroup").build(res.getId());
+    URI uri = UriBuilder.fromResource(UserDirectoryEndpoint.class).path(UserDirectoryEndpoint.class, "getGroup").build(res.getId());
     return Response
         .created(uri)
         .contentLocation(uri)
@@ -211,7 +211,7 @@ public class UserDirectoryResource {
           .entity("The requested group does not exist")
           .build();
     }
-    URI uri = UriBuilder.fromResource(UserDirectoryResource.class).path(UserDirectoryResource.class, "getOrganization").build(organization.getId());
+    URI uri = UriBuilder.fromResource(UserDirectoryEndpoint.class).path(UserDirectoryEndpoint.class, "getOrganization").build(organization.getId());
     return Response
         .ok()
         .contentLocation(uri)
@@ -256,7 +256,7 @@ public class UserDirectoryResource {
           .build();
     }
     String agentId = account.createAgentAccount(organizationId, agent);
-    URI uri = UriBuilder.fromResource(UserDirectoryResource.class).path(UserDirectoryResource.class, "getAgentAccount").build(agentId);
+    URI uri = UriBuilder.fromResource(UserDirectoryEndpoint.class).path(UserDirectoryEndpoint.class, "getAgentAccount").build(agentId);
     return Response.created(uri).contentLocation(uri).entity(agent).build();
   }
 
@@ -288,7 +288,7 @@ public class UserDirectoryResource {
     }
     directory.addGroupMember(groupId, agentId);
 
-    URI uri = UriBuilder.fromResource(UserDirectoryResource.class).path(UserDirectoryResource.class, "removeGroupMember").build(groupId, agentId);
+    URI uri = UriBuilder.fromResource(UserDirectoryEndpoint.class).path(UserDirectoryEndpoint.class, "removeGroupMember").build(groupId, agentId);
     return Response.created(uri).build();
   }
 

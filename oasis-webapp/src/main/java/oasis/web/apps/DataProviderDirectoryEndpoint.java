@@ -24,187 +24,183 @@ import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
 
 import oasis.model.applications.ApplicationRepository;
-import oasis.model.applications.ScopeCardinalities;
-import oasis.model.applications.ServiceProvider;
+import oasis.model.applications.DataProvider;
+import oasis.model.applications.Scopes;
 
-@Path("/d/serviceprovider")
+@Path("/d/dataprovider")
 @Produces(MediaType.APPLICATION_JSON)
-@Api(value = "/d/serviceprovider", description = "Application service providers directory API")
-public class ServiceProviderDirectoryResource {
+@Api(value = "/d/dataprovider", description = "Application data providers directory API")
+public class DataProviderDirectoryEndpoint {
 
   @Inject
   private ApplicationRepository applications;
 
   @GET
-  @Path("/{serviceProviderId}")
-  @ApiOperation(value = "Retrieve a service provider",
-                notes = "Returns a service provider",
-                response = ServiceProvider.class)
+  @Path("/{dataProviderId}")
+  @ApiOperation(value = "Retrieve a data provider",
+                notes = "Returns a data provider",
+                response = DataProvider.class)
   @ApiResponses({ @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
-                               message = "The requested service provider does not exist, or no service provider id has been sent"),
+                               message = "The requested data provider does not exist, or no data provider id has been sent"),
                   @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
-                               message = "The current user cannot access the requested service provider") })
-  public Response getServiceProvider(
-      @PathParam("serviceProviderId") String serviceProviderId) {
-    ServiceProvider serviceProvider = applications.getServiceProvider(serviceProviderId);
-    if (serviceProvider != null) {
-      EntityTag etag = new EntityTag(Long.toString(serviceProvider.getModified()));
+                               message = "The current user cannot access the requested data provider") })
+  public Response getDataProvider(@PathParam("dataProviderId") String dataProviderId) {
+    DataProvider dataProvider = applications.getDataProvider(dataProviderId);
+    if (dataProvider != null) {
+      EntityTag etag = new EntityTag(Long.toString(dataProvider.getModified()));
       return Response.ok()
-          .entity(serviceProvider)
+          .entity(dataProvider)
           .tag(etag)
           .build();
     } else {
       return Response.status(Response.Status.NOT_FOUND)
-          .type(MediaType.TEXT_PLAIN)
-          .entity("The requested service provider does not exist")
+          .entity("The requested data provider does not exist")
           .build();
     }
   }
 
   @GET
-  @Path("/{serviceProviderId}/scopes")
-  @ApiOperation(value = "Retrieve required scopes for a service provider",
-                notes = "Returns a ScopeCardinality array",
-                response = ScopeCardinalities.class)
+  @Path("/{dataProviderId}/scopes")
+  @ApiOperation(value = "Retrieve scopes provided by a data provider",
+                notes = "Returns a Scope array",
+                response = Scopes.class)
   @ApiResponses({ @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
-                               message = "The requested service provider does not exist, or no service provider id has been sent"),
+                               message = "The requested data provider does not exist, or no data provider id has been sent"),
                   @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
-                               message = "The current user cannot access the requested service provider") })
-  public Response getServiceProviderScopes(
-      @PathParam("serviceProviderId") String serviceProviderId) {
-    ScopeCardinalities cardinalities = applications.getRequiredScopes(serviceProviderId);
-    if (cardinalities != null) {
-      EntityTag etag = new EntityTag(Long.toString(cardinalities.getModified()));
+                               message = "The current user cannot access the requested data provider") })
+  public Response getDataProviderScopes(@PathParam("dataProviderId") String dataProviderId) {
+    Scopes scopes = applications.getProvidedScopes(dataProviderId);
+    if (scopes != null) {
+      EntityTag etag = new EntityTag(Long.toString(scopes.getModified()));
       return Response.ok()
-          .entity(cardinalities)
+          .entity(scopes)
           .tag(etag)
           .build();
-    } else {
-      return Response.status(Response.Status.NOT_FOUND)
-          .type(MediaType.TEXT_PLAIN)
-          .entity("The requested service provider does not exist")
-          .build();
     }
+    return Response.status(Response.Status.NOT_FOUND)
+        .type(MediaType.TEXT_PLAIN)
+        .entity("The requested data provider does not exist")
+        .build();
   }
 
   @PUT
-  @Path("/{serviceProviderId}")
+  @Path("/{dataProviderId}")
   @Consumes(MediaType.APPLICATION_JSON)
-  @ApiOperation(value = "Updates a service provider")
+  @ApiOperation(value = "Creates or updates a data provider")
   @ApiResponses({ @ApiResponse(code = oasis.web.Application.SC_PRECONDITION_REQUIRED,
                                message = "The If-Match header is mandatory"),
                   @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
-                               message = "The requested service provider does not exist, or no service provider id has been sent"),
+                               message = "The requested data provider does not exist, or no data provider id has been sent"),
                   @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
-                               message = "The current user cannot access the requested service provider"),
+                               message = "The current user cannot access the requested data provider"),
                   @ApiResponse(code = HttpServletResponse.SC_PRECONDITION_FAILED,
                                message = "Mismatching etag") })
-  public Response putServiceProvider(
+  public Response putDataProvider(
       @Context Request request,
       @HeaderParam("If-Match") @ApiParam(required = true) String etagStr,
-      @PathParam("serviceProviderId") String serviceProviderId,
-      @ApiParam ServiceProvider serviceProvider) {
+      @PathParam("dataProviderId") String dataProviderId,
+      @ApiParam DataProvider dataProvider) {
     if (Strings.isNullOrEmpty(etagStr)) {
       return Response.status(oasis.web.Application.SC_PRECONDITION_REQUIRED).build();
     }
 
-    ServiceProvider sp = applications.getServiceProvider(serviceProviderId);
-    if (sp == null){
-      return Response.status(Response.Status.NOT_FOUND)
+    DataProvider dp = applications.getDataProvider(dataProviderId);
+    if (dp == null) {
+      return  Response.status(Response.Status.NOT_FOUND)
           .type(MediaType.TEXT_PLAIN)
-          .entity("The requested service provider does not exist")
+          .entity("The requested data provider does not exist")
           .build();
     }
-    EntityTag etag = new EntityTag(Long.toString(sp.getModified()));
+
+    EntityTag etag = new EntityTag(Long.toString(dp.getModified()));
     Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(etag);
     if (responseBuilder != null) {
       return responseBuilder.build();
     }
 
-    applications.updateServiceProvider(serviceProviderId, serviceProvider);
-    etag = new EntityTag(Long.toString(serviceProvider.getModified()));
+    applications.updateDataProvider(dataProviderId, dataProvider);
+    etag = new EntityTag(Long.toString(dataProvider.getModified()));
     return Response.noContent()
         .tag(etag)
         .build();
   }
 
   @PUT
-  @Path("/{serviceProviderId}/scopes")
+  @Path("/{dataProviderId}/scopes")
   @Consumes(MediaType.APPLICATION_JSON)
-  @ApiOperation(value = "Creates or updates a service provider required scopes")
+  @ApiOperation(value = "Updates a data provider scopes")
   @ApiResponses({ @ApiResponse(code = oasis.web.Application.SC_PRECONDITION_REQUIRED,
                                message = "The If-Match header is mandatory"),
                   @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
-                               message = "The requested service provider does not exist, or no service provider id has been sent"),
+                               message = "The requested data provider does not exist, or no data provider id has been sent"),
                   @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
-                               message = "The current user cannot access the requested service provider"),
+                               message = "The current user cannot access the requested data provider"),
                   @ApiResponse(code = HttpServletResponse.SC_PRECONDITION_FAILED,
                                message = "Mismatching etag") })
-  public Response putServiceProviderScopes(
+  public Response putDataProviderScopes(
       @Context Request request,
       @HeaderParam("If-Match") @ApiParam(required = true) String etagStr,
-      @PathParam("serviceProviderId") String serviceProviderId,
-      @ApiParam ScopeCardinalities scopeCardinalities) {
+      @PathParam("dataProviderId") String dataProviderId,
+      @ApiParam("scopes") Scopes scopes) {
     if (Strings.isNullOrEmpty(etagStr)) {
       return Response.status(oasis.web.Application.SC_PRECONDITION_REQUIRED).build();
     }
-
-    ServiceProvider sp = applications.getServiceProvider(serviceProviderId);
-    if (sp == null) {
+    DataProvider dp = applications.getDataProvider(dataProviderId);
+    if (dp == null) {
       return Response.status(Response.Status.NOT_FOUND)
           .type(MediaType.TEXT_PLAIN)
-          .entity("The requested service provider does not exist")
+          .entity("The requested data provider does not exist")
           .build();
     }
 
-    ScopeCardinalities s = applications.getRequiredScopes(serviceProviderId);
+    Scopes s = applications.getProvidedScopes(dataProviderId);
     EntityTag etag = new EntityTag(Long.toString(s.getModified()));
     Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(etag);
     if (responseBuilder != null) {
       return responseBuilder.build();
     }
 
-    applications.updateServiceProviderScopes(serviceProviderId, scopeCardinalities);
-    etag = new EntityTag(Long.toString(scopeCardinalities.getModified()));
+    applications.updateDataProviderScopes(dataProviderId, scopes);
+    etag = new EntityTag(Long.toString(scopes.getModified()));
     return Response.noContent()
         .tag(etag)
         .build();
   }
 
   @DELETE
-  @Path("/{serviceProviderId}")
-  @ApiOperation(value = "Deletes service provider")
+  @Path("/{dataProviderId}")
+  @ApiOperation(value = "Deletes data provider")
   @ApiResponses({ @ApiResponse(code = oasis.web.Application.SC_PRECONDITION_REQUIRED,
                                message = "The If-Match header is mandatory"),
                   @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
-                               message = "The requested service provider does not exist"),
+                               message = "The requested data provider does not exist"),
                   @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
-                               message = "The current user cannot access or delete the requested service provider") ,
+                               message = "The current user cannot access or delete the requested data provider"),
                   @ApiResponse(code = HttpServletResponse.SC_PRECONDITION_FAILED,
                                message = "Mismatching etag") })
-  public Response deleteServiceProvider(
+  public Response deleteDataProvider(
       @Context Request request,
       @HeaderParam("If-Match") @ApiParam(required = true) String etagStr,
-      @PathParam("serviceProviderId") String serviceProviderId) {
+      @PathParam("dataProviderId") String dataProviderId) {
     if (Strings.isNullOrEmpty(etagStr)) {
       return Response.status(oasis.web.Application.SC_PRECONDITION_REQUIRED).build();
     }
 
-    ServiceProvider sp = applications.getServiceProvider(serviceProviderId);
-    if (sp == null) {
+    DataProvider dp = applications.getDataProvider(dataProviderId);
+    if (dp == null) {
       return Response.status(Response.Status.NOT_FOUND)
           .type(MediaType.TEXT_PLAIN)
-          .entity("The requested service provider does not exist")
+          .entity("The requested data provider does not exist")
           .build();
     }
 
-    EntityTag etag = new EntityTag(Long.toString(sp.getModified()));
+    EntityTag etag = new EntityTag(Long.toString(dp.getModified()));
     Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(etag);
     if (responseBuilder != null) {
       return responseBuilder.build();
     }
 
-    applications.deleteServiceProvider(serviceProviderId);
+    applications.deleteDataProvider(dataProviderId);
     return Response.noContent()
         .build();
   }

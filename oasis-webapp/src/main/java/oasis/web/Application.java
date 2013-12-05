@@ -7,11 +7,11 @@ import com.wordnik.swagger.jaxrs.listing.ApiListingResourceJSON;
 import com.wordnik.swagger.jaxrs.listing.ResourceListingProvider;
 
 import oasis.web.apidocs.ApiDeclarationProvider;
-import oasis.web.apps.ApplicationDirectoryResource;
-import oasis.web.apps.ApplicationMarketResource;
-import oasis.web.apps.DataProviderDirectoryResource;
-import oasis.web.apps.ServiceProviderDirectoryResource;
-import oasis.web.auditlog.AuditLogEndPoint;
+import oasis.web.apps.ApplicationDirectoryEndpoint;
+import oasis.web.apps.ApplicationMarketEndpoint;
+import oasis.web.apps.DataProviderDirectoryEndpoint;
+import oasis.web.apps.ServiceProviderDirectoryEndpoint;
+import oasis.web.auditlog.AuditLogEndpoint;
 import oasis.web.authn.ClientAuthenticationFilter;
 import oasis.web.authn.Login;
 import oasis.web.authn.Logout;
@@ -30,7 +30,7 @@ import oasis.web.providers.HttpInterceptor;
 import oasis.web.providers.JacksonContextResolver;
 import oasis.web.providers.SecureFilter;
 import oasis.web.providers.UriParamConverterProvider;
-import oasis.web.userdirectory.UserDirectoryResource;
+import oasis.web.userdirectory.UserDirectoryEndpoint;
 import oasis.web.userinfo.UserInfoEndpoint;
 import oasis.web.view.HandlebarsBodyWriter;
 
@@ -67,7 +67,7 @@ public class Application extends javax.ws.rs.core.Application {
         // UserInfo
         UserInfoEndpoint.class,
         // AuditLog
-        AuditLogEndPoint.class,
+        AuditLogEndpoint.class,
         HttpInterceptor.class,
         // Notification
         NotificationEndpoint.class,
@@ -75,12 +75,12 @@ public class Application extends javax.ws.rs.core.Application {
         EventBusEndpoint.class,
         // Resources
         Home.class,
-        UserDirectoryResource.class,
+        UserDirectoryEndpoint.class,
         OpenIdConnect.class,
-        ApplicationDirectoryResource.class,
-        ApplicationMarketResource.class,
-        ServiceProviderDirectoryResource.class,
-        DataProviderDirectoryResource.class,
+        ApplicationDirectoryEndpoint.class,
+        ApplicationMarketEndpoint.class,
+        ServiceProviderDirectoryEndpoint.class,
+        DataProviderDirectoryEndpoint.class,
         // Kibana and ElasticSearch proxy
         Kibana.class,
         ElasticSearchProxy.class

@@ -15,7 +15,7 @@ import oasis.auditlog.RemoteAuditLogEvent;
 
 @Path("/l")
 @Api(value = "/l", description = "Audit log API")
-public class AuditLogEndPoint {
+public class AuditLogEndpoint {
 
   @Inject
   AuditLogService auditLogService;

@@ -31,7 +31,7 @@ import oasis.model.directory.Organization;
 @Path("/d/app/market")
 @Produces(MediaType.APPLICATION_JSON)
 @Api(value = "/d/app/market", description = "Application market API")
-public class ApplicationMarketResource {
+public class ApplicationMarketEndpoint {
   @Inject
   private ApplicationRepository applications;
 
