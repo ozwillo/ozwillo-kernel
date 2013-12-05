@@ -13,6 +13,8 @@ import javax.ws.rs.core.Response;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
+import oasis.model.notification.Notification;
+
 @Path("/n")
 @Api(value = "/n", description = "Notification API")
 public class NotificationEndpoint {
