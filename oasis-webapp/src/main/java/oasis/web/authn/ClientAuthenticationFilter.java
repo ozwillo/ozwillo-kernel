@@ -19,6 +19,7 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.ext.Provider;
 
 import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
 import com.google.common.io.BaseEncoding;
 
 /**
@@ -46,6 +47,11 @@ public class ClientAuthenticationFilter implements ContainerRequestFilter {
   @Override
   public void filter(ContainerRequestContext requestContext) {
     String authorization = requestContext.getHeaderString(HttpHeaders.AUTHORIZATION);
+
+    if (Strings.isNullOrEmpty(authorization)) {
+      challenge(requestContext);
+      return;
+    }
 
     List<String> parts = AUTH_SCHEME_SPLITTER.splitToList(authorization);
 
