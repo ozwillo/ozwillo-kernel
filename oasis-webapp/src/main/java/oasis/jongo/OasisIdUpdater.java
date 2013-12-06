@@ -9,7 +9,7 @@ import org.jongo.ReflectiveObjectIdUpdater;
 
 public class OasisIdUpdater extends ReflectiveObjectIdUpdater {
 
-  private final Map<Class<?>, Field> oasisFieldCache = new HashMap<Class<?>, Field>();
+  private final Map<Class<?>, Field> oasisFieldCache = new HashMap<>();
 
   public OasisIdUpdater(IdFieldSelector idFieldSelector) {
     super(idFieldSelector);

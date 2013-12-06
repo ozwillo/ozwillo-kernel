@@ -30,7 +30,7 @@ public class CookieParserRequestFilter implements ContainerRequestFilter {
     PreMatchContainerRequestContext context = (PreMatchContainerRequestContext) requestContext;
     ResteasyHttpHeaders headers = (ResteasyHttpHeaders) context.getHttpRequest().getHttpHeaders();
 
-    Map<String, Cookie> cookies = new LinkedHashMap<String, Cookie>();
+    Map<String, Cookie> cookies = new LinkedHashMap<>();
     for (String cookieString : headers.getRequestHeader(HttpHeaders.COOKIE)) {
       for (String cookiePair : COOKIE_LIST_SPLITTER.split(cookieString)) {
         Cookie cookie = Cookie.valueOf(cookiePair);

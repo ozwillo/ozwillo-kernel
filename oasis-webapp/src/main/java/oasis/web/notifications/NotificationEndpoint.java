@@ -9,10 +9,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
 
 import com.google.common.collect.Lists;
 import com.wordnik.swagger.annotations.Api;
@@ -21,9 +19,6 @@ import com.wordnik.swagger.annotations.ApiOperation;
 import oasis.model.notification.Notification;
 import oasis.model.notification.NotificationRepository;
 import oasis.services.notification.NotificationService;
-import oasis.web.authn.Authenticated;
-import oasis.web.authn.OAuth;
-import oasis.web.authn.OAuthPrincipal;
 
 @Path("/n")
 @Api(value = "/n", description = "Notification API")

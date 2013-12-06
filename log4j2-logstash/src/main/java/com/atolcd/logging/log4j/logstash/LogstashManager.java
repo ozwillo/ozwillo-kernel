@@ -4,7 +4,6 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
 import org.apache.logging.log4j.core.appender.AbstractManager;
-import org.apache.logging.log4j.status.StatusLogger;
 
 public class LogstashManager extends AbstractManager {
   private static final byte[] LF = "\n".getBytes(StandardCharsets.UTF_8);

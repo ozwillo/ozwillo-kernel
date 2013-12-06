@@ -14,9 +14,6 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.ext.Provider;
 
-import com.google.common.base.Supplier;
-
-import oasis.model.accounts.Account;
 import oasis.model.accounts.AccountRepository;
 
 @Authenticated @User
