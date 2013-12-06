@@ -188,7 +188,7 @@ public class JongoDirectoryRepository implements DirectoryRepository {
     return (Collection<Group>) (Collection<?>) Collections2.filter(organization.getGroups(), new Predicate<JongoGroup>() {
       @Override
       public boolean apply(@Nullable JongoGroup input) {
-        return input.getAgentIds() != null && input.getAgentIds().contains(agentId);
+        return input != null && input.getAgentIds() != null && input.getAgentIds().contains(agentId);
       }
     });
   }
