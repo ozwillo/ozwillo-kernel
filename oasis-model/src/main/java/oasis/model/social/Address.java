@@ -1,5 +1,7 @@
 package oasis.model.social;
 
+import javax.annotation.Nonnull;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.wordnik.swagger.annotations.ApiModelProperty;
@@ -25,6 +27,17 @@ public class Address {
   @JsonProperty
   @ApiModelProperty
   private String country;
+
+  public Address() {
+  }
+
+  public Address(@Nonnull Address other) {
+    this.streetAddress = other.getStreetAddress();
+    this.locality = other.getLocality();
+    this.region = other.getRegion();
+    this.postalCode = other.getPostalCode();
+    this.country = other.getCountry();
+  }
 
   public String getStreetAddress() {
     return streetAddress;

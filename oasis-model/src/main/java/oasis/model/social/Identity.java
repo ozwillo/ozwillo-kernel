@@ -1,14 +1,18 @@
 package oasis.model.social;
 
+import javax.annotation.Nonnull;
+
 import org.joda.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
+import oasis.model.annotations.Id;
+
 @JsonRootName("identity")
 public class Identity {
-  @JsonProperty
+  @Id
   @ApiModelProperty(required = true)
   private String id;
 
@@ -54,7 +58,31 @@ public class Identity {
 
   @JsonProperty
   @ApiModelProperty
-  private long modified;
+  private long updatedAt;
+
+  public Identity() {
+  }
+
+  /**
+   * Copy constructor.
+   * <p>
+   * Does not copy {@link #id} field.
+   */
+  public Identity(@Nonnull Identity other) {
+    if (other.getAddress() != null) {
+      this.address = new Address(other.getAddress());
+    }
+    this.name = other.getName();
+    this.givenName = other.getGivenName();
+    this.familyName = other.getFamilyName();
+    this.middleName = other.getMiddleName();
+    this.nickname = other.getNickname();
+    this.gender = other.getGender();
+    this.birthdate = other.getBirthdate();
+    this.phoneNumber = other.getPhoneNumber();
+    this.phoneNumberVerified = other.isPhoneNumberVerified();
+    this.updatedAt = other.getUpdatedAt();
+  }
 
   public String getId() {
     return id;
@@ -144,11 +172,11 @@ public class Identity {
     this.address = address;
   }
 
-  public long getModified() {
-    return modified;
+  public long getUpdatedAt() {
+    return updatedAt;
   }
 
-  public void setModified(long modified) {
-    this.modified = modified;
+  public void setUpdatedAt(long updatedAt) {
+    this.updatedAt = updatedAt;
   }
 }

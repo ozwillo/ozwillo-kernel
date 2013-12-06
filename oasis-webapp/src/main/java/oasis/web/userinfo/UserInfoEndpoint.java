@@ -141,7 +141,7 @@ public class UserInfoEndpoint {
       userInfo.setPhoneVerified(identity.isPhoneNumberVerified());
     }
 
-    long updatedAt = Math.max(userAccount.getModified(), identity.getModified());
+    long updatedAt = Math.max(userAccount.getModified(), identity.getUpdatedAt());
     if (updatedAt > 0) {
       userInfo.setUpdatedAt(TimeUnit.MILLISECONDS.toSeconds(updatedAt));
     }

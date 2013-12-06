@@ -11,13 +11,14 @@ import oasis.model.social.IdentityRepository;
 public class JongoIdentityRepository implements IdentityRepository {
   private final Jongo jongo;
 
-  @Inject JongoIdentityRepository(Jongo jongo) {
+  @Inject
+  JongoIdentityRepository(Jongo jongo) {
     this.jongo = jongo;
   }
 
   @Override
   public Identity getIdentity(String identityId) {
-    return getIdentityCollection().findOne("{id:#}", identityId).as(Identity.class);
+    return getIdentityCollection().findOne("{id:#}", identityId).as(JongoIdentity.class);
   }
 
   private MongoCollection getIdentityCollection() {
