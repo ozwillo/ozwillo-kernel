@@ -24,6 +24,8 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.webtoken.JsonWebSignature;
 import com.google.api.client.json.webtoken.JsonWebToken;
 import com.google.api.client.util.Key;
+import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.accounts.AccessToken;
 import oasis.model.accounts.UserAccount;
@@ -35,7 +37,8 @@ import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
 
 @Authenticated @OAuth
-@Path("/u/userinfo")
+@Path("/a/userinfo")
+@Api(value = "/a/userinfo", description = "UserInfo Endpoint")
 public class UserInfoEndpoint {
   private static final JsonWebSignature.Header JWS_HEADER = new JsonWebSignature.Header().setType("JWS").setAlgorithm("RS256");
   private static final DateTimeFormatter BIRTHDATE_FORMATTER = ISODateTimeFormat.date().withDefaultYear(0);
@@ -52,6 +55,12 @@ public class UserInfoEndpoint {
 
   @GET
   @Produces(APPLICATION_JWT)
+  @ApiOperation(
+      value = "Return Claims about the End-User in signed JWT format.",
+      notes = "See the <a href=\"http://openid.net/specs/openid-connect-basic-1_0.html#UserInfo\">OpenID Connect Draft</a>, " +
+          "the <a href=\"http://tools.ietf.org/html/draft-ietf-oauth-json-web-token-08\">JWT Draft</a> " +
+          "and the <a href=\"http://tools.ietf.org/html/draft-ietf-jose-json-web-signature-11\">JWS Draft</a> for more information."
+  )
   public Response getSigned() throws GeneralSecurityException, IOException {
     UserInfo userInfo = getUserInfo();
     userInfo.setSubject(securityContext.getUserPrincipal().getName());
@@ -67,6 +76,10 @@ public class UserInfoEndpoint {
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
+  @ApiOperation(
+      value = "Return Claims about the End-User in JSON format.",
+      notes = "See the <a href=\"http://openid.net/specs/openid-connect-basic-1_0.html#UserInfo\">OpenID Connect Draft</a> for more information."
+  )
   public Response getUnsigned() throws IOException {
     UserInfo userInfo = getUserInfo();
     userInfo.setSubject(securityContext.getUserPrincipal().getName());
@@ -77,12 +90,22 @@ public class UserInfoEndpoint {
 
   @POST
   @Produces("application/jwt")
+  @ApiOperation(
+      value = "Return Claims about the End-User in signed JWT format.",
+      notes = "See the <a href=\"http://openid.net/specs/openid-connect-basic-1_0.html#UserInfo\">OpenID Connect Draft</a>, " +
+          "the <a href=\"http://tools.ietf.org/html/draft-ietf-oauth-json-web-token-08\">JWT Draft</a> " +
+          "and the <a href=\"http://tools.ietf.org/html/draft-ietf-jose-json-web-signature-11\">JWS Draft</a> for more information."
+  )
   public Response postSigned() throws GeneralSecurityException, IOException {
     return getSigned();
   }
 
   @POST
   @Produces(MediaType.APPLICATION_JSON)
+  @ApiOperation(
+      value = "Return Claims about the End-User in JSON format.",
+      notes = "See the <a href=\"http://openid.net/specs/openid-connect-basic-1_0.html#UserInfo\">OpenID Connect Draft</a> for more information."
+  )
   public Response postUnsigned() throws IOException {
     return getUnsigned();
   }
