@@ -1,5 +1,7 @@
 package oasis.model.notification;
 
+import javax.annotation.Nonnull;
+
 import org.joda.time.Instant;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -43,21 +45,21 @@ public class Notification {
   @ApiModelProperty(dataType = "String", allowableValues = "READ,UNREAD")
   private Status status = Status.UNREAD;
 
+  public Notification() {
+  }
+
   /**
    * Copy constructor.
    * <p>
    * Does not copy {@link #id} field.
    */
-  public Notification() {
-  }
-
-  public Notification(Notification other) {
-    this.setApplicationId(other.getApplicationId());
-    this.setData(other.getData());
-    this.setMessage(other.getMessage());
-    this.setStatus(other.getStatus());
-    this.setTime(other.getTime());
-    this.setUserId(other.getUserId());
+  public Notification(@Nonnull Notification other) {
+    this.applicationId = other.getApplicationId();
+    this.data = other.getData();
+    this.message = other.getMessage();
+    this.status = other.getStatus();
+    this.time = other.getTime();
+    this.userId = other.getUserId();
   }
 
   public String getId() {

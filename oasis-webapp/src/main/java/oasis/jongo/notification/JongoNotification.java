@@ -1,26 +1,26 @@
 package oasis.jongo.notification;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonRootName;
-import com.wordnik.swagger.annotations.ApiModelProperty;
+import javax.annotation.Nonnull;
 
+import com.fasterxml.jackson.annotation.JsonRootName;
+
+import oasis.jongo.etag.HasModified;
 import oasis.model.notification.Notification;
 
 @JsonRootName("notification")
-class JongoNotification extends Notification {
+class JongoNotification extends Notification implements HasModified {
 
-  @JsonProperty
-  @ApiModelProperty
   private long modified = System.currentTimeMillis();
 
   JongoNotification() {
     super();
   }
 
-  JongoNotification(Notification other) {
+  JongoNotification(@Nonnull Notification other) {
     super(other);
   }
 
+  @Override
   public long getModified() {
     return modified;
   }
