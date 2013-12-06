@@ -24,7 +24,6 @@ import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
 
 import oasis.model.applications.ApplicationRepository;
-import oasis.model.applications.ScopeCardinalities;
 import oasis.model.applications.ServiceProvider;
 
 @Path("/d/serviceprovider")
@@ -51,32 +50,6 @@ public class ServiceProviderDirectoryEndpoint {
       EntityTag etag = new EntityTag(Long.toString(serviceProvider.getModified()));
       return Response.ok()
           .entity(serviceProvider)
-          .tag(etag)
-          .build();
-    } else {
-      return Response.status(Response.Status.NOT_FOUND)
-          .type(MediaType.TEXT_PLAIN)
-          .entity("The requested service provider does not exist")
-          .build();
-    }
-  }
-
-  @GET
-  @Path("/{serviceProviderId}/scopes")
-  @ApiOperation(value = "Retrieve required scopes for a service provider",
-                notes = "Returns a ScopeCardinality array",
-                response = ScopeCardinalities.class)
-  @ApiResponses({ @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
-                               message = "The requested service provider does not exist, or no service provider id has been sent"),
-                  @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
-                               message = "The current user cannot access the requested service provider") })
-  public Response getServiceProviderScopes(
-      @PathParam("serviceProviderId") String serviceProviderId) {
-    ScopeCardinalities cardinalities = applications.getRequiredScopes(serviceProviderId);
-    if (cardinalities != null) {
-      EntityTag etag = new EntityTag(Long.toString(cardinalities.getModified()));
-      return Response.ok()
-          .entity(cardinalities)
           .tag(etag)
           .build();
     } else {
@@ -123,49 +96,6 @@ public class ServiceProviderDirectoryEndpoint {
 
     applications.updateServiceProvider(serviceProviderId, serviceProvider);
     etag = new EntityTag(Long.toString(serviceProvider.getModified()));
-    return Response.noContent()
-        .tag(etag)
-        .build();
-  }
-
-  @PUT
-  @Path("/{serviceProviderId}/scopes")
-  @Consumes(MediaType.APPLICATION_JSON)
-  @ApiOperation(value = "Creates or updates a service provider required scopes")
-  @ApiResponses({ @ApiResponse(code = oasis.web.Application.SC_PRECONDITION_REQUIRED,
-                               message = "The If-Match header is mandatory"),
-                  @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
-                               message = "The requested service provider does not exist, or no service provider id has been sent"),
-                  @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
-                               message = "The current user cannot access the requested service provider"),
-                  @ApiResponse(code = HttpServletResponse.SC_PRECONDITION_FAILED,
-                               message = "Mismatching etag") })
-  public Response putServiceProviderScopes(
-      @Context Request request,
-      @HeaderParam("If-Match") @ApiParam(required = true) String etagStr,
-      @PathParam("serviceProviderId") String serviceProviderId,
-      @ApiParam ScopeCardinalities scopeCardinalities) {
-    if (Strings.isNullOrEmpty(etagStr)) {
-      return Response.status(oasis.web.Application.SC_PRECONDITION_REQUIRED).build();
-    }
-
-    ServiceProvider sp = applications.getServiceProvider(serviceProviderId);
-    if (sp == null) {
-      return Response.status(Response.Status.NOT_FOUND)
-          .type(MediaType.TEXT_PLAIN)
-          .entity("The requested service provider does not exist")
-          .build();
-    }
-
-    ScopeCardinalities s = applications.getRequiredScopes(serviceProviderId);
-    EntityTag etag = new EntityTag(Long.toString(s.getModified()));
-    Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(etag);
-    if (responseBuilder != null) {
-      return responseBuilder.build();
-    }
-
-    applications.updateServiceProviderScopes(serviceProviderId, scopeCardinalities);
-    etag = new EntityTag(Long.toString(scopeCardinalities.getModified()));
     return Response.noContent()
         .tag(etag)
         .build();

@@ -18,15 +18,12 @@ import com.google.common.collect.Iterables;
 import oasis.model.applications.Application;
 import oasis.model.applications.ApplicationRepository;
 import oasis.model.applications.DataProvider;
-import oasis.model.applications.ScopeCardinalities;
-import oasis.model.applications.Scopes;
 import oasis.model.applications.ServiceProvider;
 
 public class JongoApplicationRepository implements ApplicationRepository {
   private static final Logger logger = LoggerFactory.getLogger(ApplicationRepository.class);
 
-  @Inject
-  private Jongo jongo;
+  @Inject private Jongo jongo;
 
   @Override
   public Iterable<Application> getApplicationInstances(int start, int limit) {
@@ -134,16 +131,6 @@ public class JongoApplicationRepository implements ApplicationRepository {
   }
 
   @Override
-  public Scopes getProvidedScopes(String dataProviderId) {
-    DataProvider dp = getDataProvider(dataProviderId);
-    Scopes res = new Scopes();
-    res.setDataProviderId(dataProviderId);
-    res.setValues(dp.getScopes());
-    res.setModified(dp.getModified());
-    return res;
-  }
-
-  @Override
   public String createDataProvider(String appId, DataProvider dataProvider) {
     long modified = System.nanoTime();
     dataProvider.setModified(modified);
@@ -172,9 +159,9 @@ public class JongoApplicationRepository implements ApplicationRepository {
       updateParameters.add(dataProvider.getName());
     }
 
-    if (dataProvider.getScopes() != null) {
+    if (dataProvider.getScopeIds() != null) {
       updateObject.append(",dataProviders.$.scopes:#");
-      updateParameters.add(dataProvider.getScopes());
+      updateParameters.add(dataProvider.getScopeIds());
     }
 
     // TODO : check modified
@@ -187,21 +174,6 @@ public class JongoApplicationRepository implements ApplicationRepository {
       logger.warn("More than one data provider with id: {}", dataProviderId);
     }
     dataProvider.setModified(modified);
-  }
-
-  @Override
-  public void updateDataProviderScopes(String dataProviderId, Scopes scopes) {
-    long modified = System.nanoTime();
-    // TODO : check modified
-    int nbResults = getApplicationsCollection()
-        .update("{dataProviders.id:#}", dataProviderId)
-        .with("{$set: {dataProviders.$.scopes:#, dataProviders.$.modified:#}}", scopes.getValues(), modified)
-        .getN();
-
-    if (nbResults != 1) {
-      logger.warn("More than one data provider with id: {}", dataProviderId);
-    }
-    scopes.setModified(modified);
   }
 
   @Override
@@ -242,20 +214,6 @@ public class JongoApplicationRepository implements ApplicationRepository {
       return null;
     }
     return app.getServiceProvider();
-  }
-
-  @Override
-  public ScopeCardinalities getRequiredScopes(String serviceProviderId) {
-    ServiceProvider sp = getServiceProvider(serviceProviderId);
-    if (sp == null) {
-      logger.warn("The service provider {} does not exist.");
-      return null;
-    }
-    ScopeCardinalities res = new ScopeCardinalities();
-    res.setServiceProviderId(serviceProviderId);
-    res.setValues(sp.getScopeCardinalities());
-    res.setModified(sp.getModified());
-    return res;
   }
 
   @Override
@@ -302,21 +260,6 @@ public class JongoApplicationRepository implements ApplicationRepository {
       logger.warn("More than one service provider with id: {}", serviceProviderId);
     }
     serviceProvider.setModified(modified);
-  }
-
-  @Override
-  public void updateServiceProviderScopes(String serviceProviderId, ScopeCardinalities scopeCardinalities) {
-    long modified = System.nanoTime();
-    // TODO : check modified
-    int nbResults = getApplicationsCollection()
-        .update("{serviceProvider.id:#}", serviceProviderId)
-        .with("{$set: {serviceProvider.scopeCardinalities:#, serviceProvider.modified:#}}", scopeCardinalities.getValues(), modified)
-        .getN();
-
-    if (nbResults != 1) {
-      logger.warn("More than one service provider with id: {}", serviceProviderId);
-    }
-    scopeCardinalities.setModified(modified);
   }
 
   @Override

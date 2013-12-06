@@ -40,7 +40,6 @@ import com.wordnik.swagger.annotations.ApiOperation;
 import oasis.model.accounts.Token;
 import oasis.model.applications.ApplicationRepository;
 import oasis.model.applications.Scope;
-import oasis.model.applications.ScopeCardinalities;
 import oasis.model.applications.ScopeCardinality;
 import oasis.model.applications.ServiceProvider;
 import oasis.model.authz.AuthorizationRepository;
@@ -98,7 +97,11 @@ public class AuthorizationEndpoint {
     this.params = params;
 
     final String client_id = getRequiredParameter(CLIENT_ID);
-    // TODO: check that client_id exists
+
+    ServiceProvider serviceProvider = applicationRepository.getServiceProvider(client_id);
+    if (serviceProvider == null) {
+      throw accessDenied("Unknown client id");
+    }
 
     String redirect_uri = getRequiredParameter(REDIRECT_URI);
     // Validate redirect_uri
@@ -169,9 +172,9 @@ public class AuthorizationEndpoint {
     }
 
     Set<String> globalClaimedScopeIds = Sets.newHashSet();
-    ScopeCardinalities scopeCardinalities = applicationRepository.getRequiredScopes(client_id);
-    if (scopeCardinalities != null && scopeCardinalities.getValues() != null) {
-      for (ScopeCardinality scopeCardinality : scopeCardinalities.getValues()) {
+    Iterable<ScopeCardinality> scopeCardinalities = serviceProvider.getScopeCardinalities();
+    if (scopeCardinalities != null) {
+      for (ScopeCardinality scopeCardinality : scopeCardinalities) {
         globalClaimedScopeIds.add(scopeCardinality.getScopeId());
       }
     }
@@ -199,10 +202,6 @@ public class AuthorizationEndpoint {
     }
 
     // TODO: Get the application in order to have more informations
-    ServiceProvider serviceProvider = applicationRepository.getServiceProvider(client_id);
-    if (serviceProvider == null) {
-      throw accessDenied("Unknown client id");
-    }
 
     // TODO: Make a URI Service in order to move the URI logic outside of the JAX-RS resource
     // redirectUriBuilder is now used for creating the cancel Uri for the authorization step with the user

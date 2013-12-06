@@ -1,6 +1,6 @@
 package oasis.model.applications;
 
-import java.util.List;
+import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
@@ -16,7 +16,7 @@ public class DataProvider {
 
   @JsonProperty
   @ApiModelProperty
-  private List<String> scopes;
+  private Set<String> scopeIds;
 
   @JsonProperty
   @ApiModelProperty(required = true)
@@ -42,12 +42,12 @@ public class DataProvider {
     this.name = name;
   }
 
-  public List<String> getScopes() {
-    return scopes;
+  public Set<String> getScopeIds() {
+    return scopeIds;
   }
 
-  public void setScopes(List<String> scopes) {
-    this.scopes = scopes;
+  public void setScopeIds(Set<String> scopeIds) {
+    this.scopeIds = scopeIds;
   }
 
   public long getModified() {

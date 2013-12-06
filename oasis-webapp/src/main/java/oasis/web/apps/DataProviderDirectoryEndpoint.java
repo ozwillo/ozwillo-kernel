@@ -25,7 +25,6 @@ import com.wordnik.swagger.annotations.ApiResponses;
 
 import oasis.model.applications.ApplicationRepository;
 import oasis.model.applications.DataProvider;
-import oasis.model.applications.Scopes;
 
 @Path("/d/dataprovider")
 @Produces(MediaType.APPLICATION_JSON)
@@ -57,30 +56,6 @@ public class DataProviderDirectoryEndpoint {
           .entity("The requested data provider does not exist")
           .build();
     }
-  }
-
-  @GET
-  @Path("/{dataProviderId}/scopes")
-  @ApiOperation(value = "Retrieve scopes provided by a data provider",
-                notes = "Returns a Scope array",
-                response = Scopes.class)
-  @ApiResponses({ @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
-                               message = "The requested data provider does not exist, or no data provider id has been sent"),
-                  @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
-                               message = "The current user cannot access the requested data provider") })
-  public Response getDataProviderScopes(@PathParam("dataProviderId") String dataProviderId) {
-    Scopes scopes = applications.getProvidedScopes(dataProviderId);
-    if (scopes != null) {
-      EntityTag etag = new EntityTag(Long.toString(scopes.getModified()));
-      return Response.ok()
-          .entity(scopes)
-          .tag(etag)
-          .build();
-    }
-    return Response.status(Response.Status.NOT_FOUND)
-        .type(MediaType.TEXT_PLAIN)
-        .entity("The requested data provider does not exist")
-        .build();
   }
 
   @PUT
@@ -120,48 +95,6 @@ public class DataProviderDirectoryEndpoint {
 
     applications.updateDataProvider(dataProviderId, dataProvider);
     etag = new EntityTag(Long.toString(dataProvider.getModified()));
-    return Response.noContent()
-        .tag(etag)
-        .build();
-  }
-
-  @PUT
-  @Path("/{dataProviderId}/scopes")
-  @Consumes(MediaType.APPLICATION_JSON)
-  @ApiOperation(value = "Updates a data provider scopes")
-  @ApiResponses({ @ApiResponse(code = oasis.web.Application.SC_PRECONDITION_REQUIRED,
-                               message = "The If-Match header is mandatory"),
-                  @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
-                               message = "The requested data provider does not exist, or no data provider id has been sent"),
-                  @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
-                               message = "The current user cannot access the requested data provider"),
-                  @ApiResponse(code = HttpServletResponse.SC_PRECONDITION_FAILED,
-                               message = "Mismatching etag") })
-  public Response putDataProviderScopes(
-      @Context Request request,
-      @HeaderParam("If-Match") @ApiParam(required = true) String etagStr,
-      @PathParam("dataProviderId") String dataProviderId,
-      @ApiParam("scopes") Scopes scopes) {
-    if (Strings.isNullOrEmpty(etagStr)) {
-      return Response.status(oasis.web.Application.SC_PRECONDITION_REQUIRED).build();
-    }
-    DataProvider dp = applications.getDataProvider(dataProviderId);
-    if (dp == null) {
-      return Response.status(Response.Status.NOT_FOUND)
-          .type(MediaType.TEXT_PLAIN)
-          .entity("The requested data provider does not exist")
-          .build();
-    }
-
-    Scopes s = applications.getProvidedScopes(dataProviderId);
-    EntityTag etag = new EntityTag(Long.toString(s.getModified()));
-    Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(etag);
-    if (responseBuilder != null) {
-      return responseBuilder.build();
-    }
-
-    applications.updateDataProviderScopes(dataProviderId, scopes);
-    etag = new EntityTag(Long.toString(scopes.getModified()));
     return Response.noContent()
         .tag(etag)
         .build();
