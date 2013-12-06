@@ -60,8 +60,6 @@ import oasis.web.view.View;
 @Produces(MediaType.TEXT_HTML)
 @Api(value = "/a/auth", description = "Authorization Endpoint.")
 public class AuthorizationEndpoint {
-  private static final Logger logger = LoggerFactory.getLogger(AuthorizationEndpoint.class);
-
   private static final String APPROVE_PATH = "/approve";
 
   private static final String CLIENT_ID = "client_id";

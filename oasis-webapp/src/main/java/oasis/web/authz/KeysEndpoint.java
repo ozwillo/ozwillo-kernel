@@ -20,7 +20,6 @@ import oasis.openidconnect.OpenIdConnectModule;
 @Path("/a/keys")
 @Api(value = "/a/keys", description = "Keys API")
 public class KeysEndpoint {
-  private static final Logger logger = LoggerFactory.getLogger(KeysEndpoint.class);
   private static final BaseEncoding BASE64_ENCODING = BaseEncoding.base64Url().omitPadding();
 
   @Inject OpenIdConnectModule.Settings settings;
