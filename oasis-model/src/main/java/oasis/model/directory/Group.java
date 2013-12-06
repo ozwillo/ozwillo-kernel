@@ -1,5 +1,7 @@
 package oasis.model.directory;
 
+import javax.annotation.Nonnull;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.wordnik.swagger.annotations.ApiModelProperty;
@@ -25,7 +27,7 @@ public class Group {
    * <p>
    * Does not copy {@link #id} field.
    */
-  public Group(Group other) {
+  public Group(@Nonnull Group other) {
     this.name = other.getName();
   }
 

@@ -2,9 +2,10 @@ package oasis.jongo.directory;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
-import com.wordnik.swagger.annotations.ApiModelProperty;
 
 import oasis.jongo.etag.HasModified;
 import oasis.model.directory.Group;
@@ -13,17 +14,15 @@ import oasis.model.directory.Group;
 class JongoGroup extends Group implements HasModified {
 
   @JsonProperty
-  @ApiModelProperty
   private List<String> agentIds;
 
-  @ApiModelProperty
   private long modified = System.currentTimeMillis();
 
   JongoGroup() {
     super();
   }
 
-  JongoGroup(Group other) {
+  JongoGroup(@Nonnull Group other) {
     super(other);
   }
 
@@ -35,6 +34,7 @@ class JongoGroup extends Group implements HasModified {
     this.agentIds = agentIds;
   }
 
+  @Override
   public long getModified() {
     return modified;
   }
