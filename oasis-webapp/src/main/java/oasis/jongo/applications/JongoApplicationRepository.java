@@ -347,7 +347,7 @@ public class JongoApplicationRepository implements ApplicationRepository {
     }
   }
 
-  private void decimateTenant(Application app){
+  private void decimateTenant(Application app) {
     app.setDataProviders(null);
     app.setServiceProvider(null);
   }
@@ -363,7 +363,9 @@ public class JongoApplicationRepository implements ApplicationRepository {
       @Nullable
       @Override
       public Application apply(@Nullable Application input) {
-        if (input == null) { return null; }
+        if (input == null) {
+          return null;
+        }
 
         if (input.isTenant()) {
           populateTenant(input);
