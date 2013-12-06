@@ -40,17 +40,11 @@ public final class CubeAppender extends AbstractAppender {
       return null;
     }
 
-    CubeManager manager = CubeManager.getCubeManager(name, url);
-    if (manager == null) {
-      LOGGER.error("The manager can't be null.");
-      return null;
-    }
-
     if (layout == null) {
       layout = PatternLayout.createLayout(null, null, null, null, null);
     }
 
-    return new CubeAppender(name, layout, filter, manager, ignoreExceptions);
+    return new CubeAppender(name, layout, filter, CubeManager.getCubeManager(name, url), ignoreExceptions);
   }
 
   @Override

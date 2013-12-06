@@ -36,17 +36,11 @@ public class LogstashAppender extends AbstractAppender {
       return null;
     }
 
-    LogstashManager manager = LogstashManager.getLogstashManager(name, host, port);
-    if (manager == null) {
-      LOGGER.error("The manager can't be null.");
-      return null;
-    }
-
     if (layout == null) {
       layout = PatternLayout.createLayout(null, null, null, null, null);
     }
 
-    return new LogstashAppender(name, layout, filter, manager, ignoreExceptions);
+    return new LogstashAppender(name, layout, filter, LogstashManager.getLogstashManager(name, host, port), ignoreExceptions);
   }
 
   @PluginFactory

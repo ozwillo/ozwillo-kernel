@@ -3,6 +3,8 @@ package com.atolcd.logging.log4j.logstash;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
+import javax.annotation.Nonnull;
+
 import org.apache.logging.log4j.core.appender.AbstractManager;
 
 public class LogstashManager extends AbstractManager {
@@ -18,6 +20,7 @@ public class LogstashManager extends AbstractManager {
     this.port = port;
   }
 
+  @Nonnull
   public static LogstashManager getLogstashManager(String name, String host, int port) {
     return new LogstashManager(name, host, port);
   }

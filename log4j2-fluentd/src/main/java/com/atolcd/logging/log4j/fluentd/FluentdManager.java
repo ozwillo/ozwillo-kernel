@@ -1,5 +1,6 @@
 package com.atolcd.logging.log4j.fluentd;
 
+import javax.annotation.Nonnull;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -23,6 +24,7 @@ public class FluentdManager extends AbstractManager {
     this.tag = tag;
   }
 
+  @Nonnull
   public static FluentdManager getFluentdManager(String name, String url, String tag) {
     return new FluentdManager(name, url, tag);
   }

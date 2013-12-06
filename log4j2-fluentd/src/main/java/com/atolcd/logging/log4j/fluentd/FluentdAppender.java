@@ -46,17 +46,11 @@ public class FluentdAppender extends AbstractAppender {
       return null;
     }
 
-    FluentdManager manager = FluentdManager.getFluentdManager(name, url, tag);
-    if (manager == null) {
-      LOGGER.error("The manager can't be null.");
-      return null;
-    }
-
     if (layout == null) {
       layout = PatternLayout.createLayout(null, null, null, null, null);
     }
 
-    return new FluentdAppender(name, layout, filter, manager, ignoreExceptions);
+    return new FluentdAppender(name, layout, filter, FluentdManager.getFluentdManager(name, url, tag), ignoreExceptions);
   }
 
   @Override

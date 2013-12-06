@@ -1,5 +1,6 @@
 package com.atolcd.logging.log4j.cube;
 
+import javax.annotation.Nonnull;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -19,6 +20,7 @@ public class CubeManager extends AbstractManager {
     this.url = url;
   }
 
+  @Nonnull
   public static CubeManager getCubeManager(String name, String url) {
     return new CubeManager(name, url);
   }
