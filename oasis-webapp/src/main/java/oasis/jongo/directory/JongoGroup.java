@@ -16,7 +16,6 @@ class JongoGroup extends Group implements HasModified {
   @ApiModelProperty
   private List<String> agentIds;
 
-  @JsonProperty
   @ApiModelProperty
   private long modified = System.currentTimeMillis();
 

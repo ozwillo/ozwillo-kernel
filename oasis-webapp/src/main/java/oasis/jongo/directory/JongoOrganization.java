@@ -16,7 +16,6 @@ class JongoOrganization extends Organization implements HasModified {
   @ApiModelProperty
   private List<JongoGroup> groups;
 
-  @JsonProperty
   @ApiModelProperty
   private long modified = System.currentTimeMillis();
 
