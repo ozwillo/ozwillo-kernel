@@ -1,43 +1,43 @@
 package oasis.model.applications;
 
 public interface ApplicationRepository {
-  public Iterable<Application> getCatalogApplications(int start, int limit);
+  Iterable<Application> getCatalogApplications(int start, int limit);
 
-  public Iterable<Application> getApplicationInstances(int start, int limit);
+  Iterable<Application> getApplicationInstances(int start, int limit);
 
-  public Application getApplication(String appId);
+  Application getApplication(String appId);
 
-  public String createApplication(Application app);
+  String createApplication(Application app);
 
-  public void updateApplication(String appId, Application app);
+  void updateApplication(String appId, Application app);
 
-  public void deleteApplication(String appId);
+  void deleteApplication(String appId);
 
-  public Iterable<DataProvider> getDataProviders(String appId);
+  Iterable<DataProvider> getDataProviders(String appId);
 
-  public DataProvider getDataProvider(String dataProviderId);
+  DataProvider getDataProvider(String dataProviderId);
 
-  public Scopes getProvidedScopes(String dataProviderId);
+  Scopes getProvidedScopes(String dataProviderId);
 
-  public String createDataProvider(String appId, DataProvider dataProvider);
+  String createDataProvider(String appId, DataProvider dataProvider);
 
-  public void updateDataProvider(String dataProviderId, DataProvider dataProvider);
+  void updateDataProvider(String dataProviderId, DataProvider dataProvider);
 
-  public void updateDataProviderScopes(String dataProviderId, Scopes scopes);
+  void updateDataProviderScopes(String dataProviderId, Scopes scopes);
 
-  public void deleteDataProvider(String dataProviderId);
+  void deleteDataProvider(String dataProviderId);
 
-  public ServiceProvider getServiceProviderFromApplication(String appId);
+  ServiceProvider getServiceProviderFromApplication(String appId);
 
-  public ServiceProvider getServiceProvider(String serviceProviderId);
+  ServiceProvider getServiceProvider(String serviceProviderId);
 
-  public ScopeCardinalities getRequiredScopes(String serviceProviderId);
+  ScopeCardinalities getRequiredScopes(String serviceProviderId);
 
-  public String createServiceProvider(String appId, ServiceProvider serviceProvider);
+  String createServiceProvider(String appId, ServiceProvider serviceProvider);
 
-  public void updateServiceProvider(String serviceProviderId, ServiceProvider serviceProvider);
+  void updateServiceProvider(String serviceProviderId, ServiceProvider serviceProvider);
 
-  public void updateServiceProviderScopes(String serviceProviderId, ScopeCardinalities scopeCardinalities);
+  void updateServiceProviderScopes(String serviceProviderId, ScopeCardinalities scopeCardinalities);
 
-  public void deleteServiceProvider(String serviceProviderId);
+  void deleteServiceProvider(String serviceProviderId);
 }

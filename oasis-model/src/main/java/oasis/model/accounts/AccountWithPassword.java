@@ -1,11 +1,11 @@
 package oasis.model.accounts;
 
 public interface AccountWithPassword {
-  public String getPassword();
+  String getPassword();
 
-  public void setPassword(String password);
+  void setPassword(String password);
 
-  public String getPasswordSalt();
+  String getPasswordSalt();
 
-  public void setPasswordSalt(String passwordSalt);
+  void setPasswordSalt(String passwordSalt);
 }

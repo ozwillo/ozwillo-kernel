@@ -6,7 +6,7 @@ import org.apache.logging.log4j.message.Message;
 import oasis.auditlog.AuditLogEvent;
 
 public interface Log4JSupplier {
-  public Message generateMessage(AuditLogEvent auditLogEvent);
+  Message generateMessage(AuditLogEvent auditLogEvent);
 
-  public Appender createAppender(String appenderName);
+  Appender createAppender(String appenderName);
 }
