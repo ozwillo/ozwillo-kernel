@@ -76,7 +76,7 @@ public class OAuthAuthenticationFilter implements ContainerRequestFilter {
     // Get real information for the token
     token = tokenRepository.getToken(token.getId());
 
-    if (token == null || !(token instanceof AccessToken) || !tokenHandler.checkTokenValidity(token)) {
+    if (!(token instanceof AccessToken) || !tokenHandler.checkTokenValidity(token)) {
       invalidToken(requestContext);
       return;
     }
