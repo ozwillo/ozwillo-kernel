@@ -12,7 +12,6 @@ import com.mongodb.WriteResult;
 import oasis.model.accounts.Account;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.AgentAccount;
-import oasis.model.accounts.Token;
 import oasis.model.accounts.UserAccount;
 
 public class JongoAccountRepository implements AccountRepository {
