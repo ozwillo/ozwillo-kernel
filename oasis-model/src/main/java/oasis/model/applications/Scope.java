@@ -1,5 +1,7 @@
 package oasis.model.applications;
 
+import javax.annotation.Nonnull;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.wordnik.swagger.annotations.ApiModelProperty;
@@ -25,6 +27,20 @@ public class Scope {
   @JsonProperty
   @ApiModelProperty
   private String dataProviderId;
+
+  public Scope() {
+  }
+
+  /**
+   * Copy constructor.
+   * <p>
+   * Does not copy {@link #id} field.
+   */
+  public Scope(@Nonnull Scope other) {
+    this.title = other.getTitle();
+    this.description = other.getDescription();
+    this.dataProviderId = other.getDataProviderId();
+  }
 
   public String getId() {
     return id;

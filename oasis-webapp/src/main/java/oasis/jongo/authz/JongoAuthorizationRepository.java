@@ -13,6 +13,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.mongodb.WriteResult;
 
+import oasis.jongo.applications.JongoScope;
 import oasis.model.accounts.Account;
 import oasis.model.applications.Scope;
 import oasis.model.authz.AuthorizationRepository;
@@ -29,7 +30,7 @@ public class JongoAuthorizationRepository implements AuthorizationRepository {
 
   @Override
   public Scope getScope(String scopeId) {
-    return getScopesCollection().findOne("{id:#}", scopeId).as(Scope.class);
+    return getScopesCollection().findOne("{id:#}", scopeId).as(JongoScope.class);
   }
 
   @Override
