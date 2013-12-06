@@ -25,6 +25,7 @@ import com.wordnik.swagger.annotations.ApiResponses;
 
 import oasis.model.applications.ApplicationRepository;
 import oasis.model.applications.ServiceProvider;
+import oasis.services.etag.EtagService;
 
 @Path("/d/serviceprovider")
 @Produces(MediaType.APPLICATION_JSON)
@@ -32,46 +33,48 @@ import oasis.model.applications.ServiceProvider;
 public class ServiceProviderDirectoryEndpoint {
 
   @Inject
-  private ApplicationRepository applications;
+  ApplicationRepository applications;
+
+  @Inject
+  EtagService etagService;
 
   @GET
   @Path("/{serviceProviderId}")
   @ApiOperation(value = "Retrieve a service provider",
-                notes = "Returns a service provider",
-                response = ServiceProvider.class)
-  @ApiResponses({ @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
-                               message = "The requested service provider does not exist, or no service provider id has been sent"),
-                  @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
-                               message = "The current user cannot access the requested service provider") })
+      notes = "Returns a service provider",
+      response = ServiceProvider.class)
+  @ApiResponses({@ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
+      message = "The requested service provider does not exist, or no service provider id has been sent"),
+      @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
+          message = "The current user cannot access the requested service provider")})
   public Response getServiceProvider(
       @PathParam("serviceProviderId") String serviceProviderId) {
     ServiceProvider serviceProvider = applications.getServiceProvider(serviceProviderId);
-    if (serviceProvider != null) {
-      EntityTag etag = new EntityTag(Long.toString(serviceProvider.getModified()));
-      return Response.ok()
-          .entity(serviceProvider)
-          .tag(etag)
-          .build();
-    } else {
+    if (serviceProvider == null) {
       return Response.status(Response.Status.NOT_FOUND)
           .type(MediaType.TEXT_PLAIN)
           .entity("The requested service provider does not exist")
           .build();
     }
+    return Response.ok()
+        .entity(serviceProvider)
+        .tag(etagService.getEtag(serviceProvider))
+        .build();
+
   }
 
   @PUT
   @Path("/{serviceProviderId}")
   @Consumes(MediaType.APPLICATION_JSON)
   @ApiOperation(value = "Updates a service provider")
-  @ApiResponses({ @ApiResponse(code = oasis.web.Application.SC_PRECONDITION_REQUIRED,
-                               message = "The If-Match header is mandatory"),
-                  @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
-                               message = "The requested service provider does not exist, or no service provider id has been sent"),
-                  @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
-                               message = "The current user cannot access the requested service provider"),
-                  @ApiResponse(code = HttpServletResponse.SC_PRECONDITION_FAILED,
-                               message = "Mismatching etag") })
+  @ApiResponses({@ApiResponse(code = oasis.web.Application.SC_PRECONDITION_REQUIRED,
+      message = "The If-Match header is mandatory"),
+      @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
+          message = "The requested service provider does not exist, or no service provider id has been sent"),
+      @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
+          message = "The current user cannot access the requested service provider"),
+      @ApiResponse(code = HttpServletResponse.SC_PRECONDITION_FAILED,
+          message = "Mismatching etag")})
   public Response putServiceProvider(
       @Context Request request,
       @HeaderParam("If-Match") @ApiParam(required = true) String etagStr,
@@ -82,36 +85,38 @@ public class ServiceProviderDirectoryEndpoint {
     }
 
     ServiceProvider sp = applications.getServiceProvider(serviceProviderId);
-    if (sp == null){
+    if (sp == null) {
       return Response.status(Response.Status.NOT_FOUND)
           .type(MediaType.TEXT_PLAIN)
           .entity("The requested service provider does not exist")
           .build();
     }
-    EntityTag etag = new EntityTag(Long.toString(sp.getModified()));
-    Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(etag);
+
+    // FIXME: Check etag validation with etagService
+    Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(new EntityTag(etagService.getEtag(sp)));
     if (responseBuilder != null) {
       return responseBuilder.build();
     }
 
     applications.updateServiceProvider(serviceProviderId, serviceProvider);
-    etag = new EntityTag(Long.toString(serviceProvider.getModified()));
+    // FIXME: update should return the modified object
+//    EntityTag etag = new EntityTag(Long.toString(serviceProvider.getModified()));
     return Response.noContent()
-        .tag(etag)
+//        .tag(etag)
         .build();
   }
 
   @DELETE
   @Path("/{serviceProviderId}")
   @ApiOperation(value = "Deletes service provider")
-  @ApiResponses({ @ApiResponse(code = oasis.web.Application.SC_PRECONDITION_REQUIRED,
-                               message = "The If-Match header is mandatory"),
-                  @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
-                               message = "The requested service provider does not exist"),
-                  @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
-                               message = "The current user cannot access or delete the requested service provider") ,
-                  @ApiResponse(code = HttpServletResponse.SC_PRECONDITION_FAILED,
-                               message = "Mismatching etag") })
+  @ApiResponses({@ApiResponse(code = oasis.web.Application.SC_PRECONDITION_REQUIRED,
+      message = "The If-Match header is mandatory"),
+      @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
+          message = "The requested service provider does not exist"),
+      @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
+          message = "The current user cannot access or delete the requested service provider"),
+      @ApiResponse(code = HttpServletResponse.SC_PRECONDITION_FAILED,
+          message = "Mismatching etag")})
   public Response deleteServiceProvider(
       @Context Request request,
       @HeaderParam("If-Match") @ApiParam(required = true) String etagStr,
@@ -128,12 +133,12 @@ public class ServiceProviderDirectoryEndpoint {
           .build();
     }
 
-    EntityTag etag = new EntityTag(Long.toString(sp.getModified()));
-    Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(etag);
+    Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(new EntityTag(etagService.getEtag(sp)));
     if (responseBuilder != null) {
       return responseBuilder.build();
     }
 
+    // FIXME: check returned value
     applications.deleteServiceProvider(serviceProviderId);
     return Response.noContent()
         .build();

@@ -25,6 +25,7 @@ import com.wordnik.swagger.annotations.ApiResponses;
 
 import oasis.model.applications.ApplicationRepository;
 import oasis.model.applications.DataProvider;
+import oasis.services.etag.EtagService;
 
 @Path("/d/dataprovider")
 @Produces(MediaType.APPLICATION_JSON)
@@ -32,44 +33,46 @@ import oasis.model.applications.DataProvider;
 public class DataProviderDirectoryEndpoint {
 
   @Inject
-  private ApplicationRepository applications;
+  ApplicationRepository applications;
+
+  @Inject
+  EtagService etagService;
 
   @GET
   @Path("/{dataProviderId}")
   @ApiOperation(value = "Retrieve a data provider",
-                notes = "Returns a data provider",
-                response = DataProvider.class)
-  @ApiResponses({ @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
-                               message = "The requested data provider does not exist, or no data provider id has been sent"),
-                  @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
-                               message = "The current user cannot access the requested data provider") })
+      notes = "Returns a data provider",
+      response = DataProvider.class)
+  @ApiResponses({@ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
+      message = "The requested data provider does not exist, or no data provider id has been sent"),
+      @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
+          message = "The current user cannot access the requested data provider")})
   public Response getDataProvider(@PathParam("dataProviderId") String dataProviderId) {
     DataProvider dataProvider = applications.getDataProvider(dataProviderId);
-    if (dataProvider != null) {
-      EntityTag etag = new EntityTag(Long.toString(dataProvider.getModified()));
-      return Response.ok()
-          .entity(dataProvider)
-          .tag(etag)
-          .build();
-    } else {
+    if (dataProvider == null) {
       return Response.status(Response.Status.NOT_FOUND)
           .entity("The requested data provider does not exist")
           .build();
     }
+
+    return Response.ok()
+        .entity(dataProvider)
+        .tag(etagService.getEtag(dataProvider))
+        .build();
   }
 
   @PUT
   @Path("/{dataProviderId}")
   @Consumes(MediaType.APPLICATION_JSON)
   @ApiOperation(value = "Creates or updates a data provider")
-  @ApiResponses({ @ApiResponse(code = oasis.web.Application.SC_PRECONDITION_REQUIRED,
-                               message = "The If-Match header is mandatory"),
-                  @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
-                               message = "The requested data provider does not exist, or no data provider id has been sent"),
-                  @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
-                               message = "The current user cannot access the requested data provider"),
-                  @ApiResponse(code = HttpServletResponse.SC_PRECONDITION_FAILED,
-                               message = "Mismatching etag") })
+  @ApiResponses({@ApiResponse(code = oasis.web.Application.SC_PRECONDITION_REQUIRED,
+      message = "The If-Match header is mandatory"),
+      @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
+          message = "The requested data provider does not exist, or no data provider id has been sent"),
+      @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
+          message = "The current user cannot access the requested data provider"),
+      @ApiResponse(code = HttpServletResponse.SC_PRECONDITION_FAILED,
+          message = "Mismatching etag")})
   public Response putDataProvider(
       @Context Request request,
       @HeaderParam("If-Match") @ApiParam(required = true) String etagStr,
@@ -81,36 +84,36 @@ public class DataProviderDirectoryEndpoint {
 
     DataProvider dp = applications.getDataProvider(dataProviderId);
     if (dp == null) {
-      return  Response.status(Response.Status.NOT_FOUND)
+      return Response.status(Response.Status.NOT_FOUND)
           .type(MediaType.TEXT_PLAIN)
           .entity("The requested data provider does not exist")
           .build();
     }
 
-    EntityTag etag = new EntityTag(Long.toString(dp.getModified()));
-    Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(etag);
+    Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(new EntityTag(etagService.getEtag(dp)));
     if (responseBuilder != null) {
       return responseBuilder.build();
     }
 
     applications.updateDataProvider(dataProviderId, dataProvider);
-    etag = new EntityTag(Long.toString(dataProvider.getModified()));
+    // FIXME: update should return the updated object
+//    EntityTag etag = new EntityTag(Long.toString(dataProvider.getModified()));
     return Response.noContent()
-        .tag(etag)
+//        .tag(etag)
         .build();
   }
 
   @DELETE
   @Path("/{dataProviderId}")
   @ApiOperation(value = "Deletes data provider")
-  @ApiResponses({ @ApiResponse(code = oasis.web.Application.SC_PRECONDITION_REQUIRED,
-                               message = "The If-Match header is mandatory"),
-                  @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
-                               message = "The requested data provider does not exist"),
-                  @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
-                               message = "The current user cannot access or delete the requested data provider"),
-                  @ApiResponse(code = HttpServletResponse.SC_PRECONDITION_FAILED,
-                               message = "Mismatching etag") })
+  @ApiResponses({@ApiResponse(code = oasis.web.Application.SC_PRECONDITION_REQUIRED,
+      message = "The If-Match header is mandatory"),
+      @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
+          message = "The requested data provider does not exist"),
+      @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
+          message = "The current user cannot access or delete the requested data provider"),
+      @ApiResponse(code = HttpServletResponse.SC_PRECONDITION_FAILED,
+          message = "Mismatching etag")})
   public Response deleteDataProvider(
       @Context Request request,
       @HeaderParam("If-Match") @ApiParam(required = true) String etagStr,
@@ -127,13 +130,13 @@ public class DataProviderDirectoryEndpoint {
           .build();
     }
 
-    EntityTag etag = new EntityTag(Long.toString(dp.getModified()));
-    Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(etag);
+    Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(new EntityTag(etagService.getEtag(dp)));
     if (responseBuilder != null) {
       return responseBuilder.build();
     }
 
     applications.deleteDataProvider(dataProviderId);
+    // FIXME: check returned value
     return Response.noContent()
         .build();
   }

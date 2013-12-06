@@ -1,6 +1,9 @@
 package oasis.model.applications;
 
+import java.util.HashSet;
 import java.util.Set;
+
+import javax.annotation.Nonnull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
@@ -22,9 +25,20 @@ public class DataProvider {
   @ApiModelProperty(required = true)
   private String name;
 
-  @JsonProperty
-  @ApiModelProperty
-  private long modified;
+  public DataProvider() {
+  }
+
+  /**
+   * Copy constructor.
+   * <p>
+   * Does not copy {@link #id} field.
+   */
+  public DataProvider(@Nonnull DataProvider other) {
+    this.name = other.getName();
+    if (other.getScopeIds() != null) {
+      this.scopeIds = new HashSet<>(other.getScopeIds());
+    }
+  }
 
   public String getId() {
     return id;
@@ -50,11 +64,4 @@ public class DataProvider {
     this.scopeIds = scopeIds;
   }
 
-  public long getModified() {
-    return modified;
-  }
-
-  public void setModified(long modified) {
-    this.modified = modified;
-  }
 }

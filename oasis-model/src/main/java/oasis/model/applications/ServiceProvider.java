@@ -1,5 +1,6 @@
 package oasis.model.applications;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -22,9 +23,20 @@ public class ServiceProvider {
   @ApiModelProperty()
   private List<ScopeCardinality> scopeCardinalities;
 
-  @JsonProperty
-  @ApiModelProperty
-  private long modified;
+  public ServiceProvider() {
+  }
+
+  /**
+   * Copy constructor.
+   * <p>
+   * Does not copy {@link #id} field.
+   */
+  public ServiceProvider(ServiceProvider other) {
+    this.name = other.getName();
+    if (other.getScopeCardinalities() != null) {
+      this.scopeCardinalities = new ArrayList<>(other.getScopeCardinalities());
+    }
+  }
 
   public String getId() {
     return id;
@@ -48,13 +60,5 @@ public class ServiceProvider {
 
   public void setScopeCardinalities(List<ScopeCardinality> scopeCardinalities) {
     this.scopeCardinalities = scopeCardinalities;
-  }
-
-  public long getModified() {
-    return modified;
-  }
-
-  public void setModified(long modified) {
-    this.modified = modified;
   }
 }

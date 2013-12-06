@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import com.mongodb.WriteResult;
 
-import oasis.model.applications.Application;
 import oasis.model.applications.Subscription;
 import oasis.model.applications.SubscriptionRepository;
 
@@ -25,18 +24,19 @@ public class JongoSubscriptionRepository implements SubscriptionRepository {
   }
 
   @Override
-  public String createSubscription(String appId, Subscription subscription) {
+  public Subscription createSubscription(String appId, Subscription subscription) {
     // TODO: validate subscription.eventType
 
+    JongoSubscription jongoSubscription = new JongoSubscription(subscription);
     WriteResult wr = getApplicationsCollection()
         .update("{ id: # , subscriptions.eventType: { $ne: # } }", appId, subscription.getEventType())
-        .with("{ $push: { subscriptions: # } }", subscription);
+        .with("{ $push: { subscriptions: # } }", jongoSubscription);
 
     if (wr.getN() != 1) {
       logger.warn("The application {} does not exist or subscription already exists for that application and event type.", appId);
       return null;
     }
-    return subscription.getId();
+    return jongoSubscription;
   }
 
   @Override
@@ -56,10 +56,10 @@ public class JongoSubscriptionRepository implements SubscriptionRepository {
 
   @Override
   public Subscription getSomeSubscriptionForEventType(String eventType) {
-    Application app = getApplicationsCollection()
+    JongoApplication app = getApplicationsCollection()
         .findOne("{ subscriptions.eventType: # }", eventType)
         .projection("{ id: 1, subscriptions.$: 1}")
-        .as(Application.class);
+        .as(JongoApplication.class);
     if (app == null || app.getSubscriptions() == null || app.getSubscriptions().isEmpty()) {
       return null;
     }

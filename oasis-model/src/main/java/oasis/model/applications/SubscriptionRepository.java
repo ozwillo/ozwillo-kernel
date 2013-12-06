@@ -5,7 +5,7 @@ public interface SubscriptionRepository {
   /**
    * @return the generated subscription id
    */
-  String createSubscription(String appId, Subscription subscription);
+  Subscription createSubscription(String appId, Subscription subscription);
 
   boolean deleteSubscription(String subscriptionId);
 

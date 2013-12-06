@@ -7,7 +7,9 @@ public interface ApplicationRepository {
 
   Application getApplication(String appId);
 
-  String createApplication(Application app);
+  Application createApplication(Application app);
+
+  Application instanciateApplication(String appId, String organizationId);
 
   void updateApplication(String appId, Application app);
 
@@ -17,7 +19,7 @@ public interface ApplicationRepository {
 
   DataProvider getDataProvider(String dataProviderId);
 
-  String createDataProvider(String appId, DataProvider dataProvider);
+  DataProvider createDataProvider(String appId, DataProvider dataProvider);
 
   void updateDataProvider(String dataProviderId, DataProvider dataProvider);
 
@@ -27,7 +29,7 @@ public interface ApplicationRepository {
 
   ServiceProvider getServiceProvider(String serviceProviderId);
 
-  String createServiceProvider(String appId, ServiceProvider serviceProvider);
+  ServiceProvider createServiceProvider(String appId, ServiceProvider serviceProvider);
 
   void updateServiceProvider(String serviceProviderId, ServiceProvider serviceProvider);
 

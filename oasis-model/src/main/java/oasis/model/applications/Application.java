@@ -1,7 +1,6 @@
 package oasis.model.applications;
 
-
-import java.util.List;
+import javax.annotation.Nonnull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
@@ -12,11 +11,13 @@ import oasis.model.annotations.Id;
 @JsonRootName("application")
 public class Application {
   public enum ApplicationType {
-    CLASS, INSTANCE
+    CLASS,
+    INSTANCE
   }
 
   public enum InstantiationType {
-    COPY, TENANT
+    COPY,
+    TENANT
   }
 
   @Id
@@ -33,18 +34,6 @@ public class Application {
 
   @JsonProperty
   @ApiModelProperty
-  private List<DataProvider> dataProviders;
-
-  @JsonProperty
-  @ApiModelProperty
-  private ServiceProvider serviceProvider;
-
-  @JsonProperty
-  @ApiModelProperty
-  private List<Subscription> subscriptions;
-
-  @JsonProperty
-  @ApiModelProperty
   private String instanceAdmin;
 
   @JsonProperty
@@ -53,8 +42,8 @@ public class Application {
 
   /**
    * Applications exposed in catalog:
-   *  - template application (ApplicationType == CLASS)
-   *  - single-instance application (ApplicationType == INSTANCE && parentApplicationId == null)
+   * - template application (ApplicationType == CLASS)
+   * - single-instance application (ApplicationType == INSTANCE && parentApplicationId == null)
    */
   @JsonProperty
   @ApiModelProperty
@@ -72,9 +61,24 @@ public class Application {
   @ApiModelProperty
   private String parentApplicationId;
 
-  @JsonProperty
-  @ApiModelProperty
-  private long modified;
+  public Application() {
+  }
+
+  /**
+   * Copy constructor.
+   * <p>
+   * Does not copy {@link #id} field.
+   */
+  public Application(@Nonnull Application other) {
+    this.name = other.getName();
+    this.iconUri = other.getIconUri();
+    this.instanceAdmin = other.getInstanceAdmin();
+    this.classAdmin = other.getClassAdmin();
+    this.exposedInCatalog = other.isExposedInCatalog();
+    this.applicationType = other.getApplicationType();
+    this.instantiationType = other.getInstantiationType();
+    this.parentApplicationId = other.getParentApplicationId();
+  }
 
   public String getId() {
     return id;
@@ -98,31 +102,6 @@ public class Application {
 
   public void setIconUri(String iconUri) {
     this.iconUri = iconUri;
-  }
-
-  public List<DataProvider> getDataProviders() {
-    return dataProviders;
-  }
-
-  public void setDataProviders(List<DataProvider> dataProviders) {
-    this.dataProviders = dataProviders;
-  }
-
-  public ServiceProvider getServiceProvider() {
-    return serviceProvider;
-  }
-
-  public void setServiceProvider(ServiceProvider serviceProvider) {
-    this.serviceProvider = serviceProvider;
-  }
-
-
-  public List<Subscription> getSubscriptions() {
-    return subscriptions;
-  }
-
-  public void setSubscriptions(List<Subscription> subscriptions) {
-    this.subscriptions = subscriptions;
   }
 
   public String getInstanceAdmin() {
@@ -175,15 +154,7 @@ public class Application {
     computeExposition();
   }
 
-  public long getModified() {
-    return modified;
-  }
-
-  public void setModified(long modified) {
-    this.modified = modified;
-  }
-
-  public boolean isTenant(){
+  public boolean isTenant() {
     return (ApplicationType.INSTANCE == applicationType && InstantiationType.TENANT == instantiationType);
   }
 

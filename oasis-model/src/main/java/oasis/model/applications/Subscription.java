@@ -1,5 +1,7 @@
 package oasis.model.applications;
 
+import javax.annotation.Nonnull;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.wordnik.swagger.annotations.ApiModelProperty;
@@ -24,6 +26,20 @@ public class Subscription {
   @JsonProperty
   @ApiModelProperty(required = true)
   String eventType; // Unique (gives the application for an organisation)
+
+  public Subscription() {
+  }
+
+  /**
+   * Copy constructor.
+   * <p>
+   * Does not copy {@link #id} field.
+   */
+  public Subscription(@Nonnull Subscription other) {
+    this.webHook = other.getWebHook();
+    this.secret = other.getSecret();
+    this.eventType = other.getEventType();
+  }
 
   public String getId() {
     return id;
