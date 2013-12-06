@@ -66,13 +66,6 @@ public class OAuthAuthenticationFilter implements ContainerRequestFilter {
       return;
     }
 
-    Account account = accountRepository.getAccountByTokenId(token.getId());
-
-    if (account == null) {
-      invalidToken(requestContext);
-      return;
-    }
-
     // Get real information for the token
     token = tokenRepository.getToken(token.getId());
 
@@ -81,8 +74,7 @@ public class OAuthAuthenticationFilter implements ContainerRequestFilter {
       return;
     }
 
-    // TODO: load account lazily
-    final OAuthPrincipal accountPrincipal = new OAuthPrincipal(account, (AccessToken) token);
+    final OAuthPrincipal accountPrincipal = new OAuthPrincipal(accountRepository, (AccessToken) token);
     final SecurityContext oldSecurityContext = requestContext.getSecurityContext();
 
     requestContext.setSecurityContext(new SecurityContext() {
