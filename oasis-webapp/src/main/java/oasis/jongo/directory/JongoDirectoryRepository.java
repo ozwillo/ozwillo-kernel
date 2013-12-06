@@ -23,7 +23,7 @@ import oasis.model.directory.Group;
 import oasis.model.directory.Organization;
 
 public class JongoDirectoryRepository implements DirectoryRepository {
-  private final static Logger logger = LoggerFactory.getLogger(DirectoryRepository.class);
+  private static final Logger logger = LoggerFactory.getLogger(DirectoryRepository.class);
 
   @Inject
   private Jongo jongo;

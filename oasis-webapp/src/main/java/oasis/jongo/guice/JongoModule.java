@@ -54,7 +54,7 @@ public class JongoModule extends AbstractModule {
       }
     }
 
-    final public MongoClientURI mongoURI;
+    public final MongoClientURI mongoURI;
 
     private Settings(Builder builder) {
       this.mongoURI = builder.mongoURI;

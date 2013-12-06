@@ -41,7 +41,7 @@ public class KibanaModule extends AbstractModule {
       }
     }
 
-    final public URI elasticsearchUrl;
+    public final URI elasticsearchUrl;
 
     private Settings(Builder builder) {
       this.elasticsearchUrl = builder.elasticsearchUrl;

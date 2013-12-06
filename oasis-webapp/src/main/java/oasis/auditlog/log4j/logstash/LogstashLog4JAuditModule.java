@@ -43,8 +43,8 @@ public class LogstashLog4JAuditModule extends AbstractModule {
       }
     }
 
-    final public String host;
-    final public int port;
+    public final String host;
+    public final int port;
 
     private Settings(Builder builder) {
       this.host = builder.host;

@@ -16,7 +16,7 @@ import oasis.model.accounts.UserAccount;
 
 public class JongoAccountRepository implements AccountRepository {
 
-  private final static Logger logger = LoggerFactory.getLogger(AccountRepository.class);
+  private static final Logger logger = LoggerFactory.getLogger(AccountRepository.class);
 
   @Inject
   protected Jongo jongo;

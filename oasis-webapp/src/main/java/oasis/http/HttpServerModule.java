@@ -31,7 +31,7 @@ public class HttpServerModule extends AbstractModule {
       }
     }
 
-    final public int nettyPort;
+    public final int nettyPort;
 
     private Settings(Builder builder) {
       this.nettyPort = builder.port;

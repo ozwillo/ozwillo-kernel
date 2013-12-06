@@ -15,7 +15,7 @@ import oasis.web.guice.GuiceInjectorFactory;
 import oasis.web.providers.NewCookieHeaderDelegate;
 
 public class HttpServer {
-  private final static Logger logger = LoggerFactory.getLogger(HttpServer.class);
+  private static final Logger logger = LoggerFactory.getLogger(HttpServer.class);
 
   private final Injector injector;
 

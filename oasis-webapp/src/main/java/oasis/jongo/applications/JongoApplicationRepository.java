@@ -23,7 +23,7 @@ import oasis.model.applications.Scopes;
 import oasis.model.applications.ServiceProvider;
 
 public class JongoApplicationRepository implements ApplicationRepository {
-  private final static Logger logger = LoggerFactory.getLogger(ApplicationRepository.class);
+  private static final Logger logger = LoggerFactory.getLogger(ApplicationRepository.class);
 
   @Inject
   private Jongo jongo;

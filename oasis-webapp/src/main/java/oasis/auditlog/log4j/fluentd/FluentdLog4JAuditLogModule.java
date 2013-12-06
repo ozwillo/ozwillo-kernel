@@ -42,8 +42,8 @@ public class FluentdLog4JAuditLogModule extends AbstractModule {
       }
     }
 
-    final public String fluentdUrl;
-    final public String fluentdTag;
+    public final String fluentdUrl;
+    public final String fluentdTag;
 
     private Settings(Builder builder) {
       this.fluentdUrl = builder.fluentdUrl;

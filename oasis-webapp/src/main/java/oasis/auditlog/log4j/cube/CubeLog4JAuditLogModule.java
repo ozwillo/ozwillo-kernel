@@ -29,7 +29,7 @@ public class CubeLog4JAuditLogModule extends AbstractModule {
       }
     }
 
-    final public String cubeUrl;
+    public final String cubeUrl;
 
     private Settings(Builder builder) {
       this.cubeUrl = builder.cubeUrl;
