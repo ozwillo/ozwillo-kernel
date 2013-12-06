@@ -5,7 +5,6 @@ import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.StandardCharsets;
-import java.security.Principal;
 import java.util.List;
 
 import javax.annotation.Priority;
@@ -74,20 +73,23 @@ public class ClientAuthenticationFilter implements ContainerRequestFilter {
       return;
     }
 
-    // TODO: get user principal
-    final String userName = parts.get(0);
-    final Principal principal = new Principal() {
-      @Override
-      public String getName() {
-        return userName;
-      }
-    };
+    final String clientId = parts.get(0);
+    final String clientSecret = parts.get(1);
+
+    // TODO: Authenticate the client
+
+    if (Strings.isNullOrEmpty(clientId)) {
+      challenge(requestContext);
+      return;
+    }
+
+    final ClientPrincipal clientPrincipal = new ClientPrincipal(clientId);
 
     final SecurityContext oldSecurityContext = requestContext.getSecurityContext();
     requestContext.setSecurityContext(new SecurityContext() {
       @Override
-      public Principal getUserPrincipal() {
-        return principal;
+      public ClientPrincipal getUserPrincipal() {
+        return clientPrincipal;
       }
 
       @Override

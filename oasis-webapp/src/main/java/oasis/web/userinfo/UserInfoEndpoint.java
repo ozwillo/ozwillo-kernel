@@ -26,6 +26,8 @@ import com.google.api.client.json.webtoken.JsonWebToken;
 import com.google.api.client.util.Key;
 
 import oasis.model.accounts.AccessToken;
+import oasis.model.accounts.Account;
+import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.social.Identity;
 import oasis.model.social.IdentityRepository;
@@ -49,6 +51,7 @@ public class UserInfoEndpoint {
   @Inject OpenIdConnectModule.Settings settings;
   @Inject JsonFactory jsonFactory;
   @Inject IdentityRepository identityRepository;
+  @Inject AccountRepository accountRepository;
 
   @GET
   @Produces(APPLICATION_JWT)
@@ -87,11 +90,12 @@ public class UserInfoEndpoint {
 
   private UserInfo getUserInfo() {
     OAuthPrincipal oAuthPrincipal = (OAuthPrincipal) securityContext.getUserPrincipal();
+    Account account = accountRepository.getAccountByTokenId(oAuthPrincipal.getAccessToken().getId());
 
-    if (!(oAuthPrincipal.getAccount() instanceof UserAccount)) {
+    if (!(account instanceof UserAccount)) {
       throw invalidTokenResponse();
     }
-    UserAccount userAccount = (UserAccount) oAuthPrincipal.getAccount();
+    UserAccount userAccount = (UserAccount) account;
 
     AccessToken accessToken = oAuthPrincipal.getAccessToken();
     assert accessToken != null;

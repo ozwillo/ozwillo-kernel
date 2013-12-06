@@ -46,6 +46,7 @@ import oasis.model.authz.AuthorizationRepository;
 import oasis.model.authz.AuthorizedScopes;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
+import oasis.web.authn.AccountPrincipal;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.User;
 import oasis.web.view.View;
@@ -147,7 +148,7 @@ public class AuthorizationEndpoint {
     scopeIds.remove("openid"); // XXX: This scope is not needed anymore ?
 
     // TODO: OpenID Connect specifics
-    String userId = securityContext.getUserPrincipal().getName();
+    String userId = ((AccountPrincipal)securityContext.getUserPrincipal()).getAccountId();
 
     AuthorizedScopes authorizedScopes = authorizationRepository.getAuthorizedScopes(userId, client_id);
     Set<String> grantedScopeIds;
@@ -244,7 +245,7 @@ public class AuthorizationEndpoint {
       @FormParam("continue") URI continueUrl,
       @FormParam("client_id") String client_id) {
     // TODO: CSRF Validation
-    String userId = securityContext.getUserPrincipal().getName();
+    String userId = ((AccountPrincipal)securityContext.getUserPrincipal()).getAccountId();
 
     authorizationRepository.authorize(userId, client_id, scopeIds);
 
