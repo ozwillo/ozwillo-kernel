@@ -148,7 +148,7 @@ public class OpenIdConnect {
     IdTokenResponse response = IdTokenResponse.execute(flow.newTokenRequest(code).setRedirectUri(getRedirectUri()));
     IdToken token = response.parseIdToken();
     String userId = token.getPayload().getSubject();
-    Credential credential = flow.createAndStoreCredential(response, userId);
+    flow.createAndStoreCredential(response, userId);
     return Response.seeOther(UriBuilder.fromResource(OpenIdConnect.class).path(OpenIdConnect.class, "protectedResource").build())
         .cookie(new NewCookie(STATE_COOKIE_NAME, null, null, null, 0, null, 0, new Date(108, 0, 20, 11, 10), securityContext.isSecure(), true))
         .cookie(new NewCookie(COOKIE_NAME, userId, null, null, null, NewCookie.DEFAULT_MAX_AGE, securityContext.isSecure(), true))
