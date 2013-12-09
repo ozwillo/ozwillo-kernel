@@ -21,7 +21,7 @@ import oasis.model.accounts.AccountRepository;
 @Priority(Priorities.AUTHENTICATION)
 public class UserAuthenticationFilter implements ContainerRequestFilter {
 
-  static final String COOKIE_NAME = System.getProperty("oasis.authn.cookieName", "SID");
+  static final String COOKIE_NAME = "SID";
 
   @Inject AccountRepository accountRepository;
 
