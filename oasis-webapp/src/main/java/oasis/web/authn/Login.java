@@ -1,7 +1,6 @@
 package oasis.web.authn;
 
 import java.net.URI;
-import java.util.Date;
 
 import javax.inject.Inject;
 import javax.ws.rs.DefaultValue;
@@ -12,10 +11,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
@@ -25,6 +22,7 @@ import com.google.common.collect.ImmutableMap;
 
 import oasis.model.accounts.Account;
 import oasis.services.authn.UserPasswordAuthenticator;
+import oasis.services.cookies.CookieFactory;
 import oasis.web.Home;
 import oasis.web.view.View;
 
@@ -66,7 +64,7 @@ public class Login {
       // TODO: One-Time Password
       return Response
           .seeOther(continueUrl)
-          .cookie(createCookie(account.getId(), null, securityContext.isSecure())) // TODO: remember me
+          .cookie(CookieFactory.createSessionCookie(UserAuthenticationFilter.COOKIE_NAME, account.getId(), securityContext.isSecure())) // TODO: remember me
           .build();
     } catch (Throwable e) {
       return loginForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, e.toString());
@@ -105,20 +103,5 @@ public class Login {
 
   static URI defaultContinueUrl(UriInfo uriInfo) {
     return uriInfo.getBaseUriBuilder().path(Home.class).build();
-  }
-
-  static NewCookie createCookie(String value, Date expires, boolean secure) {
-    return new NewCookie(
-        UserAuthenticationFilter.COOKIE_NAME,   // name
-        value,                                  // value
-        "/",                                    // path
-        null,                                   // domain
-        Cookie.DEFAULT_VERSION,                 // version
-        null,                                   // comment
-        NewCookie.DEFAULT_MAX_AGE,              // max-age
-        expires,                                // expiry
-        secure,                                 // TODO: secure (once we have SSL)
-        true                                    // http-only
-    );
   }
 }
