@@ -1,7 +1,6 @@
 package oasis.web.authn;
 
 import java.net.URI;
-import java.util.Date;
 
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -13,11 +12,10 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import oasis.services.cookies.CookieFactory;
+
 @Path("/a/logout")
 public class Logout {
-  @SuppressWarnings("deprecation")
-  private static final Date FAR_PAST = new Date(108, 0, 20, 11, 10);
-
   @Context SecurityContext securityContext;
   @Context UriInfo uriInfo;
 
@@ -36,7 +34,7 @@ public class Logout {
       continueUrl = Login.defaultContinueUrl(uriInfo);
     }
     return Response.seeOther(continueUrl)
-        .cookie(Login.createCookie(null, FAR_PAST, securityContext.isSecure()))
+        .cookie(CookieFactory.createExpiredCookie(UserAuthenticationFilter.COOKIE_NAME, securityContext.isSecure()))
         .build();
   }
 }
