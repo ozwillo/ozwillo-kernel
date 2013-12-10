@@ -24,6 +24,10 @@ import oasis.model.applications.ServiceProvider;
 public class JongoApplicationRepository implements ApplicationRepository {
   private static final Logger logger = LoggerFactory.getLogger(ApplicationRepository.class);
 
+  public static final String APPLICATION_PROJECTION = "{id:1, name:1, iconUri:1, modified:1}";
+  public static final String DATA_PROVIDER_PROJECTION = "{ id:1, dataProviders: {$elemMatch: {id: #} } }";
+  public static final String SERVICE_PROVIDER_PROJECTION = "{id:1, serviceProvider:1 }";
+
   private final Jongo jongo;
 
   @Inject
@@ -45,7 +49,7 @@ public class JongoApplicationRepository implements ApplicationRepository {
   public Application getApplication(String appId) {
     JongoApplication app = getApplicationsCollection()
         .findOne("{id: #}", appId)
-        .projection("{id:1, name:1, iconUri:1, modified:1}")
+        .projection(APPLICATION_PROJECTION)
         .as(JongoApplication.class);
 
     if (app.isTenant()) {
@@ -79,7 +83,7 @@ public class JongoApplicationRepository implements ApplicationRepository {
   }
 
   @Override
-  public void updateApplication(String appId, Application app) {
+  public Application updateApplication(String appId, Application app) {
 
     List<Object> updateParameters = new ArrayList<>(3);
     StringBuilder updateObject = new StringBuilder("modified:#");
@@ -96,13 +100,17 @@ public class JongoApplicationRepository implements ApplicationRepository {
     }
 
     // TODO : check modified
-    WriteResult wr = getApplicationsCollection()
-        .update("{id: #}", appId)
-        .with("{$set: {" + updateObject.toString() + "}}", updateParameters.toArray());
+    JongoApplication res = getApplicationsCollection()
+        .findAndModify("{id: #}", appId)
+        .returnNew()
+        .with("{$set: {" + updateObject.toString() + "}}", updateParameters.toArray())
+        .projection(APPLICATION_PROJECTION)
+        .as(JongoApplication.class);
 
-    if (wr.getN() != 1) {
+    if (res == null) {
       logger.warn("More than one application with id: {}", appId);
     }
+    return res;
   }
 
   @Override
@@ -137,7 +145,7 @@ public class JongoApplicationRepository implements ApplicationRepository {
   public DataProvider getDataProvider(String dataProviderId) {
     JongoApplication app = getApplicationsCollection()
         .findOne("{dataProviders.id: # }", dataProviderId)
-        .projection("{ id:1, dataProviders.$:1 }")
+        .projection(DATA_PROVIDER_PROJECTION, dataProviderId)
         .as(JongoApplication.class);
     if (app == null || app.getDataProviders().isEmpty()) {
       return null;
@@ -163,7 +171,7 @@ public class JongoApplicationRepository implements ApplicationRepository {
   }
 
   @Override
-  public void updateDataProvider(String dataProviderId, DataProvider dataProvider) {
+  public DataProvider updateDataProvider(String dataProviderId, DataProvider dataProvider) {
     List<Object> updateParameters = new ArrayList<>(3);
     StringBuilder updateObject = new StringBuilder("dataProviders.$.modified:#");
     updateParameters.add(System.currentTimeMillis());
@@ -179,13 +187,22 @@ public class JongoApplicationRepository implements ApplicationRepository {
     }
 
     // TODO : check modified
-    WriteResult wr = getApplicationsCollection()
-        .update("{dataProviders.id:#}", dataProviderId)
-        .with("{$set: {" + updateObject.toString() + "}}", updateParameters.toArray());
+    JongoApplication res = getApplicationsCollection()
+        .findAndModify("{dataProviders.id:#}", dataProviderId)
+        .returnNew()
+        .with("{$set: {" + updateObject.toString() + "}}", updateParameters.toArray())
+        .projection(DATA_PROVIDER_PROJECTION, dataProviderId)
+        .as(JongoApplication.class);
 
-    if (wr.getN() != 1) {
+    if (res == null) {
       logger.warn("More than one data provider with id: {}", dataProviderId);
+      return null;
     }
+    if (res.getDataProviders() == null || res.getDataProviders().isEmpty()) {
+      return null;
+    }
+
+    return res.getDataProviders().get(0);
   }
 
   @Override
@@ -220,7 +237,7 @@ public class JongoApplicationRepository implements ApplicationRepository {
   public ServiceProvider getServiceProvider(String serviceProviderId) {
     JongoApplication app = getApplicationsCollection()
         .findOne("{serviceProvider.id: # }", serviceProviderId)
-        .projection("{id:1, serviceProvider:1 }")
+        .projection(SERVICE_PROVIDER_PROJECTION)
         .as(JongoApplication.class);
     if (app == null) {
       return null;
@@ -244,7 +261,7 @@ public class JongoApplicationRepository implements ApplicationRepository {
   }
 
   @Override
-  public void updateServiceProvider(String serviceProviderId, ServiceProvider serviceProvider) {
+  public ServiceProvider updateServiceProvider(String serviceProviderId, ServiceProvider serviceProvider) {
     List<Object> updateParameters = new ArrayList<>(3);
     StringBuilder updateObject = new StringBuilder("serviceProvider.modified:#");
     updateParameters.add(System.currentTimeMillis());
@@ -260,13 +277,19 @@ public class JongoApplicationRepository implements ApplicationRepository {
     }
 
     // TODO : check modified
-    WriteResult wr = getApplicationsCollection()
-        .update("{serviceProvider.id:#}", serviceProviderId)
-        .with("{$set: {" + updateObject.toString() + "}}", updateParameters.toArray());
+    JongoApplication res = getApplicationsCollection()
+        .findAndModify("{serviceProvider.id:#}", serviceProviderId)
+        .returnNew()
+        .with("{$set: {" + updateObject.toString() + "}}", updateParameters.toArray())
+        .projection(SERVICE_PROVIDER_PROJECTION)
+        .as(JongoApplication.class);
 
-    if (wr.getN() != 1) {
+    if (res == null) {
       logger.warn("More than one service provider with id: {}", serviceProviderId);
+      return null;
     }
+
+    return res.getServiceProvider();
   }
 
   @Override

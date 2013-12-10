@@ -25,6 +25,10 @@ import oasis.model.directory.Organization;
 public class JongoDirectoryRepository implements DirectoryRepository {
   private static final Logger logger = LoggerFactory.getLogger(DirectoryRepository.class);
 
+  public static final String ORGANIZATION_PROJECTION = "{ name: 1, id: 1, modified: 1}";
+  public static final String GROUP_PROJECTION= "{ id:1, groups: {$elemMatch: {id: #} } }";
+  public static final String GROUPS_PROJECTION = "{ id: 1, groups: 1 }";
+
   private final Jongo jongo;
 
   @Inject
@@ -36,7 +40,7 @@ public class JongoDirectoryRepository implements DirectoryRepository {
   public Organization getOrganization(String organizationId) {
     return getOrganizationCollection()
         .findOne("{ id: # }", organizationId)
-        .projection("{ name: 1, id: 1, modified: 1}")
+        .projection(ORGANIZATION_PROJECTION)
         .as(Organization.class);
   }
 
@@ -44,13 +48,13 @@ public class JongoDirectoryRepository implements DirectoryRepository {
   public Organization getOrganizationFromGroup(String groupId) {
     return getOrganizationCollection()
         .findOne("{ groups.id: # }", groupId)
-        .projection("{ name: 1, id: 1, modified: 1}")
+        .projection(ORGANIZATION_PROJECTION)
         .as(Organization.class);
   }
 
   @Override
   public Iterable<Organization> getOrganizations() {
-    return getOrganizationCollection().find().projection("{ name: 1, id: 1, modified: 1}")
+    return getOrganizationCollection().find().projection(ORGANIZATION_PROJECTION)
         .as(Organization.class);
   }
 
@@ -62,7 +66,7 @@ public class JongoDirectoryRepository implements DirectoryRepository {
   }
 
   @Override
-  public void updateOrganization(String organizationId, Organization organization) {
+  public Organization updateOrganization(String organizationId, Organization organization) {
     long modified = System.currentTimeMillis();
     List<Object> updateParameters = new ArrayList<>(2);
     StringBuilder updateObject = new StringBuilder("modified:#");
@@ -74,14 +78,20 @@ public class JongoDirectoryRepository implements DirectoryRepository {
     }
 
     // TODO : check modified
-    WriteResult wr = getOrganizationCollection()
-        .update("{ id: # }", organizationId)
-        .with("{ $set: {" + updateObject.toString() + " } }", updateParameters.toArray());
+    JongoOrganization res = getOrganizationCollection()
+        .findAndModify("{ id: # }", organizationId)
+        .returnNew()
+        .with("{ $set: {" + updateObject.toString() + " } }", updateParameters.toArray())
+        .projection(ORGANIZATION_PROJECTION)
+        .as(JongoOrganization.class);
 
-    if (wr.getN() != 1) {
+    if (res == null) {
       // TODO: more precise message
       logger.warn("The organization {} does not exist", organizationId);
+      return null;
     }
+
+    return res;
   }
 
   @Override
@@ -96,7 +106,7 @@ public class JongoDirectoryRepository implements DirectoryRepository {
   public Group getGroup(String groupId) {
     JongoOrganization organization = getOrganizationCollection()
         .findOne("{ groups.id: # }", groupId)
-        .projection("{ id:1, groups.$: 1}")
+        .projection(GROUP_PROJECTION, groupId)
         .as(JongoOrganization.class);
 
     if (organization == null) {
@@ -114,7 +124,7 @@ public class JongoDirectoryRepository implements DirectoryRepository {
   public Collection<Group> getGroups(String organizationId) {
     JongoOrganization organization = getOrganizationCollection()
         .findOne("{ id: # }", organizationId)
-        .projection("{ id: 1, groups: 1 }")
+        .projection(GROUPS_PROJECTION)
         .as(JongoOrganization.class);
 
     if (organization == null) {
@@ -144,7 +154,7 @@ public class JongoDirectoryRepository implements DirectoryRepository {
   }
 
   @Override
-  public void updateGroup(String groupId, Group group) {
+  public Group updateGroup(String groupId, Group group) {
     long modified = System.currentTimeMillis();
     List<Object> updateParameters = new ArrayList<>(3);
     StringBuilder updateObject = new StringBuilder("groups.$.modified:#");
@@ -156,14 +166,24 @@ public class JongoDirectoryRepository implements DirectoryRepository {
     }
 
     // TODO : check modified
-    WriteResult wr = getOrganizationCollection()
-        .update("{ groups.id: # }", groupId)
-        .with("{ $set: {" + updateObject.toString() + " } }", updateParameters.toArray());
+    JongoOrganization res = getOrganizationCollection()
+        .findAndModify("{ groups.id: # }", groupId)
+        .returnNew()
+        .with("{ $set: {" + updateObject.toString() + " } }", updateParameters.toArray())
+        .projection(GROUP_PROJECTION, groupId)
+        .as(JongoOrganization.class);
 
-    if (wr.getN() != 1) {
+    if (res == null) {
       // TODO: more precise message
       logger.warn("The group {} does not exist", groupId);
+      return null;
     }
+
+    if (res.getGroups() == null || res.getGroups().isEmpty()) {
+      return null;
+    }
+
+    return res.getGroups().get(0);
   }
 
   @Override
@@ -180,7 +200,7 @@ public class JongoDirectoryRepository implements DirectoryRepository {
   public Collection<Group> getGroupsForAgent(final String agentId) {
     JongoOrganization organization = getOrganizationCollection()
         .findOne("{ groups.agentIds : # }", agentId)
-        .projection("{ id: 1, groups: 1 }")
+        .projection(GROUPS_PROJECTION)
         .as(JongoOrganization.class);
     if (organization == null) {
       return null;

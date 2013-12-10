@@ -11,7 +11,7 @@ public interface DirectoryRepository {
 
   Organization createOrganization(Organization organization);
 
-  void updateOrganization(String organizationId, Organization organization);
+  Organization updateOrganization(String organizationId, Organization organization);
 
   boolean deleteOrganization(String organizationId);
 
@@ -27,7 +27,7 @@ public interface DirectoryRepository {
 
   Group createGroup(String organizationId, Group group);
 
-  void updateGroup(String groupId, Group group);
+  Group updateGroup(String groupId, Group group);
 
   boolean deleteGroup(String groupId);
 

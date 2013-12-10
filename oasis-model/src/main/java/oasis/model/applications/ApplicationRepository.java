@@ -11,7 +11,7 @@ public interface ApplicationRepository {
 
   Application instanciateApplication(String appId, String organizationId);
 
-  void updateApplication(String appId, Application app);
+  Application updateApplication(String appId, Application app);
 
   boolean deleteApplication(String appId);
 
@@ -21,7 +21,7 @@ public interface ApplicationRepository {
 
   DataProvider createDataProvider(String appId, DataProvider dataProvider);
 
-  void updateDataProvider(String dataProviderId, DataProvider dataProvider);
+  DataProvider updateDataProvider(String dataProviderId, DataProvider dataProvider);
 
   boolean deleteDataProvider(String dataProviderId);
 
@@ -31,7 +31,7 @@ public interface ApplicationRepository {
 
   ServiceProvider createServiceProvider(String appId, ServiceProvider serviceProvider);
 
-  void updateServiceProvider(String serviceProviderId, ServiceProvider serviceProvider);
+  ServiceProvider updateServiceProvider(String serviceProviderId, ServiceProvider serviceProvider);
 
   boolean deleteServiceProvider(String serviceProviderId);
 }
