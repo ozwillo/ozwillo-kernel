@@ -138,8 +138,29 @@ public class UserDirectoryEndpoint {
   @DELETE
   @Path("/org/{organizationId}")
   @ApiOperation(value = "Delete an organization")
-  public Response deleteOrganization(@PathParam("organizationId") String organizationId) {
-    // TODO: check error and/or returned type
+  public Response deleteOrganization(
+      @Context Request request,
+      @HeaderParam("If-Match") @ApiParam(required = true) String etagStr,
+      @PathParam("organizationId") String organizationId
+  ) {
+    if (Strings.isNullOrEmpty(etagStr)) {
+      return Response.status(oasis.web.Application.SC_PRECONDITION_REQUIRED).build();
+    }
+
+    // TODO: remove this check, validate etag in the delete operation
+    Organization org = directory.getOrganization(organizationId);
+    if (org == null) {
+      return Response.status(Response.Status.NOT_FOUND)
+          .type(MediaType.TEXT_PLAIN)
+          .entity("The requested organization does not exist")
+          .build();
+    }
+
+    Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(new EntityTag(etagService.getEtag(org)));
+    if (responseBuilder != null) {
+      return responseBuilder.build();
+    }
+
     if (!directory.deleteOrganization(organizationId)) {
       return Response.status(Response.Status.NOT_FOUND).type(MediaType.TEXT_PLAIN)
           .entity("The requested organization does not exist")
@@ -260,7 +281,27 @@ public class UserDirectoryEndpoint {
   @DELETE
   @Path("/group/{groupId}")
   @ApiOperation(value = "Delete a group")
-  public Response deleteGroup(@PathParam("groupId") String groupId) {
+  public Response deleteGroup(@Context Request request,
+      @HeaderParam("If-Match") @ApiParam(required = true) String etagStr,
+      @PathParam("groupId") String groupId) {
+    if (Strings.isNullOrEmpty(etagStr)) {
+      return Response.status(oasis.web.Application.SC_PRECONDITION_REQUIRED).build();
+    }
+
+    // TODO: remove this check, validate etag in the delete operation
+    Group gr = directory.getGroup(groupId);
+    if (gr == null) {
+      return Response.status(Response.Status.NOT_FOUND)
+          .type(MediaType.TEXT_PLAIN)
+          .entity("The requested group does not exist")
+          .build();
+    }
+
+    Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(new EntityTag(etagService.getEtag(gr)));
+    if (responseBuilder != null) {
+      return responseBuilder.build();
+    }
+
     if (!directory.deleteGroup(groupId)) {
       return Response.status(Response.Status.NOT_FOUND).type(MediaType.TEXT_PLAIN)
           .entity("The requested group does not exist")
