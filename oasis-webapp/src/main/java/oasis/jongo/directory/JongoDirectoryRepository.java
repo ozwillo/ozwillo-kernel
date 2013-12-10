@@ -41,7 +41,7 @@ public class JongoDirectoryRepository implements DirectoryRepository {
     return getOrganizationCollection()
         .findOne("{ id: # }", organizationId)
         .projection(ORGANIZATION_PROJECTION)
-        .as(Organization.class);
+        .as(JongoOrganization.class);
   }
 
   @Override
@@ -49,13 +49,13 @@ public class JongoDirectoryRepository implements DirectoryRepository {
     return getOrganizationCollection()
         .findOne("{ groups.id: # }", groupId)
         .projection(ORGANIZATION_PROJECTION)
-        .as(Organization.class);
+        .as(JongoOrganization.class);
   }
 
   @Override
   public Iterable<Organization> getOrganizations() {
-    return getOrganizationCollection().find().projection(ORGANIZATION_PROJECTION)
-        .as(Organization.class);
+    return (Iterable<Organization>) (Iterable<?>) getOrganizationCollection().find().projection(ORGANIZATION_PROJECTION)
+        .as(JongoOrganization.class);
   }
 
   @Override
