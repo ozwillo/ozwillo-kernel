@@ -1,7 +1,6 @@
 package oasis.web.apps;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
@@ -64,7 +63,7 @@ public class ApplicationMarketEndpoint {
   public Response instantiateApplication(
       @PathParam("organizationId") String organizationId,
       @PathParam("applicationId") String applicationId
-  ) throws URISyntaxException {
+  ) {
     Application app = applications.getApplication(applicationId);
     Organization org = directory.getOrganization(organizationId);
     if (app == null || org == null) {
