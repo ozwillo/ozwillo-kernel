@@ -107,7 +107,8 @@ public class ApplicationDirectoryEndpoint {
   @PUT
   @Path("/{applicationId}")
   @Consumes(MediaType.APPLICATION_JSON)
-  @ApiOperation(value = "Updates an application")
+  @ApiOperation(value = "Updates an application",
+      response = Application.class)
   @ApiResponses({@ApiResponse(code = oasis.web.Application.SC_PRECONDITION_REQUIRED,
       message = "The If-Match header is mandatory"),
       @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
@@ -122,17 +123,28 @@ public class ApplicationDirectoryEndpoint {
     if (Strings.isNullOrEmpty(etagStr)) {
       return Response.status(oasis.web.Application.SC_PRECONDITION_REQUIRED).build();
     }
+
+    // TODO: remove this check, validate etag in the update operation
     Application app = applications.getApplication(applicationId);
     Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(new EntityTag(etagService.getEtag(app)));
     if (responseBuilder != null) {
       return responseBuilder.build();
     }
 
-    applications.updateApplication(applicationId, application);
-    // FIXME: update should return the updated object
-//    etag = new EntityTag(Long.toString(application.getModified()));
-    return Response.noContent()
-//        .tag(etag)
+    Application updatedApp = applications.updateApplication(applicationId, application);
+    if (updatedApp == null) {
+      return Response.status(Response.Status.NOT_FOUND)
+          .type(MediaType.TEXT_PLAIN)
+          .entity("The requested application does not exist")
+          .build();
+    }
+    URI uri = UriBuilder.fromResource(ApplicationDirectoryEndpoint.class)
+        .path(ApplicationDirectoryEndpoint.class, "getApplication")
+        .build(applicationId);
+    return Response.created(uri)
+        .tag(etagService.getEtag(updatedApp))
+        .contentLocation(uri)
+        .entity(updatedApp)
         .build();
   }
 

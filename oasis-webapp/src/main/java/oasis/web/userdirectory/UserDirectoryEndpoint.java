@@ -7,25 +7,31 @@ import javax.inject.Inject;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
+import com.google.common.base.Strings;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
+import com.wordnik.swagger.annotations.ApiParam;
 
-import oasis.services.etag.EtagService;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.AgentAccount;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Group;
 import oasis.model.directory.Organization;
+import oasis.services.etag.EtagService;
 
 /*
  * TODO: etag
@@ -85,16 +91,48 @@ public class UserDirectoryEndpoint {
 
   @PUT
   @Path("/org/{organizationId}")
-  @ApiOperation(value = "Update an organization")
-  public Response updateOrganization(@PathParam("organizationId") String organizationId, Organization organization) {
-    if (directory.getOrganization(organizationId) == null) {
-      return Response.status(Response.Status.NOT_FOUND).type(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Update an organization",
+      response = Organization.class)
+  public Response updateOrganization(
+      @Context Request request,
+      @HeaderParam("If-Match") @ApiParam(required = true) String etagStr,
+      @PathParam("organizationId") String organizationId,
+      Organization organization) {
+
+    if (Strings.isNullOrEmpty(etagStr)) {
+      return Response.status(oasis.web.Application.SC_PRECONDITION_REQUIRED).build();
+    }
+
+    // TODO: remove this check, validate etag in the update operation
+    Organization o = directory.getOrganization(organizationId);
+    if (o == null) {
+      return Response.status(Response.Status.NOT_FOUND)
+          .type(MediaType.TEXT_PLAIN)
           .entity("The requested organization does not exist")
           .build();
     }
-    // TODO: check error and/or returned type
-    directory.updateOrganization(organizationId, organization);
-    return Response.noContent().build();
+
+    Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(new EntityTag(etagService.getEtag(o)));
+    if (responseBuilder != null) {
+      return responseBuilder.build();
+    }
+
+    Organization updatedOrganization = directory.updateOrganization(organizationId, organization);
+    if (updatedOrganization == null) {
+      return Response.status(Response.Status.NOT_FOUND)
+          .type(MediaType.TEXT_PLAIN)
+          .entity("The requested organization does not exist")
+          .build();
+    }
+
+    URI uri = UriBuilder.fromResource(UserDirectoryEndpoint.class)
+        .path(UserDirectoryEndpoint.class, "getOrganization")
+        .build(organizationId);
+    return Response.created(uri)
+        .tag(etagService.getEtag(updatedOrganization))
+        .contentLocation(uri)
+        .entity(updatedOrganization)
+        .build();
   }
 
   @DELETE
@@ -175,16 +213,48 @@ public class UserDirectoryEndpoint {
 
   @PUT
   @Path("/group/{groupId}")
-  @ApiOperation(value = "Update a group")
-  public Response updateGroup(@PathParam("groupId") String groupId, Group group) {
-    if (directory.getGroup(groupId) == null) {
-      return Response.status(Response.Status.NOT_FOUND).type(MediaType.TEXT_PLAIN)
+  @ApiOperation(value = "Update a group",
+      response = Group.class)
+  public Response updateGroup(
+      @Context Request request,
+      @HeaderParam("If-Match") @ApiParam(required = true) String etagStr,
+      @PathParam("groupId") String groupId,
+      Group group) {
+
+    if (Strings.isNullOrEmpty(etagStr)) {
+      return Response.status(oasis.web.Application.SC_PRECONDITION_REQUIRED).build();
+    }
+
+    // TODO: remove this check, validate etag in the update operation
+    Group g = directory.getGroup(groupId);
+    if (g == null) {
+      return Response.status(Response.Status.NOT_FOUND)
+          .type(MediaType.TEXT_PLAIN)
           .entity("The requested group does not exist")
           .build();
     }
-    // TODO: check error and/or returned type
-    directory.updateGroup(groupId, group);
-    return Response.noContent().build();
+
+    Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(new EntityTag(etagService.getEtag(g)));
+    if (responseBuilder != null) {
+      return responseBuilder.build();
+    }
+
+    Group updatedGroup = directory.updateGroup(groupId, group);
+    if (updatedGroup == null) {
+      return Response.status(Response.Status.NOT_FOUND)
+          .type(MediaType.TEXT_PLAIN)
+          .entity("The requested group does not exist")
+          .build();
+    }
+
+    URI uri = UriBuilder.fromResource(UserDirectoryEndpoint.class)
+        .path(UserDirectoryEndpoint.class, "getGroup")
+        .build(groupId);
+    return Response.created(uri)
+        .tag(etagService.getEtag(updatedGroup))
+        .contentLocation(uri)
+        .entity(updatedGroup)
+        .build();
   }
 
   @DELETE

@@ -1,5 +1,7 @@
 package oasis.web.apps;
 
+import java.net.URI;
+
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
@@ -15,6 +17,7 @@ import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
 
 import com.google.common.base.Strings;
 import com.wordnik.swagger.annotations.Api;
@@ -66,7 +69,8 @@ public class ServiceProviderDirectoryEndpoint {
   @PUT
   @Path("/{serviceProviderId}")
   @Consumes(MediaType.APPLICATION_JSON)
-  @ApiOperation(value = "Updates a service provider")
+  @ApiOperation(value = "Updates a service provider",
+      response = ServiceProvider.class)
   @ApiResponses({@ApiResponse(code = oasis.web.Application.SC_PRECONDITION_REQUIRED,
       message = "The If-Match header is mandatory"),
       @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
@@ -84,6 +88,7 @@ public class ServiceProviderDirectoryEndpoint {
       return Response.status(oasis.web.Application.SC_PRECONDITION_REQUIRED).build();
     }
 
+    // TODO: remove this check, validate etag in the update operation
     ServiceProvider sp = applications.getServiceProvider(serviceProviderId);
     if (sp == null) {
       return Response.status(Response.Status.NOT_FOUND)
@@ -92,17 +97,26 @@ public class ServiceProviderDirectoryEndpoint {
           .build();
     }
 
-    // FIXME: Check etag validation with etagService
     Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(new EntityTag(etagService.getEtag(sp)));
     if (responseBuilder != null) {
       return responseBuilder.build();
     }
 
-    applications.updateServiceProvider(serviceProviderId, serviceProvider);
-    // FIXME: update should return the modified object
-//    EntityTag etag = new EntityTag(Long.toString(serviceProvider.getModified()));
-    return Response.noContent()
-//        .tag(etag)
+    ServiceProvider updatedServiceProvider = applications.updateServiceProvider(serviceProviderId, serviceProvider);
+    if (updatedServiceProvider == null) {
+      return Response.status(Response.Status.NOT_FOUND)
+          .type(MediaType.TEXT_PLAIN)
+          .entity("The requested service provider does not exist")
+          .build();
+    }
+
+    URI uri = UriBuilder.fromResource(ServiceProviderDirectoryEndpoint.class)
+        .path(ServiceProviderDirectoryEndpoint.class, "getServiceProvider")
+        .build(serviceProviderId);
+    return Response.created(uri)
+        .tag(etagService.getEtag(updatedServiceProvider))
+        .contentLocation(uri)
+        .entity(updatedServiceProvider)
         .build();
   }
 

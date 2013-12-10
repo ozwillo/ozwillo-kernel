@@ -1,5 +1,7 @@
 package oasis.web.apps;
 
+import java.net.URI;
+
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
@@ -15,6 +17,7 @@ import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
 
 import com.google.common.base.Strings;
 import com.wordnik.swagger.annotations.Api;
@@ -64,7 +67,8 @@ public class DataProviderDirectoryEndpoint {
   @PUT
   @Path("/{dataProviderId}")
   @Consumes(MediaType.APPLICATION_JSON)
-  @ApiOperation(value = "Creates or updates a data provider")
+  @ApiOperation(value = "Creates or updates a data provider",
+      response = DataProvider.class)
   @ApiResponses({@ApiResponse(code = oasis.web.Application.SC_PRECONDITION_REQUIRED,
       message = "The If-Match header is mandatory"),
       @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
@@ -82,6 +86,7 @@ public class DataProviderDirectoryEndpoint {
       return Response.status(oasis.web.Application.SC_PRECONDITION_REQUIRED).build();
     }
 
+    // TODO: remove this check, validate etag in the update operation
     DataProvider dp = applications.getDataProvider(dataProviderId);
     if (dp == null) {
       return Response.status(Response.Status.NOT_FOUND)
@@ -95,11 +100,21 @@ public class DataProviderDirectoryEndpoint {
       return responseBuilder.build();
     }
 
-    applications.updateDataProvider(dataProviderId, dataProvider);
-    // FIXME: update should return the updated object
-//    EntityTag etag = new EntityTag(Long.toString(dataProvider.getModified()));
-    return Response.noContent()
-//        .tag(etag)
+    DataProvider updatedDataProvider = applications.updateDataProvider(dataProviderId, dataProvider);
+    if (updatedDataProvider == null) {
+      return Response.status(Response.Status.NOT_FOUND)
+          .type(MediaType.TEXT_PLAIN)
+          .entity("The requested data provider does not exist")
+          .build();
+    }
+
+    URI uri = UriBuilder.fromResource(DataProviderDirectoryEndpoint.class)
+        .path(DataProviderDirectoryEndpoint.class, "getDataProvider")
+        .build(dataProviderId);
+    return Response.created(uri)
+        .tag(etagService.getEtag(updatedDataProvider))
+        .contentLocation(uri)
+        .entity(updatedDataProvider)
         .build();
   }
 
