@@ -53,10 +53,10 @@ public class TokenHandler {
 
     if (refreshToken != null) {
       if (refreshToken instanceof AuthorizationCode) {
-          if (!revokeToken(accountId, refreshToken)) {
+          if (!tokenRepository.revokeToken(refreshToken.getId())) {
             return null;
           }
-        } else {
+      } else {
         newAccessToken.setRefreshTokenId(refreshToken.getId());
       }
     }
@@ -92,12 +92,5 @@ public class TokenHandler {
     checkNotNull(token);
 
     return tokenRepository.registerToken(accountId, token);
-  }
-
-  public boolean revokeToken(String accountId, Token token) {
-    checkArgument(!Strings.isNullOrEmpty(accountId));
-    checkNotNull(token);
-
-    return tokenRepository.revokeToken(accountId, token);
   }
 }

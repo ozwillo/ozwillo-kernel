@@ -7,5 +7,5 @@ public interface TokenRepository {
 
   boolean registerToken(String accountId, Token token);
 
-  boolean revokeToken(String accountId, Token token);
+  boolean revokeToken(String tokenId);
 }

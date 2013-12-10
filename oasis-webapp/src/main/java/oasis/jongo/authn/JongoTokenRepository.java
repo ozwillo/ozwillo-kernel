@@ -51,11 +51,12 @@ public class JongoTokenRepository implements TokenRepository {
     return this.getAccountCollection().update("{id:#},{$ne: {tokens.id:#}", accountId, token.getId()).with("{$push:{tokens:#}}", token).getN() > 0;
   }
 
-  public boolean revokeToken(String accountId, Token token) {
-    checkArgument(!Strings.isNullOrEmpty(accountId));
-    checkNotNull(token);
+  public boolean revokeToken(String tokenId) {
+    checkArgument(!Strings.isNullOrEmpty(tokenId));
 
-    // Remove the token in mongo
-    return this.getAccountCollection().update("{id:#}", accountId).with("{$pull:{tokens:{id:#}}}", token.getId()).getN() > 0;
+    return this.getAccountCollection()
+        .update("{ tokens.id: # }", tokenId)
+        .with("{ $pull: { tokens: { $or: [ { id: # }, { refreshTokenId: # } ] } } }", tokenId, tokenId)
+        .getN() > 0;
   }
 }
