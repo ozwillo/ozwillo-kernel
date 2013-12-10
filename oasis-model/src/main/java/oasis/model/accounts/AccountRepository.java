@@ -15,7 +15,7 @@ public interface AccountRepository {
 
   boolean deleteAgentAccount(String agentId);
 
-  boolean deleteAgentAccountsFromOrganization(String organizationId);
+  void deleteAgentAccountsFromOrganization(String organizationId);
 
   Iterable<AgentAccount> getAgentsForOrganization(String organizationId, int start, int limit);
 }

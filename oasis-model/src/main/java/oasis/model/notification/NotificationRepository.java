@@ -9,7 +9,7 @@ public interface NotificationRepository {
    */
   Notification createNotification(Notification notification);
 
-  void deleteNotification(String notificationId);
+  boolean deleteNotification(String notificationId);
 
   Notification getNotification(String notificationId);
 

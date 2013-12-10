@@ -37,12 +37,13 @@ public class JongoNotificationRepository implements NotificationRepository {
   }
 
   @Override
-  public void deleteNotification(String notificationId) {
+  public boolean deleteNotification(String notificationId) {
     WriteResult wr = getNotificationCollection().remove("{ id: # }", notificationId);
 
     if (wr.getN() != 1 && logger.isWarnEnabled()) {
       logger.warn("The notification {} does not exist.", notificationId);
     }
+    return wr.getN() == 1;
   }
 
   @Override

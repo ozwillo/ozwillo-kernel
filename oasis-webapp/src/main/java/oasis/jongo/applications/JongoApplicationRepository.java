@@ -102,9 +102,11 @@ public class JongoApplicationRepository implements ApplicationRepository {
   }
 
   @Override
-  public void deleteApplication(String appId) {
+  public boolean deleteApplication(String appId) {
     // TODO : check modified
-    getApplicationsCollection().remove("{id: #}", appId);
+    WriteResult wr = getApplicationsCollection().remove("{id: #}", appId);
+
+    return wr.getN() == 1;
   }
 
   @Override
@@ -183,7 +185,7 @@ public class JongoApplicationRepository implements ApplicationRepository {
   }
 
   @Override
-  public void deleteDataProvider(String dataProviderId) {
+  public boolean deleteDataProvider(String dataProviderId) {
     // TODO : check modified
     WriteResult wr = getApplicationsCollection()
         .update("{dataProviders.id:#}", dataProviderId)
@@ -192,6 +194,7 @@ public class JongoApplicationRepository implements ApplicationRepository {
     if (wr.getN() != 1) {
       logger.warn("More than one data provider with id: {}", dataProviderId);
     }
+    return wr.getN() == 1;
   }
 
   @Override
@@ -263,7 +266,7 @@ public class JongoApplicationRepository implements ApplicationRepository {
   }
 
   @Override
-  public void deleteServiceProvider(String serviceProviderId) {
+  public boolean deleteServiceProvider(String serviceProviderId) {
     // TODO : check modified
     WriteResult wr = getApplicationsCollection()
         .update("{serviceProvider.id:#}", serviceProviderId)
@@ -272,6 +275,7 @@ public class JongoApplicationRepository implements ApplicationRepository {
     if (wr.getN() != 1) {
       logger.warn("More than one service provider with id: {}", serviceProviderId);
     }
+    return wr.getN() == 1;
   }
 
   private MongoCollection getApplicationsCollection() {

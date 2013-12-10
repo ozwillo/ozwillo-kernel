@@ -13,7 +13,7 @@ public interface ApplicationRepository {
 
   void updateApplication(String appId, Application app);
 
-  void deleteApplication(String appId);
+  boolean deleteApplication(String appId);
 
   Iterable<DataProvider> getDataProviders(String appId);
 
@@ -23,7 +23,7 @@ public interface ApplicationRepository {
 
   void updateDataProvider(String dataProviderId, DataProvider dataProvider);
 
-  void deleteDataProvider(String dataProviderId);
+  boolean deleteDataProvider(String dataProviderId);
 
   ServiceProvider getServiceProviderFromApplication(String appId);
 
@@ -33,5 +33,5 @@ public interface ApplicationRepository {
 
   void updateServiceProvider(String serviceProviderId, ServiceProvider serviceProvider);
 
-  void deleteServiceProvider(String serviceProviderId);
+  boolean deleteServiceProvider(String serviceProviderId);
 }

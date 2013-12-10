@@ -66,17 +66,12 @@ public class JongoAccountRepository implements AccountRepository {
       logger.warn("The agent {} does not exist", agentId);
     }
 
-    return wr.getN() != 1;
+    return wr.getN() == 1;
   }
 
   @Override
-  public boolean deleteAgentAccountsFromOrganization(String organizationId) {
-    WriteResult wr = getAccountCollection().remove("{ organizationId: # }", organizationId);
-    if (wr.getN() != 1) {
-      logger.warn("The organization {} has no agents", organizationId);
-    }
-
-    return wr.getN() != 1;
+  public void deleteAgentAccountsFromOrganization(String organizationId) {
+    getAccountCollection().remove("{ organizationId: # }", organizationId);
   }
 
   @Override

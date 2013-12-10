@@ -122,6 +122,7 @@ public class DataProviderDirectoryEndpoint {
       return Response.status(oasis.web.Application.SC_PRECONDITION_REQUIRED).build();
     }
 
+    // TODO: remove this check, validate etag in the delete operation
     DataProvider dp = applications.getDataProvider(dataProviderId);
     if (dp == null) {
       return Response.status(Response.Status.NOT_FOUND)
@@ -135,8 +136,11 @@ public class DataProviderDirectoryEndpoint {
       return responseBuilder.build();
     }
 
-    applications.deleteDataProvider(dataProviderId);
-    // FIXME: check returned value
+    if (!applications.deleteDataProvider(dataProviderId)) {
+      return Response.status(Response.Status.NOT_FOUND).type(MediaType.TEXT_PLAIN)
+          .entity("The requested data provider does not exist")
+          .build();
+    }
     return Response.noContent()
         .build();
   }

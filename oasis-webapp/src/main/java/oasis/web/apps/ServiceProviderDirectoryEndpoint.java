@@ -125,6 +125,7 @@ public class ServiceProviderDirectoryEndpoint {
       return Response.status(oasis.web.Application.SC_PRECONDITION_REQUIRED).build();
     }
 
+    // TODO: remove this check, validate etag in the delete operation
     ServiceProvider sp = applications.getServiceProvider(serviceProviderId);
     if (sp == null) {
       return Response.status(Response.Status.NOT_FOUND)
@@ -138,8 +139,12 @@ public class ServiceProviderDirectoryEndpoint {
       return responseBuilder.build();
     }
 
-    // FIXME: check returned value
-    applications.deleteServiceProvider(serviceProviderId);
+    if (!applications.deleteServiceProvider(serviceProviderId)) {
+      return Response.status(Response.Status.NOT_FOUND).type(MediaType.TEXT_PLAIN)
+          .entity("The requested service provider does not exist")
+          .build();
+    }
+
     return Response.noContent()
         .build();
   }
