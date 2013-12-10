@@ -16,7 +16,7 @@ node 'atolcd-oasis-demo.hosting.atolcd.priv' {
 
   class {'::oasis':
     elasticsearch_host        => 'atolcd-elasticsearch-1.hosting.atolcd.priv',
-    elasticsearch_cluster     => 'elasticsearch',
+    elasticsearch_cluster     => 'AtolcdElasticsearch',
     package_url               => download_file('files', "oasis/${::oasis::params::artifact_id}-${version}.deb", $url),
   }
 }
