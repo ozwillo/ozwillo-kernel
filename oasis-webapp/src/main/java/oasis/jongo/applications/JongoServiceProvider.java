@@ -5,7 +5,6 @@ import javax.annotation.Nonnull;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import oasis.jongo.etag.HasModified;
-import oasis.model.applications.Application;
 import oasis.model.applications.ServiceProvider;
 
 @JsonRootName("serviceProvider")

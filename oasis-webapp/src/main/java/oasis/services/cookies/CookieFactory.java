@@ -1,7 +1,6 @@
 package oasis.services.cookies;
 
 import java.util.Date;
-import java.util.TimeZone;
 
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.NewCookie;
