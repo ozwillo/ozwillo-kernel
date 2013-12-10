@@ -18,8 +18,12 @@ public class JongoAccountRepository implements AccountRepository {
 
   private static final Logger logger = LoggerFactory.getLogger(AccountRepository.class);
 
+  private final Jongo jongo;
+
   @Inject
-  protected Jongo jongo;
+  JongoAccountRepository(Jongo jongo) {
+    this.jongo = jongo;
+  }
 
   protected MongoCollection getAccountCollection() {
     return jongo.getCollection("account");

@@ -25,8 +25,12 @@ import oasis.model.directory.Organization;
 public class JongoDirectoryRepository implements DirectoryRepository {
   private static final Logger logger = LoggerFactory.getLogger(DirectoryRepository.class);
 
+  private final Jongo jongo;
+
   @Inject
-  private Jongo jongo;
+  JongoDirectoryRepository(Jongo jongo) {
+    this.jongo = jongo;
+  }
 
   @Override
   public Organization getOrganization(String organizationId) {

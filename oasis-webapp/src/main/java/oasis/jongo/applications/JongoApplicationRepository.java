@@ -24,8 +24,12 @@ import oasis.model.applications.ServiceProvider;
 public class JongoApplicationRepository implements ApplicationRepository {
   private static final Logger logger = LoggerFactory.getLogger(ApplicationRepository.class);
 
+  private final Jongo jongo;
+
   @Inject
-  private Jongo jongo;
+  JongoApplicationRepository(Jongo jongo) {
+    this.jongo = jongo;
+  }
 
   @Override
   public Iterable<Application> getApplicationInstances(int start, int limit) {
