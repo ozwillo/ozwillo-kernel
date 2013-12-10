@@ -50,6 +50,4 @@ public abstract class Token {
   public void setTimeToLive(Duration timeToLive) {
     this.timeToLive = timeToLive;
   }
-
-  // TODO : Add properties about Application and Scopes
 }

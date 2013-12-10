@@ -1,4 +1,4 @@
 package oasis.model.accounts;
 
-public class RefreshToken extends AbstractOAuthToken {
+public class RefreshToken extends AccessTokenGenerator {
 }
