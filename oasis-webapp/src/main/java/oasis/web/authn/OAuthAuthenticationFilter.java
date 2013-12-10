@@ -16,8 +16,6 @@ import javax.ws.rs.ext.Provider;
 import com.google.common.base.Splitter;
 
 import oasis.model.accounts.AccessToken;
-import oasis.model.accounts.Account;
-import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.Token;
 import oasis.model.authn.TokenRepository;
 import oasis.services.authn.TokenHandler;
@@ -35,7 +33,6 @@ public class OAuthAuthenticationFilter implements ContainerRequestFilter {
   private static final String AUTH_SCHEME = "Bearer";
   private static final Splitter AUTH_SCHEME_SPLITTER = Splitter.on(' ').omitEmptyStrings().trimResults();
 
-  @Inject AccountRepository accountRepository;
   @Inject TokenRepository tokenRepository;
   @Inject TokenHandler tokenHandler;
 
@@ -74,7 +71,7 @@ public class OAuthAuthenticationFilter implements ContainerRequestFilter {
       return;
     }
 
-    final OAuthPrincipal accountPrincipal = new OAuthPrincipal(accountRepository, (AccessToken) token);
+    final OAuthPrincipal accountPrincipal = new OAuthPrincipal((AccessToken) token);
     final SecurityContext oldSecurityContext = requestContext.getSecurityContext();
 
     requestContext.setSecurityContext(new SecurityContext() {

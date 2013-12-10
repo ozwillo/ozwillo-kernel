@@ -43,6 +43,7 @@ import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.Client;
+import oasis.web.authn.ClientPrincipal;
 
 @Path("/a/token")
 @Authenticated @Client
@@ -137,7 +138,7 @@ public class TokenEndpoint {
         new IdToken.Payload()
             .setIssuer(uriInfo.getBaseUri().toString())
             .setSubject(account.getId())
-            .setAudience(securityContext.getUserPrincipal().getName())
+            .setAudience(((ClientPrincipal) securityContext.getUserPrincipal()).getClientId())
             .setExpirationTimeSeconds(issuedAt + settings.idTokenExpirationSeconds)
             .setIssuedAtTimeSeconds(issuedAt)
         //.setNonce() // TODO: Get a nonce token from the client and use it for the auth_token

@@ -23,8 +23,6 @@ public class UserAuthenticationFilter implements ContainerRequestFilter {
 
   static final String COOKIE_NAME = "SID";
 
-  @Inject AccountRepository accountRepository;
-
   @Override
   public void filter(ContainerRequestContext requestContext) throws IOException {
     final Cookie sid = requestContext.getCookies().get(COOKIE_NAME);
@@ -44,7 +42,7 @@ public class UserAuthenticationFilter implements ContainerRequestFilter {
 
     // TODO: validate SID
 
-    final AccountPrincipal accountPrincipal = new AccountPrincipal(accountRepository, sid.getValue());
+    final AccountPrincipal accountPrincipal = new AccountPrincipal(sid.getValue());
 
     final SecurityContext oldSecurityContext = requestContext.getSecurityContext();
     requestContext.setSecurityContext(new SecurityContext() {
