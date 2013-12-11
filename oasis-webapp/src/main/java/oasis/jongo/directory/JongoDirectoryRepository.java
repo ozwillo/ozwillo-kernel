@@ -18,6 +18,7 @@ import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
 import com.mongodb.WriteResult;
 
+import oasis.model.InvalidVersionException;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Group;
 import oasis.model.directory.Organization;
@@ -26,7 +27,7 @@ public class JongoDirectoryRepository implements DirectoryRepository {
   private static final Logger logger = LoggerFactory.getLogger(DirectoryRepository.class);
 
   public static final String ORGANIZATION_PROJECTION = "{ name: 1, id: 1, modified: 1}";
-  public static final String GROUP_PROJECTION= "{ id:1, groups: {$elemMatch: {id: #} } }";
+  public static final String GROUP_PROJECTION = "{ id:1, groups: {$elemMatch: {id: #} } }";
   public static final String GROUPS_PROJECTION = "{ id: 1, groups: 1 }";
 
   private final Jongo jongo;
@@ -66,7 +67,7 @@ public class JongoDirectoryRepository implements DirectoryRepository {
   }
 
   @Override
-  public Organization updateOrganization(String organizationId, Organization organization) {
+  public Organization updateOrganization(String organizationId, Organization organization, long[] versions) throws InvalidVersionException {
     long modified = System.currentTimeMillis();
     List<Object> updateParameters = new ArrayList<>(2);
     StringBuilder updateObject = new StringBuilder("modified:#");
@@ -77,29 +78,35 @@ public class JongoDirectoryRepository implements DirectoryRepository {
       updateParameters.add(organization.getName());
     }
 
-    // TODO : check modified
     JongoOrganization res = getOrganizationCollection()
-        .findAndModify("{ id: # }", organizationId)
+        .findAndModify("{ id: #, modified: { $in: # } }", organizationId, versions)
         .returnNew()
         .with("{ $set: {" + updateObject.toString() + " } }", updateParameters.toArray())
         .projection(ORGANIZATION_PROJECTION)
         .as(JongoOrganization.class);
 
     if (res == null) {
-      // TODO: more precise message
+      if (getOrganizationCollection().count("{ id: # }", organizationId) != 0) {
+        throw new InvalidVersionException("organization", organizationId);
+      }
       logger.warn("The organization {} does not exist", organizationId);
-      return null;
     }
 
     return res;
   }
 
   @Override
-  public boolean deleteOrganization(String organizationId) {
-    // TODO : check modified
-    WriteResult wr = getOrganizationCollection().remove("{ id: # }", organizationId);
+  public boolean deleteOrganization(String organizationId, long[] versions) throws InvalidVersionException {
+    WriteResult wr = getOrganizationCollection().remove("{id: #, modified: { $in: # } }", organizationId, versions);
+    int n = wr.getN();
+    if (n == 0) {
+      if (getOrganizationCollection().count("{ id: # }", organizationId) != 0) {
+        throw new InvalidVersionException("organization", organizationId);
+      }
+      return false;
+    }
 
-    return wr.getN() == 1;
+    return true;
   }
 
   @Override
@@ -142,7 +149,6 @@ public class JongoDirectoryRepository implements DirectoryRepository {
   public Group createGroup(String organizationId, Group group) {
     JongoGroup jongoGroup = new JongoGroup(group);
 
-    // TODO : check modified
     WriteResult wr = getOrganizationCollection()
         .update("{ id: # }", organizationId)
         .with("{ $push: { groups: # } }", jongoGroup);
@@ -154,7 +160,7 @@ public class JongoDirectoryRepository implements DirectoryRepository {
   }
 
   @Override
-  public Group updateGroup(String groupId, Group group) {
+  public Group updateGroup(String groupId, Group group, long[] versions) throws InvalidVersionException {
     long modified = System.currentTimeMillis();
     List<Object> updateParameters = new ArrayList<>(3);
     StringBuilder updateObject = new StringBuilder("groups.$.modified:#");
@@ -165,16 +171,17 @@ public class JongoDirectoryRepository implements DirectoryRepository {
       updateParameters.add(group.getName());
     }
 
-    // TODO : check modified
     JongoOrganization res = getOrganizationCollection()
-        .findAndModify("{ groups.id: # }", groupId)
+        .findAndModify("{ groups: { $elemMatch: { id: #, modified: { $in: # } } } }", groupId, versions)
         .returnNew()
         .with("{ $set: {" + updateObject.toString() + " } }", updateParameters.toArray())
         .projection(GROUP_PROJECTION, groupId)
         .as(JongoOrganization.class);
 
     if (res == null) {
-      // TODO: more precise message
+      if (getOrganizationCollection().count("{ groups.id: # }", groupId) != 0) {
+        throw new InvalidVersionException("group", groupId);
+      }
       logger.warn("The group {} does not exist", groupId);
       return null;
     }
@@ -187,13 +194,23 @@ public class JongoDirectoryRepository implements DirectoryRepository {
   }
 
   @Override
-  public boolean deleteGroup(String groupId) {
-    // TODO: check modified
+  public boolean deleteGroup(String groupId, long[] versions) throws InvalidVersionException {
     WriteResult wr = getOrganizationCollection()
-        .update("{ groups.id: # }", groupId)
-        .with("{ $pull: { groups: { id: # } } }", groupId);
+        .update("{ groups: { $elemMatch: { id: #, modified: { $in: # } } } }", groupId, versions)
+        .with("{ $pull: { groups: { id: #, modified: { $in: # } } } }", groupId, versions);
 
-    return wr.getN() == 1;
+    int n = wr.getN();
+    if (n == 0) {
+      if (getOrganizationCollection().count("{ groups.id: # }", groupId) != 0) {
+        throw new InvalidVersionException("group", groupId);
+      }
+      return false;
+    }
+
+    if (n > 1) {
+      logger.error("Deleted {} groups with ID {}, that shouldn't have happened", n, groupId);
+    }
+    return true;
   }
 
   @Override
@@ -232,12 +249,9 @@ public class JongoDirectoryRepository implements DirectoryRepository {
 
   @Override
   public void addGroupMember(String groupId, String agentId) {
-    long modified = System.currentTimeMillis();
-
-    // TODO: check modified
     WriteResult wr = getOrganizationCollection()
         .update("{ groups: { $elemMatch: { agentIds: { $ne: # }, id: # } } }", agentId, groupId)
-        .with("{ $set: { groups.$.modified: # }, $addToSet: { groups.$.agentIds: # } }", modified, agentId);
+        .with("{ $addToSet: { groups.$.agentIds: # } }", agentId);
 
     if (wr.getN() != 1) {
       // TODO: more precise message
@@ -247,12 +261,9 @@ public class JongoDirectoryRepository implements DirectoryRepository {
 
   @Override
   public boolean removeGroupMember(String groupId, String agentId) {
-    long modified = System.currentTimeMillis();
-
-    // TODO: check modified
     WriteResult wr = getOrganizationCollection()
         .update("{ groups: { $elemMatch: { agentIds: #, id: # } } }", agentId, groupId)
-        .with("{ $set: { groups.$.modified: # }, $pull: { groups.$.agentIds: # } }", modified, agentId);
+        .with("{ $pull: { groups.$.agentIds: # } }", agentId);
 
     if (wr.getN() != 1) {
       // TODO: more precise message

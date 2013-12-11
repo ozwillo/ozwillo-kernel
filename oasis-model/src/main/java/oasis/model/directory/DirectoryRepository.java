@@ -2,6 +2,8 @@ package oasis.model.directory;
 
 import java.util.Collection;
 
+import oasis.model.InvalidVersionException;
+
 public interface DirectoryRepository {
   Organization getOrganization(String organizationId);
 
@@ -11,9 +13,9 @@ public interface DirectoryRepository {
 
   Organization createOrganization(Organization organization);
 
-  Organization updateOrganization(String organizationId, Organization organization);
+  Organization updateOrganization(String organizationId, Organization organization, long[] versions) throws InvalidVersionException;
 
-  boolean deleteOrganization(String organizationId);
+  boolean deleteOrganization(String organizationId, long[] versions) throws InvalidVersionException;
 
   Iterable<Organization> getOrganizations();
 
@@ -27,9 +29,9 @@ public interface DirectoryRepository {
 
   Group createGroup(String organizationId, Group group);
 
-  Group updateGroup(String groupId, Group group);
+  Group updateGroup(String groupId, Group group, long[] versions) throws InvalidVersionException;
 
-  boolean deleteGroup(String groupId);
+  boolean deleteGroup(String groupId, long[] versions) throws InvalidVersionException;
 
   Collection<Group> getGroupsForAgent(String agentId);
 }

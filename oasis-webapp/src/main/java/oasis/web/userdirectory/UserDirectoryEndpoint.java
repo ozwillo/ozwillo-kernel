@@ -15,7 +15,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
@@ -26,6 +25,7 @@ import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiParam;
 
+import oasis.model.InvalidVersionException;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.AgentAccount;
 import oasis.model.directory.DirectoryRepository;
@@ -102,18 +102,13 @@ public class UserDirectoryEndpoint {
       return ResponseFactory.preconditionRequiredIfMatch();
     }
 
-    // TODO: remove this check, validate etag in the update operation
-    Organization o = directory.getOrganization(organizationId);
-    if (o == null) {
-      return ResponseFactory.notFound("The requested organization does not exist");
+    Organization updatedOrganization = null;
+    try {
+      updatedOrganization = directory.updateOrganization(organizationId, organization, etagService.parseEtag(etagStr));
+    } catch (InvalidVersionException e) {
+      return ResponseFactory.preconditionFailed(e.getMessage());
     }
 
-    Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(new EntityTag(etagService.getEtag(o)));
-    if (responseBuilder != null) {
-      return responseBuilder.build();
-    }
-
-    Organization updatedOrganization = directory.updateOrganization(organizationId, organization);
     if (updatedOrganization == null) {
       return ResponseFactory.notFound("The requested organization does not exist");
     }
@@ -140,18 +135,14 @@ public class UserDirectoryEndpoint {
       return ResponseFactory.preconditionRequiredIfMatch();
     }
 
-    // TODO: remove this check, validate etag in the delete operation
-    Organization org = directory.getOrganization(organizationId);
-    if (org == null) {
-      return ResponseFactory.notFound("The requested organization does not exist");
+    boolean deleted;
+    try {
+      deleted = directory.deleteOrganization(organizationId, etagService.parseEtag(etagStr));
+    } catch (InvalidVersionException e) {
+      return ResponseFactory.preconditionFailed(e.getMessage());
     }
 
-    Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(new EntityTag(etagService.getEtag(org)));
-    if (responseBuilder != null) {
-      return responseBuilder.build();
-    }
-
-    if (!directory.deleteOrganization(organizationId)) {
+    if (!deleted) {
       return ResponseFactory.notFound("The requested organization does not exist");
     }
 
@@ -228,18 +219,13 @@ public class UserDirectoryEndpoint {
       return ResponseFactory.preconditionRequiredIfMatch();
     }
 
-    // TODO: remove this check, validate etag in the update operation
-    Group g = directory.getGroup(groupId);
-    if (g == null) {
-      return ResponseFactory.notFound("The requested group does not exist");
+    Group updatedGroup = null;
+    try {
+      updatedGroup = directory.updateGroup(groupId, group, etagService.parseEtag(etagStr));
+    } catch (InvalidVersionException e) {
+      return ResponseFactory.preconditionFailed(e.getMessage());
     }
 
-    Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(new EntityTag(etagService.getEtag(g)));
-    if (responseBuilder != null) {
-      return responseBuilder.build();
-    }
-
-    Group updatedGroup = directory.updateGroup(groupId, group);
     if (updatedGroup == null) {
       return ResponseFactory.notFound("The requested group does not exist");
     }
@@ -264,18 +250,13 @@ public class UserDirectoryEndpoint {
       return ResponseFactory.preconditionRequiredIfMatch();
     }
 
-    // TODO: remove this check, validate etag in the delete operation
-    Group gr = directory.getGroup(groupId);
-    if (gr == null) {
-      return ResponseFactory.notFound("The requested group does not exist");
+    boolean deleted;
+    try {
+      deleted = directory.deleteGroup(groupId, etagService.parseEtag(etagStr));
+    } catch (InvalidVersionException e) {
+      return ResponseFactory.preconditionFailed(e.getMessage());
     }
-
-    Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(new EntityTag(etagService.getEtag(gr)));
-    if (responseBuilder != null) {
-      return responseBuilder.build();
-    }
-
-    if (!directory.deleteGroup(groupId)) {
+    if (!deleted) {
       return ResponseFactory.notFound("The requested group does not exist");
     }
     return ResponseFactory.NO_CONTENT;
