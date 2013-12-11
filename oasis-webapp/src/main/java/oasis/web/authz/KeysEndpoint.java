@@ -13,7 +13,10 @@ import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.openidconnect.OpenIdConnectModule;
+import oasis.web.authn.Authenticated;
+import oasis.web.authn.Client;
 
+@Authenticated @Client
 @Path("/a/keys")
 @Api(value = "/a/keys", description = "Keys API")
 public class KeysEndpoint {
