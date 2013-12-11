@@ -16,6 +16,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.mongodb.WriteResult;
 
+import oasis.model.InvalidVersionException;
 import oasis.model.applications.Application;
 import oasis.model.applications.ApplicationRepository;
 import oasis.model.applications.DataProvider;
@@ -83,7 +84,7 @@ public class JongoApplicationRepository implements ApplicationRepository {
   }
 
   @Override
-  public Application updateApplication(String appId, Application app) {
+  public Application updateApplication(String appId, Application app, long[] versions) throws InvalidVersionException {
 
     List<Object> updateParameters = new ArrayList<>(3);
     StringBuilder updateObject = new StringBuilder("modified:#");
@@ -99,26 +100,34 @@ public class JongoApplicationRepository implements ApplicationRepository {
       updateParameters.add(app.getIconUri());
     }
 
-    // TODO : check modified
     JongoApplication res = getApplicationsCollection()
-        .findAndModify("{id: #}", appId)
+        .findAndModify("{id: #, modified: { $in: # } }", appId, versions)
         .returnNew()
         .with("{$set: {" + updateObject.toString() + "}}", updateParameters.toArray())
         .projection(APPLICATION_PROJECTION)
         .as(JongoApplication.class);
 
     if (res == null) {
+      if (getApplicationsCollection().count("{ id: # }", appId) != 0) {
+        throw new InvalidVersionException("application", appId);
+      }
       logger.warn("More than one application with id: {}", appId);
     }
     return res;
   }
 
   @Override
-  public boolean deleteApplication(String appId) {
-    // TODO : check modified
-    WriteResult wr = getApplicationsCollection().remove("{id: #}", appId);
+  public boolean deleteApplication(String appId, long[] versions) throws InvalidVersionException {
+    WriteResult wr = getApplicationsCollection().remove("{id: #, modified: { $in: # } }", appId, versions);
+    int n = wr.getN();
+    if (n == 0) {
+      if (getApplicationsCollection().count("{ id: # }", appId) != 0) {
+        throw new InvalidVersionException("application", appId);
+      }
+      return false;
+    }
 
-    return wr.getN() == 1;
+    return true;
   }
 
   @Override
@@ -159,7 +168,6 @@ public class JongoApplicationRepository implements ApplicationRepository {
 
     JongoDataProvider jongoDataProvider = new JongoDataProvider(dataProvider);
 
-    // TODO : check modified
     WriteResult wr = getApplicationsCollection()
         .update("{id: #}", appId)
         .with("{$push:{dataProviders:#}}", jongoDataProvider);
@@ -171,7 +179,8 @@ public class JongoApplicationRepository implements ApplicationRepository {
   }
 
   @Override
-  public DataProvider updateDataProvider(String dataProviderId, DataProvider dataProvider) {
+  public DataProvider updateDataProvider(String dataProviderId, DataProvider dataProvider, long[] versions) throws InvalidVersionException {
+
     List<Object> updateParameters = new ArrayList<>(3);
     StringBuilder updateObject = new StringBuilder("dataProviders.$.modified:#");
     updateParameters.add(System.currentTimeMillis());
@@ -186,15 +195,17 @@ public class JongoApplicationRepository implements ApplicationRepository {
       updateParameters.add(dataProvider.getScopeIds());
     }
 
-    // TODO : check modified
     JongoApplication res = getApplicationsCollection()
-        .findAndModify("{dataProviders.id:#}", dataProviderId)
+        .findAndModify("{dataProviders: { $elemMatch: { id: #, modified: { $in: # } } } }", dataProviderId, versions)
         .returnNew()
         .with("{$set: {" + updateObject.toString() + "}}", updateParameters.toArray())
         .projection(DATA_PROVIDER_PROJECTION, dataProviderId)
         .as(JongoApplication.class);
 
     if (res == null) {
+      if (getApplicationsCollection().count("{ dataProviders.id: # }", dataProviderId) != 0) {
+        throw new InvalidVersionException("dataProvider", dataProviderId);
+      }
       logger.warn("More than one data provider with id: {}", dataProviderId);
       return null;
     }
@@ -206,16 +217,24 @@ public class JongoApplicationRepository implements ApplicationRepository {
   }
 
   @Override
-  public boolean deleteDataProvider(String dataProviderId) {
-    // TODO : check modified
-    WriteResult wr = getApplicationsCollection()
-        .update("{dataProviders.id:#}", dataProviderId)
-        .with("{$pull:{dataProviders: {id:#}}}", dataProviderId);
+  public boolean deleteDataProvider(String dataProviderId, long[] versions) throws InvalidVersionException {
 
-    if (wr.getN() != 1) {
-      logger.warn("More than one data provider with id: {}", dataProviderId);
+    WriteResult wr = getApplicationsCollection()
+        .update("{ dataProviders: { $elemMatch: { id: #, modified: { $in: # } } } }", dataProviderId, versions)
+        .with("{ $pull: { dataProviders: { id: #, modified: { $in: # } } } }", dataProviderId, versions);
+
+    int n = wr.getN();
+    if (n == 0) {
+      if (getApplicationsCollection().count("{ dataProviders.id: # }", dataProviderId) != 0) {
+        throw new InvalidVersionException("dataProvider", dataProviderId);
+      }
+      return false;
     }
-    return wr.getN() == 1;
+
+    if (n > 1) {
+      logger.error("Deleted {} dataProviders with ID {}, that shouldn't have happened", n, dataProviderId);
+    }
+    return true;
   }
 
   @Override
@@ -249,7 +268,6 @@ public class JongoApplicationRepository implements ApplicationRepository {
   public ServiceProvider createServiceProvider(String appId, ServiceProvider serviceProvider) {
     JongoServiceProvider jongoServiceProvider = new JongoServiceProvider(serviceProvider);
 
-    // TODO : check modified
     WriteResult wr = getApplicationsCollection()
         .update("{id: #}", appId)
         .with("{$set:{serviceProvider:#}}", jongoServiceProvider);
@@ -261,7 +279,9 @@ public class JongoApplicationRepository implements ApplicationRepository {
   }
 
   @Override
-  public ServiceProvider updateServiceProvider(String serviceProviderId, ServiceProvider serviceProvider) {
+  public ServiceProvider updateServiceProvider(String serviceProviderId, ServiceProvider serviceProvider, long[] versions)
+      throws InvalidVersionException {
+
     List<Object> updateParameters = new ArrayList<>(3);
     StringBuilder updateObject = new StringBuilder("serviceProvider.modified:#");
     updateParameters.add(System.currentTimeMillis());
@@ -276,15 +296,17 @@ public class JongoApplicationRepository implements ApplicationRepository {
       updateParameters.add(serviceProvider.getScopeCardinalities());
     }
 
-    // TODO : check modified
     JongoApplication res = getApplicationsCollection()
-        .findAndModify("{serviceProvider.id:#}", serviceProviderId)
+        .findAndModify("{ serviceProvider.id: #, serviceProvider.modified: { $in: # } }", serviceProviderId, versions)
         .returnNew()
         .with("{$set: {" + updateObject.toString() + "}}", updateParameters.toArray())
         .projection(SERVICE_PROVIDER_PROJECTION)
         .as(JongoApplication.class);
 
     if (res == null) {
+      if (getApplicationsCollection().count("{ serviceProvider.id : # }", serviceProviderId) != 0) {
+        throw new InvalidVersionException("serviceProvider", serviceProviderId);
+      }
       logger.warn("More than one service provider with id: {}", serviceProviderId);
       return null;
     }
@@ -293,16 +315,23 @@ public class JongoApplicationRepository implements ApplicationRepository {
   }
 
   @Override
-  public boolean deleteServiceProvider(String serviceProviderId) {
-    // TODO : check modified
+  public boolean deleteServiceProvider(String serviceProviderId, long[] versions) throws InvalidVersionException {
     WriteResult wr = getApplicationsCollection()
-        .update("{serviceProvider.id:#}", serviceProviderId)
-        .with("{$unset:{serviceProvider:''}}");
+        .update("{ serviceProvider.id: #, serviceProvider.modified: { $in: # } }", serviceProviderId, versions)
+        .with("{ $unset: { serviceProvider: '' } }");
 
-    if (wr.getN() != 1) {
-      logger.warn("More than one service provider with id: {}", serviceProviderId);
+    int n = wr.getN();
+    if (n == 0) {
+      if (getApplicationsCollection().count("{ serviceProvider.id: # }", serviceProviderId) != 0) {
+        throw new InvalidVersionException("serviceProvider", serviceProviderId);
+      }
+      return false;
     }
-    return wr.getN() == 1;
+
+    if (n > 1) {
+      logger.error("Deleted {} serviceProvider with ID {}, that shouldn't have happened", n, serviceProviderId);
+    }
+    return true;
   }
 
   private MongoCollection getApplicationsCollection() {

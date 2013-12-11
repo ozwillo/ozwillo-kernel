@@ -16,7 +16,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
@@ -29,6 +28,7 @@ import com.wordnik.swagger.annotations.ApiParam;
 import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
 
+import oasis.model.InvalidVersionException;
 import oasis.model.applications.Application;
 import oasis.model.applications.ApplicationRepository;
 import oasis.model.applications.DataProvider;
@@ -114,7 +114,6 @@ public class ApplicationDirectoryEndpoint {
       @ApiResponse(code = HttpServletResponse.SC_PRECONDITION_FAILED,
           message = "Mismatching etag")})
   public Response putApplication(
-      @Context Request request,
       @HeaderParam("If-Match") @ApiParam(required = true) String etagStr,
       @PathParam("applicationId") String applicationId,
       @ApiParam("application") Application application) {
@@ -122,17 +121,17 @@ public class ApplicationDirectoryEndpoint {
       return ResponseFactory.preconditionRequiredIfMatch();
     }
 
-    // TODO: remove this check, validate etag in the update operation
-    Application app = applications.getApplication(applicationId);
-    Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(new EntityTag(etagService.getEtag(app)));
-    if (responseBuilder != null) {
-      return responseBuilder.build();
+    Application updatedApp;
+    try {
+      updatedApp = applications.updateApplication(applicationId, application, etagService.parseEtag(etagStr));
+    } catch (InvalidVersionException e) {
+      return ResponseFactory.preconditionFailed(e.getMessage());
     }
 
-    Application updatedApp = applications.updateApplication(applicationId, application);
     if (updatedApp == null) {
       return ResponseFactory.notFound("The requested application does not exist");
     }
+
     URI uri = UriBuilder.fromResource(ApplicationDirectoryEndpoint.class)
         .path(ApplicationDirectoryEndpoint.class, "getApplication")
         .build(applicationId);
@@ -155,27 +154,23 @@ public class ApplicationDirectoryEndpoint {
       @ApiResponse(code = HttpServletResponse.SC_PRECONDITION_FAILED,
           message = "Mismatching etag")})
   public Response deleteApplication(
-      @Context Request request,
       @HeaderParam("If-Match") @ApiParam(required = true) String etagStr,
       @PathParam("applicationId") String applicationId) {
     if (Strings.isNullOrEmpty(etagStr)) {
       return ResponseFactory.preconditionRequiredIfMatch();
     }
 
-    // TODO: remove this check, validate etag in the delete operation
-    Application app = applications.getApplication(applicationId);
-    if (app == null) {
+    boolean deleted;
+    try {
+      deleted = applications.deleteApplication(applicationId, etagService.parseEtag(etagStr));
+    } catch (InvalidVersionException e) {
+      return ResponseFactory.preconditionFailed(e.getMessage());
+    }
+
+    if (!deleted) {
       return ResponseFactory.notFound("The requested application does not exist");
     }
 
-    Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(new EntityTag(etagService.getEtag(app)));
-    if (responseBuilder != null) {
-      return responseBuilder.build();
-    }
-
-    if (!applications.deleteApplication(applicationId)) {
-      return ResponseFactory.notFound("The requested application does not exist");
-    }
     return ResponseFactory.NO_CONTENT;
   }
 

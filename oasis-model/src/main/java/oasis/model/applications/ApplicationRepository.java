@@ -1,5 +1,7 @@
 package oasis.model.applications;
 
+import oasis.model.InvalidVersionException;
+
 public interface ApplicationRepository {
   Iterable<Application> getCatalogApplications(int start, int limit);
 
@@ -11,9 +13,9 @@ public interface ApplicationRepository {
 
   Application instanciateApplication(String appId, String organizationId);
 
-  Application updateApplication(String appId, Application app);
+  Application updateApplication(String appId, Application app, long[] versions) throws InvalidVersionException;
 
-  boolean deleteApplication(String appId);
+  boolean deleteApplication(String appId, long[] versions) throws InvalidVersionException;
 
   Iterable<DataProvider> getDataProviders(String appId);
 
@@ -21,9 +23,9 @@ public interface ApplicationRepository {
 
   DataProvider createDataProvider(String appId, DataProvider dataProvider);
 
-  DataProvider updateDataProvider(String dataProviderId, DataProvider dataProvider);
+  DataProvider updateDataProvider(String dataProviderId, DataProvider dataProvider, long[] versions) throws InvalidVersionException;
 
-  boolean deleteDataProvider(String dataProviderId);
+  boolean deleteDataProvider(String dataProviderId, long[] versions) throws InvalidVersionException;
 
   ServiceProvider getServiceProviderFromApplication(String appId);
 
@@ -31,7 +33,7 @@ public interface ApplicationRepository {
 
   ServiceProvider createServiceProvider(String appId, ServiceProvider serviceProvider);
 
-  ServiceProvider updateServiceProvider(String serviceProviderId, ServiceProvider serviceProvider);
+  ServiceProvider updateServiceProvider(String serviceProviderId, ServiceProvider serviceProvider, long[] versions) throws InvalidVersionException;
 
-  boolean deleteServiceProvider(String serviceProviderId);
+  boolean deleteServiceProvider(String serviceProviderId, long[] versions) throws InvalidVersionException;
 }

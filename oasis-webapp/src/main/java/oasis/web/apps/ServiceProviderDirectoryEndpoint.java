@@ -13,7 +13,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
@@ -26,6 +25,7 @@ import com.wordnik.swagger.annotations.ApiParam;
 import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
 
+import oasis.model.InvalidVersionException;
 import oasis.model.applications.ApplicationRepository;
 import oasis.model.applications.ServiceProvider;
 import oasis.services.etag.EtagService;
@@ -86,18 +86,12 @@ public class ServiceProviderDirectoryEndpoint {
       return ResponseFactory.preconditionRequiredIfMatch();
     }
 
-    // TODO: remove this check, validate etag in the update operation
-    ServiceProvider sp = applications.getServiceProvider(serviceProviderId);
-    if (sp == null) {
-      return ResponseFactory.notFound("The requested service provider does not exist");
+    ServiceProvider updatedServiceProvider;
+    try {
+      updatedServiceProvider = applications.updateServiceProvider(serviceProviderId, serviceProvider, etagService.parseEtag(etagStr));
+    } catch (InvalidVersionException e) {
+      return ResponseFactory.preconditionFailed(e.getMessage());
     }
-
-    Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(new EntityTag(etagService.getEtag(sp)));
-    if (responseBuilder != null) {
-      return responseBuilder.build();
-    }
-
-    ServiceProvider updatedServiceProvider = applications.updateServiceProvider(serviceProviderId, serviceProvider);
     if (updatedServiceProvider == null) {
       return ResponseFactory.notFound("The requested service provider does not exist");
     }
@@ -124,25 +118,20 @@ public class ServiceProviderDirectoryEndpoint {
       @ApiResponse(code = HttpServletResponse.SC_PRECONDITION_FAILED,
           message = "Mismatching etag")})
   public Response deleteServiceProvider(
-      @Context Request request,
       @HeaderParam("If-Match") @ApiParam(required = true) String etagStr,
       @PathParam("serviceProviderId") String serviceProviderId) {
     if (Strings.isNullOrEmpty(etagStr)) {
       return ResponseFactory.preconditionRequiredIfMatch();
     }
 
-    // TODO: remove this check, validate etag in the delete operation
-    ServiceProvider sp = applications.getServiceProvider(serviceProviderId);
-    if (sp == null) {
-      return ResponseFactory.notFound("The requested service provider does not exist");
+    boolean deleted;
+    try {
+      deleted = applications.deleteServiceProvider(serviceProviderId, etagService.parseEtag(etagStr));
+    } catch (InvalidVersionException e) {
+      return ResponseFactory.preconditionFailed(e.getMessage());
     }
 
-    Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(new EntityTag(etagService.getEtag(sp)));
-    if (responseBuilder != null) {
-      return responseBuilder.build();
-    }
-
-    if (!applications.deleteServiceProvider(serviceProviderId)) {
+    if (!deleted) {
       return ResponseFactory.notFound("The requested service provider does not exist");
     }
 

@@ -13,7 +13,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
@@ -26,6 +25,7 @@ import com.wordnik.swagger.annotations.ApiParam;
 import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
 
+import oasis.model.InvalidVersionException;
 import oasis.model.applications.ApplicationRepository;
 import oasis.model.applications.DataProvider;
 import oasis.services.etag.EtagService;
@@ -77,7 +77,6 @@ public class DataProviderDirectoryEndpoint {
       @ApiResponse(code = HttpServletResponse.SC_PRECONDITION_FAILED,
           message = "Mismatching etag")})
   public Response putDataProvider(
-      @Context Request request,
       @HeaderParam("If-Match") @ApiParam(required = true) String etagStr,
       @PathParam("dataProviderId") String dataProviderId,
       @ApiParam DataProvider dataProvider) {
@@ -85,18 +84,13 @@ public class DataProviderDirectoryEndpoint {
       return ResponseFactory.preconditionRequiredIfMatch();
     }
 
-    // TODO: remove this check, validate etag in the update operation
-    DataProvider dp = applications.getDataProvider(dataProviderId);
-    if (dp == null) {
-      return ResponseFactory.notFound("The requested data provider does not exist");
+    DataProvider updatedDataProvider;
+    try {
+      updatedDataProvider = applications.updateDataProvider(dataProviderId, dataProvider, etagService.parseEtag(etagStr));
+    } catch (InvalidVersionException e) {
+      return ResponseFactory.preconditionFailed(e.getMessage());
     }
 
-    Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(new EntityTag(etagService.getEtag(dp)));
-    if (responseBuilder != null) {
-      return responseBuilder.build();
-    }
-
-    DataProvider updatedDataProvider = applications.updateDataProvider(dataProviderId, dataProvider);
     if (updatedDataProvider == null) {
       return ResponseFactory.notFound("The requested data provider does not exist");
     }
@@ -123,27 +117,23 @@ public class DataProviderDirectoryEndpoint {
       @ApiResponse(code = HttpServletResponse.SC_PRECONDITION_FAILED,
           message = "Mismatching etag")})
   public Response deleteDataProvider(
-      @Context Request request,
       @HeaderParam("If-Match") @ApiParam(required = true) String etagStr,
       @PathParam("dataProviderId") String dataProviderId) {
     if (Strings.isNullOrEmpty(etagStr)) {
       return ResponseFactory.preconditionRequiredIfMatch();
     }
 
-    // TODO: remove this check, validate etag in the delete operation
-    DataProvider dp = applications.getDataProvider(dataProviderId);
-    if (dp == null) {
+    boolean deleted;
+    try {
+      deleted = applications.deleteDataProvider(dataProviderId, etagService.parseEtag(etagStr));
+    } catch (InvalidVersionException e) {
+      return ResponseFactory.preconditionFailed(e.getMessage());
+    }
+
+    if (!deleted) {
       return ResponseFactory.notFound("The requested data provider does not exist");
     }
 
-    Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(new EntityTag(etagService.getEtag(dp)));
-    if (responseBuilder != null) {
-      return responseBuilder.build();
-    }
-
-    if (!applications.deleteDataProvider(dataProviderId)) {
-      return ResponseFactory.notFound("The requested data provider does not exist");
-    }
     return ResponseFactory.NO_CONTENT;
   }
 }
