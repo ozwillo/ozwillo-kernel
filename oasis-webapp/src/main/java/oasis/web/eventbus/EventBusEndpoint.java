@@ -1,26 +1,34 @@
 package oasis.web.eventbus;
 
+import java.net.URI;
+
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.InvocationCallback;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Strings;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
+import com.wordnik.swagger.annotations.ApiParam;
 
 import oasis.model.applications.Subscription;
 import oasis.model.applications.SubscriptionRepository;
+import oasis.services.etag.EtagService;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.Client;
 
@@ -34,6 +42,8 @@ public class EventBusEndpoint {
 
   @Inject
   SubscriptionRepository subscriptions;
+  @Inject
+  EtagService etagService;
 
   @POST
   @Path("/publish")
@@ -81,7 +91,8 @@ public class EventBusEndpoint {
   ) {
     // TODO: validate subscription.eventType
 
-    if (subscriptions.createSubscription(appId, subscription) == null) {
+    Subscription res = subscriptions.createSubscription(appId, subscription);
+    if (res == null) {
       return Response
           .status(Response.Status.NOT_FOUND)
           .type(MediaType.TEXT_PLAIN_TYPE)
@@ -89,12 +100,15 @@ public class EventBusEndpoint {
           .build();
     }
 
+    URI uri = UriBuilder
+        .fromResource(EventBusEndpoint.class)
+        .path(EventBusEndpoint.class, "unsubscribe")
+        .build(subscription.getId());
     return Response
-        .created(UriBuilder
-            .fromResource(EventBusEndpoint.class)
-            .path(EventBusEndpoint.class, "unsubscribe")
-            .build(subscription.getId()))
+        .created(uri)
+        .tag(etagService.getEtag(res))
         .build();
+
   }
 
   @DELETE
@@ -102,8 +116,14 @@ public class EventBusEndpoint {
   @Consumes(MediaType.APPLICATION_JSON)
   @ApiOperation(value = "Delete a subscription.")
   public Response unsubscribe(
+      @Context Request request,
+      @HeaderParam("If-Match") @ApiParam(required = true) String etagStr,
       @PathParam("subscriptionId") String subscriptionId
   ) {
+    if (Strings.isNullOrEmpty(etagStr)) {
+      return Response.status(oasis.web.Application.SC_PRECONDITION_REQUIRED).build();
+    }
+
     if (!subscriptions.deleteSubscription(subscriptionId)) {
       return Response
           .status(Response.Status.NOT_FOUND)
