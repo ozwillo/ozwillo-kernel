@@ -21,6 +21,6 @@ public class Home {
   @Path("/favicon.ico")
   public Response favicon() {
     // TODO: we need a favicon!
-    return Response.status(Response.Status.NOT_FOUND).build();
+    return ResponseFactory.NOT_FOUND;
   }
 }

@@ -25,6 +25,7 @@ import oasis.model.applications.ApplicationRepository;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Organization;
 import oasis.services.etag.EtagService;
+import oasis.web.ResponseFactory;
 
 @Path("/d/app/market")
 @Produces(MediaType.APPLICATION_JSON)
@@ -67,10 +68,7 @@ public class ApplicationMarketEndpoint {
     Application app = applications.getApplication(applicationId);
     Organization org = directory.getOrganization(organizationId);
     if (app == null || org == null) {
-      return Response.status(Response.Status.NOT_FOUND)
-          .type(MediaType.TEXT_PLAIN)
-          .entity("The requested organization/application does not exist")
-          .build();
+      return ResponseFactory.notFound("The requested organization/application does not exist");
     }
 
     if (!Application.ApplicationType.CLASS.equals(app.getApplicationType())) {

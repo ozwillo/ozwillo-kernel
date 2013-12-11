@@ -34,6 +34,7 @@ import oasis.model.applications.ApplicationRepository;
 import oasis.model.applications.DataProvider;
 import oasis.model.applications.ServiceProvider;
 import oasis.services.etag.EtagService;
+import oasis.web.ResponseFactory;
 
 @Path("/d/app")
 @Produces(MediaType.APPLICATION_JSON)
@@ -70,10 +71,7 @@ public class ApplicationDirectoryEndpoint {
   public Response getApplication(@PathParam("applicationId") String applicationId) {
     Application app = applications.getApplication(applicationId);
     if (app == null) {
-      return Response.status(Response.Status.NOT_FOUND)
-          .type(MediaType.TEXT_PLAIN)
-          .entity("The requested application does not exist")
-          .build();
+      return ResponseFactory.notFound("The requested application does not exist");
     }
 
     return Response.ok()
@@ -109,7 +107,7 @@ public class ApplicationDirectoryEndpoint {
   @Consumes(MediaType.APPLICATION_JSON)
   @ApiOperation(value = "Updates an application",
       response = Application.class)
-  @ApiResponses({@ApiResponse(code = oasis.web.Application.SC_PRECONDITION_REQUIRED,
+  @ApiResponses({@ApiResponse(code = ResponseFactory.SC_PRECONDITION_REQUIRED,
       message = "The If-Match header is mandatory"),
       @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
           message = "The current user cannot create applications"),
@@ -121,7 +119,7 @@ public class ApplicationDirectoryEndpoint {
       @PathParam("applicationId") String applicationId,
       @ApiParam("application") Application application) {
     if (Strings.isNullOrEmpty(etagStr)) {
-      return Response.status(oasis.web.Application.SC_PRECONDITION_REQUIRED).build();
+      return ResponseFactory.preconditionRequiredIfMatch();
     }
 
     // TODO: remove this check, validate etag in the update operation
@@ -133,10 +131,7 @@ public class ApplicationDirectoryEndpoint {
 
     Application updatedApp = applications.updateApplication(applicationId, application);
     if (updatedApp == null) {
-      return Response.status(Response.Status.NOT_FOUND)
-          .type(MediaType.TEXT_PLAIN)
-          .entity("The requested application does not exist")
-          .build();
+      return ResponseFactory.notFound("The requested application does not exist");
     }
     URI uri = UriBuilder.fromResource(ApplicationDirectoryEndpoint.class)
         .path(ApplicationDirectoryEndpoint.class, "getApplication")
@@ -151,7 +146,7 @@ public class ApplicationDirectoryEndpoint {
   @DELETE
   @Path("/{applicationId}")
   @ApiOperation(value = "Deletes an application")
-  @ApiResponses({@ApiResponse(code = oasis.web.Application.SC_PRECONDITION_REQUIRED,
+  @ApiResponses({@ApiResponse(code = ResponseFactory.SC_PRECONDITION_REQUIRED,
       message = "The If-Match header is mandatory"),
       @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
           message = "The requested application does not exist, or no application id has been sent"),
@@ -164,16 +159,13 @@ public class ApplicationDirectoryEndpoint {
       @HeaderParam("If-Match") @ApiParam(required = true) String etagStr,
       @PathParam("applicationId") String applicationId) {
     if (Strings.isNullOrEmpty(etagStr)) {
-      return Response.status(oasis.web.Application.SC_PRECONDITION_REQUIRED).build();
+      return ResponseFactory.preconditionRequiredIfMatch();
     }
 
     // TODO: remove this check, validate etag in the delete operation
     Application app = applications.getApplication(applicationId);
     if (app == null) {
-      return Response.status(Response.Status.NOT_FOUND)
-          .type(MediaType.TEXT_PLAIN)
-          .entity("The requested application does not exist")
-          .build();
+      return ResponseFactory.notFound("The requested application does not exist");
     }
 
     Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(new EntityTag(etagService.getEtag(app)));
@@ -182,12 +174,9 @@ public class ApplicationDirectoryEndpoint {
     }
 
     if (!applications.deleteApplication(applicationId)) {
-      return Response.status(Response.Status.NOT_FOUND).type(MediaType.TEXT_PLAIN)
-          .entity("The requested application does not exist")
-          .build();
+      return ResponseFactory.notFound("The requested application does not exist");
     }
-    return Response.noContent()
-        .build();
+    return ResponseFactory.NO_CONTENT;
   }
 
   @GET
@@ -203,10 +192,7 @@ public class ApplicationDirectoryEndpoint {
   public Response getDataProviders(@PathParam("applicationId") String applicationId) {
     Iterable<DataProvider> dataProviders = applications.getDataProviders(applicationId);
     if (dataProviders == null) {
-      return Response.status(Response.Status.NOT_FOUND)
-          .type(MediaType.TEXT_PLAIN)
-          .entity("The requested application does not exist")
-          .build();
+      return ResponseFactory.notFound("The requested application does not exist");
     }
 
     return Response.ok()
@@ -219,11 +205,10 @@ public class ApplicationDirectoryEndpoint {
   @Consumes(MediaType.APPLICATION_JSON)
   @ApiOperation(value = "Creates a data provider",
       response = DataProvider.class)
-  @ApiResponses({@ApiResponse(code = oasis.web.Application.SC_PRECONDITION_REQUIRED,
-      message = "The If-Match header is mandatory"),
+  @ApiResponses({
       @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
           message = "The requested application does not exist, or no application id has been sent"),
-      @ApiResponse(code = oasis.web.Application.SC_UNPROCESSABLE_ENTITY,
+      @ApiResponse(code = ResponseFactory.SC_UNPROCESSABLE_ENTITY,
           message = "The requested application instance cannot be updated"),
       @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
           message = "The current user cannot access the requested application")})
@@ -232,17 +217,11 @@ public class ApplicationDirectoryEndpoint {
       @ApiParam DataProvider dataProvider) {
     Application app = applications.getApplication(applicationId);
     if (app == null) {
-      return Response.status(Response.Status.NOT_FOUND)
-          .type(MediaType.TEXT_PLAIN)
-          .entity("The requested application does not exist")
-          .build();
+      return ResponseFactory.notFound("The requested application does not exist");
     }
 
     if (app.isTenant()) {
-      return Response.status(oasis.web.Application.SC_UNPROCESSABLE_ENTITY)
-          .type(MediaType.TEXT_PLAIN)
-          .entity("The requested application instance cannot be updated")
-          .build();
+      return ResponseFactory.unprocessableEntity("The requested application instance cannot be updated");
     }
 
     DataProvider newDataProvider = applications.createDataProvider(applicationId, dataProvider);
@@ -269,10 +248,7 @@ public class ApplicationDirectoryEndpoint {
   public Response getServiceProvider(@PathParam("applicationId") String applicationId) {
     ServiceProvider serviceProvider = applications.getServiceProviderFromApplication(applicationId);
     if (serviceProvider == null) {
-      return Response.status(Response.Status.NOT_FOUND)
-          .type(MediaType.TEXT_PLAIN)
-          .entity("The requested application does not exist or does not contain a service provider")
-          .build();
+      return ResponseFactory.notFound("The requested application does not exist or does not contain a service provider");
     }
 
     return Response.ok()
@@ -288,7 +264,7 @@ public class ApplicationDirectoryEndpoint {
       response = ServiceProvider.class)
   @ApiResponses({@ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
       message = "The requested application does not exist, no application id has been sent or no service provider can be found for this application"),
-      @ApiResponse(code = oasis.web.Application.SC_UNPROCESSABLE_ENTITY,
+      @ApiResponse(code = ResponseFactory.SC_UNPROCESSABLE_ENTITY,
           message = "The requested application instance cannot be updated"),
       @ApiResponse(code = HttpServletResponse.SC_FORBIDDEN,
           message = "The current user cannot access the requested application")})
@@ -297,17 +273,11 @@ public class ApplicationDirectoryEndpoint {
       @ApiParam ServiceProvider serviceProvider) {
     Application app = applications.getApplication(applicationId);
     if (app == null) {
-      return Response.status(Response.Status.NOT_FOUND)
-          .type(MediaType.TEXT_PLAIN)
-          .entity("The requested application does not exist")
-          .build();
+      return ResponseFactory.notFound("The requested application does not exist");
     }
 
     if (app.isTenant()) {
-      return Response.status(oasis.web.Application.SC_UNPROCESSABLE_ENTITY)
-          .type(MediaType.TEXT_PLAIN)
-          .entity("The requested application instance cannot be updated")
-          .build();
+      return ResponseFactory.unprocessableEntity("The requested application instance cannot be updated");
     }
 
     ServiceProvider newServiceProvider = applications.createServiceProvider(applicationId, serviceProvider);

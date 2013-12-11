@@ -29,6 +29,7 @@ import com.wordnik.swagger.annotations.ApiResponses;
 import oasis.model.applications.ApplicationRepository;
 import oasis.model.applications.DataProvider;
 import oasis.services.etag.EtagService;
+import oasis.web.ResponseFactory;
 
 @Path("/d/dataprovider")
 @Produces(MediaType.APPLICATION_JSON)
@@ -53,9 +54,7 @@ public class DataProviderDirectoryEndpoint {
   public Response getDataProvider(@PathParam("dataProviderId") String dataProviderId) {
     DataProvider dataProvider = applications.getDataProvider(dataProviderId);
     if (dataProvider == null) {
-      return Response.status(Response.Status.NOT_FOUND)
-          .entity("The requested data provider does not exist")
-          .build();
+      return ResponseFactory.notFound("The requested data provider does not exist");
     }
 
     return Response.ok()
@@ -69,7 +68,7 @@ public class DataProviderDirectoryEndpoint {
   @Consumes(MediaType.APPLICATION_JSON)
   @ApiOperation(value = "Creates or updates a data provider",
       response = DataProvider.class)
-  @ApiResponses({@ApiResponse(code = oasis.web.Application.SC_PRECONDITION_REQUIRED,
+  @ApiResponses({@ApiResponse(code = ResponseFactory.SC_PRECONDITION_REQUIRED,
       message = "The If-Match header is mandatory"),
       @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
           message = "The requested data provider does not exist, or no data provider id has been sent"),
@@ -83,16 +82,13 @@ public class DataProviderDirectoryEndpoint {
       @PathParam("dataProviderId") String dataProviderId,
       @ApiParam DataProvider dataProvider) {
     if (Strings.isNullOrEmpty(etagStr)) {
-      return Response.status(oasis.web.Application.SC_PRECONDITION_REQUIRED).build();
+      return ResponseFactory.preconditionRequiredIfMatch();
     }
 
     // TODO: remove this check, validate etag in the update operation
     DataProvider dp = applications.getDataProvider(dataProviderId);
     if (dp == null) {
-      return Response.status(Response.Status.NOT_FOUND)
-          .type(MediaType.TEXT_PLAIN)
-          .entity("The requested data provider does not exist")
-          .build();
+      return ResponseFactory.notFound("The requested data provider does not exist");
     }
 
     Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(new EntityTag(etagService.getEtag(dp)));
@@ -102,10 +98,7 @@ public class DataProviderDirectoryEndpoint {
 
     DataProvider updatedDataProvider = applications.updateDataProvider(dataProviderId, dataProvider);
     if (updatedDataProvider == null) {
-      return Response.status(Response.Status.NOT_FOUND)
-          .type(MediaType.TEXT_PLAIN)
-          .entity("The requested data provider does not exist")
-          .build();
+      return ResponseFactory.notFound("The requested data provider does not exist");
     }
 
     URI uri = UriBuilder.fromResource(DataProviderDirectoryEndpoint.class)
@@ -121,7 +114,7 @@ public class DataProviderDirectoryEndpoint {
   @DELETE
   @Path("/{dataProviderId}")
   @ApiOperation(value = "Deletes data provider")
-  @ApiResponses({@ApiResponse(code = oasis.web.Application.SC_PRECONDITION_REQUIRED,
+  @ApiResponses({@ApiResponse(code = ResponseFactory.SC_PRECONDITION_REQUIRED,
       message = "The If-Match header is mandatory"),
       @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
           message = "The requested data provider does not exist"),
@@ -134,16 +127,13 @@ public class DataProviderDirectoryEndpoint {
       @HeaderParam("If-Match") @ApiParam(required = true) String etagStr,
       @PathParam("dataProviderId") String dataProviderId) {
     if (Strings.isNullOrEmpty(etagStr)) {
-      return Response.status(oasis.web.Application.SC_PRECONDITION_REQUIRED).build();
+      return ResponseFactory.preconditionRequiredIfMatch();
     }
 
     // TODO: remove this check, validate etag in the delete operation
     DataProvider dp = applications.getDataProvider(dataProviderId);
     if (dp == null) {
-      return Response.status(Response.Status.NOT_FOUND)
-          .type(MediaType.TEXT_PLAIN)
-          .entity("The requested data provider does not exist")
-          .build();
+      return ResponseFactory.notFound("The requested data provider does not exist");
     }
 
     Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(new EntityTag(etagService.getEtag(dp)));
@@ -152,11 +142,8 @@ public class DataProviderDirectoryEndpoint {
     }
 
     if (!applications.deleteDataProvider(dataProviderId)) {
-      return Response.status(Response.Status.NOT_FOUND).type(MediaType.TEXT_PLAIN)
-          .entity("The requested data provider does not exist")
-          .build();
+      return ResponseFactory.notFound("The requested data provider does not exist");
     }
-    return Response.noContent()
-        .build();
+    return ResponseFactory.NO_CONTENT;
   }
 }

@@ -29,6 +29,7 @@ import com.wordnik.swagger.annotations.ApiResponses;
 import oasis.model.applications.ApplicationRepository;
 import oasis.model.applications.ServiceProvider;
 import oasis.services.etag.EtagService;
+import oasis.web.ResponseFactory;
 
 @Path("/d/serviceprovider")
 @Produces(MediaType.APPLICATION_JSON)
@@ -54,10 +55,7 @@ public class ServiceProviderDirectoryEndpoint {
       @PathParam("serviceProviderId") String serviceProviderId) {
     ServiceProvider serviceProvider = applications.getServiceProvider(serviceProviderId);
     if (serviceProvider == null) {
-      return Response.status(Response.Status.NOT_FOUND)
-          .type(MediaType.TEXT_PLAIN)
-          .entity("The requested service provider does not exist")
-          .build();
+      return ResponseFactory.notFound("The requested service provider does not exist");
     }
     return Response.ok()
         .entity(serviceProvider)
@@ -71,7 +69,7 @@ public class ServiceProviderDirectoryEndpoint {
   @Consumes(MediaType.APPLICATION_JSON)
   @ApiOperation(value = "Updates a service provider",
       response = ServiceProvider.class)
-  @ApiResponses({@ApiResponse(code = oasis.web.Application.SC_PRECONDITION_REQUIRED,
+  @ApiResponses({@ApiResponse(code = ResponseFactory.SC_PRECONDITION_REQUIRED,
       message = "The If-Match header is mandatory"),
       @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
           message = "The requested service provider does not exist, or no service provider id has been sent"),
@@ -85,16 +83,13 @@ public class ServiceProviderDirectoryEndpoint {
       @PathParam("serviceProviderId") String serviceProviderId,
       @ApiParam ServiceProvider serviceProvider) {
     if (Strings.isNullOrEmpty(etagStr)) {
-      return Response.status(oasis.web.Application.SC_PRECONDITION_REQUIRED).build();
+      return ResponseFactory.preconditionRequiredIfMatch();
     }
 
     // TODO: remove this check, validate etag in the update operation
     ServiceProvider sp = applications.getServiceProvider(serviceProviderId);
     if (sp == null) {
-      return Response.status(Response.Status.NOT_FOUND)
-          .type(MediaType.TEXT_PLAIN)
-          .entity("The requested service provider does not exist")
-          .build();
+      return ResponseFactory.notFound("The requested service provider does not exist");
     }
 
     Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(new EntityTag(etagService.getEtag(sp)));
@@ -104,10 +99,7 @@ public class ServiceProviderDirectoryEndpoint {
 
     ServiceProvider updatedServiceProvider = applications.updateServiceProvider(serviceProviderId, serviceProvider);
     if (updatedServiceProvider == null) {
-      return Response.status(Response.Status.NOT_FOUND)
-          .type(MediaType.TEXT_PLAIN)
-          .entity("The requested service provider does not exist")
-          .build();
+      return ResponseFactory.notFound("The requested service provider does not exist");
     }
 
     URI uri = UriBuilder.fromResource(ServiceProviderDirectoryEndpoint.class)
@@ -123,7 +115,7 @@ public class ServiceProviderDirectoryEndpoint {
   @DELETE
   @Path("/{serviceProviderId}")
   @ApiOperation(value = "Deletes service provider")
-  @ApiResponses({@ApiResponse(code = oasis.web.Application.SC_PRECONDITION_REQUIRED,
+  @ApiResponses({@ApiResponse(code = ResponseFactory.SC_PRECONDITION_REQUIRED,
       message = "The If-Match header is mandatory"),
       @ApiResponse(code = HttpServletResponse.SC_NOT_FOUND,
           message = "The requested service provider does not exist"),
@@ -136,16 +128,13 @@ public class ServiceProviderDirectoryEndpoint {
       @HeaderParam("If-Match") @ApiParam(required = true) String etagStr,
       @PathParam("serviceProviderId") String serviceProviderId) {
     if (Strings.isNullOrEmpty(etagStr)) {
-      return Response.status(oasis.web.Application.SC_PRECONDITION_REQUIRED).build();
+      return ResponseFactory.preconditionRequiredIfMatch();
     }
 
     // TODO: remove this check, validate etag in the delete operation
     ServiceProvider sp = applications.getServiceProvider(serviceProviderId);
     if (sp == null) {
-      return Response.status(Response.Status.NOT_FOUND)
-          .type(MediaType.TEXT_PLAIN)
-          .entity("The requested service provider does not exist")
-          .build();
+      return ResponseFactory.notFound("The requested service provider does not exist");
     }
 
     Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(new EntityTag(etagService.getEtag(sp)));
@@ -154,12 +143,9 @@ public class ServiceProviderDirectoryEndpoint {
     }
 
     if (!applications.deleteServiceProvider(serviceProviderId)) {
-      return Response.status(Response.Status.NOT_FOUND).type(MediaType.TEXT_PLAIN)
-          .entity("The requested service provider does not exist")
-          .build();
+      return ResponseFactory.notFound("The requested service provider does not exist");
     }
 
-    return Response.noContent()
-        .build();
+    return ResponseFactory.NO_CONTENT;
   }
 }

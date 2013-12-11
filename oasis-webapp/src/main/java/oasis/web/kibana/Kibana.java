@@ -15,6 +15,7 @@ import javax.ws.rs.core.Response;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
 
+import oasis.web.ResponseFactory;
 import oasis.web.view.View;
 
 @Path("/")
@@ -105,7 +106,7 @@ public class Kibana {
     try {
       resource = Resources.getResource("kibana/" + resourceName);
     } catch (IllegalArgumentException iae) {
-      return Response.status(Response.Status.NOT_FOUND).build();
+      return ResponseFactory.NOT_FOUND;
     }
 
     URLConnection conn = resource.openConnection();

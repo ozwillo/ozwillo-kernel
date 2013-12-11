@@ -19,6 +19,7 @@ import com.wordnik.swagger.annotations.ApiOperation;
 import oasis.model.notification.Notification;
 import oasis.model.notification.NotificationRepository;
 import oasis.services.notification.NotificationService;
+import oasis.web.ResponseFactory;
 
 @Path("/n")
 @Api(value = "/n", description = "Notification API")
@@ -47,7 +48,7 @@ public class NotificationEndpoint {
     notificationService.createNotifications(incomingNotification.groupIds, incomingNotification.userIds, incomingNotification.data,
         incomingNotification.message, applicationId);
 
-    return Response.noContent().build();
+    return ResponseFactory.NO_CONTENT;
   }
 
   @GET
@@ -79,6 +80,6 @@ public class NotificationEndpoint {
       Mark mark
   ) {
     notificationRepository.markNotifications(userId, Lists.newArrayList(mark.messageIds), mark.status);
-    return Response.noContent().build();
+    return ResponseFactory.NO_CONTENT;
   }
 }

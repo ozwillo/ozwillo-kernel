@@ -29,6 +29,7 @@ import com.wordnik.swagger.annotations.ApiParam;
 import oasis.model.applications.Subscription;
 import oasis.model.applications.SubscriptionRepository;
 import oasis.services.etag.EtagService;
+import oasis.web.ResponseFactory;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.Client;
 
@@ -57,7 +58,7 @@ public class EventBusEndpoint {
     final Subscription subscription = subscriptions.getSomeSubscriptionForEventType(event.eventType);
     if (subscription == null) {
       logger.error("No subscription found for this eventType {}.", event.eventType);
-      return Response.noContent().build();
+      return ResponseFactory.NO_CONTENT;
     }
 
     final String webhook = subscription.getWebHook();
@@ -77,7 +78,7 @@ public class EventBusEndpoint {
           }
         });
 
-    return Response.noContent().build();
+    return ResponseFactory.NO_CONTENT;
   }
 
   @POST
@@ -93,11 +94,7 @@ public class EventBusEndpoint {
 
     Subscription res = subscriptions.createSubscription(appId, subscription);
     if (res == null) {
-      return Response
-          .status(Response.Status.NOT_FOUND)
-          .type(MediaType.TEXT_PLAIN_TYPE)
-          .entity("The application does not exist")
-          .build();
+      return ResponseFactory.notFound("The application does not exist");
     }
 
     URI uri = UriBuilder
@@ -121,17 +118,13 @@ public class EventBusEndpoint {
       @PathParam("subscriptionId") String subscriptionId
   ) {
     if (Strings.isNullOrEmpty(etagStr)) {
-      return Response.status(oasis.web.Application.SC_PRECONDITION_REQUIRED).build();
+      return ResponseFactory.preconditionRequiredIfMatch();
     }
 
     if (!subscriptions.deleteSubscription(subscriptionId)) {
-      return Response
-          .status(Response.Status.NOT_FOUND)
-          .type(MediaType.TEXT_PLAIN_TYPE)
-          .entity("The subscription does not exist")
-          .build();
+      return ResponseFactory.notFound("The subscription does not exist");
     }
 
-    return Response.noContent().build();
+    return ResponseFactory.NO_CONTENT;
   }
 }

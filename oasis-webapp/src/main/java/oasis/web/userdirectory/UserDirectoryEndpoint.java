@@ -32,6 +32,7 @@ import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Group;
 import oasis.model.directory.Organization;
 import oasis.services.etag.EtagService;
+import oasis.web.ResponseFactory;
 
 /*
  * TODO: etag
@@ -78,9 +79,7 @@ public class UserDirectoryEndpoint {
   public Response getOrganization(@PathParam("organizationId") String organizationId) {
     Organization organization = directory.getOrganization(organizationId);
     if (organization == null) {
-      return Response.status(Response.Status.NOT_FOUND).type(MediaType.TEXT_PLAIN)
-          .entity("The requested organization does not exist")
-          .build();
+      return ResponseFactory.notFound("The requested organization does not exist");
     }
     return Response
         .ok()
@@ -100,16 +99,13 @@ public class UserDirectoryEndpoint {
       Organization organization) {
 
     if (Strings.isNullOrEmpty(etagStr)) {
-      return Response.status(oasis.web.Application.SC_PRECONDITION_REQUIRED).build();
+      return ResponseFactory.preconditionRequiredIfMatch();
     }
 
     // TODO: remove this check, validate etag in the update operation
     Organization o = directory.getOrganization(organizationId);
     if (o == null) {
-      return Response.status(Response.Status.NOT_FOUND)
-          .type(MediaType.TEXT_PLAIN)
-          .entity("The requested organization does not exist")
-          .build();
+      return ResponseFactory.notFound("The requested organization does not exist");
     }
 
     Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(new EntityTag(etagService.getEtag(o)));
@@ -119,10 +115,7 @@ public class UserDirectoryEndpoint {
 
     Organization updatedOrganization = directory.updateOrganization(organizationId, organization);
     if (updatedOrganization == null) {
-      return Response.status(Response.Status.NOT_FOUND)
-          .type(MediaType.TEXT_PLAIN)
-          .entity("The requested organization does not exist")
-          .build();
+      return ResponseFactory.notFound("The requested organization does not exist");
     }
 
     URI uri = UriBuilder.fromResource(UserDirectoryEndpoint.class)
@@ -144,16 +137,13 @@ public class UserDirectoryEndpoint {
       @PathParam("organizationId") String organizationId
   ) {
     if (Strings.isNullOrEmpty(etagStr)) {
-      return Response.status(oasis.web.Application.SC_PRECONDITION_REQUIRED).build();
+      return ResponseFactory.preconditionRequiredIfMatch();
     }
 
     // TODO: remove this check, validate etag in the delete operation
     Organization org = directory.getOrganization(organizationId);
     if (org == null) {
-      return Response.status(Response.Status.NOT_FOUND)
-          .type(MediaType.TEXT_PLAIN)
-          .entity("The requested organization does not exist")
-          .build();
+      return ResponseFactory.notFound("The requested organization does not exist");
     }
 
     Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(new EntityTag(etagService.getEtag(org)));
@@ -162,15 +152,13 @@ public class UserDirectoryEndpoint {
     }
 
     if (!directory.deleteOrganization(organizationId)) {
-      return Response.status(Response.Status.NOT_FOUND).type(MediaType.TEXT_PLAIN)
-          .entity("The requested organization does not exist")
-          .build();
+      return ResponseFactory.notFound("The requested organization does not exist");
     }
 
     // XXX: refactor ?
     account.deleteAgentAccountsFromOrganization(organizationId);
 
-    return Response.noContent().build();
+    return ResponseFactory.NO_CONTENT;
   }
 
   /*
@@ -185,9 +173,7 @@ public class UserDirectoryEndpoint {
   public Response getGroups(@PathParam("organizationId") String organizationId) {
     Collection<Group> groups = directory.getGroups(organizationId);
     if (groups == null) {
-      return Response.status(Response.Status.NOT_FOUND).type(MediaType.TEXT_PLAIN)
-          .entity("The requested organization does not exist")
-          .build();
+      return ResponseFactory.notFound("The requested organization does not exist");
     }
     return Response.ok().entity(groups).build();
   }
@@ -200,9 +186,7 @@ public class UserDirectoryEndpoint {
   public Response createGroup(@PathParam("organizationId") String organizationId, Group group) {
     Organization organization = directory.getOrganization(organizationId);
     if (organization == null) {
-      return Response.status(Response.Status.NOT_FOUND).type(MediaType.TEXT_PLAIN)
-          .entity("The requested organization does not exist")
-          .build();
+      return ResponseFactory.notFound("The requested organization does not exist");
     }
     Group res = directory.createGroup(organizationId, group);
     URI uri = UriBuilder.fromResource(UserDirectoryEndpoint.class).path(UserDirectoryEndpoint.class, "getGroup").build(res.getId());
@@ -221,9 +205,7 @@ public class UserDirectoryEndpoint {
   public Response getGroup(@PathParam("groupId") String groupId) {
     Group group = directory.getGroup(groupId);
     if (group == null) {
-      return Response.status(Response.Status.NOT_FOUND).type(MediaType.TEXT_PLAIN)
-          .entity("The requested group does not exist")
-          .build();
+      return ResponseFactory.notFound("The requested group does not exist");
     }
     return Response
         .ok()
@@ -243,16 +225,13 @@ public class UserDirectoryEndpoint {
       Group group) {
 
     if (Strings.isNullOrEmpty(etagStr)) {
-      return Response.status(oasis.web.Application.SC_PRECONDITION_REQUIRED).build();
+      return ResponseFactory.preconditionRequiredIfMatch();
     }
 
     // TODO: remove this check, validate etag in the update operation
     Group g = directory.getGroup(groupId);
     if (g == null) {
-      return Response.status(Response.Status.NOT_FOUND)
-          .type(MediaType.TEXT_PLAIN)
-          .entity("The requested group does not exist")
-          .build();
+      return ResponseFactory.notFound("The requested group does not exist");
     }
 
     Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(new EntityTag(etagService.getEtag(g)));
@@ -262,10 +241,7 @@ public class UserDirectoryEndpoint {
 
     Group updatedGroup = directory.updateGroup(groupId, group);
     if (updatedGroup == null) {
-      return Response.status(Response.Status.NOT_FOUND)
-          .type(MediaType.TEXT_PLAIN)
-          .entity("The requested group does not exist")
-          .build();
+      return ResponseFactory.notFound("The requested group does not exist");
     }
 
     URI uri = UriBuilder.fromResource(UserDirectoryEndpoint.class)
@@ -285,16 +261,13 @@ public class UserDirectoryEndpoint {
       @HeaderParam("If-Match") @ApiParam(required = true) String etagStr,
       @PathParam("groupId") String groupId) {
     if (Strings.isNullOrEmpty(etagStr)) {
-      return Response.status(oasis.web.Application.SC_PRECONDITION_REQUIRED).build();
+      return ResponseFactory.preconditionRequiredIfMatch();
     }
 
     // TODO: remove this check, validate etag in the delete operation
     Group gr = directory.getGroup(groupId);
     if (gr == null) {
-      return Response.status(Response.Status.NOT_FOUND)
-          .type(MediaType.TEXT_PLAIN)
-          .entity("The requested group does not exist")
-          .build();
+      return ResponseFactory.notFound("The requested group does not exist");
     }
 
     Response.ResponseBuilder responseBuilder = request.evaluatePreconditions(new EntityTag(etagService.getEtag(gr)));
@@ -303,11 +276,9 @@ public class UserDirectoryEndpoint {
     }
 
     if (!directory.deleteGroup(groupId)) {
-      return Response.status(Response.Status.NOT_FOUND).type(MediaType.TEXT_PLAIN)
-          .entity("The requested group does not exist")
-          .build();
+      return ResponseFactory.notFound("The requested group does not exist");
     }
-    return Response.noContent().build();
+    return ResponseFactory.NO_CONTENT;
   }
 
   @GET
@@ -318,9 +289,7 @@ public class UserDirectoryEndpoint {
   public Response getOrganizationFromGroup(@PathParam("groupId") String groupId) {
     Organization organization = directory.getOrganizationFromGroup(groupId);
     if (organization == null) {
-      return Response.status(Response.Status.NOT_FOUND).type(MediaType.TEXT_PLAIN)
-          .entity("The requested group does not exist")
-          .build();
+      return ResponseFactory.notFound("The requested group does not exist");
     }
     URI uri = UriBuilder.fromResource(UserDirectoryEndpoint.class).path(UserDirectoryEndpoint.class, "getOrganization").build(organization.getId());
     return Response
@@ -345,9 +314,7 @@ public class UserDirectoryEndpoint {
       @DefaultValue("25") @QueryParam("limit") int limit) {
     Organization organization = directory.getOrganization(organizationId);
     if (organization == null) {
-      return Response.status(Response.Status.NOT_FOUND).type(MediaType.TEXT_PLAIN)
-          .entity("The requested organization does not exist")
-          .build();
+      return ResponseFactory.notFound("The requested organization does not exist");
     }
 
     Iterable<AgentAccount> agents = account.getAgentsForOrganization(organizationId, start, limit);
@@ -362,9 +329,7 @@ public class UserDirectoryEndpoint {
   public Response createAgentAccount(@PathParam("organizationId") String organizationId, AgentAccount agent) {
     Organization organization = directory.getOrganization(organizationId);
     if (organization == null) {
-      return Response.status(Response.Status.NOT_FOUND).type(MediaType.TEXT_PLAIN)
-          .entity("The requested organization does not exist")
-          .build();
+      return ResponseFactory.notFound("The requested organization does not exist");
     }
     String agentId = account.createAgentAccount(organizationId, agent);
     URI uri = UriBuilder.fromResource(UserDirectoryEndpoint.class).path(UserDirectoryEndpoint.class, "getAgentAccount").build(agentId);
@@ -380,9 +345,7 @@ public class UserDirectoryEndpoint {
   public Response getMembers(@PathParam("groupId") String groupId) {
     Collection<String> agentIds = directory.getGroupMembers(groupId);
     if (agentIds == null) {
-      return Response.status(Response.Status.NOT_FOUND).type(MediaType.TEXT_PLAIN)
-          .entity("The requested group does not exist")
-          .build();
+      return ResponseFactory.notFound("The requested group does not exist");
     }
     return Response.ok().entity(agentIds).build();
   }
@@ -393,9 +356,7 @@ public class UserDirectoryEndpoint {
   public Response createGroupMember(@PathParam("groupId") String groupId, String agentId) {
     Group group = directory.getGroup(groupId);
     if (group == null) {
-      return Response.status(Response.Status.NOT_FOUND).type(MediaType.TEXT_PLAIN)
-          .entity("The requested group does not exist")
-          .build();
+      return ResponseFactory.notFound("The requested group does not exist");
     }
     directory.addGroupMember(groupId, agentId);
 
@@ -408,12 +369,10 @@ public class UserDirectoryEndpoint {
   @ApiOperation(value = "Remove an agent from a group")
   public Response removeGroupMember(@PathParam("groupId") String groupId, @PathParam("agentId") String agentId) {
     if (!directory.removeGroupMember(groupId, agentId)) {
-      return Response.status(Response.Status.NOT_FOUND).type(MediaType.TEXT_PLAIN)
-          .entity("The requested group does not exist")
-          .build();
+      return ResponseFactory.notFound("The requested group does not exist");
     }
 
-    return Response.noContent().build();
+    return ResponseFactory.NO_CONTENT;
   }
 
   @GET
@@ -424,9 +383,7 @@ public class UserDirectoryEndpoint {
   public Response getGroupsForAgentAccount(@PathParam("agentId") String agentId) {
     Collection<Group> groups = directory.getGroupsForAgent(agentId);
     if (groups == null) {
-      return Response.status(Response.Status.NOT_FOUND).type(MediaType.TEXT_PLAIN)
-          .entity("The requested agent does not exist")
-          .build();
+      return ResponseFactory.notFound("The requested agent does not exist");
     }
     return Response.ok().entity(groups).build();
   }
@@ -438,9 +395,7 @@ public class UserDirectoryEndpoint {
   public Response getAgentAccount(@PathParam("agentId") String agentId) {
     AgentAccount agent = account.getAgentAccountById(agentId);
     if (agent == null) {
-      return Response.status(Response.Status.NOT_FOUND).type(MediaType.TEXT_PLAIN)
-          .entity("The requested agent does not exist")
-          .build();
+      return ResponseFactory.notFound("The requested agent does not exist");
     }
     return Response.ok().entity(agent).build();
   }
@@ -450,10 +405,8 @@ public class UserDirectoryEndpoint {
   @ApiOperation(value = "Delete an agent")
   public Response deleteAgentAccount(@PathParam("agentId") String agentId) {
     if (!account.deleteAgentAccount(agentId)) {
-      return Response.status(Response.Status.NOT_FOUND).type(MediaType.TEXT_PLAIN)
-          .entity("The requested agent does not exist")
-          .build();
+      return ResponseFactory.notFound("The requested agent does not exist");
     }
-    return Response.noContent().build();
+    return ResponseFactory.NO_CONTENT;
   }
 }

@@ -68,7 +68,7 @@ public class SwaggerUI {
     try {
       resource = Resources.getResource("swagger-ui/" + resourceName);
     } catch (IllegalArgumentException iae) {
-      return Response.status(Response.Status.NOT_FOUND).build();
+      return ResponseFactory.NOT_FOUND;
     }
 
     URLConnection conn = resource.openConnection();

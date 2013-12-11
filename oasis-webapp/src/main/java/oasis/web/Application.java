@@ -36,8 +36,6 @@ import oasis.web.userinfo.UserInfoEndpoint;
 import oasis.web.view.HandlebarsBodyWriter;
 
 public class Application extends javax.ws.rs.core.Application {
-  public static final int SC_UNPROCESSABLE_ENTITY = 422;
-  public static final int SC_PRECONDITION_REQUIRED = 428;
 
   @Override
   public Set<Class<?>> getClasses() {

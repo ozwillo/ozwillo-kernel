@@ -12,6 +12,7 @@ import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.auditlog.AuditLogService;
 import oasis.auditlog.RemoteAuditLogEvent;
+import oasis.web.ResponseFactory;
 
 @Path("/l")
 @Api(value = "/l", description = "Audit log API")
@@ -31,6 +32,6 @@ public class AuditLogEndpoint {
         .setLog(remoteEvent.log)
         .log();
 
-    return Response.noContent().build();
+    return ResponseFactory.NO_CONTENT;
   }
 }
