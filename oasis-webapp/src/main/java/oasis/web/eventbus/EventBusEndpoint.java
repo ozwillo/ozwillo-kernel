@@ -26,6 +26,7 @@ import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiParam;
 
+import oasis.model.InvalidVersionException;
 import oasis.model.applications.Subscription;
 import oasis.model.applications.SubscriptionRepository;
 import oasis.services.etag.EtagService;
@@ -121,7 +122,14 @@ public class EventBusEndpoint {
       return ResponseFactory.preconditionRequiredIfMatch();
     }
 
-    if (!subscriptions.deleteSubscription(subscriptionId)) {
+    boolean deleted;
+    try {
+      deleted = subscriptions.deleteSubscription(subscriptionId, etagService.parseEtag(etagStr));
+    } catch (InvalidVersionException e) {
+      return ResponseFactory.preconditionFailed(e.getMessage());
+    }
+
+    if (!deleted) {
       return ResponseFactory.notFound("The subscription does not exist");
     }
 

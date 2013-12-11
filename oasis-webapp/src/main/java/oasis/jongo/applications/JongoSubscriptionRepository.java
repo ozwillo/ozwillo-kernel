@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import com.mongodb.WriteResult;
 
+import oasis.model.InvalidVersionException;
 import oasis.model.applications.Subscription;
 import oasis.model.applications.SubscriptionRepository;
 
@@ -40,18 +41,23 @@ public class JongoSubscriptionRepository implements SubscriptionRepository {
   }
 
   @Override
-  public boolean deleteSubscription(String subscriptionId) {
-    // TODO: check modified (add modified in Subscription)
+  public boolean deleteSubscription(String subscriptionId, long[] versions) throws InvalidVersionException {
     WriteResult wr = getApplicationsCollection()
-        .update("{ subscriptions.id: # }", subscriptionId)
-        .with("{ $pull: { subscriptions: { id: # } } }", subscriptionId);
+        .update("{ subscriptions: { $elemMatch: { id: #, modified: { $in: # } } } }", subscriptionId, versions)
+        .with("{ $pull: { subscriptions: { id: #, modified: { $in: # } } } }", subscriptionId, versions);
 
     int n = wr.getN();
-    if (n > 1) {
-      logger.error("Deleted {} subscriptions with ID {}, that shouldn't have happened",
-          n, subscriptionId);
+    if (n == 0) {
+      if (getApplicationsCollection().count("{ subscriptions.id: # }", subscriptionId) != 0) {
+        throw new InvalidVersionException("subscription", subscriptionId);
+      }
+      return false;
     }
-    return n > 0;
+
+    if (n > 1) {
+      logger.error("Deleted {} subscriptions with ID {}, that shouldn't have happened", n, subscriptionId);
+    }
+    return true;
   }
 
   @Override
