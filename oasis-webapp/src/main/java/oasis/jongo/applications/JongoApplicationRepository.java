@@ -52,7 +52,7 @@ public class JongoApplicationRepository implements ApplicationRepository {
         .projection(APPLICATION_PROJECTION)
         .as(JongoApplication.class);
 
-    if (app.isTenant()) {
+    if (app != null && app.isTenant()) {
       populateTenant(app);
     }
     return app;
