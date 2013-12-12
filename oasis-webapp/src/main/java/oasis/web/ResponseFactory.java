@@ -30,7 +30,7 @@ public class ResponseFactory {
     return build(SC_UNPROCESSABLE_ENTITY, body);
   }
 
-  private static final Response build(int status, String body) {
+  private static Response build(int status, String body) {
     return Response
         .status(status)
         .type(MediaType.TEXT_PLAIN_TYPE)
