@@ -155,8 +155,8 @@ public class TokenEndpoint {
             .setAudience(client_id)
             .setExpirationTimeSeconds(issuedAt + settings.idTokenExpirationSeconds)
             .setIssuedAtTimeSeconds(issuedAt)
-        //.setNonce() // TODO: Get a nonce token from the client and use it for the auth_token
-        //.setAuthorizationTimeSeconds() // TODO: required if a max_age request is made or if auth_time is requested
+            .setNonce(authorizationCode.getNonce())
+            //.setAuthorizationTimeSeconds() // TODO: required if a max_age request is made or if auth_time is requested
     ));
 
     return response(Response.Status.OK, response);

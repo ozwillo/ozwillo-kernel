@@ -78,7 +78,7 @@ public class TokenHandler {
     return newAccessToken;
   }
 
-  public AuthorizationCode createAuthorizationCode(String accountId, Set<String> scopeIds, String serviceProviderId) {
+  public AuthorizationCode createAuthorizationCode(String accountId, Set<String> scopeIds, String serviceProviderId, String nonce) {
     checkArgument(!Strings.isNullOrEmpty(accountId));
 
     AuthorizationCode newAuthorizationCode = new AuthorizationCode();
@@ -88,6 +88,7 @@ public class TokenHandler {
     newAuthorizationCode.setTimeToLive(Duration.standardMinutes(1));
     newAuthorizationCode.setScopeIds(scopeIds);
     newAuthorizationCode.setServiceProviderId(serviceProviderId);
+    newAuthorizationCode.setNonce(nonce);
 
     // Register the new access token in memory
     if (!registerToken(accountId, newAuthorizationCode)) {
