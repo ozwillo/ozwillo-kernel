@@ -28,7 +28,7 @@ public class OasisIdHelper {
     }
   }
 
-  private static Field findOasisIdField(Class<?> clazz) {
+  static Field findOasisIdField(Class<?> clazz) {
     if (oasisFieldCache.containsKey(clazz)) {
       return oasisFieldCache.get(clazz);
     }

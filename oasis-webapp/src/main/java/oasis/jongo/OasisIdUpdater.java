@@ -10,6 +10,11 @@ public class OasisIdUpdater extends ReflectiveObjectIdUpdater {
   }
 
   @Override
+  public boolean mustGenerateObjectId(Object pojo) {
+    return OasisIdHelper.findOasisIdField(pojo.getClass()) != null;
+  }
+
+  @Override
   public void setObjectId(Object target, ObjectId id) {
     super.setObjectId(target, id);
     OasisIdHelper.updateOasisIdField(target);
