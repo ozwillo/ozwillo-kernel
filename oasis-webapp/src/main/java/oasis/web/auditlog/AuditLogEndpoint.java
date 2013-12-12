@@ -12,7 +12,7 @@ import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.auditlog.AuditLogService;
 import oasis.auditlog.RemoteAuditLogEvent;
-import oasis.web.ResponseFactory;
+import oasis.web.utils.ResponseFactory;
 
 @Path("/l")
 @Api(value = "/l", description = "Audit log API")

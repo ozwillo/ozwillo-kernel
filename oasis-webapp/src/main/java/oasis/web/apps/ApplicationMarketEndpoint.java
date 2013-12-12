@@ -25,7 +25,7 @@ import oasis.model.applications.ApplicationRepository;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Organization;
 import oasis.services.etag.EtagService;
-import oasis.web.ResponseFactory;
+import oasis.web.utils.ResponseFactory;
 
 @Path("/d/app/market")
 @Produces(MediaType.APPLICATION_JSON)

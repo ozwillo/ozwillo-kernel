@@ -30,7 +30,7 @@ import oasis.model.InvalidVersionException;
 import oasis.model.applications.Subscription;
 import oasis.model.applications.SubscriptionRepository;
 import oasis.services.etag.EtagService;
-import oasis.web.ResponseFactory;
+import oasis.web.utils.ResponseFactory;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.Client;
 

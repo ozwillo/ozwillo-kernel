@@ -32,7 +32,7 @@ import oasis.model.applications.ApplicationRepository;
 import oasis.model.applications.DataProvider;
 import oasis.model.applications.ServiceProvider;
 import oasis.services.etag.EtagService;
-import oasis.web.ResponseFactory;
+import oasis.web.utils.ResponseFactory;
 
 @Path("/d/app")
 @Produces(MediaType.APPLICATION_JSON)

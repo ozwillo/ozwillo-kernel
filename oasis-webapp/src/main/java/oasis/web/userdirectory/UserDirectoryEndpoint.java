@@ -32,7 +32,7 @@ import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Group;
 import oasis.model.directory.Organization;
 import oasis.services.etag.EtagService;
-import oasis.web.ResponseFactory;
+import oasis.web.utils.ResponseFactory;
 
 /*
  * TODO: etag

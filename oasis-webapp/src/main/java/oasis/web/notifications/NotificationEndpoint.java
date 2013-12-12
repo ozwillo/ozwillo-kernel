@@ -19,7 +19,7 @@ import com.wordnik.swagger.annotations.ApiOperation;
 import oasis.model.notification.Notification;
 import oasis.model.notification.NotificationRepository;
 import oasis.services.notification.NotificationService;
-import oasis.web.ResponseFactory;
+import oasis.web.utils.ResponseFactory;
 
 @Path("/n")
 @Api(value = "/n", description = "Notification API")

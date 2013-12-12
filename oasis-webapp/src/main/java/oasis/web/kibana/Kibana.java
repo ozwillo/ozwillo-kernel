@@ -15,7 +15,7 @@ import javax.ws.rs.core.Response;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
 
-import oasis.web.ResponseFactory;
+import oasis.web.utils.ResponseFactory;
 import oasis.web.view.View;
 
 @Path("/")

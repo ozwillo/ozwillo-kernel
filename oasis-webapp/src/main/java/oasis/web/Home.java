@@ -6,6 +6,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import oasis.web.utils.ResponseFactory;
 import oasis.web.view.View;
 
 @Path("/")
