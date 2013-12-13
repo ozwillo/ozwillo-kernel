@@ -9,6 +9,7 @@ import org.joda.time.Instant;
 
 import com.google.common.base.Strings;
 
+import oasis.model.accounts.AbstractOAuthToken;
 import oasis.model.accounts.AccessToken;
 import oasis.model.accounts.AuthorizationCode;
 import oasis.model.accounts.RefreshToken;
@@ -39,25 +40,28 @@ public class TokenHandler {
     return true;
   }
 
+  public AccessToken createAccessToken(String accountId, AuthorizationCode authorizationCode) {
+    return this.createAccessToken(accountId, Duration.standardHours(1), authorizationCode);
+  }
+
   public AccessToken createAccessToken(String accountId, RefreshToken refreshToken) {
     return this.createAccessToken(accountId, Duration.standardHours(1), refreshToken);
   }
 
-  public AccessToken createAccessToken(String accountId, Duration ttl, RefreshToken refreshToken) {
+  private AccessToken createAccessToken(String accountId, Duration ttl, AbstractOAuthToken token) {
     checkArgument(!Strings.isNullOrEmpty(accountId));
 
     AccessToken newAccessToken = new AccessToken();
 
     newAccessToken.setCreationTime(Instant.now());
     newAccessToken.setTimeToLive(ttl);
-
-    if (refreshToken != null) {
-      if (refreshToken instanceof AuthorizationCode) {
-          if (!tokenRepository.revokeToken(refreshToken.getId())) {
-            return null;
-          }
-      } else {
-        newAccessToken.setRefreshTokenId(refreshToken.getId());
+    if (token != null) {
+      if (token instanceof AuthorizationCode) {
+        if (!tokenRepository.revokeToken(token.getId())) {
+          return null;
+        }
+      } else if (token instanceof RefreshToken) {
+        newAccessToken.setRefreshTokenId(token.getId());
       }
     }
 
