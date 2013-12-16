@@ -10,18 +10,14 @@ import org.jongo.MongoCollection;
 import com.google.common.base.Strings;
 
 import oasis.model.accounts.Account;
-import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.Token;
 import oasis.model.authn.TokenRepository;
 
 public class JongoTokenRepository implements TokenRepository {
   private final Jongo jongo;
 
-  private final AccountRepository accountRepository;
-
-  @Inject JongoTokenRepository(Jongo jongo, AccountRepository accountRepository) {
+  @Inject JongoTokenRepository(Jongo jongo) {
     this.jongo = jongo;
-    this.accountRepository = accountRepository;
   }
 
   protected MongoCollection getAccountCollection() {
@@ -30,17 +26,15 @@ public class JongoTokenRepository implements TokenRepository {
 
   @Override
   public Token getToken(String tokenId) {
-    checkArgument(!Strings.isNullOrEmpty(tokenId));
+    Account account = getAccountCollection()
+        .findOne("{tokens.id: #}", tokenId)
+        .projection("{tokens.$: 1}")
+        .as(Account.class);
 
-    Account account = accountRepository.getAccountByTokenId(tokenId);
-
-    for(Token t : account.getTokens()) {
-      if (t.getId().equals(tokenId)) {
-        return t;
-      }
+    if (account == null || account.getTokens() == null || account.getTokens().isEmpty()) {
+      return null;
     }
-
-    return null;
+    return account.getTokens().get(0);
   }
 
   public boolean registerToken(String accountId, Token token) {
