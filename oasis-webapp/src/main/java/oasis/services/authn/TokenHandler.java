@@ -80,7 +80,7 @@ public class TokenHandler {
     return newAccessToken;
   }
 
-  public AuthorizationCode createAuthorizationCode(String accountId, Set<String> scopeIds, String serviceProviderId, String nonce) {
+  public AuthorizationCode createAuthorizationCode(String accountId, Set<String> scopeIds, String serviceProviderId, String nonce, String redirectUri) {
     checkArgument(!Strings.isNullOrEmpty(accountId));
 
     AuthorizationCode newAuthorizationCode = new AuthorizationCode();
@@ -91,6 +91,7 @@ public class TokenHandler {
     newAuthorizationCode.setScopeIds(scopeIds);
     newAuthorizationCode.setServiceProviderId(serviceProviderId);
     newAuthorizationCode.setNonce(nonce);
+    newAuthorizationCode.setRedirectUri(redirectUri);
 
     // Register the new token
     if (!registerToken(accountId, newAuthorizationCode)) {

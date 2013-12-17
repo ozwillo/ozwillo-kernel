@@ -162,7 +162,7 @@ public class AuthorizationEndpoint {
     if (grantedScopeIds.containsAll(scopeIds)) {
       // User already granted all requested scopes, let it be a "transparent" redirect
       String nonce = getParameter(NONCE);
-      AuthorizationCode authCode = tokenHandler.createAuthorizationCode(userId, scopeIds, client_id, nonce);
+      AuthorizationCode authCode = tokenHandler.createAuthorizationCode(userId, scopeIds, client_id, nonce, redirect_uri);
 
       if (authCode == null) {
         return Response.serverError().build();

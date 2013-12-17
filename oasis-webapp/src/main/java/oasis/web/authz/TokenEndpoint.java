@@ -189,7 +189,11 @@ public class TokenEndpoint {
       return errorResponse("invalid_token", null);
     }
 
-    AuthorizationCode authorizationCode = (AuthorizationCode)token;
+    AuthorizationCode authorizationCode = (AuthorizationCode)token;;
+    if (!authorizationCode.getRedirectUri().equals(redirect_uri)) {
+      logger.warn("Received redirect_uri {} does not match the one received at the authorization request.", redirect_uri);
+      return errorResponse("invalid_request", "Invalid parameter value: redirect_uri");
+    }
 
     // Verify that the client which want to use the authorization code is the client which created i
     String client_id = ((ClientPrincipal) securityContext.getUserPrincipal()).getClientId();
