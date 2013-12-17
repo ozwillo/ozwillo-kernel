@@ -18,10 +18,11 @@ import com.google.api.client.auth.oauth2.TokenErrorResponse;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
+import oasis.model.accounts.AbstractOAuthToken;
 import oasis.model.accounts.Account;
 import oasis.model.accounts.AccountRepository;
-import oasis.model.accounts.Token;
 import oasis.model.authn.TokenRepository;
+import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.Client;
@@ -35,6 +36,7 @@ public class RevokeEndpoint {
 
   @Inject AccountRepository accountRepository;
   @Inject TokenRepository tokenRepository;
+  @Inject TokenHandler tokenHandler;
 
   @POST
   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
@@ -46,15 +48,13 @@ public class RevokeEndpoint {
   public Response post(MultivaluedMap<String, String> params) {
     this.params = params;
 
-    String tokenSerial = getRequiredParameter("token");
+    String token_serial = getRequiredParameter("token");
 
-    Token token = TokenSerializer.unserialize(tokenSerial);
+    AbstractOAuthToken token = tokenHandler.getCheckedToken(TokenSerializer.unserialize(token_serial), AbstractOAuthToken.class);
 
     if (token == null) {
       return errorResponse("invalid_token", null);
     }
-
-    // TODO : Check if client id match the given token client id
 
     Account account = accountRepository.getAccountByTokenId(token.getId());
 

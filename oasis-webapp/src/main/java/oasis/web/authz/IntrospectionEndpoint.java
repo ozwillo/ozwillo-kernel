@@ -25,10 +25,8 @@ import com.wordnik.swagger.annotations.ApiOperation;
 import oasis.model.accounts.AccessToken;
 import oasis.model.accounts.Account;
 import oasis.model.accounts.AccountRepository;
-import oasis.model.accounts.Token;
 import oasis.model.applications.ApplicationRepository;
 import oasis.model.applications.DataProvider;
-import oasis.model.authn.TokenRepository;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.services.authz.GroupService;
@@ -43,7 +41,6 @@ public class IntrospectionEndpoint {
   private static final Joiner SCOPE_JOINER = Joiner.on(' ').skipNulls();
 
   @Context SecurityContext securityContext;
-  @Inject TokenRepository tokenRepository;
   @Inject TokenHandler tokenHandler;
   @Inject AccountRepository accountRepository;
   @Inject ApplicationRepository applicationRepository;
@@ -67,26 +64,11 @@ public class IntrospectionEndpoint {
       return error();
     }
 
-    Token unserializedToken = TokenSerializer.unserialize(token);
-    if (unserializedToken == null) {
-      return error();
-    }
+    AccessToken accessToken = tokenHandler.getCheckedToken(TokenSerializer.unserialize(token), AccessToken.class);
 
-    // Preventive check in order to not make a call to the database
-    if (!tokenHandler.checkTokenValidity(unserializedToken)) {
+    if (accessToken == null) {
       return error();
     }
-
-    Token unverifiedToken = tokenRepository.getToken(unserializedToken.getId());
-    if (!(unverifiedToken instanceof AccessToken)) {
-      return error();
-    }
-    // True check not based on the token given by the untrusted client
-    if (!tokenHandler.checkTokenValidity(unverifiedToken)) {
-      return error();
-    }
-
-    AccessToken accessToken = (AccessToken) unverifiedToken;
 
     // XXX: load an entire account just for an account id ?
     Account account = accountRepository.getAccountByTokenId(accessToken.getId());
