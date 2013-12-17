@@ -3,7 +3,7 @@ package oasis.model.accounts;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
-public class AuthorizationCode extends AbstractOAuthToken {
+public class AuthorizationCode extends AccessTokenGenerator {
   @JsonProperty
   @ApiModelProperty
   private String nonce;

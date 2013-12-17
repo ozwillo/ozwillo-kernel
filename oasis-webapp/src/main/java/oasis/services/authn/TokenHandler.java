@@ -11,8 +11,8 @@ import org.joda.time.Instant;
 
 import com.google.common.base.Strings;
 
-import oasis.model.accounts.AbstractOAuthToken;
 import oasis.model.accounts.AccessToken;
+import oasis.model.accounts.AccessTokenGenerator;
 import oasis.model.accounts.AuthorizationCode;
 import oasis.model.accounts.RefreshToken;
 import oasis.model.accounts.Token;
@@ -42,25 +42,31 @@ public class TokenHandler {
     return true;
   }
 
-  public AccessToken createAccessToken(String accountId, AuthorizationCode authorizationCode) {
-    return this.createAccessToken(accountId, Duration.standardHours(1), authorizationCode);
+  public AccessToken createAccessToken(String accountId, AccessTokenGenerator oauthToken) {
+    return this.createAccessToken(accountId, Duration.standardHours(1), oauthToken, null);
   }
 
-  public AccessToken createAccessToken(String accountId, RefreshToken refreshToken) {
-    return this.createAccessToken(accountId, Duration.standardHours(1), refreshToken);
+  public AccessToken createAccessToken(String accountId, AccessTokenGenerator oauthToken, Set<String> scopeIds) {
+    return this.createAccessToken(accountId, Duration.standardHours(1), oauthToken, scopeIds);
   }
 
-  private AccessToken createAccessToken(String accountId, Duration ttl, AbstractOAuthToken token) {
+  private AccessToken createAccessToken(String accountId, Duration ttl, AccessTokenGenerator token, Set<String> scopeIds) {
     checkArgument(!Strings.isNullOrEmpty(accountId));
+
+    if (scopeIds == null || scopeIds.isEmpty()) {
+      scopeIds = checkNotNull(token).getScopeIds();
+    }
+
+    String serviceProviderId;
 
     AccessToken newAccessToken = new AccessToken();
 
     newAccessToken.setCreationTime(Instant.now());
     newAccessToken.setTimeToLive(ttl);
-    newAccessToken.setScopeIds(token.getScopeIds());
-    newAccessToken.setServiceProviderId(token.getServiceProviderId());
-
+    newAccessToken.setScopeIds(scopeIds);
     if (token != null) {
+      serviceProviderId = token.getServiceProviderId();
+
       if (token instanceof AuthorizationCode) {
         if (!tokenRepository.revokeToken(token.getId())) {
           return null;
@@ -68,7 +74,11 @@ public class TokenHandler {
       } else if (token instanceof RefreshToken) {
         newAccessToken.setRefreshTokenId(token.getId());
       }
+    } else {
+      // TODO : Get the ServiceProviderId
+      serviceProviderId = null;
     }
+    newAccessToken.setServiceProviderId(serviceProviderId);
 
     if (!registerToken(accountId, newAccessToken)) {
       return null;
@@ -90,13 +100,32 @@ public class TokenHandler {
     newAuthorizationCode.setServiceProviderId(serviceProviderId);
     newAuthorizationCode.setNonce(nonce);
 
-    // Register the new access token in memory
+    // Register the new token
     if (!registerToken(accountId, newAuthorizationCode)) {
       return null;
     }
 
     // Return the new token
     return newAuthorizationCode;
+  }
+
+  public RefreshToken createRefreshToken(String accountId, AuthorizationCode authorizationCode) {
+    checkArgument(!Strings.isNullOrEmpty(accountId));
+
+    RefreshToken refreshToken = new RefreshToken();
+
+    refreshToken.setCreationTime(Instant.now());
+    // A RefreshToken is valid 50 years
+    refreshToken.setTimeToLive(Duration.standardDays(50 * 365));
+    refreshToken.setScopeIds(authorizationCode.getScopeIds());
+    refreshToken.setServiceProviderId(authorizationCode.getServiceProviderId());
+
+    // Register the new token
+    if (!registerToken(accountId, refreshToken)) {
+      return null;
+    }
+
+    return refreshToken;
   }
 
   public boolean registerToken(String accountId, Token token) {
