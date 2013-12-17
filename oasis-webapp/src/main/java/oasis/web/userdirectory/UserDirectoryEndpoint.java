@@ -27,15 +27,15 @@ import com.wordnik.swagger.annotations.ApiParam;
 
 import oasis.model.InvalidVersionException;
 import oasis.model.accounts.AccountRepository;
-import oasis.model.accounts.AgentAccount;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Group;
 import oasis.model.directory.Organization;
 import oasis.services.etag.EtagService;
+import oasis.services.userdirectory.AgentInfo;
+import oasis.services.userdirectory.UserDirectoryService;
 import oasis.web.utils.ResponseFactory;
 
 /*
- * TODO: etag
  * TODO: authorization
  */
 @Path("/d")
@@ -51,6 +51,9 @@ public class UserDirectoryEndpoint {
 
   @Inject
   private EtagService etagService;
+
+  @Inject
+  private UserDirectoryService userDirectoryService;
 
   /*
    * Organization
@@ -288,9 +291,9 @@ public class UserDirectoryEndpoint {
   @Path("/org/{organizationId}/agents")
   @ApiOperation(value = "Retrieve agents of an organization",
       notes = "Returns agents array",
-      response = AgentAccount.class,
+      response = AgentInfo.class,
       responseContainer = "Array")
-  public Response getAgentAccounts(@PathParam("organizationId") String organizationId,
+  public Response getAgentInfos(@PathParam("organizationId") String organizationId,
       @DefaultValue("0") @QueryParam("start") int start,
       @DefaultValue("25") @QueryParam("limit") int limit) {
     Organization organization = directory.getOrganization(organizationId);
@@ -298,23 +301,34 @@ public class UserDirectoryEndpoint {
       return ResponseFactory.notFound("The requested organization does not exist");
     }
 
-    Iterable<AgentAccount> agents = account.getAgentsForOrganization(organizationId, start, limit);
-    return Response.ok().entity(agents).build();
+    Iterable<AgentInfo> agents = userDirectoryService.getAgentsForOrganization(organizationId, start, limit);
+
+    return Response
+        .ok()
+        .entity(agents)
+        .build();
   }
 
   @POST
   @Path("/org/{organizationId}/agents")
   @ApiOperation(value = "Add an agent in an organization",
       notes = "The returned location URL get access to the agent (retrieve, delete this agent)",
-      response = AgentAccount.class)
-  public Response createAgentAccount(@PathParam("organizationId") String organizationId, AgentAccount agent) {
+      response = AgentInfo.class)
+  public Response createAgentAccount(@PathParam("organizationId") String organizationId, AgentInfo agentInfo) {
     Organization organization = directory.getOrganization(organizationId);
     if (organization == null) {
       return ResponseFactory.notFound("The requested organization does not exist");
     }
-    String agentId = account.createAgentAccount(organizationId, agent);
-    URI uri = UriBuilder.fromResource(UserDirectoryEndpoint.class).path(UserDirectoryEndpoint.class, "getAgentAccount").build(agentId);
-    return Response.created(uri).contentLocation(uri).entity(agent).build();
+
+    AgentInfo agent = userDirectoryService.createAgentAccount(organizationId, agentInfo);
+
+    URI uri = UriBuilder.fromResource(UserDirectoryEndpoint.class).path(UserDirectoryEndpoint.class, "getAgentAccount").build(agent.getId());
+    return Response
+        .created(uri)
+        .tag(etagService.getEtag(agent))
+        .contentLocation(uri)
+        .entity(agent)
+        .build();
   }
 
   @GET
@@ -328,7 +342,10 @@ public class UserDirectoryEndpoint {
     if (agentIds == null) {
       return ResponseFactory.notFound("The requested group does not exist");
     }
-    return Response.ok().entity(agentIds).build();
+    return Response
+        .ok()
+        .entity(agentIds)
+        .build();
   }
 
   @POST
@@ -339,10 +356,13 @@ public class UserDirectoryEndpoint {
     if (group == null) {
       return ResponseFactory.notFound("The requested group does not exist");
     }
+    // TODO: validate agentId, validate agent's organization and groupId
     directory.addGroupMember(groupId, agentId);
 
     URI uri = UriBuilder.fromResource(UserDirectoryEndpoint.class).path(UserDirectoryEndpoint.class, "removeGroupMember").build(groupId, agentId);
-    return Response.created(uri).build();
+    return Response
+        .created(uri)
+        .build();
   }
 
   @DELETE
@@ -366,26 +386,45 @@ public class UserDirectoryEndpoint {
     if (groups == null) {
       return ResponseFactory.notFound("The requested agent does not exist");
     }
-    return Response.ok().entity(groups).build();
+    return Response
+        .ok()
+        .entity(groups)
+        .build();
   }
 
   @GET
   @Path("/agent/{agentId}")
   @ApiOperation(value = "Retrieve an agent",
-      response = AgentAccount.class)
+      response = AgentInfo.class)
   public Response getAgentAccount(@PathParam("agentId") String agentId) {
-    AgentAccount agent = account.getAgentAccountById(agentId);
+    AgentInfo agent = userDirectoryService.getAgentInfo(agentId);
     if (agent == null) {
       return ResponseFactory.notFound("The requested agent does not exist");
     }
-    return Response.ok().entity(agent).build();
+    return Response
+        .ok()
+        .tag(etagService.getEtag(agent))
+        .entity(agent)
+        .build();
   }
 
   @DELETE
   @Path("/agent/{agentId}")
   @ApiOperation(value = "Delete an agent")
-  public Response deleteAgentAccount(@PathParam("agentId") String agentId) {
-    if (!account.deleteAgentAccount(agentId)) {
+  public Response deleteAgentAccount(
+      @HeaderParam("If-Match") @ApiParam(required = true) String etagStr,
+      @PathParam("agentId") String agentId) {
+    if (Strings.isNullOrEmpty(etagStr)) {
+      return ResponseFactory.preconditionRequiredIfMatch();
+    }
+
+    boolean deleted = false;
+    try {
+      deleted = userDirectoryService.deleteAgentAccount(agentId, etagService.parseEtag(etagStr));
+    } catch (InvalidVersionException e) {
+      return ResponseFactory.preconditionRequiredIfMatch();
+    }
+    if (!deleted) {
       return ResponseFactory.notFound("The requested agent does not exist");
     }
     return ResponseFactory.NO_CONTENT;

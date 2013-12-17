@@ -4,19 +4,16 @@ import javax.inject.Inject;
 
 import org.jongo.Jongo;
 import org.jongo.MongoCollection;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.mongodb.WriteResult;
 
+import oasis.model.InvalidVersionException;
 import oasis.model.accounts.Account;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.AgentAccount;
 import oasis.model.accounts.UserAccount;
 
 public class JongoAccountRepository implements AccountRepository {
-
-  private static final Logger logger = LoggerFactory.getLogger(AccountRepository.class);
 
   private final Jongo jongo;
 
@@ -55,22 +52,24 @@ public class JongoAccountRepository implements AccountRepository {
   }
 
   @Override
-  public String createAgentAccount(String organizationId, AgentAccount agent) {
+  public AgentAccount createAgentAccount(String organizationId, AgentAccount agent) {
     agent.setModified(System.currentTimeMillis());
     agent.setOrganizationId(organizationId);
     getAccountCollection().insert(agent);
-    return agent.getId();
+    return agent;
   }
 
   @Override
-  public boolean deleteAgentAccount(String agentId) {
-    // TODO: check modified
-    WriteResult wr = getAccountCollection().remove("{ id: # }", agentId);
-    if (wr.getN() != 1) {
-      logger.warn("The agent {} does not exist", agentId);
+  public boolean deleteAgentAccount(String agentId, long[] versions) throws InvalidVersionException {
+    WriteResult wr = getAccountCollection().remove("{id: #, modified: { $in: # } }", agentId, versions);
+    if (wr.getN() == 0) {
+      if (getAccountCollection().count("{ id: # }", agentId) != 0) {
+        throw new InvalidVersionException("agentaccount", agentId);
+      }
+      return false;
     }
 
-    return wr.getN() == 1;
+    return true;
   }
 
   @Override
@@ -85,6 +84,20 @@ public class JongoAccountRepository implements AccountRepository {
         .skip(start)
         .limit(limit)
         .as(AgentAccount.class);
+  }
+
+  @Override
+  public AgentAccount findAndRemove(String agentId, long[] versions) throws InvalidVersionException {
+    AgentAccount res = getAccountCollection()
+        .findAndModify("{id: #, modified: { $in: # } }", agentId, versions)
+        .remove()
+        .as(AgentAccount.class);
+    if (res == null) {
+      if (getAccountCollection().count("{ id: # }", agentId) != 0) {
+        throw new InvalidVersionException("agentaccount", agentId);
+      }
+    }
+    return res;
   }
 
 }
