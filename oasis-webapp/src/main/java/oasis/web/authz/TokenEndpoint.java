@@ -21,6 +21,9 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.api.client.auth.oauth2.TokenErrorResponse;
 import com.google.api.client.auth.openidconnect.IdToken;
 import com.google.api.client.auth.openidconnect.IdTokenResponse;
@@ -49,6 +52,7 @@ import oasis.web.authn.ClientPrincipal;
 @Authenticated @Client
 @Api(value = "/a/token", description = "Token Endpoint.")
 public class TokenEndpoint {
+  private static final Logger logger = LoggerFactory.getLogger(TokenEndpoint.class);
   private static final Joiner SCOPE_JOINER = Joiner.on(' ').skipNulls();
   private static final JsonWebSignature.Header JWS_HEADER = new JsonWebSignature.Header().setType("JWS").setAlgorithm("RS256");
 
@@ -99,21 +103,31 @@ public class TokenEndpoint {
     }
 
     Token realToken = tokenRepository.getToken(token.getId());
-    if (realToken == null || !tokenHandler.checkTokenValidity(realToken)) {
+    if (realToken == null || !tokenHandler.checkTokenValidity(realToken) || !(realToken instanceof AuthorizationCode)) {
       // token does not exist, is not an AccessToken, or has expired
+      return errorResponse("invalid_token", null);
+    }
+    AuthorizationCode authorizationCode = (AuthorizationCode) realToken;
+
+    String client_id = ((ClientPrincipal) securityContext.getUserPrincipal()).getClientId();
+
+    // Verify that the client which want to use the authorization code is the client which created it
+    // TODO: Validate redirect_uri
+    if (!authorizationCode.getServiceProviderId().equals(client_id)) {
+      logger.error("The serviceProvider {} wanted to access a token which belongs to the serviceProvider {}.",
+          client_id, authorizationCode.getServiceProviderId());
+      // Not a Forbidden status because it could give the information that the authorization code really exists
       return errorResponse("invalid_token", null);
     }
 
     Account account = accountRepository.getAccountByTokenId(token.getId());
 
-    if (account == null  || !tokenHandler.checkTokenValidity(realToken) || !(token instanceof AuthorizationCode)) {
+    if (account == null  || !tokenHandler.checkTokenValidity(realToken)) {
       return errorResponse("invalid_token", null);
     }
 
     // Container for the new accessToken
-    AccessToken accessToken;
-
-    accessToken = tokenHandler.createAccessToken(account.getId(), (RefreshToken)realToken);
+    AccessToken accessToken = tokenHandler.createAccessToken(account.getId(), authorizationCode);
 
     if (accessToken == null) {
       return Response.serverError().build();
@@ -138,11 +152,11 @@ public class TokenEndpoint {
         new IdToken.Payload()
             .setIssuer(uriInfo.getBaseUri().toString())
             .setSubject(account.getId())
-            .setAudience(((ClientPrincipal) securityContext.getUserPrincipal()).getClientId())
+            .setAudience(client_id)
             .setExpirationTimeSeconds(issuedAt + settings.idTokenExpirationSeconds)
             .setIssuedAtTimeSeconds(issuedAt)
-        //.setNonce() // TODO: Get a nonce token from the client and use it for the auth_token
-        //.setAuthorizationTimeSeconds() // TODO: required if a max_age request is made or if auth_time is requested
+            .setNonce(authorizationCode.getNonce())
+            //.setAuthorizationTimeSeconds() // TODO: required if a max_age request is made or if auth_time is requested
     ));
 
     return response(Response.Status.OK, response);

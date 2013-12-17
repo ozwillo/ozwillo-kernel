@@ -2,6 +2,8 @@ package oasis.services.authn;
 
 import static com.google.common.base.Preconditions.*;
 
+import java.util.Set;
+
 import javax.inject.Inject;
 
 import org.joda.time.Duration;
@@ -55,6 +57,9 @@ public class TokenHandler {
 
     newAccessToken.setCreationTime(Instant.now());
     newAccessToken.setTimeToLive(ttl);
+    newAccessToken.setScopeIds(token.getScopeIds());
+    newAccessToken.setServiceProviderId(token.getServiceProviderId());
+
     if (token != null) {
       if (token instanceof AuthorizationCode) {
         if (!tokenRepository.revokeToken(token.getId())) {
@@ -73,7 +78,7 @@ public class TokenHandler {
     return newAccessToken;
   }
 
-  public AuthorizationCode createAuthorizationCode(String accountId) {
+  public AuthorizationCode createAuthorizationCode(String accountId, Set<String> scopeIds, String serviceProviderId, String nonce) {
     checkArgument(!Strings.isNullOrEmpty(accountId));
 
     AuthorizationCode newAuthorizationCode = new AuthorizationCode();
@@ -81,6 +86,9 @@ public class TokenHandler {
     newAuthorizationCode.setCreationTime(Instant.now());
     // A AuthorizationCode is available only for 1 minute
     newAuthorizationCode.setTimeToLive(Duration.standardMinutes(1));
+    newAuthorizationCode.setScopeIds(scopeIds);
+    newAuthorizationCode.setServiceProviderId(serviceProviderId);
+    newAuthorizationCode.setNonce(nonce);
 
     // Register the new access token in memory
     if (!registerToken(accountId, newAuthorizationCode)) {

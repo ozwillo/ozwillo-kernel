@@ -37,6 +37,7 @@ import com.google.common.net.UrlEscapers;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
+import oasis.model.accounts.AuthorizationCode;
 import oasis.model.accounts.Token;
 import oasis.model.applications.ApplicationRepository;
 import oasis.model.applications.Scope;
@@ -62,6 +63,7 @@ public class AuthorizationEndpoint {
   private static final String CLIENT_ID = "client_id";
   private static final String REDIRECT_URI = "redirect_uri";
   private static final String STATE = "state";
+  private static final String NONCE = "nonce";
   private static final String RESPONSE_TYPE = "response_type";
   private static final String SCOPE = "scope";
 
@@ -145,7 +147,6 @@ public class AuthorizationEndpoint {
     if (!scopeIds.contains("openid")) {
       throw error("invalid_scope", "You must include 'openid'");
     }
-    scopeIds.remove("openid"); // XXX: This scope is not needed anymore ?
 
     // TODO: OpenID Connect specifics
     String userId = ((AccountPrincipal)securityContext.getUserPrincipal()).getAccountId();
@@ -160,7 +161,8 @@ public class AuthorizationEndpoint {
 
     if (grantedScopeIds.containsAll(scopeIds)) {
       // User already granted all requested scopes, let it be a "transparent" redirect
-      Token authCode = tokenHandler.createAuthorizationCode(userId);
+      String nonce = getParameter(NONCE);
+      AuthorizationCode authCode = tokenHandler.createAuthorizationCode(userId, scopeIds, client_id, nonce);
 
       if (authCode == null) {
         return Response.serverError().build();
@@ -180,6 +182,9 @@ public class AuthorizationEndpoint {
       }
     }
     globalClaimedScopeIds.addAll(scopeIds);
+    // TODO: Manage automatically granted scopes
+    // Note: the openid scope is later re-added with a hidden field in the approval form
+    globalClaimedScopeIds.remove("openid");
 
     Iterable<Scope> globalClaimedScopes;
     try {
@@ -202,7 +207,7 @@ public class AuthorizationEndpoint {
       }
     }
 
-    // TODO: Get the application in order to have more informations
+    // TODO: Get the application in order to have more information
 
     // TODO: Make a URI Service in order to move the URI logic outside of the JAX-RS resource
     // redirectUriBuilder is now used for creating the cancel Uri for the authorization step with the user
