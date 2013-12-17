@@ -28,7 +28,7 @@ public class JongoTokenRepository implements TokenRepository {
   public Token getToken(String tokenId) {
     Account account = getAccountCollection()
         .findOne("{tokens.id: #}", tokenId)
-        .projection("{tokens.$: 1}")
+        .projection("{tokens.$: 1, type: 1}")
         .as(Account.class);
 
     if (account == null || account.getTokens() == null || account.getTokens().isEmpty()) {
