@@ -28,7 +28,9 @@ import com.google.api.client.auth.openidconnect.IdToken;
 import com.google.api.client.auth.openidconnect.IdTokenResponse;
 import com.google.api.client.http.BasicAuthentication;
 import com.google.api.client.http.GenericUrl;
+import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.store.DataStore;
 import com.google.api.client.util.store.MemoryDataStoreFactory;
@@ -42,11 +44,12 @@ import oasis.web.authz.TokenEndpoint;
 
 @Path("/test-openidconnect")
 public class OpenIdConnect {
-
   private static final String COOKIE_NAME = "TEST";
   private static final String STATE_COOKIE_NAME = "state";
 
   private static final DataStore CREDENTIALS_DATA_STORE;
+  private static final HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
+  private static final JsonFactory JSON_FACTORY = new JacksonFactory();
 
   static {
     try {
@@ -68,8 +71,8 @@ public class OpenIdConnect {
     // XXX: this should be a constant (static final), but we don't want to hard-code or parameterize URLs here (this demo runs from the same server as the IdP)
     flow = new AuthorizationCodeFlow.Builder(
             BearerToken.authorizationHeaderAccessMethod(),
-            new NetHttpTransport(),
-            new JacksonFactory(),
+            HTTP_TRANSPORT,
+            JSON_FACTORY,
             new GenericUrl(uriInfo.getBaseUriBuilder().path(TokenEndpoint.class).build()), // This would be a fixed value IRL
             new BasicAuthentication("test", "password"),
             "test",
@@ -127,23 +130,14 @@ public class OpenIdConnect {
   public Response callback(@QueryParam("state") String state, @CookieParam(STATE_COOKIE_NAME) String cookieState) throws IOException {
     AuthorizationCodeResponseUrl responseUrl = new AuthorizationCodeResponseUrl(uriInfo.getRequestUri().toASCIIString());
     if (responseUrl.getError() != null) {
-      return Response.status(Response.Status.BAD_REQUEST)
-          .type(MediaType.TEXT_PLAIN_TYPE)
-          .entity("Error: " + responseUrl.getError() + "(" + responseUrl.getErrorDescription() + ")")
-          .build();
+      return badRequest("Error: " + responseUrl.getError() + "(" + responseUrl.getErrorDescription() + ")");
     }
     String code = responseUrl.getCode();
     if (code == null) {
-      return Response.status(Response.Status.BAD_REQUEST)
-          .type(MediaType.TEXT_PLAIN_TYPE)
-          .entity("Missing authorization code")
-          .build();
+      return badRequest("Missing authorization code");
     }
     if (state == null || !state.equals(cookieState)) {
-      return Response.status(Response.Status.BAD_REQUEST)
-          .type(MediaType.TEXT_PLAIN_TYPE)
-          .entity("Mismatching state (or missing state)")
-          .build();
+      return badRequest("Mismatching state (or missing state)");
     }
     IdTokenResponse response = IdTokenResponse.execute(flow.newTokenRequest(code).setRedirectUri(getRedirectUri()));
     IdToken token = response.parseIdToken();
@@ -175,6 +169,20 @@ public class OpenIdConnect {
             "<p>You can log out from OASIS <a href=" + HtmlEscapers.htmlEscaper().escape(UriBuilder.fromResource(Logout.class).queryParam(Login.CONTINUE_PARAM, uriInfo.getBaseUriBuilder().path(OpenIdConnect.class).path(OpenIdConnect.class, "protectedResource").build()).build().toString()) + ">here</a>" +
             "</body>" +
             "</html>")
+        .build();
+  }
+
+  private Response serverError(String message) {
+    return Response.serverError()
+        .type(MediaType.TEXT_PLAIN_TYPE)
+        .entity(message)
+        .build();
+  }
+
+  private Response badRequest(String message) {
+    return Response.status(Response.Status.BAD_REQUEST)
+        .type(MediaType.TEXT_PLAIN_TYPE)
+        .entity(message)
         .build();
   }
 }
