@@ -19,6 +19,9 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
 import com.google.api.client.auth.oauth2.AuthorizationCodeRequestUrl;
 import com.google.api.client.auth.oauth2.AuthorizationCodeResponseUrl;
@@ -28,22 +31,35 @@ import com.google.api.client.auth.openidconnect.IdToken;
 import com.google.api.client.auth.openidconnect.IdTokenResponse;
 import com.google.api.client.http.BasicAuthentication;
 import com.google.api.client.http.GenericUrl;
+import com.google.api.client.http.HttpBackOffIOExceptionHandler;
+import com.google.api.client.http.HttpBackOffUnsuccessfulResponseHandler;
+import com.google.api.client.http.HttpRequest;
+import com.google.api.client.http.HttpRequestFactory;
+import com.google.api.client.http.HttpResponse;
+import com.google.api.client.http.HttpResponseInterceptor;
 import com.google.api.client.http.HttpTransport;
+import com.google.api.client.http.UrlEncodedContent;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.client.util.ExponentialBackOff;
 import com.google.api.client.util.store.DataStore;
 import com.google.api.client.util.store.MemoryDataStoreFactory;
+import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.html.HtmlEscapers;
 
 import oasis.web.authn.Login;
 import oasis.web.authn.Logout;
 import oasis.web.authz.AuthorizationEndpoint;
+import oasis.web.authz.RevokeEndpoint;
 import oasis.web.authz.TokenEndpoint;
 
 @Path("/test-openidconnect")
 public class OpenIdConnect {
+  private static final Logger logger = LoggerFactory.getLogger(OpenIdConnect.class);
+
   private static final String COOKIE_NAME = "TEST";
   private static final String STATE_COOKIE_NAME = "state";
 
@@ -152,7 +168,13 @@ public class OpenIdConnect {
   @GET
   @Path("/logout")
   @Produces(MediaType.TEXT_HTML)
-  public Response logout() {
+  public Response logout(@CookieParam(COOKIE_NAME) String sid) throws IOException {
+    if (sid != null && !sid.isEmpty()) {
+      Credential credential = flow.loadCredential(sid);
+      if (credential != null && credential.getAccessToken() != null) {
+        revokeToken(Objects.firstNonNull(credential.getRefreshToken(), credential.getAccessToken()));
+      }
+    }
     return Response.ok()
         .type(MediaType.TEXT_HTML_TYPE)
         .cookie(new NewCookie(COOKIE_NAME, null, null, null, 0, null, 0, new Date(108, 0, 20, 11, 10), securityContext.isSecure(), true))
@@ -170,6 +192,30 @@ public class OpenIdConnect {
             "</body>" +
             "</html>")
         .build();
+  }
+
+  private void revokeToken(String tokenId) throws IOException {
+    HttpRequestFactory requestFactory = HTTP_TRANSPORT.createRequestFactory(new BasicAuthentication("test", "password"));
+    HttpRequest httpRequest = requestFactory
+        .buildPostRequest(new GenericUrl(uriInfo.getBaseUriBuilder().path(RevokeEndpoint.class).build()),
+            new UrlEncodedContent(ImmutableMap.of("token", tokenId)))
+        .setHeaders(new com.google.api.client.http.HttpHeaders().setContentType(MediaType.APPLICATION_FORM_URLENCODED))
+         // Retry in case of error
+        .setIOExceptionHandler(new HttpBackOffIOExceptionHandler(new ExponentialBackOff()))
+        .setUnsuccessfulResponseHandler(new HttpBackOffUnsuccessfulResponseHandler(new ExponentialBackOff())
+            .setBackOffRequired(HttpBackOffUnsuccessfulResponseHandler.BackOffRequired.ON_SERVER_ERROR))
+        .setResponseInterceptor(new HttpResponseInterceptor() {
+          @Override
+          public void interceptResponse(HttpResponse response) throws IOException {
+            if (!response.isSuccessStatusCode()) {
+              logger.error("Revocation of the access token has failed.");
+            }
+            response.disconnect();
+          }
+        });
+
+    // Revoke token in the background
+    httpRequest.executeAsync();
   }
 
   private Response serverError(String message) {
