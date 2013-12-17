@@ -57,28 +57,20 @@ public class TokenHandler {
       scopeIds = checkNotNull(token).getScopeIds();
     }
 
-    String serviceProviderId;
-
     AccessToken newAccessToken = new AccessToken();
 
     newAccessToken.setCreationTime(Instant.now());
     newAccessToken.setTimeToLive(ttl);
     newAccessToken.setScopeIds(scopeIds);
-    if (token != null) {
-      serviceProviderId = token.getServiceProviderId();
 
-      if (token instanceof AuthorizationCode) {
-        if (!tokenRepository.revokeToken(token.getId())) {
-          return null;
-        }
-      } else if (token instanceof RefreshToken) {
-        newAccessToken.setRefreshTokenId(token.getId());
+    if (token instanceof AuthorizationCode) {
+      if (!tokenRepository.revokeToken(token.getId())) {
+        return null;
       }
-    } else {
-      // TODO : Get the ServiceProviderId
-      serviceProviderId = null;
+    } else if (token instanceof RefreshToken) {
+      newAccessToken.setRefreshTokenId(token.getId());
     }
-    newAccessToken.setServiceProviderId(serviceProviderId);
+    newAccessToken.setServiceProviderId(token.getServiceProviderId());
 
     if (!registerToken(accountId, newAccessToken)) {
       return null;
