@@ -9,10 +9,12 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 
 import com.google.api.client.auth.oauth2.TokenErrorResponse;
 import com.wordnik.swagger.annotations.Api;
@@ -26,6 +28,7 @@ import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.Client;
+import oasis.web.authn.ClientPrincipal;
 
 @Path("/a/revoke")
 @Authenticated
@@ -33,6 +36,8 @@ import oasis.web.authn.Client;
 @Api(value = "/a/revoke", description = "Revoke Endpoint.")
 public class RevokeEndpoint {
   private MultivaluedMap<String, String> params;
+
+  @Context SecurityContext securityContext;
 
   @Inject AccountRepository accountRepository;
   @Inject TokenRepository tokenRepository;
@@ -53,6 +58,11 @@ public class RevokeEndpoint {
     AbstractOAuthToken token = tokenHandler.getCheckedToken(TokenSerializer.unserialize(token_serial), AbstractOAuthToken.class);
 
     if (token == null) {
+      return errorResponse("invalid_token", null);
+    }
+
+    String client_id = ((ClientPrincipal) securityContext.getUserPrincipal()).getClientId();
+    if (!token.getServiceProviderId().equals(client_id)) {
       return errorResponse("invalid_token", null);
     }
 
