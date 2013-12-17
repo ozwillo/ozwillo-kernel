@@ -30,6 +30,7 @@ import com.wordnik.swagger.annotations.ApiOperation;
 import oasis.model.accounts.AccessToken;
 import oasis.model.accounts.Account;
 import oasis.model.accounts.AccountRepository;
+import oasis.model.accounts.AgentAccount;
 import oasis.model.accounts.UserAccount;
 import oasis.model.social.Identity;
 import oasis.model.social.IdentityRepository;
@@ -173,6 +174,12 @@ public class UserInfoEndpoint {
       userInfo.setUpdatedAt(TimeUnit.MILLISECONDS.toSeconds(updatedAt));
     }
 
+    if (userAccount instanceof AgentAccount) {
+      AgentAccount agentAccount = (AgentAccount) userAccount;
+      userInfo.setIsAdmin(agentAccount.isAdmin());
+      userInfo.setOrganizationId(agentAccount.getOrganizationId());
+    }
+
     return userInfo;
   }
 
@@ -209,6 +216,10 @@ public class UserInfoEndpoint {
     // Phone
     @Key private String phone;
     @Key private Boolean phone_verified;
+
+    // Agent information
+    @Key private Boolean adm;
+    @Key private String org;
 
     public String getName() {
       return name;
@@ -352,6 +363,22 @@ public class UserInfoEndpoint {
     public UserInfo setPhoneVerified(Boolean phone_verified) {
       this.phone_verified = phone_verified;
       return this;
+    }
+
+    public Boolean getIsAdmin() {
+      return adm;
+    }
+
+    public void setIsAdmin(Boolean isAdmin) {
+      this.adm = isAdmin;
+    }
+
+    public String getOrganizationId() {
+      return org;
+    }
+
+    public void setOrganizationId(String organizationId) {
+      this.org = organizationId;
     }
 
     @Override
