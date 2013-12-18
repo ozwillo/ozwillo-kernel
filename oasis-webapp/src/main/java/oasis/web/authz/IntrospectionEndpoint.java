@@ -28,7 +28,6 @@ import oasis.model.accounts.AccountRepository;
 import oasis.model.applications.ApplicationRepository;
 import oasis.model.applications.DataProvider;
 import oasis.services.authn.TokenHandler;
-import oasis.services.authn.TokenSerializer;
 import oasis.services.authz.GroupService;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.Client;
@@ -64,7 +63,7 @@ public class IntrospectionEndpoint {
       return error();
     }
 
-    AccessToken accessToken = tokenHandler.getCheckedToken(TokenSerializer.unserialize(token), AccessToken.class);
+    AccessToken accessToken = tokenHandler.getCheckedToken(token, AccessToken.class);
 
     if (accessToken == null) {
       return error();

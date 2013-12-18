@@ -25,7 +25,6 @@ import oasis.model.accounts.Account;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.authn.TokenRepository;
 import oasis.services.authn.TokenHandler;
-import oasis.services.authn.TokenSerializer;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.Client;
 import oasis.web.authn.ClientPrincipal;
@@ -55,7 +54,7 @@ public class RevokeEndpoint {
 
     String token_serial = getRequiredParameter("token");
 
-    AbstractOAuthToken token = tokenHandler.getCheckedToken(TokenSerializer.unserialize(token_serial), AbstractOAuthToken.class);
+    AbstractOAuthToken token = tokenHandler.getCheckedToken(token_serial, AbstractOAuthToken.class);
 
     if (token == null) {
       return errorResponse("invalid_token", null);

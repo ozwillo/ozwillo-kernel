@@ -103,7 +103,7 @@ public class TokenEndpoint {
     String refresh_token = getRequiredParameter("refresh_token");
 
     // Get the token behind the given code
-    RefreshToken refreshToken = tokenHandler.getCheckedToken(TokenSerializer.unserialize(refresh_token), RefreshToken.class);
+    RefreshToken refreshToken = tokenHandler.getCheckedToken(refresh_token, RefreshToken.class);
 
     if (refreshToken == null) {
       return errorResponse("invalid_token", null);
@@ -151,7 +151,7 @@ public class TokenEndpoint {
     String redirect_uri = getRequiredParameter("redirect_uri");
 
     // Get the token behind the given code
-    AuthorizationCode authorizationCode = tokenHandler.getCheckedToken(TokenSerializer.unserialize(auth_code), AuthorizationCode.class);
+    AuthorizationCode authorizationCode = tokenHandler.getCheckedToken(auth_code, AuthorizationCode.class);
 
     if (authorizationCode == null) {
       return errorResponse("invalid_token", null);

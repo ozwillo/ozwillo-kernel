@@ -128,7 +128,7 @@ public class TokenHandler {
     return tokenRepository.registerToken(accountId, token);
   }
 
-  public <T extends Token> T getCheckedToken(Token token, Class<T> tokenClass) {
+  private <T extends Token> T getCheckedToken(Token token, Class<T> tokenClass) {
     if (token == null) {
       return null;
     }
@@ -150,5 +150,9 @@ public class TokenHandler {
     }
 
     return tokenClass.cast(realToken);
+  }
+
+  public <T extends Token> T getCheckedToken(String tokenSerial, Class<T> tokenClass) {
+    return this.getCheckedToken(TokenSerializer.unserialize(tokenSerial), tokenClass);
   }
 }
