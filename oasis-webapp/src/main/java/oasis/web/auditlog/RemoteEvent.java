@@ -1,9 +1,10 @@
 package oasis.web.auditlog;
 
+import java.util.Map;
+
 import org.joda.time.Instant;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
@@ -18,7 +19,7 @@ class RemoteEvent {
 
   @JsonProperty()
   @ApiModelProperty(required = true)
-  ObjectNode log;
+  Map<String, Object> log;
 
   // For swagger
   public Instant getTime() {
@@ -26,7 +27,7 @@ class RemoteEvent {
   }
 
   // For swagger
-  public ObjectNode getLog() {
+  public Map<String, Object> getLog() {
     return log;
   }
 }

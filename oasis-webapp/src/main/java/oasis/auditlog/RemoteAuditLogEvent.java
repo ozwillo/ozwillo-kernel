@@ -1,12 +1,8 @@
 package oasis.auditlog;
 
-import java.util.Iterator;
 import java.util.Map;
 
 import org.joda.time.Instant;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class RemoteAuditLogEvent extends AuditLogEvent {
   private static final String TYPE = "remote";
@@ -15,11 +11,10 @@ public class RemoteAuditLogEvent extends AuditLogEvent {
     super(TYPE, date);
   }
 
-  public RemoteAuditLogEvent setLog(ObjectNode log) {
+  public RemoteAuditLogEvent setLog(Map<String, Object> log) {
     // XXX: handle  mandatory fields ?
 
-    for (Iterator<Map.Entry<String, JsonNode>> iterator = log.fields(); iterator.hasNext(); ) {
-      Map.Entry<String, JsonNode> entry = iterator.next();
+    for (Map.Entry<String, Object> entry : log.entrySet()) {
       this.addContextData(entry.getKey(), entry.getValue());
     }
 
