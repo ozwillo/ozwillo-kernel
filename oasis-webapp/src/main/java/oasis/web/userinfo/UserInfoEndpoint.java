@@ -176,8 +176,8 @@ public class UserInfoEndpoint {
 
     if (userAccount instanceof AgentAccount) {
       AgentAccount agentAccount = (AgentAccount) userAccount;
-      userInfo.setIsAdmin(agentAccount.isAdmin());
-      userInfo.setOrganizationId(agentAccount.getOrganizationId());
+      userInfo.setOrganization_admin(agentAccount.isAdmin());
+      userInfo.setOrganization_id(agentAccount.getOrganizationId());
     }
 
     return userInfo;
@@ -218,8 +218,8 @@ public class UserInfoEndpoint {
     @Key private Boolean phone_verified;
 
     // Agent information
-    @Key private Boolean adm;
-    @Key private String org;
+    @Key private Boolean organization_admin;
+    @Key private String organisation_id;
 
     public String getName() {
       return name;
@@ -365,20 +365,20 @@ public class UserInfoEndpoint {
       return this;
     }
 
-    public Boolean getIsAdmin() {
-      return adm;
+    public Boolean isOrganization_admin() {
+      return organization_admin;
     }
 
-    public void setIsAdmin(Boolean isAdmin) {
-      this.adm = isAdmin;
+    public void setOrganization_admin(Boolean isAdmin) {
+      this.organization_admin = isAdmin;
     }
 
-    public String getOrganizationId() {
-      return org;
+    public String getOrganization_id() {
+      return organisation_id;
     }
 
-    public void setOrganizationId(String organizationId) {
-      this.org = organizationId;
+    public void setOrganization_id(String organizationId) {
+      this.organisation_id = organizationId;
     }
 
     @Override
