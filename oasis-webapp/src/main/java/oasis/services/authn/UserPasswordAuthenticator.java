@@ -49,4 +49,10 @@ public class UserPasswordAuthenticator {
     // Password match, authn is a success, return the Account object
     return userAccount;
   }
+
+  public void setPassword(String accountId, String password) {
+    byte[] salt = passwordHasher.createSalt();
+    byte[] hash = passwordHasher.hashPassword(password, salt);
+    accountRepository.updatePassword(accountId, base64Encoder.encode(hash), base64Encoder.encode(salt));
+  }
 }

@@ -30,6 +30,7 @@ import oasis.model.accounts.AccountRepository;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Group;
 import oasis.model.directory.Organization;
+import oasis.services.authn.UserPasswordAuthenticator;
 import oasis.services.etag.EtagService;
 import oasis.services.userdirectory.AgentInfo;
 import oasis.services.userdirectory.UserDirectoryService;
@@ -54,6 +55,8 @@ public class UserDirectoryEndpoint {
 
   @Inject
   private UserDirectoryService userDirectoryService;
+  @Inject
+  private UserPasswordAuthenticator userPasswordAuthenticator;
 
   /*
    * Organization
@@ -321,6 +324,9 @@ public class UserDirectoryEndpoint {
     }
 
     AgentInfo agent = userDirectoryService.createAgentAccount(organizationId, agentInfo);
+
+    // FIXME: temporarily set the password to the emailAddress
+    userPasswordAuthenticator.setPassword(agent.getId(), agent.getEmail());
 
     URI uri = UriBuilder.fromResource(UserDirectoryEndpoint.class).path(UserDirectoryEndpoint.class, "getAgentAccount").build(agent.getId());
     return Response

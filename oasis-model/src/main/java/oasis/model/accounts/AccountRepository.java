@@ -22,4 +22,7 @@ public interface AccountRepository {
   Iterable<AgentAccount> getAgentsForOrganization(String organizationId, int start, int limit);
 
   AgentAccount findAndRemove(String agentId, long[] versions) throws InvalidVersionException;
+
+  // FIXME: replace with some updateAccount (or move out of Account)
+  void updatePassword(String accountId, String passwordHash, String passwordSalt);
 }

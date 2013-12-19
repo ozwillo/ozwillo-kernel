@@ -100,5 +100,12 @@ public class JongoAccountRepository implements AccountRepository {
     return res;
   }
 
+  @Override
+  public void updatePassword(String accountId, String passwordHash, String passwordSalt) {
+    // FIXME: handle errors
+    getAccountCollection()
+        .findAndModify("{ id: # }", accountId)
+        .with("{ $set: { password: #, passwordSalt: # } }", passwordHash, passwordSalt);
+  }
 }
 
