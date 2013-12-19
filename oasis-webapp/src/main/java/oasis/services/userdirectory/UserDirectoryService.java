@@ -96,8 +96,8 @@ public class UserDirectoryService {
     AgentAccount res = new AgentAccount();
 
     res.setId(agentInfo.getId());
-    res.setAdmin(agentInfo.isAdmin());
-    res.setOrganizationId(agentInfo.getOrganizationId());
+    res.setAdmin(agentInfo.isOrganization_admin());
+    res.setOrganizationId(agentInfo.getOrganization_id());
     res.setModified(agentInfo.getModified());
 
     res.setPicture(agentInfo.getPicture());

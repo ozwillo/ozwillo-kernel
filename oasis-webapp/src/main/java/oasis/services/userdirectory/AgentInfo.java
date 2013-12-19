@@ -34,8 +34,8 @@ public class AgentInfo implements HasModified {
   private Boolean phone_verified;
 
   // account info
-  private String organizationId;
-  private Boolean admin;
+  private String organization_id;
+  private Boolean organization_admin;
   private long modified;
   private String id;
 
@@ -45,8 +45,8 @@ public class AgentInfo implements HasModified {
   public AgentInfo(AgentAccount agentAccount, Identity identity) {
 
     this.id = agentAccount.getId();
-    this.admin = agentAccount.isAdmin();
-    this.organizationId = agentAccount.getOrganizationId();
+    this.organization_admin = agentAccount.isAdmin();
+    this.organization_id = agentAccount.getOrganizationId();
     this.modified = agentAccount.getModified();
 
     // Copy agent infos
@@ -226,21 +226,21 @@ public class AgentInfo implements HasModified {
     return this;
   }
 
-  public String getOrganizationId() {
-    return organizationId;
+  public String getOrganization_id() {
+    return organization_id;
   }
 
-  public AgentInfo setOrganizationId(String organizationId) {
-    this.organizationId = organizationId;
+  public AgentInfo setOrganization_id(String organization_id) {
+    this.organization_id = organization_id;
     return this;
   }
 
-  public Boolean isAdmin() {
-    return admin;
+  public Boolean isOrganization_admin() {
+    return organization_admin;
   }
 
-  public AgentInfo setAdmin(Boolean admin) {
-    this.admin = admin;
+  public AgentInfo setOrganization_admin(Boolean organization_admin) {
+    this.organization_admin = organization_admin;
     return this;
   }
 
