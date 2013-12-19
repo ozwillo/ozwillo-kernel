@@ -32,6 +32,7 @@ import oasis.web.providers.HttpInterceptor;
 import oasis.web.providers.JacksonContextResolver;
 import oasis.web.providers.SecureFilter;
 import oasis.web.providers.UriParamConverterProvider;
+import oasis.web.social.SocialEndpoint;
 import oasis.web.userdirectory.UserDirectoryEndpoint;
 import oasis.web.userinfo.UserInfoEndpoint;
 import oasis.web.view.HandlebarsBodyWriter;
@@ -68,6 +69,8 @@ public class Application extends javax.ws.rs.core.Application {
         IntrospectionEndpoint.class,
         // UserInfo
         UserInfoEndpoint.class,
+        // Socal
+        SocialEndpoint.class,
         // AuditLog
         AuditLogEndpoint.class,
         HttpInterceptor.class,

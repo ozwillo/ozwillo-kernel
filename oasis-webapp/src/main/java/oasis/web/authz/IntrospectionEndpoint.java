@@ -31,6 +31,7 @@ import oasis.model.applications.DataProvider;
 import oasis.model.authn.TokenRepository;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
+import oasis.services.authz.GroupService;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.Client;
 import oasis.web.authn.ClientPrincipal;
@@ -46,6 +47,7 @@ public class IntrospectionEndpoint {
   @Inject TokenHandler tokenHandler;
   @Inject AccountRepository accountRepository;
   @Inject ApplicationRepository applicationRepository;
+  @Inject GroupService groupService;
 
   @POST
   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
@@ -108,7 +110,8 @@ public class IntrospectionEndpoint {
         .setScope(SCOPE_JOINER.join(scopeIds))
         .setClient_id(accessToken.getServiceProviderId())
         .setSub(account.getId())
-        .setToken_type("Bearer");
+        .setToken_type("Bearer")
+        .setSub_groups(groupService.getGroups(account));
 
     return Response.ok()
         .header(HttpHeaders.CACHE_CONTROL, "no-store")

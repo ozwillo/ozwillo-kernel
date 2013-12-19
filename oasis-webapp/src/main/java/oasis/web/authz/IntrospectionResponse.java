@@ -1,5 +1,7 @@
 package oasis.web.authz;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
@@ -28,6 +30,9 @@ class IntrospectionResponse {
   @JsonProperty
   @ApiModelProperty
   private String token_type;
+  @JsonProperty
+  @ApiModelProperty
+  private List<String> sub_groups;
 
   public boolean isActive() {
     return active;
@@ -98,6 +103,15 @@ class IntrospectionResponse {
 
   IntrospectionResponse setToken_type(String token_type) {
     this.token_type = token_type;
+    return this;
+  }
+
+  public List<String> getSub_groups() {
+    return sub_groups;
+  }
+
+  IntrospectionResponse setSub_groups(List<String> sub_groups) {
+    this.sub_groups = sub_groups;
     return this;
   }
 }

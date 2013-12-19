@@ -1,7 +1,10 @@
 package oasis.jongo.social;
 
+import java.util.List;
+
 import javax.annotation.Nonnull;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import oasis.jongo.etag.HasModified;
@@ -11,6 +14,9 @@ import oasis.model.social.Identity;
 public class JongoIdentity extends Identity implements HasModified {
 
   private long modified = System.currentTimeMillis();
+
+  @JsonProperty
+  private List<JongoRelation> relations;
 
   JongoIdentity() {
     super();
@@ -27,5 +33,13 @@ public class JongoIdentity extends Identity implements HasModified {
 
   public void setModified(long modified) {
     this.modified = modified;
+  }
+
+  public List<JongoRelation> getRelations() {
+    return relations;
+  }
+
+  public void setRelations(List<JongoRelation> relations) {
+    this.relations = relations;
   }
 }
