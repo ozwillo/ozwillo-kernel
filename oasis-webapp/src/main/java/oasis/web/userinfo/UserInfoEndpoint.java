@@ -16,6 +16,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
 
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
@@ -51,6 +52,7 @@ public class UserInfoEndpoint {
   private static final String ADDRESS_SCOPE = "address";
   private static final String APPLICATION_JWT = "application/jwt";
 
+  @Context UriInfo uriInfo;
   @Context SecurityContext securityContext;
   @Inject OpenIdConnectModule.Settings settings;
   @Inject JsonFactory jsonFactory;
@@ -67,6 +69,9 @@ public class UserInfoEndpoint {
   )
   public Response getSigned() throws GeneralSecurityException, IOException {
     UserInfo userInfo = getUserInfo();
+    userInfo.setIssuer(uriInfo.getBaseUri().toString());
+    AccessToken accessToken = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken();
+    userInfo.setAudience(accessToken.getServiceProviderId());
 
     String signedJwt = JsonWebSignature.signUsingRsaSha256(
         settings.keyPair.getPrivate(),
