@@ -1,11 +1,9 @@
 package oasis.services.authn.login;
 
-import java.security.GeneralSecurityException;
-
 public interface PasswordHasher {
   byte[] createSalt();
 
-  byte[] hashPassword(String password, byte[] salt) throws GeneralSecurityException;
+  byte[] hashPassword(String password, byte[] salt);
 
   boolean checkPassword(String password, byte[] hash, byte[] salt);
 }

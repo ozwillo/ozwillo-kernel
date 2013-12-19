@@ -1,7 +1,6 @@
 package oasis.services.authn.login;
 
 import java.nio.charset.StandardCharsets;
-import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.Random;
@@ -24,7 +23,7 @@ public class SShaPasswordHasher implements PasswordHasher {
   }
 
   @Override
-  public byte[] hashPassword(String password, byte[] salt) throws GeneralSecurityException {
+  public byte[] hashPassword(String password, byte[] salt) {
     // Can't hash without a salt
     Preconditions.checkArgument(salt != null && salt.length > 0);
 
