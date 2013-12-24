@@ -21,6 +21,7 @@ import oasis.web.authn.Client;
 @Api(value = "/a/keys", description = "Keys API")
 public class KeysEndpoint {
   private static final BaseEncoding BASE64_ENCODING = BaseEncoding.base64Url().omitPadding();
+  public static final String JSONWEBKEY_PK_ID = "oasis.openid-connect.public-key";
 
   @Inject OpenIdConnectModule.Settings settings;
 
@@ -37,6 +38,7 @@ public class KeysEndpoint {
     RsaJsonWebKey rsaJsonWebKey = new RsaJsonWebKey();
     rsaJsonWebKey.modulus = BASE64_ENCODING.encode(publicKey.getModulus().toByteArray());
     rsaJsonWebKey.exponent = BASE64_ENCODING.encode(publicKey.getPublicExponent().toByteArray());
+    rsaJsonWebKey.keyId = JSONWEBKEY_PK_ID;
     jsonWebKeySet.rsaJsonWebKeys = new RsaJsonWebKey[]{rsaJsonWebKey};
 
     return Response.ok().entity(jsonWebKeySet).build();
