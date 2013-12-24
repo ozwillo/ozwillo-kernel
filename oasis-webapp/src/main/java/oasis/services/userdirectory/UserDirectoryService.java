@@ -128,7 +128,9 @@ public class UserDirectoryService {
     res.setNickname(agentInfo.getNickname());
     res.setMiddleName(agentInfo.getMiddle_name());
     res.setGender(agentInfo.getGender());
-    res.setBirthdate(LocalDate.parse(agentInfo.getBirthdate()));
+    if (agentInfo.getBirthdate() != null) {
+      res.setBirthdate(LocalDate.parse(agentInfo.getBirthdate()));
+    }
     res.setPhoneNumber(agentInfo.getPhone());
     res.setPhoneNumberVerified(agentInfo.isPhone_verified());
     res.setUpdatedAt(agentInfo.getUpdated_at() == null ? 0 : agentInfo.getUpdated_at());
