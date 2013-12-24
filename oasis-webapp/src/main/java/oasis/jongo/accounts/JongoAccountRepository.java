@@ -4,6 +4,8 @@ import javax.inject.Inject;
 
 import org.jongo.Jongo;
 import org.jongo.MongoCollection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.mongodb.WriteResult;
 
@@ -14,6 +16,7 @@ import oasis.model.accounts.AgentAccount;
 import oasis.model.accounts.UserAccount;
 
 public class JongoAccountRepository implements AccountRepository {
+  private static final Logger logger = LoggerFactory.getLogger(JongoAccountRepository.class);
 
   private final Jongo jongo;
 
@@ -102,10 +105,14 @@ public class JongoAccountRepository implements AccountRepository {
 
   @Override
   public void updatePassword(String accountId, String passwordHash, String passwordSalt) {
-    // FIXME: handle errors
-    getAccountCollection()
-        .findAndModify("{ id: # }", accountId)
+    WriteResult writeResult = getAccountCollection()
+        .update("{ id: # }", accountId)
         .with("{ $set: { password: #, passwordSalt: # } }", passwordHash, passwordSalt);
+    if (writeResult.getN() > 1) {
+      logger.error("More than one account provider with id: {}", accountId);
+    } else if (writeResult.getN() > 1) {
+      logger.error("The account {} doesn't exist.", accountId);
+    }
   }
 }
 
