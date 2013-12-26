@@ -76,8 +76,8 @@ GIT
 
 GIT
   remote: http://gerrit.atolcd.priv/atolcd/puppet-modules/system_tools.git
-  ref: ade066f2a36e0cdd9000fba1270f4c16f402c92c
-  sha: ade066f2a36e0cdd9000fba1270f4c16f402c92c
+  ref: master
+  sha: 80ec3b8d06a4ff9c034e202e9d0a0d56f544eab5
   specs:
     system_tools (0.0.1)
 

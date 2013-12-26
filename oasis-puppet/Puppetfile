@@ -1,6 +1,5 @@
 mod "system_tools",
-  :git => "http://gerrit.atolcd.priv/atolcd/puppet-modules/system_tools.git",
-  :ref => 'ade066f2a36e0cdd9000fba1270f4c16f402c92c'
+  :git => "http://gerrit.atolcd.priv/atolcd/puppet-modules/system_tools.git"
 
 # needed by system_tools :
 # * stdlib
