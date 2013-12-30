@@ -1,13 +1,27 @@
 <!DOCTYPE html>
-<html>
+<html ng-app="app">
 <head>
   <meta charset="utf-8">
   [[#block "title"]]
     <title>Oasis</title>
   [[/block]]
+  <meta name="viewport" content="width=device-width">
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootswatch/3.0.3/yeti/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/main.css">
 </head>
 <body>
   [[#block "content"]]
+  [[/block]]
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.7/angular.min.js"></script>
+  <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+  <script src="/js/vendor/lodash.min.js"></script>
+  <script src="/js/main.js"></script>
+  [[#block "controllers"]]
+    [[! Will be used by sub templates in order to add controllers ]]
+  [[/block]]
+  [[#block "directives"]]
+    [[! Will be used by sub templates in order to add directives ]]
   [[/block]]
 </body>
 </html>
