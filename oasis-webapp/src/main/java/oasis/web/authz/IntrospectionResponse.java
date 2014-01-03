@@ -11,10 +11,10 @@ class IntrospectionResponse {
   private boolean active;
   @JsonProperty
   @ApiModelProperty
-  private long exp;
+  private Long exp;
   @JsonProperty
   @ApiModelProperty
-  private long iat;
+  private Long iat;
   @JsonProperty
   @ApiModelProperty
   private String scope;
@@ -43,20 +43,20 @@ class IntrospectionResponse {
     return this;
   }
 
-  public long getExp() {
+  public Long getExp() {
     return exp;
   }
 
-  IntrospectionResponse setExp(long exp) {
+  IntrospectionResponse setExp(Long exp) {
     this.exp = exp;
     return this;
   }
 
-  public long getIat() {
+  public Long getIat() {
     return iat;
   }
 
-  IntrospectionResponse setIat(long iat) {
+  IntrospectionResponse setIat(Long iat) {
     this.iat = iat;
     return this;
   }
