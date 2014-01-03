@@ -113,7 +113,7 @@ public class JongoAccountRepository implements AccountRepository {
         .with("{ $set: { password: #, passwordSalt: # } }", passwordHash, passwordSalt);
     if (writeResult.getN() > 1) {
       logger.error("More than one account provider with id: {}", accountId);
-    } else if (writeResult.getN() > 1) {
+    } else if (writeResult.getN() < 1) {
       logger.error("The account {} doesn't exist.", accountId);
     }
   }
