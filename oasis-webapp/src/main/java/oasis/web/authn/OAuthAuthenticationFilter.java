@@ -1,6 +1,7 @@
 package oasis.web.authn;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.annotation.Priority;
@@ -8,10 +9,15 @@ import javax.inject.Inject;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.container.ResourceInfo;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.ext.Provider;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Splitter;
 
@@ -30,9 +36,11 @@ import oasis.services.authn.TokenSerializer;
 @Provider
 @Priority(Priorities.AUTHENTICATION)
 public class OAuthAuthenticationFilter implements ContainerRequestFilter {
+  private static final Logger logger = LoggerFactory.getLogger(OAuthAuthenticationFilter.class);
   private static final String AUTH_SCHEME = "Bearer";
   private static final Splitter AUTH_SCHEME_SPLITTER = Splitter.on(' ').omitEmptyStrings().trimResults();
 
+  @Context ResourceInfo resourceInfo;
   @Inject TokenRepository tokenRepository;
   @Inject TokenHandler tokenHandler;
 
@@ -68,6 +76,20 @@ public class OAuthAuthenticationFilter implements ContainerRequestFilter {
 
     if (!(token instanceof AccessToken) || !tokenHandler.checkTokenValidity(token)) {
       invalidToken(requestContext);
+      return;
+    }
+
+    /** Check if the resource have an annotation {@link WithScopes} **/
+    WithScopes withScopesAnnotation = resourceInfo.getResourceMethod().getAnnotation(WithScopes.class);
+    if (withScopesAnnotation == null) {
+      withScopesAnnotation = resourceInfo.getResourceClass().getAnnotation(WithScopes.class);
+      if (withScopesAnnotation == null) {
+        logger.error("Resource requires OAuth token but doesn't declare required scopes: {}", resourceInfo);
+        // XXX: should we send a forbidden response rather than let the request go in?
+      }
+    }
+    if (withScopesAnnotation != null && !((AccessToken) token).getScopeIds().containsAll(Arrays.asList(withScopesAnnotation.value()))) {
+      insufficientScope(requestContext);
       return;
     }
 
@@ -108,6 +130,13 @@ public class OAuthAuthenticationFilter implements ContainerRequestFilter {
     requestContext.abortWith(Response
         .status(Response.Status.BAD_REQUEST)
         .header(HttpHeaders.WWW_AUTHENTICATE, AUTH_SCHEME + " error=\"invalid_request\"")
+        .build());
+  }
+
+  private void insufficientScope(ContainerRequestContext requestContext) {
+    requestContext.abortWith(Response
+        .status(Response.Status.FORBIDDEN)
+        .header(HttpHeaders.WWW_AUTHENTICATE, AUTH_SCHEME + " error=\"insufficient_scope\"")
         .build());
   }
 

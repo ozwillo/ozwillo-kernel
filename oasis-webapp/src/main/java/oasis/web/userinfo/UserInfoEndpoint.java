@@ -39,8 +39,9 @@ import oasis.openidconnect.OpenIdConnectModule;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
+import oasis.web.authn.WithScopes;
 
-@Authenticated @OAuth
+@Authenticated @OAuth @WithScopes("openid")
 @Path("/a/userinfo")
 @Api(value = "/a/userinfo", description = "UserInfo Endpoint")
 public class UserInfoEndpoint {
