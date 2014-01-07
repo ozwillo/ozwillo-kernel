@@ -59,6 +59,19 @@ public class JongoIdentityRepository implements IdentityRepository {
   }
 
   @Override
+  public boolean updateIdentity(Identity identity) {
+    JongoIdentity jongoIdentity = new JongoIdentity(identity);
+    jongoIdentity.setId(identity.getId());
+    jongoIdentity.setUpdatedAt(System.currentTimeMillis());
+
+    WriteResult writeResult = getIdentityCollection().update("{id: #}", identity.getId()).with(jongoIdentity);
+    if (writeResult.getN() == 0) {
+      logger.warn("The identity {} does not exist.", identity.getId());
+    }
+    return writeResult.getN() > 0;
+  }
+
+  @Override
   public boolean deleteIdentity(String identityId) {
     WriteResult wr = getIdentityCollection().remove("{ id: # }", identityId);
 

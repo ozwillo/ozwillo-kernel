@@ -7,6 +7,8 @@ public interface IdentityRepository {
 
   Identity createIdentity(Identity identity);
 
+  boolean updateIdentity(Identity identity);
+
   boolean deleteIdentity(String identityId);
 
   boolean addRelation(String sourceIdentityId, String relationType, String destIdentityId);
