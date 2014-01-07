@@ -27,6 +27,7 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
+import com.google.api.client.auth.oauth2.TokenErrorResponse;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
@@ -38,7 +39,6 @@ import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.accounts.AuthorizationCode;
-import oasis.model.accounts.Token;
 import oasis.model.applications.ApplicationRepository;
 import oasis.model.applications.Scope;
 import oasis.model.applications.ScopeCardinality;
@@ -280,13 +280,16 @@ public class AuthorizationEndpoint {
       if (description != null) {
         error += ": " + description;
       }
-      return new BadRequestException(error);
+      return new BadRequestException(Response.status(Response.Status.BAD_REQUEST)
+          .type(MediaType.TEXT_PLAIN)
+          .entity(error)
+          .build());
     }
     appendQueryParam(redirectUriBuilder, "error", error);
     if (description != null) {
       appendQueryParam(redirectUriBuilder, "error_description", description);
     }
-    return new RedirectionException(Response.Status.SEE_OTHER, URI.create(redirectUriBuilder.toString()));
+    return new RedirectionException(Response.seeOther(URI.create(redirectUriBuilder.toString())).build());
   }
 
   /**

@@ -304,9 +304,9 @@ public class TokenEndpoint {
   }
 
   private Response errorResponse(String error, @Nullable String description) {
-    TokenErrorResponse response = new TokenErrorResponse();
-    response.setError(error);
-    response.setErrorDescription(description);
-    return response(Response.Status.BAD_REQUEST, description);
+    TokenErrorResponse response = new TokenErrorResponse()
+        .setError(error)
+        .setErrorDescription(description);
+    return response(Response.Status.BAD_REQUEST, response);
   }
 }
