@@ -17,6 +17,7 @@ public class OpenIdConnectModule extends AbstractModule {
     }
 
     public static Settings fromConfig(Config config) {
+      // TODO: refactor to use a single subtree of the config
       Path privateKeyPath = null;
       Path publicKeyPath = null;
 

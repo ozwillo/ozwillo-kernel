@@ -17,8 +17,8 @@ public class FluentdLog4JAuditLogModule extends AbstractModule {
 
     public static Settings fromConfig(Config config) {
       return Settings.builder()
-          .setFluentdUrl(config.getString("oasis.auditlog.fluentd.url"))
-          .setFluentdTag(config.getString("oasis.auditlog.fluentd.tag"))
+          .setFluentdUrl(config.getString("url"))
+          .setFluentdTag(config.getString("tag"))
           .build();
     }
 

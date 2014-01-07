@@ -23,7 +23,7 @@ public class KibanaModule extends AbstractModule {
 
     public static Settings fromConfig(Config config) {
       return Settings.builder()
-          .setElasticsearchUrl(URI.create(config.getString("oasis.kibana.elasticsearch.url")))
+          .setElasticsearchUrl(URI.create(config.getString("elasticsearch.url")))
           .build();
     }
 

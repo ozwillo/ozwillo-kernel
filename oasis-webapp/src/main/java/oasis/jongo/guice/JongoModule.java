@@ -36,7 +36,7 @@ public class JongoModule extends AbstractModule {
 
     public static Settings fromConfig(Config config) {
       return Settings.builder()
-          .setMongoUri(new MongoClientURI(config.getString("oasis.mongo.uri")))
+          .setMongoUri(new MongoClientURI(config.getString("uri")))
           .build();
     }
 
