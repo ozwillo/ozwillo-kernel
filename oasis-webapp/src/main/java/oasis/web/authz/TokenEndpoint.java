@@ -45,8 +45,6 @@ import oasis.model.accounts.Account;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.AuthorizationCode;
 import oasis.model.accounts.RefreshToken;
-import oasis.model.accounts.Token;
-import oasis.model.authn.TokenRepository;
 import oasis.openidconnect.OpenIdConnectModule;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
@@ -68,7 +66,6 @@ public class TokenEndpoint {
   @Inject Clock clock;
 
   @Inject AccountRepository accountRepository;
-  @Inject TokenRepository tokenRepository;
   @Inject TokenHandler tokenHandler;
 
   @Context UriInfo uriInfo;
@@ -102,44 +99,21 @@ public class TokenEndpoint {
     }
   }
 
-  // TODO : Move this method in TokenHandler
-  private Token getCheckedToken(Token token) {
-    if (token == null) {
-      return null;
-    }
-
-    // If someone fakes a token, at least it should ensure it hasn't expired
-    // It saves us a database lookup.
-    if (!tokenHandler.checkTokenValidity(token)) {
-      return null;
-    }
-
-    Token realToken = tokenRepository.getToken(token.getId());
-    if (realToken == null || !tokenHandler.checkTokenValidity(realToken)) {
-      // token does not exist or has expired
-      return null;
-    }
-
-    return realToken;
-  }
-
   private Response validateRefreshToken(MultivaluedMap<String, String> params) throws GeneralSecurityException, IOException {
     String refresh_token = getRequiredParameter("refresh_token");
 
     // Get the token behind the given code
-    Token token = getCheckedToken(TokenSerializer.unserialize(refresh_token));
+    RefreshToken refreshToken = tokenHandler.getCheckedToken(refresh_token, RefreshToken.class);
 
-    if (token == null) {
+    if (refreshToken == null) {
       return errorResponse("invalid_token", null);
     }
 
-    Account account = accountRepository.getAccountByTokenId(token.getId());
+    Account account = accountRepository.getAccountByTokenId(refreshToken.getId());
 
-    if (account == null  || !tokenHandler.checkTokenValidity(token) || !(token instanceof RefreshToken)) {
+    if (account == null) {
       return errorResponse("invalid_token", null);
     }
-
-    RefreshToken refreshToken = (RefreshToken)token;
 
     String asked_scopes_param = getParameter("scope");
     Set<String> asked_scopes;
@@ -177,19 +151,18 @@ public class TokenEndpoint {
     String redirect_uri = getRequiredParameter("redirect_uri");
 
     // Get the token behind the given code
-    Token token = getCheckedToken(TokenSerializer.unserialize(auth_code));
+    AuthorizationCode authorizationCode = tokenHandler.getCheckedToken(auth_code, AuthorizationCode.class);
 
-    if (token == null) {
+    if (authorizationCode == null) {
       return errorResponse("invalid_token", null);
     }
 
-    Account account = accountRepository.getAccountByTokenId(token.getId());
+    Account account = accountRepository.getAccountByTokenId(authorizationCode.getId());
 
-    if (account == null  || !tokenHandler.checkTokenValidity(token) || !(token instanceof AuthorizationCode)) {
+    if (account == null) {
       return errorResponse("invalid_token", null);
     }
 
-    AuthorizationCode authorizationCode = (AuthorizationCode)token;;
     if (!authorizationCode.getRedirectUri().equals(redirect_uri)) {
       logger.warn("Received redirect_uri {} does not match the one received at the authorization request.", redirect_uri);
       return errorResponse("invalid_request", "Invalid parameter value: redirect_uri");
@@ -243,7 +216,7 @@ public class TokenEndpoint {
             .setAudience(client_id)
             .setExpirationTimeSeconds(issuedAt + settings.idTokenExpirationSeconds)
             .setIssuedAtTimeSeconds(issuedAt)
-        .setNonce(authorizationCode.getNonce())
+            .setNonce(authorizationCode.getNonce())
         //.setAuthorizationTimeSeconds() // TODO: required if a max_age request is made or if auth_time is requested
     ));
 

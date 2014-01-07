@@ -9,22 +9,25 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 
 import com.google.api.client.auth.oauth2.TokenErrorResponse;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
+import oasis.model.accounts.AbstractOAuthToken;
 import oasis.model.accounts.Account;
 import oasis.model.accounts.AccountRepository;
-import oasis.model.accounts.Token;
 import oasis.model.authn.TokenRepository;
-import oasis.services.authn.TokenSerializer;
+import oasis.services.authn.TokenHandler;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.Client;
+import oasis.web.authn.ClientPrincipal;
 
 @Path("/a/revoke")
 @Authenticated
@@ -33,8 +36,11 @@ import oasis.web.authn.Client;
 public class RevokeEndpoint {
   private MultivaluedMap<String, String> params;
 
+  @Context SecurityContext securityContext;
+
   @Inject AccountRepository accountRepository;
   @Inject TokenRepository tokenRepository;
+  @Inject TokenHandler tokenHandler;
 
   @POST
   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
@@ -46,15 +52,18 @@ public class RevokeEndpoint {
   public Response post(MultivaluedMap<String, String> params) {
     this.params = params;
 
-    String tokenSerial = getRequiredParameter("token");
+    String token_serial = getRequiredParameter("token");
 
-    Token token = TokenSerializer.unserialize(tokenSerial);
+    AbstractOAuthToken token = tokenHandler.getCheckedToken(token_serial, AbstractOAuthToken.class);
 
     if (token == null) {
       return errorResponse("invalid_token", null);
     }
 
-    // TODO : Check if client id match the given token client id
+    String client_id = ((ClientPrincipal) securityContext.getUserPrincipal()).getClientId();
+    if (!token.getServiceProviderId().equals(client_id)) {
+      return errorResponse("invalid_token", null);
+    }
 
     Account account = accountRepository.getAccountByTokenId(token.getId());
 

@@ -127,4 +127,32 @@ public class TokenHandler {
 
     return tokenRepository.registerToken(accountId, token);
   }
+
+  private <T extends Token> T getCheckedToken(Token token, Class<T> tokenClass) {
+    if (token == null) {
+      return null;
+    }
+
+    // If someone fakes a token, at least it should ensure it hasn't expired
+    // It saves us a database lookup.
+    if (!checkTokenValidity(token)) {
+      return null;
+    }
+
+    Token realToken = tokenRepository.getToken(token.getId());
+    if (realToken == null || !checkTokenValidity(realToken)) {
+      // token does not exist or has expired
+      return null;
+    }
+
+    if (!tokenClass.isInstance(realToken)) {
+      return null;
+    }
+
+    return tokenClass.cast(realToken);
+  }
+
+  public <T extends Token> T getCheckedToken(String tokenSerial, Class<T> tokenClass) {
+    return this.getCheckedToken(TokenSerializer.unserialize(tokenSerial), tokenClass);
+  }
 }
