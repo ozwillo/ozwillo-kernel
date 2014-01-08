@@ -2,7 +2,7 @@ package oasis.web.authn;
 
 import java.security.Principal;
 
-import oasis.model.accounts.AccessToken;
+import oasis.model.authn.AccessToken;
 
 public class OAuthPrincipal implements Principal {
   private final AccessToken accessToken;

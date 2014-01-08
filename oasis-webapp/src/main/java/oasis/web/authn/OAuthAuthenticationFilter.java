@@ -21,8 +21,8 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Splitter;
 
-import oasis.model.accounts.AccessToken;
-import oasis.model.accounts.Token;
+import oasis.model.authn.AccessToken;
+import oasis.model.authn.Token;
 import oasis.model.authn.TokenRepository;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;

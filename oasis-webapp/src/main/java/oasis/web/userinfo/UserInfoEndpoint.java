@@ -28,11 +28,11 @@ import com.google.api.client.util.Key;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
-import oasis.model.accounts.AccessToken;
 import oasis.model.accounts.Account;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.AgentAccount;
 import oasis.model.accounts.UserAccount;
+import oasis.model.authn.AccessToken;
 import oasis.model.social.Identity;
 import oasis.model.social.IdentityRepository;
 import oasis.openidconnect.OpenIdConnectModule;

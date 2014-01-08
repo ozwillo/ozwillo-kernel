@@ -27,7 +27,6 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
-import com.google.api.client.auth.oauth2.TokenErrorResponse;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
@@ -38,7 +37,7 @@ import com.google.common.net.UrlEscapers;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
-import oasis.model.accounts.AuthorizationCode;
+import oasis.model.authn.AuthorizationCode;
 import oasis.model.applications.ApplicationRepository;
 import oasis.model.applications.Scope;
 import oasis.model.applications.ScopeCardinality;

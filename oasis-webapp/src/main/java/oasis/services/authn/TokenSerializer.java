@@ -12,8 +12,8 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 import com.google.common.io.BaseEncoding;
 
-import oasis.model.accounts.Token;
-import oasis.model.accounts.TokenViews;
+import oasis.model.authn.Token;
+import oasis.model.authn.TokenViews;
 
 public class TokenSerializer {
   private static final Logger logger = LoggerFactory.getLogger(TokenSerializer.class);

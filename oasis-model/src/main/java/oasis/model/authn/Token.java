@@ -1,4 +1,4 @@
-package oasis.model.accounts;
+package oasis.model.authn;
 
 import org.joda.time.Duration;
 import org.joda.time.Instant;

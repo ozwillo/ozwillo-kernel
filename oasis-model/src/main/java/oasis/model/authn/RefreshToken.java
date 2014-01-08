@@ -1,4 +1,4 @@
-package oasis.model.accounts;
+package oasis.model.authn;
 
 public class RefreshToken extends AccessTokenGenerator {
 }

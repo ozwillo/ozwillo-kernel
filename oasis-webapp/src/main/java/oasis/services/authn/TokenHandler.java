@@ -11,11 +11,11 @@ import org.joda.time.Instant;
 
 import com.google.common.base.Strings;
 
-import oasis.model.accounts.AccessToken;
-import oasis.model.accounts.AccessTokenGenerator;
-import oasis.model.accounts.AuthorizationCode;
-import oasis.model.accounts.RefreshToken;
-import oasis.model.accounts.Token;
+import oasis.model.authn.AccessToken;
+import oasis.model.authn.AccessTokenGenerator;
+import oasis.model.authn.AuthorizationCode;
+import oasis.model.authn.RefreshToken;
+import oasis.model.authn.Token;
 import oasis.model.authn.TokenRepository;
 
 public class TokenHandler {

@@ -10,7 +10,7 @@ import org.jongo.MongoCollection;
 import com.google.common.base.Strings;
 
 import oasis.model.accounts.Account;
-import oasis.model.accounts.Token;
+import oasis.model.authn.Token;
 import oasis.model.authn.TokenRepository;
 
 public class JongoTokenRepository implements TokenRepository {

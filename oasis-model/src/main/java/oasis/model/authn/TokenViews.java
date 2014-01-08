@@ -1,4 +1,4 @@
-package oasis.model.accounts;
+package oasis.model.authn;
 
 public class TokenViews {
   public static class Serializer {}

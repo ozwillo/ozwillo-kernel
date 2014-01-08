@@ -40,11 +40,11 @@ import com.google.common.collect.Sets;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
-import oasis.model.accounts.AccessToken;
 import oasis.model.accounts.Account;
 import oasis.model.accounts.AccountRepository;
-import oasis.model.accounts.AuthorizationCode;
-import oasis.model.accounts.RefreshToken;
+import oasis.model.authn.AccessToken;
+import oasis.model.authn.AuthorizationCode;
+import oasis.model.authn.RefreshToken;
 import oasis.openidconnect.OpenIdConnectModule;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;

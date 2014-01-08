@@ -1,7 +1,5 @@
 package oasis.model.authn;
 
-import oasis.model.accounts.Token;
-
 public interface TokenRepository {
   Token getToken(String tokenId);
 

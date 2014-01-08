@@ -1,4 +1,4 @@
-package oasis.model.accounts;
+package oasis.model.authn;
 
 import java.util.Set;
 

@@ -20,9 +20,9 @@ import com.google.api.client.auth.oauth2.TokenErrorResponse;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
-import oasis.model.accounts.AbstractOAuthToken;
 import oasis.model.accounts.Account;
 import oasis.model.accounts.AccountRepository;
+import oasis.model.authn.AbstractOAuthToken;
 import oasis.model.authn.TokenRepository;
 import oasis.services.authn.TokenHandler;
 import oasis.web.authn.Authenticated;
