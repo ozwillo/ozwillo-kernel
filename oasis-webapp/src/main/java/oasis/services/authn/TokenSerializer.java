@@ -35,7 +35,7 @@ public class TokenSerializer {
   public static TokenInfo deserialize(String tokenSerial) {
     try {
       return OBJECT_MAPPER.readValue(BASE_ENCODING.decode(tokenSerial), TokenInfo.class);
-    } catch (IOException e) {
+    } catch (IOException | IllegalArgumentException e) {
       logger.error("Can't deserialize the given string {}", tokenSerial, e);
       return null;
     }
