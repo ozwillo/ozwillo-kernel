@@ -13,7 +13,7 @@ public class HttpServerModule extends AbstractModule {
 
     public static Settings fromConfig(Config config) {
       return Settings.builder()
-          .setPort(config.getInt("oasis.http.port"))
+          .setPort(config.getInt("port"))
           .build();
     }
 

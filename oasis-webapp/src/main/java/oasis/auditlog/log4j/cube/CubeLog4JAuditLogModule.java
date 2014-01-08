@@ -38,7 +38,7 @@ public class CubeLog4JAuditLogModule extends AbstractModule {
 
   public static CubeLog4JAuditLogModule build(Config config) {
     return new CubeLog4JAuditLogModule(Settings.builder()
-        .setCubeUrl(config.getString("oasis.auditlog.cube.url"))
+        .setCubeUrl(config.getString("url"))
         .build());
   }
 

@@ -17,8 +17,8 @@ public class LogstashLog4JAuditModule extends AbstractModule {
 
     public static Settings fromConfig(Config config) {
       return Settings.builder()
-          .setHost(config.getString("oasis.auditlog.logstash.host"))
-          .setPort(config.getInt("oasis.auditlog.logstash.port"))
+          .setHost(config.getString("host"))
+          .setPort(config.getInt("port"))
           .build();
     }
 

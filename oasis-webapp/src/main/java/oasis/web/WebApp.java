@@ -65,14 +65,15 @@ public class WebApp {
 
     AbstractModule auditModule = (config.getBoolean("oasis.auditlog.disabled")) ?
         new NoopAuditLogModule() :
-        LogstashLog4JAuditModule.create(config.withOnlyPath("oasis.auditlog.logstash"));
+        LogstashLog4JAuditModule.create(config.getConfig("oasis.auditlog.logstash"));
 
     final Injector injector = Guice.createInjector(
         new OasisGuiceModule(),
-        JongoModule.create(config.withOnlyPath("oasis.mongo")),
+        JongoModule.create(config.getConfig("oasis.mongo")),
         auditModule,
-        HttpServerModule.create(config.withOnlyPath("oasis.http")),
-        KibanaModule.create(config.withOnlyPath("oasis.kibana")),
+        HttpServerModule.create(config.getConfig("oasis.http")),
+        KibanaModule.create(config.getConfig("oasis.kibana")),
+        // TODO: refactor to use a single subtree of the config
         OpenIdConnectModule.create(config.withOnlyPath("oasis.openid-connect")
             .withFallback(config.withOnlyPath("oasis.oauth"))
             .withFallback(config.withOnlyPath("oasis.conf-dir")))
