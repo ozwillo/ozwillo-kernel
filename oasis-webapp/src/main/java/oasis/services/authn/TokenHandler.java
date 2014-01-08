@@ -25,7 +25,7 @@ public class TokenHandler {
     this.tokenRepository = tokenRepository;
   }
 
-  public boolean checkTokenValidity(Token token) {
+  private boolean checkTokenValidity(Token token) {
     // A null token is not valid !
     if (token == null) {
       return false;
@@ -33,7 +33,7 @@ public class TokenHandler {
 
     // Compute the token Expiration Date
     Instant tokenExpirationDate = token.getCreationTime().plus(token.getTimeToLive());
-    if (tokenExpirationDate.isBefore(Instant.now())) {
+    if (tokenExpirationDate.isBeforeNow()) {
       // Token is expired
       return false;
     }
@@ -128,18 +128,18 @@ public class TokenHandler {
     return tokenRepository.registerToken(accountId, token);
   }
 
-  private <T extends Token> T getCheckedToken(Token token, Class<T> tokenClass) {
-    if (token == null) {
+  private <T extends Token> T getCheckedToken(TokenInfo tokenInfo, Class<T> tokenClass) {
+    if (tokenInfo == null) {
       return null;
     }
 
     // If someone fakes a token, at least it should ensure it hasn't expired
     // It saves us a database lookup.
-    if (!checkTokenValidity(token)) {
+    if (tokenInfo.getExp().isBeforeNow()) {
       return null;
     }
 
-    Token realToken = tokenRepository.getToken(token.getId());
+    Token realToken = tokenRepository.getToken(tokenInfo.getId());
     if (realToken == null || !checkTokenValidity(realToken)) {
       // token does not exist or has expired
       return null;
@@ -153,6 +153,6 @@ public class TokenHandler {
   }
 
   public <T extends Token> T getCheckedToken(String tokenSerial, Class<T> tokenClass) {
-    return this.getCheckedToken(TokenSerializer.unserialize(tokenSerial), tokenClass);
+    return this.getCheckedToken(TokenSerializer.deserialize(tokenSerial), tokenClass);
   }
 }

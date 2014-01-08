@@ -12,19 +12,13 @@ import oasis.model.annotations.Id;
 
 @JsonTypeInfo(use=JsonTypeInfo.Id.MINIMAL_CLASS, property="_type")
 public abstract class Token {
-  @JsonView(TokenViews.Serializer.class)
-  @ApiModelProperty(required = true)
   @Id
   private String id;
 
-  @JsonView(TokenViews.Serializer.class)
   @JsonProperty
-  @ApiModelProperty(required = true)
   private Instant creationTime;
 
-  @JsonView(TokenViews.Serializer.class)
   @JsonProperty
-  @ApiModelProperty(required = true)
   private Duration timeToLive;
 
   public String getId() {
