@@ -22,10 +22,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Splitter;
 
 import oasis.model.authn.AccessToken;
-import oasis.model.authn.Token;
-import oasis.model.authn.TokenRepository;
 import oasis.services.authn.TokenHandler;
-import oasis.services.authn.TokenSerializer;
 
 /**
  * Implements Bearer Token authentication.
@@ -41,7 +38,6 @@ public class OAuthAuthenticationFilter implements ContainerRequestFilter {
   private static final Splitter AUTH_SCHEME_SPLITTER = Splitter.on(' ').omitEmptyStrings().trimResults();
 
   @Context ResourceInfo resourceInfo;
-  @Inject TokenRepository tokenRepository;
   @Inject TokenHandler tokenHandler;
 
   @Override
@@ -63,18 +59,8 @@ public class OAuthAuthenticationFilter implements ContainerRequestFilter {
       return;
     }
 
-    Token token;
-    try {
-      token = TokenSerializer.unserialize(parts.get(1));
-    } catch (Exception e) {
-      invalidToken(requestContext);
-      return;
-    }
-
-    // Get real information for the token
-    token = tokenRepository.getToken(token.getId());
-
-    if (!(token instanceof AccessToken) || !tokenHandler.checkTokenValidity(token)) {
+    AccessToken accessToken = tokenHandler.getCheckedToken(parts.get(1), AccessToken.class);
+    if (accessToken == null) {
       invalidToken(requestContext);
       return;
     }
@@ -88,12 +74,12 @@ public class OAuthAuthenticationFilter implements ContainerRequestFilter {
         // XXX: should we send a forbidden response rather than let the request go in?
       }
     }
-    if (withScopesAnnotation != null && !((AccessToken) token).getScopeIds().containsAll(Arrays.asList(withScopesAnnotation.value()))) {
+    if (withScopesAnnotation != null && !accessToken.getScopeIds().containsAll(Arrays.asList(withScopesAnnotation.value()))) {
       insufficientScope(requestContext);
       return;
     }
 
-    final OAuthPrincipal accountPrincipal = new OAuthPrincipal((AccessToken) token);
+    final OAuthPrincipal accountPrincipal = new OAuthPrincipal(accessToken);
     final SecurityContext oldSecurityContext = requestContext.getSecurityContext();
 
     requestContext.setSecurityContext(new SecurityContext() {
