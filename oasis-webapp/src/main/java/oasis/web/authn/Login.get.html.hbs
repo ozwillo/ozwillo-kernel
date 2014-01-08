@@ -3,24 +3,41 @@
 [[/partial]]
 
 [[#partial "content"]]
+<div class="container">
   <h1>Login to OASIS</h1>
-  <form method="POST" action="[[formAction]]">
+
+  <form method="POST" action="[[formAction]]" class="form-horizontal">
     <input type="hidden" name="_utf8" value="&#9731;" />
     <input type="hidden" name="continue" value="[[continue]]" />
 
-    <p>
-      Enter an email and a password :
-      <input type="email" name="u" placeholder="Email address" />
-      <input type="password" name="pwd" placeholder="Password" />
-      <button type="submit">Sign in</button>
+    <div class="form-group">
+      <label for="emailInput" class="col-sm-2 control-label">Email address</label>
+
+      <div class="col-sm-10">
+        <input type="email" id="emailInput" class="form-control" name="u" placeholder="Email address" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="passwordInput" class="col-sm-2 control-label">Email address</label>
+
+      <div class="col-sm-10">
+        <input type="password" id="passwordInput" class="form-control" name="pwd" placeholder="Password" />
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-sm-offset-2 col-sm-10">
+        <button type="submit" class="btn btn-primary">Sign in</button>
+      </div>
+    </div>
     </p>
   </form>
 
   [[#if errorMessage]]
-    <p style="color:red">
-      [[errorMessage]]
-    </p>
+  <p class="alert alert-danger">
+    [[errorMessage]]
+  </p>
   [[/if]]
+</div>
 [[/partial]]
 
 [[! FIXME: Make the path less verbose]]
