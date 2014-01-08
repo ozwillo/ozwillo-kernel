@@ -1,67 +1,69 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <title>OASIS Claim</title>
-</head>
-<body>
-<h1>{{app.name}} needs some authorizations:</h1>
+[[#partial "title"]]
+  <title>OASIS Claim</title>
+[[/partial]]
 
-<form method="POST" action="{{urls.formAction}}">
+[[#partial "content"]]
+  <h1>[[app.name]] needs some authorizations:</h1>
+
+  <form method="POST" action="[[urls.formAction]]">
     <input type="hidden" name="_utf8" value="&#9731;" />
-    <input type="hidden" name="continue" value="{{urls.continue}}" />
-    <input type="hidden" name="client_id" value="{{app.id}}" />
+    <input type="hidden" name="continue" value="[[urls.continue]]" />
+    <input type="hidden" name="client_id" value="[[app.id]]" />
     <input type="hidden" name="scope" value="openid" />
 
     <div>
-        <p>
-            {{app.name}} wants to :
-        </p>
-        <ul>
-            {{#each scopes.requiredScopes}}
-                <input type="hidden" name="scope" value="{{id}}" />
-                <dl>
-                    <dt>{{title}}</dt>
-                    <dd>{{description}}</dd>
-                </dl>
-            {{/each}}
-        </ul>
-        <div>
-            <a href="{{urls.cancel}}">Cancel</a>
-            <button type="submit">Grant it</button>
-        </div>
+      <p>
+        [[app.name]] wants to :
+      </p>
+      <ul>
+        [[#each scopes.requiredScopes]]
+          <input type="hidden" name="scope" value="[[id]]" />
+          <dl>
+            <dt>[[title]]</dt>
+            <dd>[[description]]</dd>
+          </dl>
+        [[/each]]
+      </ul>
+      <div>
+        <a href="[[urls.cancel]]">Cancel</a>
+        <button type="submit">Grant it</button>
+      </div>
     </div>
 
-    {{#if scopes.optionalScopes}}
-    <div>
+    [[#if scopes.optionalScopes]]
+      <div>
         <p>
-            {{app.name}} may later need to do the following; you can authorize it in advance by checking the boxes:
+          [[app.name]] may later need to do the following; you can authorize it in advance by checking the boxes:
         </p>
         <ul>
-            {{#each scopes.optionalScopes}}
-            <input type="checkbox" name="scope" value="{{id}}" />
+          [[#each scopes.optionalScopes]]
+            <input type="checkbox" name="scope" value="[[id]]" />
             <dl>
-                <dt>{{title}}</dt>
-                <dd>{{description}}</dd>
+              <dt>[[title]]</dt>
+              <dd>[[description]]</dd>
             </dl>
-            {{/each}}
+          [[/each]]
         </ul>
-    </div>
-    {{/if}}
+      </div>
+    [[/if]]
 
-    {{#if scopes.alreadyGrantedScopes}}
-    <div>
+    [[#if scopes.alreadyGrantedScopes]]
+      <div>
         <p>
-            You have already authorized {{app.name}} to :
+          You have already authorized [[app.name]] to :
         </p>
         <ul>
-            {{#each scopes.alreadyGrantedScopes}}
+          [[#each scopes.alreadyGrantedScopes]]
             <dl>
-                <dt>{{title}}</dt>
-                <dd>{{description}}</dd>
+              <dt>[[title]]</dt>
+              <dd>[[description]]</dd>
             </dl>
-            {{/each}}
+          [[/each]]
         </ul>
-    </div>
-    {{/if}}
-</form>
+      </div>
+    [[/if]]
+  </form>
+[[/partial]]
+
+[[! FIXME: Make the path less verbose]]
+[[> oasis/web/Base.html]]

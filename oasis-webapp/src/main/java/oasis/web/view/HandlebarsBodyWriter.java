@@ -17,7 +17,10 @@ import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.io.ClassPathTemplateLoader;
 
 public class HandlebarsBodyWriter implements MessageBodyWriter<View> {
-  private static final Handlebars HANDLEBARS = new Handlebars(new ClassPathTemplateLoader());
+  private static final Handlebars HANDLEBARS = new Handlebars(new ClassPathTemplateLoader())
+      .registerHelper("json", new JsonHelper())
+      .startDelimiter("[[")
+      .endDelimiter("]]");
 
   @Override
   public boolean isWriteable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {

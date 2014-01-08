@@ -1,9 +1,4 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>OASIS</title>
-</head>
-<body>
+[[#partial "content"]]
   <h1>Welcome!</h1>
   <p>API document is available at <a href="swagger-ui.html">/swagger-ui.html</a>
   <p>Kibana is available <a href="kibana/">here</a> and comes with a <a href="kibana/index.html#/dashboard/file/logstash.json">default dashboard</a>
@@ -13,5 +8,7 @@
     <li><code>/a/token</code> for the Token Endpoint
   </ul>
   <p>In this first prototype, you must pass <code>openid</code> in the <code>scope</code>, but the endpoints currently do only OAuth 2.0 (i.e. no ID Token yet)
-</body>
-</html>
+[[/partial]]
+
+[[! FIXME: Make the path less verbose]]
+[[> oasis/web/Base.html]]

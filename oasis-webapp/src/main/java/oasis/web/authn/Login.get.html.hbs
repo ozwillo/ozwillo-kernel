@@ -1,24 +1,27 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset=utf-8>
-<title>OASIS Login</title>
-</head>
-<body>
-<h1>Login to OASIS</h1>
-<form method=POST action={{formAction}}>
-<input type="hidden" name="_utf8" value="&#9731;">
-<input type="hidden" name="continue" value="{{continue}}">
-<p>
-Enter an email and a password :
-<input type="email" name="u" placeholder="Email address">
-<input type="password" name="pwd" placeholder="Password">
-<button type="submit">Sign in</button>
-</p>
+[[#partial "title"]]
+  <title>Oasis - Login</title>
+[[/partial]]
 
-{{#if errorMessage}}
-<p style="color:red">
-{{errorMessage}}
-</p>
-{{/if}}
-</form>
+[[#partial "content"]]
+  <h1>Login to OASIS</h1>
+  <form method="POST" action="[[formAction]]">
+    <input type="hidden" name="_utf8" value="&#9731;" />
+    <input type="hidden" name="continue" value="[[continue]]" />
+
+    <p>
+      Enter an email and a password :
+      <input type="email" name="u" placeholder="Email address" />
+      <input type="password" name="pwd" placeholder="Password" />
+      <button type="submit">Sign in</button>
+    </p>
+  </form>
+
+  [[#if errorMessage]]
+    <p style="color:red">
+      [[errorMessage]]
+    </p>
+  [[/if]]
+[[/partial]]
+
+[[! FIXME: Make the path less verbose]]
+[[> oasis/web/Base.html]]
