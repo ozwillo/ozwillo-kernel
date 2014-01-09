@@ -96,7 +96,7 @@ public class UserDirectoryService {
     AgentAccount res = new AgentAccount();
 
     res.setId(agentInfo.getId());
-    res.setAdmin(agentInfo.isOrganization_admin());
+    res.setAdmin(agentInfo.isOrganization_admin() == null ? false : agentInfo.isOrganization_admin());
     res.setOrganizationId(agentInfo.getOrganization_id());
     res.setModified(agentInfo.getModified());
 
@@ -132,7 +132,7 @@ public class UserDirectoryService {
       res.setBirthdate(LocalDate.parse(agentInfo.getBirthdate()));
     }
     res.setPhoneNumber(agentInfo.getPhone());
-    res.setPhoneNumberVerified(agentInfo.isPhone_verified());
+    res.setPhoneNumberVerified(agentInfo.isPhone_verified() == null ? false : agentInfo.isPhone_verified());
     res.setUpdatedAt(agentInfo.getUpdated_at() == null ? 0 : agentInfo.getUpdated_at());
 
     return res;
