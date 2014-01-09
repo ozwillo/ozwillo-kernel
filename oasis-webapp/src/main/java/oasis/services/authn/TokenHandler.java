@@ -17,12 +17,15 @@ import oasis.model.authn.AuthorizationCode;
 import oasis.model.authn.RefreshToken;
 import oasis.model.authn.Token;
 import oasis.model.authn.TokenRepository;
+import oasis.openidconnect.OpenIdConnectModule;
 
 public class TokenHandler {
   private final TokenRepository tokenRepository;
+  private final OpenIdConnectModule.Settings settings;
 
-  @Inject TokenHandler(TokenRepository tokenRepository) {
+  @Inject TokenHandler(TokenRepository tokenRepository, OpenIdConnectModule.Settings settings) {
     this.tokenRepository = tokenRepository;
+    this.settings = settings;
   }
 
   public boolean checkTokenValidity(Token token) {
@@ -43,11 +46,11 @@ public class TokenHandler {
   }
 
   public AccessToken createAccessToken(String accountId, AccessTokenGenerator oauthToken) {
-    return this.createAccessToken(accountId, Duration.standardHours(1), oauthToken, null);
+    return this.createAccessToken(accountId, Duration.standardSeconds(settings.accessTokenExpirationSeconds), oauthToken, null);
   }
 
   public AccessToken createAccessToken(String accountId, AccessTokenGenerator oauthToken, Set<String> scopeIds) {
-    return this.createAccessToken(accountId, Duration.standardHours(1), oauthToken, scopeIds);
+    return this.createAccessToken(accountId, Duration.standardSeconds(settings.accessTokenExpirationSeconds), oauthToken, scopeIds);
   }
 
   private AccessToken createAccessToken(String accountId, Duration ttl, AccessTokenGenerator token, Set<String> scopeIds) {

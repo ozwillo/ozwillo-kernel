@@ -204,7 +204,7 @@ public class TokenEndpoint {
 
     response.setAccessToken(access_token);
     response.setTokenType("Bearer");
-    response.setExpiresInSeconds(settings.accessTokenExpirationSeconds);
+    response.setExpiresInSeconds(accessToken.getTimeToLive().getStandardSeconds());
     response.setScope(SCOPE_JOINER.join(accessToken.getScopeIds()));
     response.setIdToken(JsonWebSignature.signUsingRsaSha256(
         settings.keyPair.getPrivate(),
