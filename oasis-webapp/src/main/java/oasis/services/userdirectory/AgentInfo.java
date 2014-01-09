@@ -45,7 +45,7 @@ public class AgentInfo implements HasModified {
   public AgentInfo(AgentAccount agentAccount, Identity identity) {
 
     this.id = agentAccount.getId();
-    this.organization_admin = agentAccount.isAdmin();
+    this.organization_admin = agentAccount.isAdmin() ? Boolean.TRUE : null;
     this.organization_id = agentAccount.getOrganizationId();
     this.modified = agentAccount.getModified();
 
@@ -54,7 +54,7 @@ public class AgentInfo implements HasModified {
     this.zoneinfo = agentAccount.getZoneInfo();
     this.locale = agentAccount.getLocale();
     this.email = agentAccount.getEmailAddress();
-    this.email_verified = true; // A agent account is created only
+    this.email_verified = true; // TODO: use an activation flow (or should we trust the organization admin?)
 
     // Copy identity infos
     if (identity != null) {
@@ -66,7 +66,8 @@ public class AgentInfo implements HasModified {
       this.gender = identity.getGender();
       this.birthdate = (identity.getBirthdate() != null ? identity.getBirthdate().toString(BIRTHDATE_FORMATTER) : null);
       this.phone = identity.getPhoneNumber();
-      this.phone_verified = identity.isPhoneNumberVerified();
+      // Always send phone_verified (true or false) when there's a phone, never send it (null) otherwise.
+      this.phone_verified = identity.getPhoneNumber() == null ? null : identity.isPhoneNumberVerified();
 
       // Copy address infos
       if (identity.getAddress() != null) {
