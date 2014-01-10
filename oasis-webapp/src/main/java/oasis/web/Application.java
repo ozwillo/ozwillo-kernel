@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableSet;
 import com.wordnik.swagger.jaxrs.listing.ApiListingResourceJSON;
 import com.wordnik.swagger.jaxrs.listing.ResourceListingProvider;
 
+import oasis.web.account.ProfileEndpoint;
 import oasis.web.apidocs.ApiDeclarationProvider;
 import oasis.web.apps.ApplicationDirectoryEndpoint;
 import oasis.web.apps.ApplicationMarketEndpoint;
@@ -69,6 +70,7 @@ public class Application extends javax.ws.rs.core.Application {
         IntrospectionEndpoint.class,
         // UserInfo
         UserInfoEndpoint.class,
+        ProfileEndpoint.class,
         // Socal
         SocialEndpoint.class,
         // AuditLog
