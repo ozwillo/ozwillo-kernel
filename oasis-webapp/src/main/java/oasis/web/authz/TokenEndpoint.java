@@ -89,17 +89,17 @@ public class TokenEndpoint {
     // TODO: support other kind of tokens (jwt-bearer?)
     switch(grant_type) {
       case "authorization_code":
-        return this.validateAccessCode(params);
+        return this.validateAccessCode();
 
       case "refresh_token":
-        return this.validateRefreshToken(params);
+        return this.validateRefreshToken();
 
       default:
         return errorResponse("unsupported_grant_type", null);
     }
   }
 
-  private Response validateRefreshToken(MultivaluedMap<String, String> params) throws GeneralSecurityException, IOException {
+  private Response validateRefreshToken() throws GeneralSecurityException, IOException {
     String refresh_token = getRequiredParameter("refresh_token");
 
     // Get the token behind the given code
@@ -144,7 +144,7 @@ public class TokenEndpoint {
     return response(Response.Status.OK, response);
   }
 
-  public Response validateAccessCode(MultivaluedMap<String, String> params) throws GeneralSecurityException, IOException {
+  public Response validateAccessCode() throws GeneralSecurityException, IOException {
     String auth_code = getRequiredParameter("code");
 
     // TODO: Validate redirect_uri
@@ -234,6 +234,9 @@ public class TokenEndpoint {
 
   @Nullable
   private String getParameter(String paramName) {
+    if (params == null) { // Workaround for https://issues.jboss.org/browse/RESTEASY-1004
+      return null;
+    }
     List<String> values = params.get(paramName);
     if (values == null || values.isEmpty()) {
       return null;
