@@ -10,6 +10,7 @@ import oasis.jongo.JongoService;
 import oasis.jongo.accounts.JongoAccountRepository;
 import oasis.jongo.applications.JongoApplicationRepository;
 import oasis.jongo.applications.JongoSubscriptionRepository;
+import oasis.jongo.authn.JongoCredentialsRepository;
 import oasis.jongo.authn.JongoTokenRepository;
 import oasis.jongo.authz.JongoAuthorizationRepository;
 import oasis.jongo.directory.JongoDirectoryRepository;
@@ -19,6 +20,7 @@ import oasis.jongo.social.JongoIdentityRepository;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.applications.ApplicationRepository;
 import oasis.model.applications.SubscriptionRepository;
+import oasis.model.authn.CredentialsRepository;
 import oasis.model.authn.TokenRepository;
 import oasis.model.authz.AuthorizationRepository;
 import oasis.model.directory.DirectoryRepository;
@@ -84,6 +86,7 @@ public class JongoModule extends AbstractModule {
     bind(AuthorizationRepository.class).to(JongoAuthorizationRepository.class);
     bind(TokenRepository.class).to(JongoTokenRepository.class);
     bind(SubscriptionRepository.class).to(JongoSubscriptionRepository.class);
+    bind(CredentialsRepository.class).to(JongoCredentialsRepository.class);
     bind(EtagService.class).to(JongoEtagService.class);
   }
 }
