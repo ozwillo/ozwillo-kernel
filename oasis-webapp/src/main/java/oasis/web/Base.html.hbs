@@ -13,9 +13,11 @@
   [[#block "content"]]
   [[/block]]
 
-  <script type="application/json" id="initial-data">
-    [[json initData]]
-  </script>
+  [[#if initData]]
+    <script type="application/json" id="initial-data">
+      [[json initData]]
+    </script>
+  [[/if]]
   <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.7/angular.min.js"></script>
   <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
