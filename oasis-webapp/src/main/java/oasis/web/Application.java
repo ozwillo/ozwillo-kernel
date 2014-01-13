@@ -32,6 +32,7 @@ import oasis.web.providers.CookieParserRequestFilter;
 import oasis.web.providers.HttpInterceptor;
 import oasis.web.providers.JacksonContextResolver;
 import oasis.web.providers.SecureFilter;
+import oasis.web.providers.UnhandledExceptionMapper;
 import oasis.web.providers.UriParamConverterProvider;
 import oasis.web.social.SocialEndpoint;
 import oasis.web.userdirectory.UserDirectoryEndpoint;
@@ -44,6 +45,7 @@ public class Application extends javax.ws.rs.core.Application {
   public Set<Class<?>> getClasses() {
     return ImmutableSet.<Class<?>>of(
         // Hacks and workarounds
+        UnhandledExceptionMapper.class,
         UriParamConverterProvider.class,
         CookieParserRequestFilter.class,
         SecureFilter.class,
