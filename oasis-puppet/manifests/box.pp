@@ -19,7 +19,7 @@ node 'oasis-box.atolcd.priv' {
   }
 
   class {'::oasis':
-    package_url               => '/project/oasis-dist/target/oasis-dist_0.3.0+SNAPSHOT_all.deb',
+    package_url               => '/project/oasis-dist/target/oasis-dist_0.6.0~SNAPSHOT_all.deb',
     elasticsearch_cluster     => 'OasisBoxES',
     require                   => Class['mongodb', 'elasticsearch'],
   }
