@@ -1,5 +1,6 @@
 package oasis.web.providers;
 
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 
@@ -14,6 +15,13 @@ public class UnhandledExceptionMapper implements ExceptionMapper<Throwable> {
 
   @Override
   public Response toResponse(Throwable exception) {
+    if (exception instanceof WebApplicationException) {
+      Response response = ((WebApplicationException) exception).getResponse();
+      if (response != null) {
+        return response;
+      }
+    }
+
     logger.error("Unhandled exception: {}", exception.getMessage(), exception);
 
     return Response.serverError().build();
