@@ -108,6 +108,10 @@ public class TokenHandler {
   public RefreshToken createRefreshToken(String accountId, AuthorizationCode authorizationCode) {
     checkArgument(!Strings.isNullOrEmpty(accountId));
 
+    if (!tokenRepository.revokeToken(authorizationCode.getId())) {
+      return null;
+    }
+
     RefreshToken refreshToken = new RefreshToken();
 
     refreshToken.setCreationTime(Instant.now());
