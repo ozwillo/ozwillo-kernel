@@ -119,12 +119,12 @@ public class TokenEndpoint {
     Set<String> asked_scopes;
     if (!Strings.isNullOrEmpty(asked_scopes_param)) {
       asked_scopes = Sets.newHashSet(SCOPE_SPLITTER.splitToList(asked_scopes_param));
+
+      if (!refreshToken.getScopeIds().containsAll(asked_scopes)) {
+        return errorResponse("invalid_scope", null);
+      }
     } else {
       asked_scopes = refreshToken.getScopeIds();
-    }
-
-    if (!refreshToken.getScopeIds().containsAll(asked_scopes)) {
-      return errorResponse("invalid_scope", null);
     }
 
     AccessToken accessToken = tokenHandler.createAccessToken(account.getId(), refreshToken, asked_scopes);
