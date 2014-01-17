@@ -3,6 +3,7 @@ package oasis.web.authn;
 import java.net.URI;
 
 import javax.inject.Inject;
+import javax.security.auth.login.LoginException;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -66,8 +67,8 @@ public class Login {
           .seeOther(continueUrl)
           .cookie(CookieFactory.createSessionCookie(UserAuthenticationFilter.COOKIE_NAME, account.getId(), securityContext.isSecure())) // TODO: remember me
           .build();
-    } catch (Throwable e) {
-      return loginForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, e.toString());
+    } catch (LoginException e) {
+      return loginForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, "Incorrect username or password");
     }
   }
 
