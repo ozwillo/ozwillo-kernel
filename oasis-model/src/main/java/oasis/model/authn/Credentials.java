@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Credentials {
   @JsonProperty
-  private ClientType type;
+  private ClientType clientType;
   @JsonProperty
   private String id;
   @JsonProperty
@@ -12,12 +12,12 @@ public class Credentials {
   @JsonProperty
   private byte[] salt;
 
-  public ClientType getType() {
-    return type;
+  public ClientType getClientType() {
+    return clientType;
   }
 
-  public void setType(ClientType type) {
-    this.type = type;
+  public void setClientType(ClientType clientType) {
+    this.clientType = clientType;
   }
 
   public String getId() {
