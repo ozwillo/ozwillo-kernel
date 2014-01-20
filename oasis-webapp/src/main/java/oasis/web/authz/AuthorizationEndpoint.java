@@ -182,8 +182,6 @@ public class AuthorizationEndpoint {
     }
     globalClaimedScopeIds.addAll(scopeIds);
     // TODO: Manage automatically granted scopes
-    // Note: the openid scope is later re-added with a hidden field in the approval form
-    globalClaimedScopeIds.remove("openid");
 
     Iterable<Scope> globalClaimedScopes;
     try {
