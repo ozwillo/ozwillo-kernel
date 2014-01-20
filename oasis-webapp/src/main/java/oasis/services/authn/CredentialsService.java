@@ -6,14 +6,14 @@ import oasis.model.authn.ClientType;
 import oasis.model.authn.Credentials;
 import oasis.model.authn.CredentialsRepository;
 import oasis.services.authn.login.PasswordHasher;
-import oasis.services.authn.login.SShaPasswordHasher;
+import oasis.services.authn.login.SCryptPasswordHasher;
 
 public class CredentialsService {
   private final CredentialsRepository credentialsRepository;
   private final PasswordHasher passwordHasher;
 
   @Inject
-  CredentialsService(CredentialsRepository credentialsRepository, SShaPasswordHasher passwordHasher) {
+  CredentialsService(CredentialsRepository credentialsRepository, SCryptPasswordHasher passwordHasher) {
     this.credentialsRepository = credentialsRepository;
     this.passwordHasher = passwordHasher;
   }
