@@ -1,4 +1,4 @@
-package oasis.web;
+package oasis.tools;
 
 import java.nio.file.Files;
 import java.nio.file.Path;

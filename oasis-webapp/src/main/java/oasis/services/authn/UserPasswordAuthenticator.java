@@ -11,7 +11,7 @@ import oasis.model.accounts.Account;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.services.authn.login.PasswordHasher;
-import oasis.services.authn.login.SShaPasswordHasher;
+import oasis.services.authn.login.SCryptPasswordHasher;
 
 public class UserPasswordAuthenticator {
   protected final AccountRepository accountRepository;
@@ -23,9 +23,9 @@ public class UserPasswordAuthenticator {
   @Inject
   UserPasswordAuthenticator(
       AccountRepository accountRepository,
-      SShaPasswordHasher sShaPasswordHasher) {
+      SCryptPasswordHasher passwordHasher) {
     this.accountRepository = accountRepository;
-    this.passwordHasher = sShaPasswordHasher;
+    this.passwordHasher = passwordHasher;
   }
 
   public Account authenticate(String email, String password) throws LoginException {
