@@ -71,7 +71,7 @@ public class TokenHandler {
         return null;
       }
     } else if (token instanceof RefreshToken) {
-      newAccessToken.setRefreshTokenId(token.getId());
+      newAccessToken.setParent(token);
     }
     newAccessToken.setServiceProviderId(token.getServiceProviderId());
 

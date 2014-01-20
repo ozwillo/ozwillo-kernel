@@ -50,7 +50,7 @@ public class JongoTokenRepository implements TokenRepository {
 
     return this.getAccountCollection()
         .update("{ tokens.id: # }", tokenId)
-        .with("{ $pull: { tokens: { $or: [ { id: # }, { refreshTokenId: # } ] } } }", tokenId, tokenId)
+        .with("{ $pull: { tokens: { $or: [ { id: # }, { ancestorIds: # } ] } } }", tokenId, tokenId)
         .getN() > 0;
   }
 }
