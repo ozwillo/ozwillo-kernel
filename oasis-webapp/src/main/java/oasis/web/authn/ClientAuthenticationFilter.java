@@ -8,6 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import javax.annotation.Priority;
+import javax.inject.Inject;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
@@ -20,6 +21,9 @@ import javax.ws.rs.ext.Provider;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.io.BaseEncoding;
+
+import oasis.model.authn.ClientType;
+import oasis.services.authn.CredentialsService;
 
 /**
  * Implements HTTP Basic authentication, used when client applications authenticate to some OAuth 2.0 endpoints.
@@ -42,6 +46,8 @@ public class ClientAuthenticationFilter implements ContainerRequestFilter {
 
   private static final Splitter AUTH_SCHEME_SPLITTER = Splitter.on(' ').omitEmptyStrings();
   private static final Splitter CREDENTIALS_SPLITTER = Splitter.on(':').limit(2);
+
+  @Inject CredentialsService credentialsService;
 
   @Override
   public void filter(ContainerRequestContext requestContext) {
@@ -81,6 +87,10 @@ public class ClientAuthenticationFilter implements ContainerRequestFilter {
     if (Strings.isNullOrEmpty(clientId)) {
       challenge(requestContext);
       return;
+    }
+
+    if (!credentialsService.checkPassword(ClientType.PROVIDER, clientId, clientSecret)) {
+      challenge(requestContext);
     }
 
     final ClientPrincipal clientPrincipal = new ClientPrincipal(clientId);
