@@ -46,11 +46,11 @@ public class TokenHandler {
   }
 
   public AccessToken createAccessToken(String accountId, AccessTokenGenerator oauthToken) {
-    return this.createAccessToken(accountId, Duration.standardSeconds(settings.accessTokenExpirationSeconds), oauthToken, null);
+    return this.createAccessToken(accountId, settings.accessTokenDuration, oauthToken, null);
   }
 
   public AccessToken createAccessToken(String accountId, AccessTokenGenerator oauthToken, Set<String> scopeIds) {
-    return this.createAccessToken(accountId, Duration.standardSeconds(settings.accessTokenExpirationSeconds), oauthToken, scopeIds);
+    return this.createAccessToken(accountId, settings.accessTokenDuration, oauthToken, scopeIds);
   }
 
   private AccessToken createAccessToken(String accountId, Duration ttl, AccessTokenGenerator token, Set<String> scopeIds) {

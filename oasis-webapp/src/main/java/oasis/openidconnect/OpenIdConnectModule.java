@@ -4,6 +4,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyPair;
 
+import org.joda.time.Duration;
+
 import com.google.inject.AbstractModule;
 import com.typesafe.config.Config;
 
@@ -29,16 +31,16 @@ public class OpenIdConnectModule extends AbstractModule {
 
       return Settings.builder()
           .setKeyPair(KeyPairLoader.loadOrGenerateKeyPair(privateKeyPath, publicKeyPath))
-          .setAccessTokenExpirationSeconds(config.getLong("oasis.oauth.access-token-expiration-seconds"))
-          .setIdTokenExpirationSeconds(config.getLong("oasis.openid-connect.id-token-expiration-seconds"))
+          .setAccessTokenDuration(Duration.millis(config.getMilliseconds("oasis.oauth.access-token-duration")))
+          .setIdTokenDuration(Duration.millis(config.getMilliseconds("oasis.openid-connect.id-token-duration")))
           .build();
     }
 
     public static class Builder {
 
       private KeyPair keyPair;
-      private long accessTokenExpirationSeconds;
-      private long idTokenExpirationSeconds;
+      private Duration accessTokenDuration;
+      private Duration idTokenDuration;
 
       public Settings build() {
         return new Settings(this);
@@ -49,25 +51,25 @@ public class OpenIdConnectModule extends AbstractModule {
         return this;
       }
 
-      public Builder setAccessTokenExpirationSeconds(long accessTokenExpirationSeconds) {
-        this.accessTokenExpirationSeconds = accessTokenExpirationSeconds;
+      public Builder setAccessTokenDuration(Duration accessTokenDuration) {
+        this.accessTokenDuration = accessTokenDuration;
         return this;
       }
 
-      public Builder setIdTokenExpirationSeconds(long idTokenExpirationSeconds) {
-        this.idTokenExpirationSeconds = idTokenExpirationSeconds;
+      public Builder setIdTokenDuration(Duration idTokenDuration) {
+        this.idTokenDuration = idTokenDuration;
         return this;
       }
     }
 
     public final KeyPair keyPair;
-    public final long accessTokenExpirationSeconds;
-    public final long idTokenExpirationSeconds;
+    public final Duration accessTokenDuration;
+    public final Duration idTokenDuration;
 
     private Settings(Builder builder) {
       this.keyPair = builder.keyPair;
-      this.accessTokenExpirationSeconds = builder.accessTokenExpirationSeconds;
-      this.idTokenExpirationSeconds = builder.idTokenExpirationSeconds;
+      this.accessTokenDuration = builder.accessTokenDuration;
+      this.idTokenDuration = builder.idTokenDuration;
     }
   }
 
