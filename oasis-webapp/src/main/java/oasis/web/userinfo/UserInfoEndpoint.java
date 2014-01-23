@@ -40,12 +40,16 @@ import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
 import oasis.web.authn.WithScopes;
+import oasis.web.authz.KeysEndpoint;
 
 @Authenticated @OAuth @WithScopes("openid")
 @Path("/a/userinfo")
 @Api(value = "/a/userinfo", description = "UserInfo Endpoint")
 public class UserInfoEndpoint {
-  private static final JsonWebSignature.Header JWS_HEADER = new JsonWebSignature.Header().setType("JWS").setAlgorithm("RS256");
+  private static final JsonWebSignature.Header JWS_HEADER = new JsonWebSignature.Header()
+      .setType("JWS")
+      .setAlgorithm("RS256")
+      .setKeyId(KeysEndpoint.JSONWEBKEY_PK_ID);
   private static final DateTimeFormatter BIRTHDATE_FORMATTER = ISODateTimeFormat.date().withDefaultYear(0);
   private static final String EMAIL_SCOPE = "email";
   private static final String PROFILE_SCOPE = "profile";
