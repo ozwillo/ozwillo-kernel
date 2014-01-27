@@ -119,11 +119,6 @@
       <groupId>org.jongo</groupId>
       <artifactId>jongo</artifactId>
     </dependency>
-    <!-- org.jongo:jongo:1.0-atolcd-patched fails to declare the dependency -->
-    <dependency>
-      <groupId>de.undercouch</groupId>
-      <artifactId>bson4jackson</artifactId>
-    </dependency>
     <dependency>
       <groupId>org.mongodb</groupId>
       <artifactId>mongo-java-driver</artifactId>
