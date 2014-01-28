@@ -29,19 +29,22 @@ public class OasisIdHelper {
   }
 
   static Field findOasisIdField(Class<?> clazz) {
+    if (Object.class == clazz) {
+      return null;
+    }
+    // XXX: restrict to classes in an oasis.* package?
     if (oasisFieldCache.containsKey(clazz)) {
       return oasisFieldCache.get(clazz);
     }
 
-    while (!Object.class.equals(clazz)) {
-      for (Field f : clazz.getDeclaredFields()) {
-        if (f.isAnnotationPresent(Id.class)) {
-          oasisFieldCache.put(clazz, f);
-          return f;
-        }
+    for (Field f : clazz.getDeclaredFields()) {
+      if (f.isAnnotationPresent(Id.class)) {
+        oasisFieldCache.put(clazz, f);
+        return f;
       }
-      clazz = clazz.getSuperclass();
     }
-    return null;
+    Field f = findOasisIdField(clazz.getSuperclass());
+    oasisFieldCache.put(clazz, f);
+    return f;
   }
 }
