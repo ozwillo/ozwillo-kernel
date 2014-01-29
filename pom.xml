@@ -28,6 +28,19 @@
     </repository>
   </distributionManagement>
 
+  <repositories>
+    <repository>
+      <id>cloudbees-jongo-early-release</id>
+      <url>http://repository-jongo.forge.cloudbees.com/release</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -63,9 +76,8 @@
       <dependency>
         <groupId>org.jongo</groupId>
         <artifactId>jongo</artifactId>
-        <version>1.0-atolcd-patched</version>
+        <version>1.1-early-20140125-0533</version>
       </dependency>
-      <!-- org.jongo:jongo:1.0-atolcd-patched fails to declare the dependency -->
       <dependency>
         <groupId>de.undercouch</groupId>
         <artifactId>bson4jackson</artifactId>

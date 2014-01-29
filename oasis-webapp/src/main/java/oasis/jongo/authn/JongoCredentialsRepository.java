@@ -27,12 +27,10 @@ public class JongoCredentialsRepository implements CredentialsRepository {
 
   @Override
   public Credentials saveCredentials(ClientType type, String id, byte[] hash, byte[] salt) {
-    // The {$binary:#,type:5} notation is a workaround for https://github.com/bguerout/jongo/issues/182
     return getCredentialsCollection().findAndModify("{ clientType:#, id:# }", type, id)
         .upsert()
         .returnNew()
-        .with("{ $set: { hash: { $binary:#, $type:5 }, salt: { $binary:#, $type:5 } } }",
-            BaseEncoding.base64().encode(hash), BaseEncoding.base64().encode(salt))
+        .with("{ $set: { hash:#, salt:# } }", hash, salt)
         .as(Credentials.class);
   }
 
