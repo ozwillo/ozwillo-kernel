@@ -1,14 +1,14 @@
 package oasis.jongo;
 
 import java.lang.reflect.Field;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import oasis.model.annotations.Id;
 
 public class OasisIdHelper {
-  private static final Map<Class<?>, Field> oasisFieldCache = new HashMap<>();
+  private static final Map<Class<?>, Field> oasisFieldCache = new ConcurrentHashMap<>();
 
   public static void updateOasisIdField(Object target) {
     Field idField = OasisIdHelper.findOasisIdField(target.getClass());
