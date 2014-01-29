@@ -25,6 +25,7 @@ import oasis.model.accounts.Account;
 import oasis.services.authn.UserPasswordAuthenticator;
 import oasis.services.cookies.CookieFactory;
 import oasis.web.Home;
+import oasis.web.security.StrictReferer;
 import oasis.web.view.View;
 
 @Path("/a/login")
@@ -44,6 +45,7 @@ public class Login {
   }
 
   @POST
+  @StrictReferer
   public Response post(
       @FormParam("u") @DefaultValue("") String userName,
       @FormParam("pwd") @DefaultValue("") String password,
@@ -82,7 +84,6 @@ public class Login {
       errorMessage = "";
     }
 
-    // TODO: CSRF (entêtes no-cache en prévision)
     return builder
         .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store")
         .header("Pragma", "no-cache")

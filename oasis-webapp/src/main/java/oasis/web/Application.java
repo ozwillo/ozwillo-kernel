@@ -22,6 +22,7 @@ import oasis.web.authz.AuthorizationEndpoint;
 import oasis.web.authz.IntrospectionEndpoint;
 import oasis.web.authz.KeysEndpoint;
 import oasis.web.authz.RevokeEndpoint;
+import oasis.web.security.StrictRefererFilter;
 import oasis.web.authz.TokenEndpoint;
 import oasis.web.eventbus.EventBusEndpoint;
 import oasis.web.example.OpenIdConnect;
@@ -70,6 +71,8 @@ public class Application extends javax.ws.rs.core.Application {
         RevokeEndpoint.class,
         KeysEndpoint.class,
         IntrospectionEndpoint.class,
+        // Security
+        StrictRefererFilter.class,
         // UserInfo
         UserInfoEndpoint.class,
         ProfileEndpoint.class,

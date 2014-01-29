@@ -136,6 +136,10 @@
       <groupId>joda-time</groupId>
       <artifactId>joda-time</artifactId>
     </dependency>
+    <dependency>
+      <groupId>io.mola.galimatias</groupId>
+      <artifactId>galimatias</artifactId>
+    </dependency>
   </dependencies>
   <build>
     <resources>

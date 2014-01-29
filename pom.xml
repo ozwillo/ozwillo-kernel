@@ -162,6 +162,11 @@
         <version>2.3</version>
       </dependency>
       <dependency>
+        <groupId>io.mola.galimatias</groupId>
+        <artifactId>galimatias</artifactId>
+        <version>0.0.2</version>
+      </dependency>
+      <dependency>
         <groupId>org.apache.logging.log4j</groupId>
         <artifactId>log4j</artifactId>
         <version>2.0-beta9</version>
