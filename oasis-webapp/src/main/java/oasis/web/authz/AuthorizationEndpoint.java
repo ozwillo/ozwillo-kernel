@@ -4,6 +4,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
@@ -27,6 +28,7 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
+import com.google.api.client.util.Maps;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
@@ -62,7 +64,6 @@ public class AuthorizationEndpoint {
   private static final Splitter SPACE_SPLITTER = Splitter.on(' ').omitEmptyStrings();
 
   @Context SecurityContext securityContext;
-  @Context UriInfo uriInfo;
 
   @Inject AuthorizationRepository authorizationRepository;
   @Inject ApplicationRepository applicationRepository;
@@ -127,7 +128,7 @@ public class AuthorizationEndpoint {
       return generateAuthorizationCodeAndRedirect(userId, scopeIds, serviceProvider.getId(), redirect_uri, nonce);
     }
 
-    return promptUser(serviceProvider, scopeIds, authorizedScopeIds);
+    return promptUser(serviceProvider, scopeIds, authorizedScopeIds, redirect_uri, state, nonce);
   }
 
   @POST
@@ -135,14 +136,21 @@ public class AuthorizationEndpoint {
   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
   public Response postScopes(
       @FormParam("scope") Set<String> scopeIds,
-      @FormParam("continue") URI continueUrl,
-      @FormParam("client_id") String client_id) {
-    // TODO: CSRF Validation
+      @FormParam("selected_scope") Set<String> selectedScopeIds,
+      @FormParam("client_id") String client_id,
+      @FormParam("redirect_uri") String redirect_uri,
+      @Nullable @FormParam("state") String state,
+      @Nullable @FormParam("nonce") String nonce
+  ) {
+    // TODO: check CSRF / XSS (check data hasn't been tampered since generation of the form, so we can skip some validations we had already done)
+
+    initRedirectUriBuilder(redirect_uri);
+    appendQueryParam("state", state);
+
     String userId = ((AccountPrincipal)securityContext.getUserPrincipal()).getAccountId();
+    authorizationRepository.authorize(userId, client_id, selectedScopeIds);
 
-    authorizationRepository.authorize(userId, client_id, scopeIds);
-
-    return Response.seeOther(continueUrl).build();
+    return generateAuthorizationCodeAndRedirect(userId, scopeIds, client_id, redirect_uri, nonce);
   }
 
   private Response generateAuthorizationCodeAndRedirect(String userId, Set<String> scopeIds, String client_id,
@@ -159,7 +167,8 @@ public class AuthorizationEndpoint {
     return Response.seeOther(URI.create(redirectUriBuilder.toString())).build();
   }
 
-  private Response promptUser(ServiceProvider serviceProvider, Set<String> requiredScopeIds, Set<String> authorizedScopeIds) {
+  private Response promptUser(ServiceProvider serviceProvider, Set<String> requiredScopeIds, Set<String> authorizedScopeIds,
+      String redirect_uri, @Nullable String state, @Nullable String nonce) {
     Set<String> globalClaimedScopeIds = Sets.newHashSet();
     Iterable<ScopeCardinality> scopeCardinalities = serviceProvider.getScopeCardinalities();
     if (scopeCardinalities != null) {
@@ -197,6 +206,16 @@ public class AuthorizationEndpoint {
     // redirectUriBuilder is now used for creating the cancel Uri for the authorization step with the user
     appendQueryParam("error", "access_denied");
 
+    Map<String, Object> parametersMap = Maps.newHashMap();
+    parametersMap.put("redirect_uri", redirect_uri);
+    parametersMap.put("scope", requiredScopeIds);
+    if (state != null) {
+      parametersMap.put("state", state);
+    }
+    if (nonce != null) {
+      parametersMap.put("nonce", nonce);
+    }
+
     // TODO: Improve security by adding a token created by encrypting scopes with a secret
     return Response.ok()
         .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store")
@@ -208,7 +227,6 @@ public class AuthorizationEndpoint {
         .entity(new View("oasis/web/authz/Approve.get.html",
             ImmutableMap.of(
                 "urls", ImmutableMap.of(
-                    "continue", uriInfo.getRequestUri(),
                     "cancel", redirectUriBuilder.toString(),
                     "formAction", UriBuilder.fromResource(AuthorizationEndpoint.class).path(APPROVE_PATH).build()
                 ),
@@ -217,6 +235,7 @@ public class AuthorizationEndpoint {
                     "optionalScopes", optionalScopes,
                     "authorizedScopes", authorizedScopes
                 ),
+                "parameters", parametersMap,
                 "app", ImmutableMap.of(
                     "id", serviceProvider.getId(),
                     "name", serviceProvider.getName()
