@@ -15,6 +15,7 @@
     <log4j.version>2.0-beta9</log4j.version>
     <resteasy.version>3.0.6.Final</resteasy.version>
     <guava.version>16.0</guava.version>
+    <jackson.version>2.3.1</jackson.version>
   </properties>
 
   <dependencies>
@@ -34,9 +35,10 @@
       <version>${guava.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.jboss.resteasy</groupId>
-      <artifactId>resteasy-jackson2-provider</artifactId>
-      <version>${resteasy.version}</version>
+      <groupId>com.fasterxml.jackson.jaxrs</groupId>
+      <artifactId>jackson-jaxrs-json-provider</artifactId>
+      <version>${jackson.version}</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.jboss.resteasy</groupId>

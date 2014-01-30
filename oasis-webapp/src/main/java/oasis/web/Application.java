@@ -2,6 +2,7 @@ package oasis.web;
 
 import java.util.Set;
 
+import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import com.google.common.collect.ImmutableSet;
 import com.wordnik.swagger.jaxrs.listing.ApiListingResourceJSON;
 import com.wordnik.swagger.jaxrs.listing.ResourceListingProvider;
@@ -22,7 +23,6 @@ import oasis.web.authz.AuthorizationEndpoint;
 import oasis.web.authz.IntrospectionEndpoint;
 import oasis.web.authz.KeysEndpoint;
 import oasis.web.authz.RevokeEndpoint;
-import oasis.web.security.StrictRefererFilter;
 import oasis.web.authz.TokenEndpoint;
 import oasis.web.eventbus.EventBusEndpoint;
 import oasis.web.example.OpenIdConnect;
@@ -35,6 +35,7 @@ import oasis.web.providers.JacksonContextResolver;
 import oasis.web.providers.SecureFilter;
 import oasis.web.providers.UnhandledExceptionMapper;
 import oasis.web.providers.UriParamConverterProvider;
+import oasis.web.security.StrictRefererFilter;
 import oasis.web.social.SocialEndpoint;
 import oasis.web.userdirectory.UserDirectoryEndpoint;
 import oasis.web.userinfo.UserInfoEndpoint;
@@ -52,6 +53,7 @@ public class Application extends javax.ws.rs.core.Application {
         SecureFilter.class,
         // Providers
         JacksonContextResolver.class,
+        JacksonJsonProvider.class,
         // Views
         HandlebarsBodyWriter.class,
         // Swagger
