@@ -225,7 +225,7 @@ public class UserInfoEndpoint {
 
     // Agent information
     @Key private Boolean organization_admin;
-    @Key private String organisation_id;
+    @Key private String organization_id;
 
     public String getName() {
       return name;
@@ -380,11 +380,11 @@ public class UserInfoEndpoint {
     }
 
     public String getOrganization_id() {
-      return organisation_id;
+      return organization_id;
     }
 
     public void setOrganization_id(String organizationId) {
-      this.organisation_id = organizationId;
+      this.organization_id = organizationId;
     }
 
     @Override
