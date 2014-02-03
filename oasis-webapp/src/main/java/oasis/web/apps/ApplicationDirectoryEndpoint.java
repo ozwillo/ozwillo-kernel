@@ -31,6 +31,8 @@ import oasis.model.applications.Application;
 import oasis.model.applications.ApplicationRepository;
 import oasis.model.applications.DataProvider;
 import oasis.model.applications.ServiceProvider;
+import oasis.model.authn.ClientType;
+import oasis.services.authn.CredentialsService;
 import oasis.services.etag.EtagService;
 import oasis.web.utils.ResponseFactory;
 
@@ -39,10 +41,9 @@ import oasis.web.utils.ResponseFactory;
 @Api(value = "/d/app", description = "Application directory API")
 public class ApplicationDirectoryEndpoint {
 
-  @Inject
-  ApplicationRepository applications;
-  @Inject
-  EtagService etagService;
+  @Inject ApplicationRepository applications;
+  @Inject CredentialsService credentialsService;
+  @Inject EtagService etagService;
 
   @GET
   @ApiOperation(value = "Retrieve available applications",
@@ -218,6 +219,9 @@ public class ApplicationDirectoryEndpoint {
     }
 
     DataProvider newDataProvider = applications.createDataProvider(applicationId, dataProvider);
+    // FIXME: temporarily set the password to the data provider id
+    credentialsService.setPassword(ClientType.PROVIDER, newDataProvider.getId(), newDataProvider.getId());
+
     URI uri = UriBuilder.fromResource(DataProviderDirectoryEndpoint.class)
         .path(DataProviderDirectoryEndpoint.class, "getDataProvider")
         .build(newDataProvider.getId());
@@ -274,6 +278,9 @@ public class ApplicationDirectoryEndpoint {
     }
 
     ServiceProvider newServiceProvider = applications.createServiceProvider(applicationId, serviceProvider);
+    // FIXME: temporarily set the password to the service provider id
+    credentialsService.setPassword(ClientType.PROVIDER, newServiceProvider.getId(), newServiceProvider.getId());
+
     URI uri = UriBuilder.fromResource(ServiceProviderDirectoryEndpoint.class)
         .path(ServiceProviderDirectoryEndpoint.class, "getServiceProvider")
         .build(newServiceProvider.getId());
