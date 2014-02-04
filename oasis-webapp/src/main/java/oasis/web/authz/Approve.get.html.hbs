@@ -7,8 +7,13 @@
 
   <form method="POST" action="[[urls.formAction]]">
     <input type="hidden" name="_utf8" value="&#9731;" />
-    <input type="hidden" name="continue" value="[[urls.continue]]" />
     <input type="hidden" name="client_id" value="[[app.id]]" />
+    [[#each parameters.scope]]
+      <input type="hidden" name="scope" value="[[this]]" />
+    [[/each]]
+    <input type="hidden" name="redirect_uri" value="[[parameters.redirect_uri]]" />
+    <input type="hidden" name="state" value="[[parameters.state]]" />
+    <input type="hidden" name="nonce" value="[[parameters.nonce]]" />
 
     <div>
       <p>
@@ -16,7 +21,7 @@
       </p>
       <ul>
         [[#each scopes.requiredScopes]]
-          <input type="hidden" name="scope" value="[[id]]" />
+          <input type="hidden" name="selected_scope" value="[[id]]" />
           <dl>
             <dt>[[title]]</dt>
             <dd>[[description]]</dd>
@@ -36,7 +41,7 @@
         </p>
         <ul>
           [[#each scopes.optionalScopes]]
-            <input type="checkbox" name="scope" value="[[id]]" />
+            <input type="checkbox" name="selected_scope" value="[[id]]" />
             <dl>
               <dt>[[title]]</dt>
               <dd>[[description]]</dd>
@@ -46,13 +51,13 @@
       </div>
     [[/if]]
 
-    [[#if scopes.alreadyGrantedScopes]]
+    [[#if scopes.authorizedScopes]]
       <div>
         <p>
           You have already authorized [[app.name]] to :
         </p>
         <ul>
-          [[#each scopes.alreadyGrantedScopes]]
+          [[#each scopes.authorizedScopes]]
             <dl>
               <dt>[[title]]</dt>
               <dd>[[description]]</dd>
