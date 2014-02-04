@@ -37,11 +37,11 @@ import com.google.common.net.UrlEscapers;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
-import oasis.model.authn.AuthorizationCode;
 import oasis.model.applications.ApplicationRepository;
 import oasis.model.applications.Scope;
 import oasis.model.applications.ScopeCardinality;
 import oasis.model.applications.ServiceProvider;
+import oasis.model.authn.AuthorizationCode;
 import oasis.model.authz.AuthorizationRepository;
 import oasis.model.authz.AuthorizedScopes;
 import oasis.services.authn.TokenHandler;
@@ -58,13 +58,6 @@ import oasis.web.view.View;
 @Api(value = "/a/auth", description = "Authorization Endpoint.")
 public class AuthorizationEndpoint {
   private static final String APPROVE_PATH = "/approve";
-
-  private static final String CLIENT_ID = "client_id";
-  private static final String REDIRECT_URI = "redirect_uri";
-  private static final String STATE = "state";
-  private static final String NONCE = "nonce";
-  private static final String RESPONSE_TYPE = "response_type";
-  private static final String SCOPE = "scope";
 
   private static final Splitter SPACE_SPLITTER = Splitter.on(' ').omitEmptyStrings();
 
@@ -98,145 +91,43 @@ public class AuthorizationEndpoint {
   public Response post(MultivaluedMap<String, String> params) {
     this.params = params;
 
-    final String client_id = getRequiredParameter(CLIENT_ID);
+    final String client_id = getRequiredParameter("client_id");
+    ServiceProvider serviceProvider = getServiceProvider(client_id);
 
-    ServiceProvider serviceProvider = applicationRepository.getServiceProvider(client_id);
-    if (serviceProvider == null) {
-      throw accessDenied("Unknown client id");
+    final String redirect_uri = getRequiredParameter("redirect_uri");
+    if (isRedirectUriValid(redirect_uri)) {
+      throw invalidParam("redirect_uri");
     }
-
-    String redirect_uri = getRequiredParameter(REDIRECT_URI);
-    // Validate redirect_uri
-    final URI ruri;
-    try {
-      ruri = new URI(redirect_uri);
-    } catch (URISyntaxException use) {
-      throw invalidParam(REDIRECT_URI);
-    }
-    if (!ruri.isAbsolute() || ruri.isOpaque() || !Strings.isNullOrEmpty(ruri.getRawFragment())) {
-      throw invalidParam(REDIRECT_URI);
-    }
-    if (!"http".equals(ruri.getScheme()) && !"https".equals(ruri.getScheme())) {
-      throw invalidParam(REDIRECT_URI);
-    }
-    // TODO: check that redirect_uri matches client_id registration
-    redirectUriBuilder = new StringBuilder(redirect_uri);
-
     // From now on, we can redirect to the client application, for both success and error conditions
-    // Prepare the redirect_uri to end with a query-string so we can just append with '&' separators
-    if (ruri.getRawQuery() == null) {
-      redirectUriBuilder.append('?');
-    } else if (!ruri.getRawQuery().isEmpty()) {
-      redirectUriBuilder.append('&');
-    }
 
-    final String state = getParameter(STATE);
-    if (state != null) {
-      appendQueryParam(redirectUriBuilder, STATE, state);
-    }
+    initRedirectUriBuilder(redirect_uri);
 
-    final String response_type = getRequiredParameter(RESPONSE_TYPE);
-    // TODO: support "implicit grant"
-    if (!response_type.equals("code")) {
-      throw error("unsupported_response_type", "Only 'code' is supported for now.");
-    }
+    // we should send the state back to the client if provided, so it's the first thing to get after validating the
+    // client_id and redirect_uri (i.e. after verifying that it's OK to redirect to the client)
+    // In case of error retrieving the state (i.e. multi-valued), we'll thus redirect to the client
+    // without a state, which is OK (and the expected behavior)
+    final String state = getParameter("state");
+    appendQueryParam("state", state);
 
-    final String scope = getRequiredParameter(SCOPE);
+    final String response_type = getRequiredParameter("response_type");
+    validateResponseType(response_type);
+
+    final String scope = getRequiredParameter("scope");
     Set<String> scopeIds = Sets.newHashSet(SPACE_SPLITTER.split(scope));
-    if (!scopeIds.contains("openid")) {
-      throw error("invalid_scope", "You must include 'openid'");
-    }
+    validateScopeIds(scopeIds);
 
     // TODO: OpenID Connect specifics
-    String userId = ((AccountPrincipal)securityContext.getUserPrincipal()).getAccountId();
+    String userId = ((AccountPrincipal) securityContext.getUserPrincipal()).getAccountId();
 
-    AuthorizedScopes authorizedScopes = authorizationRepository.getAuthorizedScopes(userId, client_id);
-    Set<String> grantedScopeIds;
-    if (authorizedScopes != null) {
-      grantedScopeIds = authorizedScopes.getScopeIds();
-    } else {
-      grantedScopeIds = Collections.emptySet();
+    final String nonce = getParameter("nonce");
+
+    Set<String> authorizedScopeIds = getAuthorizedScopeIds(serviceProvider.getId(), userId);
+    if (authorizedScopeIds.containsAll(scopeIds)) {
+      // User already authorized all claimed scopes, let it be a "transparent" redirect
+      return generateAuthorizationCodeAndRedirect(userId, scopeIds, serviceProvider.getId(), redirect_uri, nonce);
     }
 
-    if (grantedScopeIds.containsAll(scopeIds)) {
-      // User already granted all requested scopes, let it be a "transparent" redirect
-      String nonce = getParameter(NONCE);
-      AuthorizationCode authCode = tokenHandler.createAuthorizationCode(userId, scopeIds, client_id, nonce, redirect_uri);
-
-      if (authCode == null) {
-        return Response.serverError().build();
-      }
-
-      String auth_code = TokenSerializer.serialize(authCode);
-
-      appendQueryParam(redirectUriBuilder, "code", auth_code);
-      return Response.seeOther(URI.create(redirectUriBuilder.toString())).build();
-    }
-
-    Set<String> globalClaimedScopeIds = Sets.newHashSet();
-    Iterable<ScopeCardinality> scopeCardinalities = serviceProvider.getScopeCardinalities();
-    if (scopeCardinalities != null) {
-      for (ScopeCardinality scopeCardinality : scopeCardinalities) {
-        globalClaimedScopeIds.add(scopeCardinality.getScopeId());
-      }
-    }
-    globalClaimedScopeIds.addAll(scopeIds);
-    // TODO: Manage automatically granted scopes
-
-    Iterable<Scope> globalClaimedScopes;
-    try {
-      globalClaimedScopes = authorizationRepository.getScopes(globalClaimedScopeIds);
-    } catch (IllegalArgumentException e) {
-      throw error("invalid_scope", e.getMessage());
-    }
-
-    // Some scopes need explicit approval, generate approval form
-    List<Scope> requiredScopes = Lists.newArrayList();
-    List<Scope> optionalScopes = Lists.newArrayList();
-    List<Scope> alreadyGrantedScopes = Lists.newArrayList();
-    for (Scope claimedScope : globalClaimedScopes) {
-      if (grantedScopeIds.contains(claimedScope.getId())) {
-        alreadyGrantedScopes.add(claimedScope);
-      } else if (scopeIds.contains(claimedScope.getId())) {
-        requiredScopes.add(claimedScope);
-      } else {
-        optionalScopes.add(claimedScope);
-      }
-    }
-
-    // TODO: Get the application in order to have more information
-
-    // TODO: Make a URI Service in order to move the URI logic outside of the JAX-RS resource
-    // redirectUriBuilder is now used for creating the cancel Uri for the authorization step with the user
-    appendQueryParam(redirectUriBuilder, "error", "access_denied");
-
-    // TODO: Improve security by adding a token created by encrypting scopes with a secret
-    return Response.ok()
-        .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store")
-        .header("Pragma", "no-cache")
-            // cf. https://www.owasp.org/index.php/List_of_useful_HTTP_headers
-        .header("X-Frame-Options", "DENY")
-        .header("X-Content-Type-Options", "nosniff")
-        .header("X-XSS-Protection", "1; mode=block")
-        .entity(new View("oasis/web/authz/Approve.get.html",
-            ImmutableMap.of(
-                "urls", ImmutableMap.of(
-                "continue", uriInfo.getRequestUri(),
-                "cancel", redirectUriBuilder.toString(),
-                "formAction", UriBuilder.fromResource(AuthorizationEndpoint.class).path(APPROVE_PATH).build()
-            ),
-                "scopes", ImmutableMap.of(
-                "requiredScopes", requiredScopes,
-                "optionalScopes", optionalScopes,
-                "alreadyGrantedScopes", alreadyGrantedScopes
-            ),
-                "app", ImmutableMap.of(
-                "id", client_id,
-                "name", serviceProvider.getName()
-            )
-            )
-        ))
-        .build();
+    return promptUser(serviceProvider, scopeIds, authorizedScopeIds);
   }
 
   @POST
@@ -254,10 +145,155 @@ public class AuthorizationEndpoint {
     return Response.seeOther(continueUrl).build();
   }
 
-  private void appendQueryParam(StringBuilder stringBuilder, String paramName, String paramValue) {
+  private Response generateAuthorizationCodeAndRedirect(String userId, Set<String> scopeIds, String client_id,
+      String redirect_uri, @Nullable String nonce) {
+    AuthorizationCode authCode = tokenHandler.createAuthorizationCode(userId, scopeIds, client_id, nonce, redirect_uri);
+
+    String auth_code = TokenSerializer.serialize(authCode);
+
+    if (auth_code == null) {
+      return Response.serverError().build();
+    }
+
+    appendQueryParam("code", auth_code);
+    return Response.seeOther(URI.create(redirectUriBuilder.toString())).build();
+  }
+
+  private Response promptUser(ServiceProvider serviceProvider, Set<String> requiredScopeIds, Set<String> authorizedScopeIds) {
+    Set<String> globalClaimedScopeIds = Sets.newHashSet();
+    Iterable<ScopeCardinality> scopeCardinalities = serviceProvider.getScopeCardinalities();
+    if (scopeCardinalities != null) {
+      for (ScopeCardinality scopeCardinality : scopeCardinalities) {
+        globalClaimedScopeIds.add(scopeCardinality.getScopeId());
+      }
+    }
+    globalClaimedScopeIds.addAll(requiredScopeIds);
+    // TODO: Manage automatically authorized scopes
+
+    Iterable<Scope> globalClaimedScopes;
+    try {
+      globalClaimedScopes = authorizationRepository.getScopes(globalClaimedScopeIds);
+    } catch (IllegalArgumentException e) {
+      throw error("invalid_scope", e.getMessage());
+    }
+
+    // Some scopes need explicit approval, generate approval form
+    List<Scope> requiredScopes = Lists.newArrayList();
+    List<Scope> optionalScopes = Lists.newArrayList();
+    List<Scope> authorizedScopes = Lists.newArrayList();
+    for (Scope claimedScope : globalClaimedScopes) {
+      if (authorizedScopeIds.contains(claimedScope.getId())) {
+        authorizedScopes.add(claimedScope);
+      } else if (requiredScopeIds.contains(claimedScope.getId())) {
+        requiredScopes.add(claimedScope);
+      } else {
+        optionalScopes.add(claimedScope);
+      }
+    }
+
+    // TODO: Get the application in order to have more information
+
+    // TODO: Make a URI Service in order to move the URI logic outside of the JAX-RS resource
+    // redirectUriBuilder is now used for creating the cancel Uri for the authorization step with the user
+    appendQueryParam("error", "access_denied");
+
+    // TODO: Improve security by adding a token created by encrypting scopes with a secret
+    return Response.ok()
+        .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store")
+        .header("Pragma", "no-cache")
+            // cf. https://www.owasp.org/index.php/List_of_useful_HTTP_headers
+        .header("X-Frame-Options", "DENY")
+        .header("X-Content-Type-Options", "nosniff")
+        .header("X-XSS-Protection", "1; mode=block")
+        .entity(new View("oasis/web/authz/Approve.get.html",
+            ImmutableMap.of(
+                "urls", ImmutableMap.of(
+                    "continue", uriInfo.getRequestUri(),
+                    "cancel", redirectUriBuilder.toString(),
+                    "formAction", UriBuilder.fromResource(AuthorizationEndpoint.class).path(APPROVE_PATH).build()
+                ),
+                "scopes", ImmutableMap.of(
+                    "requiredScopes", requiredScopes,
+                    "optionalScopes", optionalScopes,
+                    "authorizedScopes", authorizedScopes
+                ),
+                "app", ImmutableMap.of(
+                    "id", serviceProvider.getId(),
+                    "name", serviceProvider.getName()
+                )
+            )
+        ))
+        .build();
+  }
+
+  private ServiceProvider getServiceProvider(String client_id) {
+    ServiceProvider serviceProvider = applicationRepository.getServiceProvider(client_id);
+    if (serviceProvider == null) {
+      throw accessDenied("Unknown client id");
+    }
+    return serviceProvider;
+  }
+
+  private boolean isRedirectUriValid(String redirect_uri) {
+    final URI ruri;
+    try {
+      ruri = new URI(redirect_uri);
+    } catch (URISyntaxException use) {
+      return false;
+    }
+
+    if (!ruri.isAbsolute() || ruri.isOpaque() || !Strings.isNullOrEmpty(ruri.getRawFragment())) {
+      return false;
+    }
+
+    if (!"http".equals(ruri.getScheme()) && !"https".equals(ruri.getScheme())) {
+      return false;
+    }
+
+    // TODO: check that redirect_uri matches client_id registration
+
+    return true;
+  }
+
+  private void initRedirectUriBuilder(String redirect_uri) {
+    redirectUriBuilder = new StringBuilder(redirect_uri);
+
+    // Prepare the redirect_uri to end with a query-string so we can just append with '&' separators
+    if (redirect_uri.indexOf('?') < 0) {
+      redirectUriBuilder.append('?');
+    } else {
+      redirectUriBuilder.append('&');
+    }
+  }
+
+  private void validateResponseType(String response_type) {
+    if (!response_type.equals("code")) {
+      throw error("unsupported_response_type", "Only 'code' is supported for now.");
+    }
+  }
+
+  private Set<String> validateScopeIds(Set<String> scopeIds) {
+    if (!scopeIds.contains("openid")) {
+      throw error("invalid_scope", "You must include 'openid'");
+    }
+    return scopeIds;
+  }
+
+  private Set<String> getAuthorizedScopeIds(String client_id, String userId) {
+    AuthorizedScopes authorizedScopes = authorizationRepository.getAuthorizedScopes(userId, client_id);
+    if (authorizedScopes == null) {
+      return Collections.emptySet();
+    }
+    return authorizedScopes.getScopeIds();
+  }
+
+  private void appendQueryParam(String paramName, @Nullable String paramValue) {
+    if (paramValue == null) {
+      return;
+    }
     Escaper escaper = UrlEscapers.urlFormParameterEscaper();
     assert escaper.escape(paramName).equals(paramName) : "paramName needs escaping!";
-    stringBuilder.append(paramName).append('=').append(escaper.escape(paramValue)).append('&');
+    redirectUriBuilder.append(paramName).append('=').append(escaper.escape(paramValue)).append('&');
   }
 
   private WebApplicationException invalidParam(String paramName) {
@@ -282,9 +318,9 @@ public class AuthorizationEndpoint {
           .entity(error)
           .build());
     }
-    appendQueryParam(redirectUriBuilder, "error", error);
+    appendQueryParam("error", error);
     if (description != null) {
-      appendQueryParam(redirectUriBuilder, "error_description", description);
+      appendQueryParam("error_description", description);
     }
     return new RedirectionException(Response.seeOther(URI.create(redirectUriBuilder.toString())).build());
   }
