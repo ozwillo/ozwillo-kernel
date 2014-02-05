@@ -3,6 +3,7 @@ package oasis.openidconnect;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyPair;
+import java.util.concurrent.TimeUnit;
 
 import org.joda.time.Duration;
 
@@ -31,8 +32,8 @@ public class OpenIdConnectModule extends AbstractModule {
 
       return Settings.builder()
           .setKeyPair(KeyPairLoader.loadOrGenerateKeyPair(privateKeyPath, publicKeyPath))
-          .setAccessTokenDuration(Duration.millis(config.getMilliseconds("oasis.oauth.access-token-duration")))
-          .setIdTokenDuration(Duration.millis(config.getMilliseconds("oasis.openid-connect.id-token-duration")))
+          .setAccessTokenDuration(Duration.millis(config.getDuration("oasis.oauth.access-token-duration", TimeUnit.MILLISECONDS)))
+          .setIdTokenDuration(Duration.millis(config.getDuration("oasis.openid-connect.id-token-duration", TimeUnit.MILLISECONDS)))
           .build();
     }
 
