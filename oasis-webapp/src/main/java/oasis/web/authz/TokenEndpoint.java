@@ -217,7 +217,7 @@ public class TokenEndpoint {
             .setIssuer(uriInfo.getBaseUri().toString())
             .setSubject(account.getId())
             .setAudience(client_id)
-            .setExpirationTimeSeconds(issuedAt + settings.idTokenExpirationSeconds)
+            .setExpirationTimeSeconds(issuedAt + settings.idTokenDuration.getStandardSeconds())
             .setIssuedAtTimeSeconds(issuedAt)
             .setNonce(authorizationCode.getNonce())
         //.setAuthorizationTimeSeconds() // TODO: required if a max_age request is made or if auth_time is requested
