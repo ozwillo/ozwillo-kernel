@@ -59,7 +59,10 @@ public class TokenEndpoint {
   private static final Logger logger = LoggerFactory.getLogger(TokenEndpoint.class);
   private static final Joiner SCOPE_JOINER = Joiner.on(' ').skipNulls();
   private static final Splitter SCOPE_SPLITTER = Splitter.on(' ');
-  private static final JsonWebSignature.Header JWS_HEADER = new JsonWebSignature.Header().setType("JWS").setAlgorithm("RS256");
+  private static final JsonWebSignature.Header JWS_HEADER = new JsonWebSignature.Header()
+      .setType("JWS")
+      .setAlgorithm("RS256")
+      .setKeyId(KeysEndpoint.JSONWEBKEY_PK_ID);
 
   @Inject OpenIdConnectModule.Settings settings;
   @Inject JsonFactory jsonFactory;
