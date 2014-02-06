@@ -96,7 +96,7 @@ public class AuthorizationEndpoint {
     ServiceProvider serviceProvider = getServiceProvider(client_id);
 
     final String redirect_uri = getRequiredParameter("redirect_uri");
-    if (isRedirectUriValid(redirect_uri)) {
+    if (!isRedirectUriValid(redirect_uri)) {
       throw invalidParam("redirect_uri");
     }
     // From now on, we can redirect to the client application, for both success and error conditions
