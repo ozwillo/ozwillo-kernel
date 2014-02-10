@@ -5,10 +5,12 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.google.common.base.Optional;
+
 import oasis.model.annotations.Id;
 
 public class OasisIdHelper {
-  private static final Map<Class<?>, Field> oasisFieldCache = new ConcurrentHashMap<>();
+  private static final Map<Class<?>, Optional<Field>> oasisFieldCache = new ConcurrentHashMap<>();
 
   public static void updateOasisIdField(Object target) {
     Field idField = OasisIdHelper.findOasisIdField(target.getClass());
@@ -33,18 +35,21 @@ public class OasisIdHelper {
       return null;
     }
     // XXX: restrict to classes in an oasis.* package?
-    if (oasisFieldCache.containsKey(clazz)) {
-      return oasisFieldCache.get(clazz);
+
+    Optional<Field> oasisField = oasisFieldCache.get(clazz);
+    if (oasisField != null) {
+      // Present in the cache
+      return oasisField.orNull();
     }
 
     for (Field f : clazz.getDeclaredFields()) {
       if (f.isAnnotationPresent(Id.class)) {
-        oasisFieldCache.put(clazz, f);
+        oasisFieldCache.put(clazz, Optional.of(f));
         return f;
       }
     }
     Field f = findOasisIdField(clazz.getSuperclass());
-    oasisFieldCache.put(clazz, f);
+    oasisFieldCache.put(clazz, Optional.fromNullable(f));
     return f;
   }
 }
