@@ -17,7 +17,7 @@ public abstract class Token {
   @Id
   private String id;
   @JsonProperty
-  private Instant creationTime;
+  private Instant creationTime = Instant.now();
   @JsonProperty
   private Instant expirationTime;
   @JsonProperty

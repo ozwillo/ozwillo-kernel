@@ -60,7 +60,6 @@ public class TokenHandler {
 
     AccessToken newAccessToken = new AccessToken();
 
-    newAccessToken.setCreationTime(Instant.now());
     newAccessToken.expiresIn(ttl);
     newAccessToken.setScopeIds(scopeIds);
 
@@ -86,7 +85,6 @@ public class TokenHandler {
 
     AuthorizationCode newAuthorizationCode = new AuthorizationCode();
 
-    newAuthorizationCode.setCreationTime(Instant.now());
     // A AuthorizationCode is available only for 1 minute
     newAuthorizationCode.expiresIn(Duration.standardMinutes(1));
     newAuthorizationCode.setScopeIds(scopeIds);
@@ -112,7 +110,6 @@ public class TokenHandler {
 
     RefreshToken refreshToken = new RefreshToken();
 
-    refreshToken.setCreationTime(Instant.now());
     // A RefreshToken is valid 50 years
     refreshToken.expiresIn(Duration.standardDays(50 * 365));
     refreshToken.setScopeIds(authorizationCode.getScopeIds());
