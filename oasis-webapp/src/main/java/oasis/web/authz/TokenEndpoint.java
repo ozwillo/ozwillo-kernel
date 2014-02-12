@@ -23,6 +23,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import org.joda.time.Instant;
+import org.joda.time.Seconds;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -141,7 +143,7 @@ public class TokenEndpoint {
     TokenResponse response = new TokenResponse();
     response.setAccessToken(access_token);
     response.setTokenType("Bearer");
-    response.setExpiresInSeconds(accessToken.getTimeToLive().getStandardSeconds());
+    response.setExpiresInSeconds(accessToken.expiresIn().getStandardSeconds());
     response.setScope(SCOPE_JOINER.join(asked_scopes));
 
     return response(Response.Status.OK, response);
@@ -207,7 +209,7 @@ public class TokenEndpoint {
 
     response.setAccessToken(access_token);
     response.setTokenType("Bearer");
-    response.setExpiresInSeconds(accessToken.getTimeToLive().getStandardSeconds());
+    response.setExpiresInSeconds(accessToken.expiresIn().getStandardSeconds());
     response.setScope(SCOPE_JOINER.join(accessToken.getScopeIds()));
     response.setIdToken(JsonWebSignature.signUsingRsaSha256(
         settings.keyPair.getPrivate(),

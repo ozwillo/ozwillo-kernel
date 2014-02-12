@@ -34,9 +34,7 @@ public class TokenHandler {
       return false;
     }
 
-    // Compute the token Expiration Date
-    Instant tokenExpirationDate = token.getCreationTime().plus(token.getTimeToLive());
-    if (tokenExpirationDate.isBeforeNow()) {
+    if (token.getExpirationTime().isBeforeNow()) {
       // Token is expired
       return false;
     }
@@ -63,7 +61,7 @@ public class TokenHandler {
     AccessToken newAccessToken = new AccessToken();
 
     newAccessToken.setCreationTime(Instant.now());
-    newAccessToken.setTimeToLive(ttl);
+    newAccessToken.expiresIn(ttl);
     newAccessToken.setScopeIds(scopeIds);
 
     if (token instanceof AuthorizationCode) {
@@ -90,7 +88,7 @@ public class TokenHandler {
 
     newAuthorizationCode.setCreationTime(Instant.now());
     // A AuthorizationCode is available only for 1 minute
-    newAuthorizationCode.setTimeToLive(Duration.standardMinutes(1));
+    newAuthorizationCode.expiresIn(Duration.standardMinutes(1));
     newAuthorizationCode.setScopeIds(scopeIds);
     newAuthorizationCode.setServiceProviderId(serviceProviderId);
     newAuthorizationCode.setNonce(nonce);
@@ -116,7 +114,7 @@ public class TokenHandler {
 
     refreshToken.setCreationTime(Instant.now());
     // A RefreshToken is valid 50 years
-    refreshToken.setTimeToLive(Duration.standardDays(50 * 365));
+    refreshToken.expiresIn(Duration.standardDays(50 * 365));
     refreshToken.setScopeIds(authorizationCode.getScopeIds());
     refreshToken.setServiceProviderId(authorizationCode.getServiceProviderId());
 

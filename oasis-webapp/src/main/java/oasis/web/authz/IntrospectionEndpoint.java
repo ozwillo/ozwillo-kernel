@@ -74,7 +74,7 @@ public class IntrospectionEndpoint {
 
     IntrospectionResponse introspectionResponse;
     long issuedAtTime = accessToken.getCreationTime().getMillis();
-    long expireAt = issuedAtTime + accessToken.getTimeToLive().getMillis();
+    long expireAt = accessToken.getExpirationTime().getMillis();
 
     Set<String> scopeIds = Sets.newHashSet(accessToken.getScopeIds());
     // Remove all scopes which don't belong to the data provider

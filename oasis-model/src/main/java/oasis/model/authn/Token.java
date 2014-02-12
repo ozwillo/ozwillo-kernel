@@ -19,7 +19,7 @@ public abstract class Token {
   @JsonProperty
   private Instant creationTime;
   @JsonProperty
-  private Duration timeToLive;
+  private Instant expirationTime;
   @JsonProperty
   private List<String> ancestorIds = new ArrayList<>();
 
@@ -39,12 +39,12 @@ public abstract class Token {
     this.creationTime = creationTime;
   }
 
-  public Duration getTimeToLive() {
-    return timeToLive;
+  public Instant getExpirationTime() {
+    return expirationTime;
   }
 
-  public void setTimeToLive(Duration timeToLive) {
-    this.timeToLive = timeToLive;
+  public void setExpirationTime(Instant expirationTime) {
+    this.expirationTime = expirationTime;
   }
 
   public List<String> getAncestorIds() {
@@ -59,5 +59,16 @@ public abstract class Token {
     this.ancestorIds = new ArrayList<>();
     this.ancestorIds.addAll(parent.getAncestorIds());
     this.ancestorIds.add(parent.getId());
+  }
+
+  public Duration expiresIn() {
+    return new Duration(creationTime, expirationTime);
+  }
+
+  public void expiresIn(Duration duration) {
+      if (this.creationTime == null) {
+        throw new IllegalStateException("Cannot compute expiration time from duration; creation time has not been set.");
+      }
+      setExpirationTime(getCreationTime().plus(duration));
   }
 }

@@ -20,7 +20,7 @@ public class TokenInfo {
   public TokenInfo(Token token) {
     this.id = token.getId();
     this.iat = token.getCreationTime();
-    this.exp = token.getCreationTime().plus(token.getTimeToLive());
+    this.exp = token.getExpirationTime();
   }
 
   public String getId() {
