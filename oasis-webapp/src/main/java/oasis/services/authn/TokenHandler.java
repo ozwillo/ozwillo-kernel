@@ -95,8 +95,7 @@ public class TokenHandler {
       @Nullable String nonce, String redirectUri, String pass) {
     AuthorizationCode authorizationCode = new AuthorizationCode();
     authorizationCode.setAccountId(sidToken.getAccountId());
-    // A AuthorizationCode is available only for 1 minute
-    authorizationCode.expiresIn(Duration.standardMinutes(1));
+    authorizationCode.expiresIn(oidcSettings.authorizationCodeDuration);
     authorizationCode.setScopeIds(scopeIds);
     authorizationCode.setServiceProviderId(serviceProviderId);
     authorizationCode.setNonce(nonce);
@@ -123,8 +122,7 @@ public class TokenHandler {
 
     RefreshToken refreshToken = new RefreshToken();
     refreshToken.setAccountId(authorizationCode.getAccountId());
-    // A RefreshToken is valid 50 years
-    refreshToken.expiresIn(Duration.standardDays(50 * 365));
+    refreshToken.expiresIn(oidcSettings.refreshTokenDuration);
     refreshToken.setScopeIds(authorizationCode.getScopeIds());
     refreshToken.setServiceProviderId(authorizationCode.getServiceProviderId());
     // Note: store the authorizationCode ID although it's been revoked to be able to

@@ -40,7 +40,9 @@ public class OpenIdConnectModule extends AbstractModule {
 
       return Settings.builder()
           .setKeyPair(KeyPairLoader.loadOrGenerateKeyPair(privateKeyPath, publicKeyPath))
+          .setAuthorizationCodeDuration(Duration.millis(config.getDuration("oasis.oauth.authorization-code-duration", TimeUnit.MILLISECONDS)))
           .setAccessTokenDuration(Duration.millis(config.getDuration("oasis.oauth.access-token-duration", TimeUnit.MILLISECONDS)))
+          .setRefreshTokenDuration(Duration.millis(config.getDuration("oasis.oauth.refresh-token-duration", TimeUnit.MILLISECONDS)))
           .setIdTokenDuration(Duration.millis(config.getDuration("oasis.openid-connect.id-token-duration", TimeUnit.MILLISECONDS)))
           .setSidTokenDuration(Duration.millis(config.getDuration("oasis.session.max-idle-timeout", TimeUnit.MILLISECONDS)))
           .setDisableRedirectUriValidation(config.getBoolean("oasis.openid-connect.disable-redirect-uri-validation"))
@@ -51,7 +53,9 @@ public class OpenIdConnectModule extends AbstractModule {
     public static class Builder {
 
       private KeyPair keyPair;
+      private Duration authorizationCodeDuration;
       private Duration accessTokenDuration;
+      private Duration refreshTokenDuration;
       private Duration idTokenDuration;
       private Duration sidTokenDuration;
       private boolean disableRedirectUriValidation;
@@ -66,8 +70,18 @@ public class OpenIdConnectModule extends AbstractModule {
         return this;
       }
 
+      public Builder setAuthorizationCodeDuration(Duration authorizationCodeDuration) {
+        this.authorizationCodeDuration = authorizationCodeDuration;
+        return this;
+      }
+
       public Builder setAccessTokenDuration(Duration accessTokenDuration) {
         this.accessTokenDuration = accessTokenDuration;
+        return this;
+      }
+
+      public Builder setRefreshTokenDuration(Duration refreshTokenDuration) {
+        this.refreshTokenDuration = refreshTokenDuration;
         return this;
       }
 
@@ -93,7 +107,9 @@ public class OpenIdConnectModule extends AbstractModule {
     }
 
     public final KeyPair keyPair;
+    public final Duration authorizationCodeDuration;
     public final Duration accessTokenDuration;
+    public final Duration refreshTokenDuration;
     public final Duration idTokenDuration;
     public final Duration sidTokenDuration;
     public final boolean disableRedirectUriValidation;
@@ -101,7 +117,9 @@ public class OpenIdConnectModule extends AbstractModule {
 
     private Settings(Builder builder) {
       this.keyPair = builder.keyPair;
+      this.authorizationCodeDuration = builder.authorizationCodeDuration;
       this.accessTokenDuration = builder.accessTokenDuration;
+      this.refreshTokenDuration = builder.refreshTokenDuration;
       this.idTokenDuration = builder.idTokenDuration;
       this.sidTokenDuration = builder.sidTokenDuration;
       this.disableRedirectUriValidation = builder.disableRedirectUriValidation;
