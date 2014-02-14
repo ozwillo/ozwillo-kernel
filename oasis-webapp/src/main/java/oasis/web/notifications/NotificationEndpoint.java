@@ -8,7 +8,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -63,11 +62,11 @@ public class NotificationEndpoint {
   ) {
     if (appId == null) {
       return Response.ok()
-          .entity(Entity.json(notificationRepository.getNotifications(userId)))
+          .entity(notificationRepository.getNotifications(userId))
           .build();
     }
     return Response.ok()
-        .entity(Entity.json(notificationRepository.getNotifications(userId, appId)))
+        .entity(notificationRepository.getNotifications(userId, appId))
         .build();
   }
 
