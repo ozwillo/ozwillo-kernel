@@ -20,6 +20,10 @@ class IncomingNotification {
 
   @JsonProperty
   @ApiModelProperty
+  String applicationId;
+
+  @JsonProperty
+  @ApiModelProperty
   String data;
 
   @JsonProperty
@@ -34,6 +38,11 @@ class IncomingNotification {
   // For swagger
   public String[] getGroupIds() {
     return groupIds;
+  }
+
+  // For swagger
+  public String getApplicationId() {
+    return applicationId;
   }
 
   // For swagger

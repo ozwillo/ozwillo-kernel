@@ -40,12 +40,11 @@ public class NotificationEndpoint {
   public Response publish(IncomingNotification incomingNotification
       //, @Context SecurityContext securityContext
   ) {
-    // TODO: get applicationId from authentication
+    // TODO: get applicationId from authentication and not from IncomingNotification which is a temporary workaround
 //    String applicationId = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getServiceProviderId();
-    String applicationId = "FAKE";
 
     notificationService.createNotifications(incomingNotification.groupIds, incomingNotification.userIds, incomingNotification.data,
-        incomingNotification.message, applicationId);
+        incomingNotification.message, incomingNotification.applicationId);
 
     return ResponseFactory.NO_CONTENT;
   }
