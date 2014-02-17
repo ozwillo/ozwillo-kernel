@@ -56,28 +56,29 @@ public class EventBusEndpoint {
   public Response publish(
       final Event event
   ) {
-    final Subscription subscription = subscriptionRepository.getSomeSubscriptionForEventType(event.eventType);
-    if (subscription == null) {
-      logger.error("No subscription found for this eventType {}.", event.eventType);
-      return ResponseFactory.NO_CONTENT;
+    for (Subscription subscription : subscriptionRepository.getSubscriptionsForEventType(event.eventType)) {
+      final String webhook = subscription.getWebHook();
+
+      // TODO: better eventbus system
+      // TODO: compute signature rather than sending the secret
+      try {
+        ClientBuilder.newClient().target(subscription.getWebHook()).request()
+            .header(SECRET_HEADER, subscription.getSecret())
+            .async().post(Entity.json(event), new InvocationCallback<Object>() {
+              @Override
+              public void completed(Object o) {
+                logger.trace("Webhook {} called for eventType {}.", webhook, event.eventType);
+              }
+
+              @Override
+              public void failed(Throwable throwable) {
+                logger.error("Error calling webhook {} for eventType {}: {}.", webhook, event.eventType, throwable.getMessage());
+              }
+            });
+      } catch (Throwable t) {
+        logger.error("Error calling webhook {} for eventType {}: {}", webhook, event.eventType, t.getMessage(), t);
+      }
     }
-
-    final String webhook = subscription.getWebHook();
-
-    // TODO: better eventbus system
-    // TODO: compute signature rather than sending the secret
-    ClientBuilder.newClient().target(subscription.getWebHook()).request().header(SECRET_HEADER, subscription.getSecret()).async()
-        .post(Entity.json(event), new InvocationCallback<Object>() {
-          @Override
-          public void completed(Object o) {
-            logger.trace("Webhook {} called for eventType {}.", webhook, event.eventType);
-          }
-
-          @Override
-          public void failed(Throwable throwable) {
-            logger.error("Error calling webhook {} for eventType {} : {}.", webhook, event.eventType, throwable.getMessage());
-          }
-        });
 
     return ResponseFactory.NO_CONTENT;
   }

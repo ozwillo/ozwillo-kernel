@@ -7,6 +7,8 @@ import org.jongo.MongoCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
 import com.mongodb.WriteResult;
 
 import oasis.model.InvalidVersionException;
@@ -61,16 +63,17 @@ public class JongoSubscriptionRepository implements SubscriptionRepository {
   }
 
   @Override
-  public Subscription getSomeSubscriptionForEventType(String eventType) {
-    JongoApplication app = getApplicationsCollection()
-        .findOne("{ subscriptions.eventType: # }", eventType)
+  public Iterable<Subscription> getSubscriptionsForEventType(String eventType) {
+    Iterable<JongoApplication> apps = getApplicationsCollection()
+        .find("{ subscriptions.eventType: # }", eventType)
         .projection("{ id: 1, subscriptions.$: 1}")
         .as(JongoApplication.class);
-    if (app == null || app.getSubscriptions() == null || app.getSubscriptions().isEmpty()) {
-      return null;
-    }
-
-    return app.getSubscriptions().get(0);
+    return Iterables.transform(apps, new Function<JongoApplication, Subscription>() {
+      @Override
+      public Subscription apply(JongoApplication input) {
+        return input.getSubscriptions().get(0);
+      }
+    });
   }
 
   private MongoCollection getApplicationsCollection() {

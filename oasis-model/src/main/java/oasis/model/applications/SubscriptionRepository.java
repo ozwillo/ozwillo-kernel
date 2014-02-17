@@ -11,5 +11,5 @@ public interface SubscriptionRepository {
 
   boolean deleteSubscription(String subscriptionId, long[] versions) throws InvalidVersionException;
 
-  Subscription getSomeSubscriptionForEventType(String eventType);
+  Iterable<Subscription> getSubscriptionsForEventType(String eventType);
 }
