@@ -101,7 +101,7 @@ public class EventBusEndpoint {
     URI uri = UriBuilder
         .fromResource(EventBusEndpoint.class)
         .path(EventBusEndpoint.class, "unsubscribe")
-        .build(subscription.getId());
+        .build(res.getId());
     return Response
         .created(uri)
         .tag(etagService.getEtag(res))
