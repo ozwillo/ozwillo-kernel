@@ -27,6 +27,7 @@ import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiParam;
 
 import oasis.model.InvalidVersionException;
+import oasis.model.applications.ApplicationRepository;
 import oasis.model.applications.Subscription;
 import oasis.model.applications.SubscriptionRepository;
 import oasis.services.etag.EtagService;
@@ -42,10 +43,9 @@ public class EventBusEndpoint {
   private static final Logger logger = LoggerFactory.getLogger(EventBusEndpoint.class);
   private static final String SECRET_HEADER = "X-Webhook-Secret";
 
-  @Inject
-  SubscriptionRepository subscriptions;
-  @Inject
-  EtagService etagService;
+  @Inject SubscriptionRepository subscriptionRepository;
+  @Inject ApplicationRepository applicationRepository;
+  @Inject EtagService etagService;
 
   @POST
   @Path("/publish")
@@ -56,7 +56,7 @@ public class EventBusEndpoint {
   public Response publish(
       final Event event
   ) {
-    final Subscription subscription = subscriptions.getSomeSubscriptionForEventType(event.eventType);
+    final Subscription subscription = subscriptionRepository.getSomeSubscriptionForEventType(event.eventType);
     if (subscription == null) {
       logger.error("No subscription found for this eventType {}.", event.eventType);
       return ResponseFactory.NO_CONTENT;
@@ -93,8 +93,12 @@ public class EventBusEndpoint {
   ) {
     // TODO: validate subscription.eventType
 
-    Subscription res = subscriptions.createSubscription(appId, subscription);
+    Subscription res = subscriptionRepository.createSubscription(appId, subscription);
     if (res == null) {
+      // null can mean either the application doesn't exist or there's already a subscription for that application and event type
+      if (applicationRepository.getApplication(appId) != null) {
+        return ResponseFactory.conflict("Subscription already exists for this application and event type");
+      }
       return ResponseFactory.notFound("The application does not exist");
     }
 
@@ -124,7 +128,7 @@ public class EventBusEndpoint {
 
     boolean deleted;
     try {
-      deleted = subscriptions.deleteSubscription(subscriptionId, etagService.parseEtag(etagStr));
+      deleted = subscriptionRepository.deleteSubscription(subscriptionId, etagService.parseEtag(etagStr));
     } catch (InvalidVersionException e) {
       return ResponseFactory.preconditionFailed(e.getMessage());
     }

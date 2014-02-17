@@ -10,6 +10,10 @@ public class ResponseFactory {
   public static final Response NOT_FOUND = Response.status(Response.Status.NOT_FOUND).build();
   public static final Response NO_CONTENT = Response.status(Response.Status.NO_CONTENT).build();
 
+  public static final Response conflict(String body) {
+    return build(Response.Status.CONFLICT.getStatusCode(), body);
+  }
+
   public static final Response notFound(String body) {
     return build(Response.Status.NOT_FOUND.getStatusCode(), body);
   }
@@ -37,5 +41,4 @@ public class ResponseFactory {
         .entity(body)
         .build();
   }
-
 }
