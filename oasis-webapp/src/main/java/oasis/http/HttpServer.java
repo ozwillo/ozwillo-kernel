@@ -17,6 +17,14 @@ import oasis.web.providers.NewCookieHeaderDelegate;
 public class HttpServer {
   private static final Logger logger = LoggerFactory.getLogger(HttpServer.class);
 
+  public static ResteasyProviderFactory createResteasyProviderFactory(Injector injector) {
+    ResteasyProviderFactory providerFactory = new ResteasyProviderFactory();
+    providerFactory.setInjectorFactory(new GuiceInjectorFactory(injector));
+    // workaround for https://java.net/jira/browse/JAX_RS_SPEC-430
+    providerFactory.addHeaderDelegate(NewCookie.class, new NewCookieHeaderDelegate());
+    return providerFactory;
+  }
+
   private final Injector injector;
 
   private final HttpServerModule.Settings settings;
@@ -34,11 +42,7 @@ public class HttpServer {
     server.getDeployment().setApplication(new Application());
     server.setPort(settings.nettyPort);
 
-    ResteasyProviderFactory providerFactory = new ResteasyProviderFactory();
-    providerFactory.setInjectorFactory(new GuiceInjectorFactory(this.injector));
-    server.getDeployment().setProviderFactory(providerFactory);
-    // workaround for https://java.net/jira/browse/JAX_RS_SPEC-430
-    providerFactory.addHeaderDelegate(NewCookie.class, new NewCookieHeaderDelegate());
+    server.getDeployment().setProviderFactory(createResteasyProviderFactory(injector));
 
     server.start();
     logger.info("Oasis server started on port {};", server.getPort());
