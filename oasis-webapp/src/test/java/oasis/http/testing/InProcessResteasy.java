@@ -15,6 +15,7 @@ import com.google.inject.Injector;
 
 import oasis.http.HttpServer;
 import oasis.web.providers.JacksonContextResolver;
+import oasis.web.providers.CookieParserRequestFilter;
 
 /**
  * Creates an in-process Resteasy container and client. Depends on Jukito.
@@ -46,6 +47,7 @@ public class InProcessResteasy extends ExternalResource {
     ResteasyProviderFactory providerFactory = HttpServer.createResteasyProviderFactory(injector);
     providerFactory.register(JacksonJsonProvider.class);
     providerFactory.register(JacksonContextResolver.class);
+    providerFactory.register(CookieParserRequestFilter.class);
 
     deployment = new ResteasyDeployment();
     deployment.setProviderFactory(providerFactory);
