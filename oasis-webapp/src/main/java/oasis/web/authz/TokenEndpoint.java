@@ -107,6 +107,8 @@ public class TokenEndpoint {
   private Response validateRefreshToken() throws GeneralSecurityException, IOException {
     String refresh_token = getRequiredParameter("refresh_token");
 
+    String asked_scopes_param = getParameter("scope");
+
     // Get the token behind the given code
     RefreshToken refreshToken = tokenHandler.getCheckedToken(refresh_token, RefreshToken.class);
 
@@ -120,7 +122,14 @@ public class TokenEndpoint {
       return errorResponse("invalid_token", null);
     }
 
-    String asked_scopes_param = getParameter("scope");
+    // Verify that the client that wants to use the refresh token is the client that created it
+    String client_id = ((ClientPrincipal) securityContext.getUserPrincipal()).getClientId();
+    if (!refreshToken.getServiceProviderId().equals(client_id)) {
+      logger.error("The serviceProvider {} wanted to access a token which belongs to the serviceProvider {}.", client_id, refreshToken.getServiceProviderId());
+      // Not a Forbidden status because it could give the information that the refresh token really exists
+      return errorResponse("invalid_token", null);
+    }
+
     Set<String> asked_scopes;
     if (!Strings.isNullOrEmpty(asked_scopes_param)) {
       asked_scopes = Sets.newHashSet(SCOPE_SPLITTER.splitToList(asked_scopes_param));
@@ -173,7 +182,7 @@ public class TokenEndpoint {
       return errorResponse("invalid_request", "Invalid parameter value: redirect_uri");
     }
 
-    // Verify that the client which want to use the authorization code is the client which created i
+    // Verify that the client that wants to use the authorization code is the client that created it
     String client_id = ((ClientPrincipal) securityContext.getUserPrincipal()).getClientId();
     if (!authorizationCode.getServiceProviderId().equals(client_id)) {
       logger.error("The serviceProvider {} wanted to access a token which belongs to the serviceProvider {}.", client_id, authorizationCode.getServiceProviderId());

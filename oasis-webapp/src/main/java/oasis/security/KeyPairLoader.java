@@ -93,7 +93,7 @@ public class KeyPairLoader {
     return keyPair;
   }
 
-  private static KeyPair generateRandomKeyPair() {
+  public static KeyPair generateRandomKeyPair() {
     KeyPairGenerator generator = getKeyPairGenerator();
     return generator.generateKeyPair();
   }
