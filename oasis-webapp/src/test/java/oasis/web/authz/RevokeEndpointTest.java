@@ -11,8 +11,6 @@ import javax.ws.rs.core.Form;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
-import org.joda.time.DateTime;
-import org.joda.time.Duration;
 import org.jukito.JukitoModule;
 import org.jukito.JukitoRunner;
 import org.jukito.TestSingleton;
@@ -24,17 +22,12 @@ import org.junit.runner.RunWith;
 import com.google.api.client.auth.oauth2.TokenErrorResponse;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.api.client.testing.http.FixedClock;
-import com.google.api.client.util.Clock;
-import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 
 import oasis.http.testing.InProcessResteasy;
 import oasis.model.authn.AccessToken;
-import oasis.model.authn.Token;
 import oasis.model.authn.TokenRepository;
-import oasis.openidconnect.OpenIdConnectModule;
-import oasis.services.authn.TokenSerializer;
+import oasis.services.authn.TokenHandler;
 import oasis.web.authn.testing.TestClientAuthenticationFilter;
 
 @RunWith(JukitoRunner.class)
@@ -44,39 +37,23 @@ public class RevokeEndpointTest {
     protected void configureTest() {
       bind(RevokeEndpoint.class);
 
-      bind(Clock.class).to(FixedClock.class);
-      bind(FixedClock.class).in(TestSingleton.class);
+      bindMock(TokenHandler.class).in(TestSingleton.class);
 
       bind(JsonFactory.class).to(JacksonFactory.class);
-
-      bind(OpenIdConnectModule.Settings.class).toInstance(OpenIdConnectModule.Settings.builder().build());
     }
   }
 
   static final AccessToken validToken = new AccessToken() {{
     setId("valid");
     setServiceProviderId("sp");
-    setScopeIds(ImmutableSet.of("openid", "dp1s1", "dp1s3", "dp3s1"));
-    expiresIn(Duration.standardDays(1));
-  }};
-  static final AccessToken expiredToken = new AccessToken() {{
-    setId("expired");
-    setServiceProviderId("sp");
-    setCreationTime(new DateTime(2008, 1, 20, 11, 10).toInstant());
-    setExpirationTime(new DateTime(2013, 10, 30, 19, 42).toInstant());
-  }};
-  static final Token notAnOAuthToken = new Token() {{
-    setId("notAnOAuthToken");
-    expiresIn(Duration.standardDays(1));
   }};
 
   @Inject @Rule public InProcessResteasy resteasy;
 
   @Before
-  public void setUpMocks(TokenRepository tokenRepository) {
-    when(tokenRepository.getToken(validToken.getId())).thenReturn(validToken);
-    when(tokenRepository.getToken(expiredToken.getId())).thenReturn(expiredToken);
-    when(tokenRepository.getToken(notAnOAuthToken.getId())).thenReturn(notAnOAuthToken);
+  public void setUpMocks(TokenHandler tokenHandler) {
+    when(tokenHandler.getCheckedToken(eq("valid"), any(Class.class))).thenReturn(validToken);
+    when(tokenHandler.getCheckedToken(eq("invalid"), any(Class.class))).thenReturn(null);
   }
 
   @Before public void setUp() {
@@ -116,31 +93,12 @@ public class RevokeEndpointTest {
     assertThat(response.getError()).isEqualTo("invalid_request");
   }
 
-  @Test public void testExpiredToken(TokenRepository tokenRepository) {
-    // when
-    Response resp = revoke(expiredToken);
-
-    // then
-    verify(tokenRepository, never()).revokeToken(anyString());
-    assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.OK);
-  }
-
-
-  @Test public void testNotAnOAuthToken(TokenRepository tokenRepository) {
-    // when
-    Response resp = revoke(notAnOAuthToken);
-
-    // then
-    verify(tokenRepository, never()).revokeToken(anyString());
-    assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.OK);
-  }
-
   @Test public void testRevocation(TokenRepository tokenRepository) {
     // given
     resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter("sp"));
 
     // when
-    Response resp = revoke(validToken);
+    Response resp = revoke("valid");
 
     // then
     verify(tokenRepository).revokeToken(validToken.getId());
@@ -152,17 +110,13 @@ public class RevokeEndpointTest {
     resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter("dp"));
 
     // when
-    Response resp = revoke(validToken);
+    Response resp = revoke("valid");
 
     // then
     verify(tokenRepository, never()).revokeToken(anyString());
     assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
     TokenErrorResponse response = jsonFactory.fromInputStream(resp.readEntity(InputStream.class), StandardCharsets.UTF_8, TokenErrorResponse.class);
     assertThat(response.getError()).isEqualTo("unauthorized_client");
-  }
-
-  private Response revoke(Token token) {
-    return revoke(TokenSerializer.serialize(token));
   }
 
   private Response revoke(String token) {

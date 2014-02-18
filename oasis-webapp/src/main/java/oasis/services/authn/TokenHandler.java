@@ -9,6 +9,7 @@ import javax.inject.Inject;
 import org.joda.time.Duration;
 import org.joda.time.Instant;
 
+import com.google.api.client.util.Clock;
 import com.google.common.base.Strings;
 
 import oasis.model.authn.AccessToken;
@@ -22,10 +23,12 @@ import oasis.openidconnect.OpenIdConnectModule;
 public class TokenHandler {
   private final TokenRepository tokenRepository;
   private final OpenIdConnectModule.Settings settings;
+  private final Clock clock;
 
-  @Inject TokenHandler(TokenRepository tokenRepository, OpenIdConnectModule.Settings settings) {
+  @Inject TokenHandler(TokenRepository tokenRepository, OpenIdConnectModule.Settings settings, Clock clock) {
     this.tokenRepository = tokenRepository;
     this.settings = settings;
+    this.clock = clock;
   }
 
   private boolean checkTokenValidity(Token token) {
@@ -34,7 +37,7 @@ public class TokenHandler {
       return false;
     }
 
-    if (token.getExpirationTime().isBeforeNow()) {
+    if (token.getExpirationTime().isBefore(clock.currentTimeMillis())) {
       // Token is expired
       return false;
     }
@@ -137,7 +140,7 @@ public class TokenHandler {
 
     // If someone fakes a token, at least it should ensure it hasn't expired
     // It saves us a database lookup.
-    if (tokenInfo.getExp().isBeforeNow()) {
+    if (tokenInfo.getExp().isBefore(clock.currentTimeMillis())) {
       return null;
     }
 

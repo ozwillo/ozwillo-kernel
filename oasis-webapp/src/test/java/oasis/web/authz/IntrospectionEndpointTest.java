@@ -1,7 +1,7 @@
 package oasis.web.authz;
 
-import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
@@ -31,8 +31,7 @@ import oasis.model.applications.ApplicationRepository;
 import oasis.model.applications.DataProvider;
 import oasis.model.authn.AccessToken;
 import oasis.model.authn.Token;
-import oasis.model.authn.TokenRepository;
-import oasis.services.authn.TokenSerializer;
+import oasis.services.authn.TokenHandler;
 import oasis.services.authz.GroupService;
 import oasis.web.authn.testing.TestClientAuthenticationFilter;
 
@@ -44,6 +43,7 @@ public class IntrospectionEndpointTest {
     protected void configureTest() {
       bind(IntrospectionEndpoint.class);
 
+      bindMock(TokenHandler.class).in(TestSingleton.class);
       bindMock(GroupService.class).in(TestSingleton.class);
     }
   }
@@ -62,15 +62,6 @@ public class IntrospectionEndpointTest {
     setScopeIds(ImmutableSet.of("openid", "dp1s1", "dp1s3", "dp3s1"));
     expiresIn(Duration.standardDays(1));
   }};
-  static final AccessToken expiredToken = new AccessToken() {{
-    setId("expired");
-    setCreationTime(new DateTime(2008, 1, 20, 11, 10).toInstant());
-    setExpirationTime(new DateTime(2013, 10, 30, 19, 42).toInstant());
-  }};
-  static final Token notAnAccessToken = new Token() {{
-    setId("notAnAccessToken");
-    expiresIn(Duration.standardDays(1));
-  }};
 
   static final Account account = new Account() {{
     setId("account");
@@ -78,15 +69,12 @@ public class IntrospectionEndpointTest {
 
   @Inject @Rule public InProcessResteasy resteasy;
 
-  @Before public void setUpMocks(TokenRepository tokenRepository, AccountRepository accountRepository, ApplicationRepository applicationRepository,
+  @Before public void setUpMocks(TokenHandler tokenHandler, AccountRepository accountRepository, ApplicationRepository applicationRepository,
       GroupService groupService) {
-    when(tokenRepository.getToken(validToken.getId())).thenReturn(validToken);
-    when(tokenRepository.getToken(expiredToken.getId())).thenReturn(expiredToken);
-    when(tokenRepository.getToken(notAnAccessToken.getId())).thenReturn(notAnAccessToken);
+    when(tokenHandler.getCheckedToken(eq("valid"), any(Class.class))).thenReturn(validToken);
+    when(tokenHandler.getCheckedToken(eq("invalid"), any(Class.class))).thenReturn(null);
 
     when(accountRepository.getAccountByTokenId(validToken.getId())).thenReturn(account);
-    when(accountRepository.getAccountByTokenId(expiredToken.getId())).thenReturn(account);
-    when(accountRepository.getAccountByTokenId(notAnAccessToken.getId())).thenReturn(account);
 
     when(applicationRepository.getDataProvider(dp1.getId())).thenReturn(dp1);
     when(applicationRepository.getDataProvider(dp2.getId())).thenReturn(dp2);
@@ -103,7 +91,7 @@ public class IntrospectionEndpointTest {
     resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter("unauthorized"));
 
     // when
-    Response resp = introspect(validToken);
+    Response resp = introspect("valid");
 
     // then
     assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.UNAUTHORIZED);
@@ -140,7 +128,7 @@ public class IntrospectionEndpointTest {
     resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(dp1.getId()));
 
     // when
-    Response resp = introspect(validToken);
+    Response resp = introspect("valid");
 
     // then
     assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.OK);
@@ -154,64 +142,17 @@ public class IntrospectionEndpointTest {
     assertThat(response.getSub_groups()).containsOnly("gp1", "gp2");
   }
 
-  @Test public void testExpiredToken() {
-    // given
-    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(dp1.getId()));
-
-    // when
-    Response resp = introspect(expiredToken);
-
-    // then
-    assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.OK);
-    IntrospectionResponse response = resp.readEntity(IntrospectionResponse.class);
-    assertThat(response).isEqualToComparingFieldByField(new IntrospectionResponse().setActive(false));
-  }
-
-  @Test public void testFakeExpiredToken() {
-    // given
-    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(dp1.getId()));
-    // fake the expiration of the expired token
-    AccessToken fakeExpiredToken = new AccessToken();
-    fakeExpiredToken.setId(expiredToken.getId());
-    fakeExpiredToken.expiresIn(Duration.standardDays(1));
-
-    // when
-    Response resp = introspect(fakeExpiredToken);
-
-    // then
-    assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.OK);
-    IntrospectionResponse response = resp.readEntity(IntrospectionResponse.class);
-    assertThat(response).isEqualToComparingFieldByField(new IntrospectionResponse().setActive(false));
-  }
-
-  @Test public void testNotAnAccessToken() {
-    // given
-    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(dp1.getId()));
-
-    // when
-    Response resp = introspect(notAnAccessToken);
-
-    // then
-    assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.OK);
-    IntrospectionResponse response = resp.readEntity(IntrospectionResponse.class);
-    assertThat(response).isEqualToComparingFieldByField(new IntrospectionResponse().setActive(false));
-  }
-
   @Test public void testStolenToken() {
     // given
     resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(dp2.getId()));
 
     // when
-    Response resp = introspect(validToken);
+    Response resp = introspect("valid");
 
     // then
     assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.OK);
     IntrospectionResponse response = resp.readEntity(IntrospectionResponse.class);
     assertThat(response).isEqualToComparingFieldByField(new IntrospectionResponse().setActive(false));
-  }
-
-  private Response introspect(Token token) {
-    return introspect(TokenSerializer.serialize(token));
   }
 
   private Response introspect(String token) {
