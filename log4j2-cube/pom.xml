@@ -5,7 +5,7 @@
   <parent>
     <groupId>fr.pole-numerique.oasis</groupId>
     <artifactId>oasis-parent</artifactId>
-    <version>0.5.2</version>
+    <version>0.5-SNAPSHOT</version>
   </parent>
 
   <groupId>com.atolcd.logging.log4j</groupId>
