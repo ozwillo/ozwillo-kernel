@@ -71,7 +71,7 @@ public class TokenHandler {
     accessToken.setServiceProviderId(refreshToken.getServiceProviderId());
     accessToken.setParent(refreshToken);
 
-    if (!registerToken(refreshToken.getAccountId(), accessToken)) {
+    if (!tokenRepository.registerToken(refreshToken.getAccountId(), accessToken)) {
       return null;
     }
 
@@ -93,7 +93,7 @@ public class TokenHandler {
     authorizationCode.setRedirectUri(redirectUri);
 
     // Register the new token
-    if (!registerToken(accountId, authorizationCode)) {
+    if (!tokenRepository.registerToken(accountId, authorizationCode)) {
       return null;
     }
 
@@ -114,7 +114,7 @@ public class TokenHandler {
     refreshToken.setServiceProviderId(authorizationCode.getServiceProviderId());
 
     // Register the new token
-    if (!registerToken(authorizationCode.getAccountId(), refreshToken)) {
+    if (!tokenRepository.registerToken(authorizationCode.getAccountId(), refreshToken)) {
       return null;
     }
 
@@ -128,18 +128,11 @@ public class TokenHandler {
     sidToken.setAccountId(accountId);
     sidToken.expiresIn(oidcSettings.sidTokenDuration);
 
-    if (!registerToken(accountId, sidToken)) {
+    if (!tokenRepository.registerToken(accountId, sidToken)) {
       return null;
     }
 
     return sidToken;
-  }
-
-  public boolean registerToken(String accountId, Token token) {
-    checkArgument(!Strings.isNullOrEmpty(accountId));
-    checkNotNull(token);
-
-    return tokenRepository.registerToken(accountId, token);
   }
 
   private <T extends Token> T getCheckedToken(TokenInfo tokenInfo, Class<T> tokenClass) {

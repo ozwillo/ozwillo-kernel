@@ -49,8 +49,11 @@ public class JongoTokenRepository implements TokenRepository {
 
     token.setAccountId(accountId);
 
-    // Add the new access token in mongo
-    return this.getAccountCollection().update("{id:#},{$ne: {tokens.id:#}", accountId, token.getId()).with("{$push:{tokens:#}}", token).getN() > 0;
+    WriteResult writeResult = this.getAccountCollection()
+        .update("{ id: # }", accountId)
+        .with("{ $push: { tokens: # } }", token);
+
+    return writeResult.getN() > 0;
   }
 
   public boolean revokeToken(String tokenId) {
