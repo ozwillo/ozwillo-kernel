@@ -27,8 +27,8 @@ public class UserAuthenticationFilter implements ContainerRequestFilter {
       // TODO: One-Time Password
       requestContext.abortWith(Response
           .seeOther(UriBuilder
-              .fromResource(Login.class)
-              .queryParam(Login.CONTINUE_PARAM, requestContext.getUriInfo().getRequestUri())
+              .fromResource(LoginPage.class)
+              .queryParam(LoginPage.CONTINUE_PARAM, requestContext.getUriInfo().getRequestUri())
               .build())
           .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store")
           .header("Pragma", "no-cache")

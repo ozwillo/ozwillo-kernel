@@ -224,7 +224,7 @@ public class AuthorizationEndpoint {
         .header("X-Frame-Options", "DENY")
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
-        .entity(new View("oasis/web/authz/Approve.get.html",
+        .entity(new View(AuthorizationEndpoint.class, "Approve.html",
             ImmutableMap.of(
                 "urls", ImmutableMap.of(
                     "cancel", redirectUriBuilder.toString(),

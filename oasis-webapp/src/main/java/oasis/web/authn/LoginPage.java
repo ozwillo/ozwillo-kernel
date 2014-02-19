@@ -24,12 +24,12 @@ import com.google.common.collect.ImmutableMap;
 import oasis.model.accounts.Account;
 import oasis.services.authn.UserPasswordAuthenticator;
 import oasis.services.cookies.CookieFactory;
-import oasis.web.Home;
+import oasis.web.StaticResources;
 import oasis.web.security.StrictReferer;
 import oasis.web.view.View;
 
 @Path("/a/login")
-public class Login {
+public class LoginPage {
   public static final String CONTINUE_PARAM = "continue";
 
   @Inject
@@ -91,8 +91,8 @@ public class Login {
         .header("X-Frame-Options", "DENY")
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
-        .entity(new View("oasis/web/authn/Login.get.html", ImmutableMap.of(
-            "formAction", UriBuilder.fromResource(Login.class).build(),
+        .entity(new View(LoginPage.class, "Login.html", ImmutableMap.of(
+            "formAction", UriBuilder.fromResource(LoginPage.class).build(),
             "continue", continueUrl,
             "errorMessage", errorMessage
         )))
@@ -104,6 +104,6 @@ public class Login {
   }
 
   static URI defaultContinueUrl(UriInfo uriInfo) {
-    return uriInfo.getBaseUriBuilder().path(Home.class).build();
+    return uriInfo.getBaseUriBuilder().path(StaticResources.class).path(StaticResources.class, "home").build();
   }
 }
