@@ -15,23 +15,23 @@ import javax.ws.rs.core.UriInfo;
 import oasis.services.cookies.CookieFactory;
 
 @Path("/a/logout")
-public class Logout {
+public class LogoutPage {
   @Context SecurityContext securityContext;
   @Context UriInfo uriInfo;
 
   @GET
-  public Response get(@QueryParam(Login.CONTINUE_PARAM) URI continueUrl) {
+  public Response get(@QueryParam(LoginPage.CONTINUE_PARAM) URI continueUrl) {
     return logout(continueUrl);
   }
 
   @POST
-  public Response post(@FormParam(Login.CONTINUE_PARAM) URI continueUrl) {
+  public Response post(@FormParam(LoginPage.CONTINUE_PARAM) URI continueUrl) {
     return logout(continueUrl);
   }
 
   private Response logout(URI continueUrl) {
     if (continueUrl == null) {
-      continueUrl = Login.defaultContinueUrl(uriInfo);
+      continueUrl = LoginPage.defaultContinueUrl(uriInfo);
     }
     return Response.seeOther(continueUrl)
         .cookie(CookieFactory.createExpiredCookie(UserAuthenticationFilter.COOKIE_NAME, securityContext.isSecure()))

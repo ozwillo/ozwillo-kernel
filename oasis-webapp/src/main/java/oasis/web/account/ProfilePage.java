@@ -27,7 +27,7 @@ import oasis.web.view.View;
 @User
 // TODO: Limit to trusted users
 @Path("/a/profile")
-public class ProfileEndpoint {
+public class ProfilePage {
   @Context SecurityContext securityContext;
   @Inject AccountRepository accountRepository;
   @Inject IdentityRepository identityRepository;
@@ -53,7 +53,7 @@ public class ProfileEndpoint {
         .header("X-Frame-Options", "DENY")
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
-        .entity(new View("oasis/web/account/Profile.get.html", ImmutableMap.of(
+        .entity(new View(ProfilePage.class, "Profile.html", ImmutableMap.of(
             "email", userAccount.getEmailAddress(),
             "initData", new ProfileInfo(identity)
         )))

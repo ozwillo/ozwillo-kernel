@@ -50,8 +50,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.html.HtmlEscapers;
 
-import oasis.web.authn.Login;
-import oasis.web.authn.Logout;
+import oasis.web.authn.LoginPage;
+import oasis.web.authn.LogoutPage;
 import oasis.web.authz.AuthorizationEndpoint;
 import oasis.web.authz.RevokeEndpoint;
 import oasis.web.authz.TokenEndpoint;
@@ -188,7 +188,7 @@ public class OpenIdConnect {
             "<p>You've been logged out from the app, but not from OASIS." +
             "<p>If you go back to <a href=" + HtmlEscapers.htmlEscaper().escape(UriBuilder.fromResource(OpenIdConnect.class).path(OpenIdConnect.class, "protectedResource").build().toString()) + ">the app</a>," +
             "you'll be automatically signed-in again, unless you also logged out from OASIS." +
-            "<p>You can log out from OASIS <a href=" + HtmlEscapers.htmlEscaper().escape(UriBuilder.fromResource(Logout.class).queryParam(Login.CONTINUE_PARAM, uriInfo.getBaseUriBuilder().path(OpenIdConnect.class).path(OpenIdConnect.class, "protectedResource").build()).build().toString()) + ">here</a>" +
+            "<p>You can log out from OASIS <a href=" + HtmlEscapers.htmlEscaper().escape(UriBuilder.fromResource(LogoutPage.class).queryParam(LoginPage.CONTINUE_PARAM, uriInfo.getBaseUriBuilder().path(OpenIdConnect.class).path(OpenIdConnect.class, "protectedResource").build()).build().toString()) + ">here</a>" +
             "</body>" +
             "</html>")
         .build();

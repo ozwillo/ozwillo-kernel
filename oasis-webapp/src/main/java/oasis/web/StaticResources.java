@@ -18,12 +18,13 @@ import oasis.web.utils.ResponseFactory;
 import oasis.web.view.View;
 
 @Path("/")
-public class Home {
+public class StaticResources {
 
   @GET
+  @Path("")
   @Produces(MediaType.TEXT_HTML)
-  public Response get() {
-    return Response.ok(new View(Home.class, "Home.get.html")).build();
+  public Response home() {
+    return Response.ok(new View(StaticResources.class, "Home.html")).build();
   }
 
   @GET

@@ -7,7 +7,7 @@ import com.google.common.collect.ImmutableSet;
 import com.wordnik.swagger.jaxrs.listing.ApiListingResourceJSON;
 import com.wordnik.swagger.jaxrs.listing.ResourceListingProvider;
 
-import oasis.web.account.ProfileEndpoint;
+import oasis.web.account.ProfilePage;
 import oasis.web.apidocs.ApiDeclarationProvider;
 import oasis.web.apps.ApplicationDirectoryEndpoint;
 import oasis.web.apps.ApplicationMarketEndpoint;
@@ -15,8 +15,8 @@ import oasis.web.apps.DataProviderDirectoryEndpoint;
 import oasis.web.apps.ServiceProviderDirectoryEndpoint;
 import oasis.web.auditlog.AuditLogEndpoint;
 import oasis.web.authn.ClientAuthenticationFilter;
-import oasis.web.authn.Login;
-import oasis.web.authn.Logout;
+import oasis.web.authn.LoginPage;
+import oasis.web.authn.LogoutPage;
 import oasis.web.authn.OAuthAuthenticationFilter;
 import oasis.web.authn.UserAuthenticationFilter;
 import oasis.web.authz.AuthorizationEndpoint;
@@ -65,8 +65,8 @@ public class Application extends javax.ws.rs.core.Application {
         UserAuthenticationFilter.class,
         ClientAuthenticationFilter.class,
         OAuthAuthenticationFilter.class,
-        Login.class,
-        Logout.class,
+        LoginPage.class,
+        LogoutPage.class,
         // Authorization
         AuthorizationEndpoint.class,
         TokenEndpoint.class,
@@ -77,7 +77,7 @@ public class Application extends javax.ws.rs.core.Application {
         StrictRefererFilter.class,
         // UserInfo
         UserInfoEndpoint.class,
-        ProfileEndpoint.class,
+        ProfilePage.class,
         // Socal
         SocialEndpoint.class,
         // AuditLog
@@ -88,7 +88,7 @@ public class Application extends javax.ws.rs.core.Application {
         // EventBus
         EventBusEndpoint.class,
         // Resources
-        Home.class,
+        StaticResources.class,
         UserDirectoryEndpoint.class,
         OpenIdConnect.class,
         ApplicationDirectoryEndpoint.class,
