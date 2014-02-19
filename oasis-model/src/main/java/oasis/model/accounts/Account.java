@@ -1,6 +1,7 @@
 package oasis.model.accounts;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -22,11 +23,11 @@ public abstract class Account {
 
   @JsonProperty
   @ApiModelProperty()
-  private List<Token> tokens;
+  private List<Token> tokens = new ArrayList<>();
 
   @JsonProperty
   @ApiModelProperty
-  private List<AuthorizedScopes> authorizedScopes;
+  private List<AuthorizedScopes> authorizedScopes = new ArrayList<>();
 
   public String getId() {
     return id;
@@ -37,34 +38,18 @@ public abstract class Account {
   }
 
   public List<Token> getTokens() {
-    if ( tokens == null ) {
-      tokens = new ArrayList<>();
-    }
-
-    return tokens;
+    return Collections.unmodifiableList(tokens);
   }
 
   public void setTokens(List<Token> tokens) {
-    this.tokens = tokens;
-  }
-
-  public void addToken(Token token) {
-    this.getTokens().add(token);
-  }
-
-  public void removeToken(Token token) {
-    if ( token == null ) {
-      return;
-    }
-
-    this.getTokens().remove(token);
+    this.tokens = new ArrayList<>(tokens);
   }
 
   public List<AuthorizedScopes> getAuthorizedScopes() {
-    return authorizedScopes;
+    return Collections.unmodifiableList(authorizedScopes);
   }
 
   public void setAuthorizedScopes(List<AuthorizedScopes> authorizedScopes) {
-    this.authorizedScopes = authorizedScopes;
+    this.authorizedScopes = new ArrayList<>(authorizedScopes);
   }
 }

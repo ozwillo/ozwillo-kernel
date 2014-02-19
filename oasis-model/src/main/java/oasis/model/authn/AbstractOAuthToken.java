@@ -1,5 +1,7 @@
 package oasis.model.authn;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -12,7 +14,7 @@ public abstract class AbstractOAuthToken extends Token {
 
   @JsonProperty
   @ApiModelProperty
-  private Set<String> scopeIds;
+  private Set<String> scopeIds = new HashSet<>();
 
   public String getServiceProviderId() {
     return serviceProviderId;
@@ -23,10 +25,10 @@ public abstract class AbstractOAuthToken extends Token {
   }
 
   public Set<String> getScopeIds() {
-    return scopeIds;
+    return Collections.unmodifiableSet(scopeIds);
   }
 
   public void setScopeIds(Set<String> scopeIds) {
-    this.scopeIds = scopeIds;
+    this.scopeIds = new HashSet<>(scopeIds);
   }
 }

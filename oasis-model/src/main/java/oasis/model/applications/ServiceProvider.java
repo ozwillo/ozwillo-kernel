@@ -1,6 +1,7 @@
 package oasis.model.applications;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -21,7 +22,7 @@ public class ServiceProvider {
 
   @JsonProperty
   @ApiModelProperty()
-  private List<ScopeCardinality> scopeCardinalities;
+  private List<ScopeCardinality> scopeCardinalities = new ArrayList<>();
 
   public ServiceProvider() {
   }
@@ -55,10 +56,10 @@ public class ServiceProvider {
   }
 
   public List<ScopeCardinality> getScopeCardinalities() {
-    return scopeCardinalities;
+    return Collections.unmodifiableList(scopeCardinalities);
   }
 
   public void setScopeCardinalities(List<ScopeCardinality> scopeCardinalities) {
-    this.scopeCardinalities = scopeCardinalities;
+    this.scopeCardinalities = new ArrayList<>(scopeCardinalities);
   }
 }

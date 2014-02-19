@@ -1,5 +1,7 @@
 package oasis.model.authz;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -14,7 +16,7 @@ public class AuthorizedScopes {
 
   @JsonProperty
   @ApiModelProperty(required = true)
-  private Set<String> scopeIds;
+  private Set<String> scopeIds = new HashSet<>();
 
   public String getServiceProviderId() {
     return serviceProviderId;
@@ -25,10 +27,10 @@ public class AuthorizedScopes {
   }
 
   public Set<String> getScopeIds() {
-    return scopeIds;
+    return Collections.unmodifiableSet(scopeIds);
   }
 
   public void setScopeIds(Set<String> scopeIds) {
-    this.scopeIds = scopeIds;
+    this.scopeIds = new HashSet<>(scopeIds);
   }
 }

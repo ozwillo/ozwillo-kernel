@@ -1,5 +1,6 @@
 package oasis.model.applications;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -19,7 +20,7 @@ public class DataProvider {
 
   @JsonProperty
   @ApiModelProperty
-  private Set<String> scopeIds;
+  private Set<String> scopeIds = new HashSet<>();
 
   @JsonProperty
   @ApiModelProperty(required = true)
@@ -57,11 +58,11 @@ public class DataProvider {
   }
 
   public Set<String> getScopeIds() {
-    return scopeIds;
+    return Collections.unmodifiableSet(scopeIds);
   }
 
   public void setScopeIds(Set<String> scopeIds) {
-    this.scopeIds = scopeIds;
+    this.scopeIds = new HashSet<>(scopeIds);
   }
 
 }

@@ -6,6 +6,7 @@ import javax.annotation.Nonnull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
+import com.google.common.collect.ImmutableList;
 
 import oasis.jongo.etag.HasModified;
 import oasis.model.applications.Application;
@@ -14,13 +15,13 @@ import oasis.model.applications.Application;
 class JongoApplication extends Application implements HasModified {
 
   @JsonProperty
-  private List<JongoDataProvider> dataProviders;
+  private ImmutableList<JongoDataProvider> dataProviders = ImmutableList.of();
 
   @JsonProperty
   private JongoServiceProvider serviceProvider;
 
   @JsonProperty
-  private List<JongoSubscription> subscriptions;
+  private ImmutableList<JongoSubscription> subscriptions = ImmutableList.of();
 
   private long modified = System.currentTimeMillis();
 
@@ -32,12 +33,12 @@ class JongoApplication extends Application implements HasModified {
     super(other);
   }
 
-  public List<JongoDataProvider> getDataProviders() {
+  public ImmutableList<JongoDataProvider> getDataProviders() {
     return dataProviders;
   }
 
   public void setDataProviders(List<JongoDataProvider> dataProviders) {
-    this.dataProviders = dataProviders;
+    this.dataProviders = ImmutableList.copyOf(dataProviders);
   }
 
   public JongoServiceProvider getServiceProvider() {
@@ -48,12 +49,12 @@ class JongoApplication extends Application implements HasModified {
     this.serviceProvider = serviceProvider;
   }
 
-  public List<JongoSubscription> getSubscriptions() {
+  public ImmutableList<JongoSubscription> getSubscriptions() {
     return subscriptions;
   }
 
   public void setSubscriptions(List<JongoSubscription> subscriptions) {
-    this.subscriptions = subscriptions;
+    this.subscriptions = ImmutableList.copyOf(subscriptions);
   }
 
   @Override

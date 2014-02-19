@@ -6,6 +6,7 @@ import javax.annotation.Nonnull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
+import com.google.common.collect.ImmutableList;
 
 import oasis.jongo.etag.HasModified;
 import oasis.model.directory.Organization;
@@ -14,7 +15,7 @@ import oasis.model.directory.Organization;
 class JongoOrganization extends Organization implements HasModified {
 
   @JsonProperty
-  private List<JongoGroup> groups;
+  private ImmutableList<JongoGroup> groups = ImmutableList.of();
 
   private long modified = System.currentTimeMillis();
 
@@ -26,12 +27,12 @@ class JongoOrganization extends Organization implements HasModified {
     super(other);
   }
 
-  public List<JongoGroup> getGroups() {
+  public ImmutableList<JongoGroup> getGroups() {
     return groups;
   }
 
   public void setGroups(List<JongoGroup> groups) {
-    this.groups = groups;
+    this.groups = ImmutableList.copyOf(groups);
   }
 
   @Override

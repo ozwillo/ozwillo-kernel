@@ -6,6 +6,7 @@ import javax.annotation.Nonnull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
+import com.google.common.collect.ImmutableList;
 
 import oasis.jongo.etag.HasModified;
 import oasis.model.social.Identity;
@@ -16,7 +17,7 @@ public class JongoIdentity extends Identity implements HasModified {
   private long modified = System.currentTimeMillis();
 
   @JsonProperty
-  private List<JongoRelation> relations;
+  private ImmutableList<JongoRelation> relations = ImmutableList.of();
 
   JongoIdentity() {
     super();
@@ -35,11 +36,11 @@ public class JongoIdentity extends Identity implements HasModified {
     this.modified = modified;
   }
 
-  public List<JongoRelation> getRelations() {
+  public ImmutableList<JongoRelation> getRelations() {
     return relations;
   }
 
   public void setRelations(List<JongoRelation> relations) {
-    this.relations = relations;
+    this.relations = ImmutableList.copyOf(relations);
   }
 }
