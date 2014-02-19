@@ -94,7 +94,7 @@ public class TokenEndpoint {
     // TODO: support other kind of tokens (jwt-bearer?)
     switch(grant_type) {
       case "authorization_code":
-        return this.validateAccessCode();
+        return this.validateAuthorizationCode();
 
       case "refresh_token":
         return this.validateRefreshToken();
@@ -152,7 +152,7 @@ public class TokenEndpoint {
     return response(Response.Status.OK, response);
   }
 
-  public Response validateAccessCode() throws GeneralSecurityException, IOException {
+  private Response validateAuthorizationCode() throws GeneralSecurityException, IOException {
     String auth_code = getRequiredParameter("code");
 
     // TODO: Validate redirect_uri
@@ -180,10 +180,9 @@ public class TokenEndpoint {
 
     IdTokenResponse response = new IdTokenResponse();
 
-    // Create a refresh token if asked
-    RefreshToken refreshToken = null;
+    AccessToken accessToken;
     if (authorizationCode.getScopeIds().contains("offline_access")) {
-      refreshToken = tokenHandler.createRefreshToken(authorizationCode);
+      RefreshToken refreshToken = tokenHandler.createRefreshToken(authorizationCode);
 
       if (refreshToken == null) {
         return Response.serverError().build();
@@ -191,10 +190,11 @@ public class TokenEndpoint {
       String refresh_token = TokenSerializer.serialize(refreshToken);
 
       response.setRefreshToken(refresh_token);
-    }
 
-    // Create a new access token based on the authorization code (or the new refresh token if needed)
-    AccessToken accessToken = tokenHandler.createAccessToken(refreshToken == null ? authorizationCode : refreshToken);
+      accessToken = tokenHandler.createAccessToken(refreshToken, refreshToken.getScopeIds());
+    } else {
+      accessToken = tokenHandler.createAccessToken(authorizationCode);
+    }
 
     if (accessToken == null) {
       return Response.serverError().build();

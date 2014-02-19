@@ -148,7 +148,7 @@ public class TokenEndpointTest {
 
     when(tokenHandler.createAccessToken(validAuthCode)).thenReturn(accessToken);
     when(tokenHandler.createRefreshToken(validAuthCodeWithOfflineAccess)).thenReturn(refreshToken);
-    when(tokenHandler.createAccessToken(refreshToken)).thenReturn(accessTokenWithOfflineAccess);
+    when(tokenHandler.createAccessToken(refreshToken, refreshToken.getScopeIds())).thenReturn(accessTokenWithOfflineAccess);
     when(tokenHandler.createAccessToken(refreshToken, refreshedAccessToken.getScopeIds()))
         .thenReturn(refreshedAccessToken);
   }

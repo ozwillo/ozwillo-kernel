@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.*;
 
 import java.util.Set;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 import org.joda.time.Duration;
@@ -12,7 +13,6 @@ import com.google.api.client.util.Clock;
 import com.google.common.base.Strings;
 
 import oasis.model.authn.AccessToken;
-import oasis.model.authn.AccessTokenGenerator;
 import oasis.model.authn.AuthorizationCode;
 import oasis.model.authn.RefreshToken;
 import oasis.model.authn.SidToken;
@@ -22,12 +22,12 @@ import oasis.openidconnect.OpenIdConnectModule;
 
 public class TokenHandler {
   private final TokenRepository tokenRepository;
-  private final OpenIdConnectModule.Settings settings;
+  private final OpenIdConnectModule.Settings oidcSettings;
   private final Clock clock;
 
-  @Inject TokenHandler(TokenRepository tokenRepository, OpenIdConnectModule.Settings settings, Clock clock) {
+  @Inject TokenHandler(TokenRepository tokenRepository, OpenIdConnectModule.Settings oidcSettings, Clock clock) {
     this.tokenRepository = tokenRepository;
-    this.settings = settings;
+    this.oidcSettings = oidcSettings;
     this.clock = clock;
   }
 
@@ -46,60 +46,59 @@ public class TokenHandler {
     return true;
   }
 
-  public AccessToken createAccessToken(AccessTokenGenerator oauthToken) {
-    return this.createAccessToken(settings.accessTokenDuration, oauthToken, null);
+  public AccessToken createAccessToken(AuthorizationCode authorizationCode) {
+    if (!tokenRepository.revokeToken(authorizationCode.getId())) {
+      return null;
+    }
+    AccessToken accessToken = new AccessToken();
+    accessToken.setAccountId(authorizationCode.getAccountId());
+    accessToken.expiresIn(oidcSettings.accessTokenDuration);
+    accessToken.setScopeIds(authorizationCode.getScopeIds());
+    accessToken.setServiceProviderId(authorizationCode.getServiceProviderId());
+    if (!tokenRepository.registerToken(authorizationCode.getAccountId(), accessToken)) {
+      return null;
+    }
+    return accessToken;
   }
 
-  public AccessToken createAccessToken(AccessTokenGenerator oauthToken, Set<String> scopeIds) {
-    return this.createAccessToken(settings.accessTokenDuration, oauthToken, scopeIds);
-  }
+  public AccessToken createAccessToken(RefreshToken refreshToken, Set<String> scopeIds) {
+    assert refreshToken.getScopeIds().containsAll(scopeIds);
 
-  private AccessToken createAccessToken(Duration ttl, AccessTokenGenerator token, Set<String> scopeIds) {
-    if (scopeIds == null || scopeIds.isEmpty()) {
-      scopeIds = token.getScopeIds();
-    }
+    AccessToken accessToken = new AccessToken();
+    accessToken.setAccountId(refreshToken.getAccountId());
+    accessToken.expiresIn(oidcSettings.accessTokenDuration);
+    accessToken.setScopeIds(scopeIds);
+    accessToken.setServiceProviderId(refreshToken.getServiceProviderId());
+    accessToken.setParent(refreshToken);
 
-    AccessToken newAccessToken = new AccessToken();
-    newAccessToken.setAccountId(token.getAccountId());
-    newAccessToken.expiresIn(ttl);
-    newAccessToken.setScopeIds(scopeIds);
-
-    if (token instanceof AuthorizationCode) {
-      if (!tokenRepository.revokeToken(token.getId())) {
-        return null;
-      }
-    } else if (token instanceof RefreshToken) {
-      newAccessToken.setParent(token);
-    }
-    newAccessToken.setServiceProviderId(token.getServiceProviderId());
-
-    if (!registerToken(token.getAccountId(), newAccessToken)) {
+    if (!registerToken(refreshToken.getAccountId(), accessToken)) {
       return null;
     }
 
     // Return the new access token
-    return newAccessToken;
+    return accessToken;
   }
 
-  public AuthorizationCode createAuthorizationCode(String accountId, Set<String> scopeIds, String serviceProviderId, String nonce, String redirectUri) {
+  public AuthorizationCode createAuthorizationCode(String accountId, Set<String> scopeIds, String serviceProviderId,
+      @Nullable String nonce, String redirectUri) {
     checkArgument(!Strings.isNullOrEmpty(accountId));
 
-    AuthorizationCode newAuthorizationCode = new AuthorizationCode();
-    newAuthorizationCode.setAccountId(accountId);
+    AuthorizationCode authorizationCode = new AuthorizationCode();
+    authorizationCode.setAccountId(accountId);
     // A AuthorizationCode is available only for 1 minute
-    newAuthorizationCode.expiresIn(Duration.standardMinutes(1));
-    newAuthorizationCode.setScopeIds(scopeIds);
-    newAuthorizationCode.setServiceProviderId(serviceProviderId);
-    newAuthorizationCode.setNonce(nonce);
-    newAuthorizationCode.setRedirectUri(redirectUri);
+    authorizationCode.expiresIn(Duration.standardMinutes(1));
+    authorizationCode.setScopeIds(scopeIds);
+    authorizationCode.setServiceProviderId(serviceProviderId);
+    authorizationCode.setNonce(nonce);
+    authorizationCode.setRedirectUri(redirectUri);
 
     // Register the new token
-    if (!registerToken(accountId, newAuthorizationCode)) {
+    if (!registerToken(accountId, authorizationCode)) {
       return null;
     }
 
     // Return the new token
-    return newAuthorizationCode;
+    return authorizationCode;
   }
 
   public RefreshToken createRefreshToken(AuthorizationCode authorizationCode) {
@@ -125,15 +124,15 @@ public class TokenHandler {
   public SidToken createSidToken(String accountId) {
     checkArgument(!Strings.isNullOrEmpty(accountId));
 
-    SidToken newSidToken = new SidToken();
-    newSidToken.setAccountId(accountId);
-    newSidToken.expiresIn(settings.sidTokenDuration);
+    SidToken sidToken = new SidToken();
+    sidToken.setAccountId(accountId);
+    sidToken.expiresIn(oidcSettings.sidTokenDuration);
 
-    if (!registerToken(accountId, newSidToken)) {
+    if (!registerToken(accountId, sidToken)) {
       return null;
     }
 
-    return newSidToken;
+    return sidToken;
   }
 
   public boolean registerToken(String accountId, Token token) {
