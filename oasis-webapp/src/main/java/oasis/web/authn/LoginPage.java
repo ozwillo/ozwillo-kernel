@@ -21,6 +21,8 @@ import javax.ws.rs.core.UriInfo;
 
 import com.google.common.collect.ImmutableMap;
 
+import oasis.auditlog.AuditLogEvent;
+import oasis.auditlog.AuditLogService;
 import oasis.model.accounts.Account;
 import oasis.services.authn.UserPasswordAuthenticator;
 import oasis.services.cookies.CookieFactory;
@@ -32,8 +34,8 @@ import oasis.web.view.View;
 public class LoginPage {
   public static final String CONTINUE_PARAM = "continue";
 
-  @Inject
-  UserPasswordAuthenticator userPasswordAuthenticator;
+  @Inject UserPasswordAuthenticator userPasswordAuthenticator;
+  @Inject AuditLogService auditLogService;
 
   @Context SecurityContext securityContext;
   @Context UriInfo uriInfo;
@@ -63,6 +65,8 @@ public class LoginPage {
       // Attempt auth
       Account account = userPasswordAuthenticator.authenticate(userName, password);
 
+      log(userName, LoginLogEvent.LoginResult.AUTHENTICATION_SUCCEEDED);
+
       // TODO: generate session ID
       // TODO: One-Time Password
       return Response
@@ -70,6 +74,8 @@ public class LoginPage {
           .cookie(CookieFactory.createSessionCookie(UserAuthenticationFilter.COOKIE_NAME, account.getId(), securityContext.isSecure())) // TODO: remember me
           .build();
     } catch (LoginException e) {
+      log(userName, LoginLogEvent.LoginResult.AUTHENTICATION_FAILED);
+
       return loginForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, "Incorrect username or password");
     }
   }
@@ -105,5 +111,32 @@ public class LoginPage {
 
   static URI defaultContinueUrl(UriInfo uriInfo) {
     return uriInfo.getBaseUriBuilder().path(StaticResources.class).path(StaticResources.class, "home").build();
+  }
+
+  private void log(String userName, LoginLogEvent.LoginResult loginResult) {
+    auditLogService.event(LoginLogEvent.class)
+        .setUserName(userName)
+        .setLoginResult(loginResult)
+        .log();
+  }
+
+  public static class LoginLogEvent extends AuditLogEvent {
+    public LoginLogEvent() {
+      super("login_event");
+    }
+
+    public LoginLogEvent setUserName(String userName) {
+      this.addContextData("user_name", userName);
+      return this;
+    }
+
+    public LoginLogEvent setLoginResult(LoginResult loginResult) {
+      this.addContextData("login_result", loginResult);
+      return this;
+    }
+
+    public static enum LoginResult {
+      AUTHENTICATION_SUCCEEDED, AUTHENTICATION_FAILED
+    }
   }
 }
