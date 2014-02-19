@@ -1,8 +1,10 @@
 package oasis.http.testing;
 
 import java.net.URI;
+import java.security.Principal;
 
 import javax.ws.rs.client.Client;
+import javax.ws.rs.core.SecurityContext;
 
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.spi.ResteasyDeployment;
@@ -14,8 +16,8 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 
 import oasis.http.HttpServer;
-import oasis.web.providers.JacksonContextResolver;
 import oasis.web.providers.CookieParserRequestFilter;
+import oasis.web.providers.JacksonContextResolver;
 
 /**
  * Creates an in-process Resteasy container and client. Depends on Jukito.
@@ -51,6 +53,7 @@ public class InProcessResteasy extends ExternalResource {
 
     deployment = new ResteasyDeployment();
     deployment.setProviderFactory(providerFactory);
+    deployment.getDefaultContextObjects().put(SecurityContext.class, new DummySecurityContext());
 
     deployment.start();
 
@@ -63,5 +66,27 @@ public class InProcessResteasy extends ExternalResource {
   @Override
   protected void after() {
     deployment.stop();
+  }
+
+  private static class DummySecurityContext implements SecurityContext {
+    @Override
+    public Principal getUserPrincipal() {
+      return null;
+    }
+
+    @Override
+    public boolean isUserInRole(String role) {
+      return false;
+    }
+
+    @Override
+    public boolean isSecure() {
+      return false;
+    }
+
+    @Override
+    public String getAuthenticationScheme() {
+      return null;
+    }
   }
 }
