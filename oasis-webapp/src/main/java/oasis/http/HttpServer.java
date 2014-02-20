@@ -10,9 +10,10 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Injector;
 
+import oasis.http.fixes.UnhandledExceptionMapper;
 import oasis.web.Application;
 import oasis.web.guice.GuiceInjectorFactory;
-import oasis.web.providers.NewCookieHeaderDelegate;
+import oasis.http.fixes.NewCookieHeaderDelegate;
 
 public class HttpServer {
   private static final Logger logger = LoggerFactory.getLogger(HttpServer.class);
@@ -42,7 +43,10 @@ public class HttpServer {
     server.getDeployment().setApplication(new Application());
     server.setPort(settings.nettyPort);
 
-    server.getDeployment().setProviderFactory(createResteasyProviderFactory(injector));
+    ResteasyProviderFactory providerFactory = createResteasyProviderFactory(injector);
+    server.getDeployment().setProviderFactory(providerFactory);
+    // workaround for https://issues.jboss.org/browse/RESTEASY-1006
+    providerFactory.register(UnhandledExceptionMapper.class);
 
     server.start();
     logger.info("Oasis server started on port {};", server.getPort());

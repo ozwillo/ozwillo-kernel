@@ -14,6 +14,7 @@ import oasis.web.apps.ApplicationMarketEndpoint;
 import oasis.web.apps.DataProviderDirectoryEndpoint;
 import oasis.web.apps.ServiceProviderDirectoryEndpoint;
 import oasis.web.auditlog.AuditLogEndpoint;
+import oasis.web.auditlog.HttpInterceptor;
 import oasis.web.authn.ClientAuthenticationFilter;
 import oasis.web.authn.LoginPage;
 import oasis.web.authn.LogoutPage;
@@ -29,12 +30,9 @@ import oasis.web.example.OpenIdConnect;
 import oasis.web.kibana.ElasticSearchProxy;
 import oasis.web.kibana.Kibana;
 import oasis.web.notifications.NotificationEndpoint;
-import oasis.web.providers.CookieParserRequestFilter;
-import oasis.web.providers.HttpInterceptor;
 import oasis.web.providers.JacksonContextResolver;
-import oasis.web.providers.SecureFilter;
-import oasis.web.providers.UnhandledExceptionMapper;
 import oasis.web.providers.UriParamConverterProvider;
+import oasis.web.security.SecureFilter;
 import oasis.web.security.StrictRefererFilter;
 import oasis.web.social.SocialEndpoint;
 import oasis.web.userdirectory.UserDirectoryEndpoint;
@@ -47,10 +45,7 @@ public class Application extends javax.ws.rs.core.Application {
   public Set<Class<?>> getClasses() {
     return ImmutableSet.<Class<?>>of(
         // Hacks and workarounds
-        UnhandledExceptionMapper.class,
         UriParamConverterProvider.class,
-        CookieParserRequestFilter.class,
-        SecureFilter.class,
         // Providers
         JacksonContextResolver.class,
         JacksonJsonProvider.class,
@@ -74,6 +69,7 @@ public class Application extends javax.ws.rs.core.Application {
         KeysEndpoint.class,
         IntrospectionEndpoint.class,
         // Security
+        SecureFilter.class,
         StrictRefererFilter.class,
         // UserInfo
         UserInfoEndpoint.class,

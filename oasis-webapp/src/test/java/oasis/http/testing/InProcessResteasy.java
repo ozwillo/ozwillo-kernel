@@ -16,7 +16,6 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 
 import oasis.http.HttpServer;
-import oasis.web.providers.CookieParserRequestFilter;
 import oasis.web.providers.JacksonContextResolver;
 
 /**
@@ -49,7 +48,6 @@ public class InProcessResteasy extends ExternalResource {
     ResteasyProviderFactory providerFactory = HttpServer.createResteasyProviderFactory(injector);
     providerFactory.register(JacksonJsonProvider.class);
     providerFactory.register(JacksonContextResolver.class);
-    providerFactory.register(CookieParserRequestFilter.class);
 
     deployment = new ResteasyDeployment();
     deployment.setProviderFactory(providerFactory);

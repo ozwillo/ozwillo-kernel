@@ -1,4 +1,4 @@
-package oasis.web.providers;
+package oasis.http.fixes;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;

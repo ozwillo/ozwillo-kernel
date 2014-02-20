@@ -1,4 +1,4 @@
-package oasis.web.providers;
+package oasis.http.fixes;
 
 import java.util.Date;
 

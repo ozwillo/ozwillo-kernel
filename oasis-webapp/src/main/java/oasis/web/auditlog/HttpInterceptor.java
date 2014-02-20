@@ -1,4 +1,4 @@
-package oasis.web.providers;
+package oasis.web.auditlog;
 
 import static com.google.common.base.Predicates.*;
 

@@ -1,4 +1,4 @@
-package oasis.web.providers;
+package oasis.web.security;
 
 import java.io.IOException;
 import java.security.Principal;
