@@ -13,28 +13,36 @@
   <form class="form-horizontal">
     <fieldset name="User information">
       <legend>User information</legend>
-      <!-- GivenName -->
+      <!-- Name -->
       <div class="form-group">
-        <label for="givenNameInput" class="col-sm-2 control-label">GivenName</label>
+        <label for="nameInput" class="col-sm-2 control-label">Name</label>
 
         <div class="col-sm-10">
-          <input type="text" class="form-control" id="givenNameInput" placeholder="GivenName" ng-model="userInfo.givenName">
+          <input type="text" class="form-control" id="nameInput" ng-model="userInfo.name">
+        </div>
+      </div>
+      <!-- GivenName -->
+      <div class="form-group">
+        <label for="givenNameInput" class="col-sm-2 control-label">Given name</label>
+
+        <div class="col-sm-10">
+          <input type="text" class="form-control" id="givenNameInput" ng-model="userInfo.givenName">
         </div>
       </div>
       <!-- MiddleName -->
       <div class="form-group">
-        <label for="middleNameInput" class="col-sm-2 control-label">MiddleName</label>
+        <label for="middleNameInput" class="col-sm-2 control-label">Middle name</label>
 
         <div class="col-sm-10">
-          <input type="text" class="form-control" id="middleNameInput" placeholder="MiddleName" ng-model="userInfo.middleName">
+          <input type="text" class="form-control" id="middleNameInput" ng-model="userInfo.middleName">
         </div>
       </div>
       <!-- FamilyName -->
       <div class="form-group">
-        <label for="familyNameInput" class="col-sm-2 control-label">FamilyName</label>
+        <label for="familyNameInput" class="col-sm-2 control-label">Family name</label>
 
         <div class="col-sm-10">
-          <input type="text" class="form-control" id="familyNameInput" placeholder="FamilyName" ng-model="userInfo.familyName">
+          <input type="text" class="form-control" id="familyNameInput" ng-model="userInfo.familyName">
         </div>
       </div>
       <!-- Nickname -->
@@ -42,7 +50,7 @@
         <label for="nicknameInput" class="col-sm-2 control-label">Nickname</label>
 
         <div class="col-sm-10">
-          <input type="text" class="form-control" id="nicknameInput" placeholder="Nickname" ng-model="userInfo.nickname">
+          <input type="text" class="form-control" id="nicknameInput" ng-model="userInfo.nickname">
         </div>
       </div>
       <!-- Gender -->
@@ -67,7 +75,7 @@
 
         <div class="col-sm-10">
           [[! XXX: Use a date picker ? ]]
-          <input type="date" class="form-control" id="birthdateInput" placeholder="Birthdate" ng-model="userInfo.birthdate">
+          <input type="date" class="form-control" id="birthdateInput" placeholder="yyyy-mm-dd" ng-model="userInfo.birthdate">
         </div>
       </div>
       <!-- Phone number -->
@@ -75,7 +83,7 @@
         <label for="phoneNumberInput" class="col-sm-2 control-label">Phone number</label>
 
         <div class="col-sm-10">
-          <input type="tel" class="form-control" id="phoneNumberInput" placeholder="Phone number" ng-model="userInfo.phoneNumber">
+          <input type="tel" class="form-control" id="phoneNumberInput" ng-model="userInfo.phoneNumber">
         </div>
       </div>
     </fieldset>
@@ -88,7 +96,7 @@
         <label for="streetAddressInput" class="col-sm-2 control-label">Street address</label>
 
         <div class="col-sm-10">
-          <input type="text" class="form-control" id="streetAddressInput" placeholder="Street address" ng-model="userInfo.address.streetAddress">
+          <input type="text" class="form-control" id="streetAddressInput" ng-model="userInfo.address.streetAddress">
         </div>
       </div>
 
@@ -97,7 +105,7 @@
         <label for="localityInput" class="col-sm-2 control-label">Locality</label>
 
         <div class="col-sm-10">
-          <input type="text" class="form-control" id="localityInput" placeholder="Locality" ng-model="userInfo.address.locality">
+          <input type="text" class="form-control" id="localityInput" ng-model="userInfo.address.locality">
         </div>
       </div>
 
@@ -106,7 +114,7 @@
         <label for="regionInput" class="col-sm-2 control-label">Region</label>
 
         <div class="col-sm-10">
-          <input type="text" class="form-control" id="regionInput" placeholder="Region" ng-model="userInfo.address.region">
+          <input type="text" class="form-control" id="regionInput" ng-model="userInfo.address.region">
         </div>
       </div>
 
@@ -115,7 +123,7 @@
         <label for="postalCodeInput" class="col-sm-2 control-label">Postal code</label>
 
         <div class="col-sm-10">
-          <input type="text" class="form-control" id="postalCodeInput" placeholder="Postal code" ng-model="userInfo.address.postalCode">
+          <input type="text" class="form-control" id="postalCodeInput" ng-model="userInfo.address.postalCode">
         </div>
       </div>
 
@@ -124,7 +132,7 @@
         <label for="countryInput" class="col-sm-2 control-label">Country</label>
 
         <div class="col-sm-10">
-          <input type="text" class="form-control" id="countryInput" placeholder="Country" ng-model="userInfo.address.country">
+          <input type="text" class="form-control" id="countryInput" ng-model="userInfo.address.country">
         </div>
       </div>
     </fieldset>

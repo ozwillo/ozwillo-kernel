@@ -16,7 +16,10 @@ class ProfileInfo {
   @Id
   @ApiModelProperty(required = true)
   private String id;
-  // XXX: Add the 'name' property ?
+
+  @JsonProperty
+  @ApiModelProperty
+  private String name;
   @JsonProperty
   @ApiModelProperty
   private String givenName;
@@ -46,6 +49,7 @@ class ProfileInfo {
 
   ProfileInfo(@Nonnull Identity identity) {
     this.id = identity.getId();
+    this.name = identity.getName();
     this.givenName = identity.getGivenName();
     this.familyName = identity.getFamilyName();
     this.middleName = identity.getMiddleName();
@@ -61,6 +65,7 @@ class ProfileInfo {
   public Identity toIdentity() {
     Identity identity = new Identity();
     identity.setId(this.id);
+    identity.setName(this.name);
     identity.setGivenName(this.givenName);
     identity.setFamilyName(this.familyName);
     identity.setMiddleName(this.middleName);
@@ -80,6 +85,14 @@ class ProfileInfo {
 
   public void setId(String id) {
     this.id = id;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
   }
 
   public String getGivenName() {
