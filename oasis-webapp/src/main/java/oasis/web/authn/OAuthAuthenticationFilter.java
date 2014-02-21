@@ -128,7 +128,7 @@ public class OAuthAuthenticationFilter implements ContainerRequestFilter {
 
   private void invalidToken(ContainerRequestContext requestContext) {
     requestContext.abortWith(Response
-        .status(Response.Status.BAD_REQUEST)
+        .status(Response.Status.UNAUTHORIZED)
         .header(HttpHeaders.WWW_AUTHENTICATE, AUTH_SCHEME + " error=\"invalid_token\"")
         .build());
   }
