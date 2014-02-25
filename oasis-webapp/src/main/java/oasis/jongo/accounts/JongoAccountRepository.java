@@ -35,14 +35,6 @@ public class JongoAccountRepository implements AccountRepository {
   }
 
   @Override
-  public Account getAccountByTokenId(String tokenid) {
-    return this.getAccountCollection()
-        .findOne("{tokens.id: #}", tokenid)
-        .projection("{tokens: 0, authorizedScopes: 0}")
-        .as(Account.class);
-  }
-
-  @Override
   public UserAccount getUserAccountByEmail(String email) {
     return this.getAccountCollection().findOne("{emailAddress:#}", email).as(UserAccount.class);
   }

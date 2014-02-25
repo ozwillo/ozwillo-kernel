@@ -7,6 +7,7 @@ import java.util.List;
 import org.joda.time.Duration;
 import org.joda.time.Instant;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
@@ -16,6 +17,9 @@ import oasis.model.annotations.Id;
 public abstract class Token {
   @Id
   private String id;
+  // FIXME: model depends on storage implementation
+  @JsonIgnore
+  private String accountId;
   @JsonProperty
   private Instant creationTime = Instant.now();
   @JsonProperty
@@ -29,6 +33,14 @@ public abstract class Token {
 
   public void setId(String id) {
     this.id = id;
+  }
+
+  public String getAccountId() {
+    return accountId;
+  }
+
+  public void setAccountId(String accountId) {
+    this.accountId = accountId;
   }
 
   public Instant getCreationTime() {

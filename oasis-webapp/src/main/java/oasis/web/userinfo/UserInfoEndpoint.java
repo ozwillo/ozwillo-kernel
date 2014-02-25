@@ -124,7 +124,7 @@ public class UserInfoEndpoint {
 
   private UserInfo getUserInfo() {
     OAuthPrincipal oAuthPrincipal = (OAuthPrincipal) securityContext.getUserPrincipal();
-    Account account = accountRepository.getAccountByTokenId(oAuthPrincipal.getAccessToken().getId());
+    Account account = accountRepository.getAccount(oAuthPrincipal.getAccessToken().getAccountId());
 
     if (!(account instanceof UserAccount)) {
       throw invalidTokenResponse();

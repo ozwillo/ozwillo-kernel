@@ -28,18 +28,21 @@ public class JongoTokenRepository implements TokenRepository {
   public Token getToken(String tokenId) {
     Account account = getAccountCollection()
         .findOne("{tokens.id: #}", tokenId)
-        .projection("{tokens.$: 1, type: 1}")
+        .projection("{tokens.$: 1, type: 1, id: 1}")
         .as(Account.class);
 
     if (account == null || account.getTokens() == null || account.getTokens().isEmpty()) {
       return null;
     }
-    return account.getTokens().get(0);
+    Token token = account.getTokens().get(0);
+    token.setAccountId(account.getId());
+    return token;
   }
 
   public boolean registerToken(String accountId, Token token) {
     checkArgument(!Strings.isNullOrEmpty(accountId));
-    checkNotNull(token);
+
+    token.setAccountId(accountId);
 
     // Add the new access token in mongo
     return this.getAccountCollection().update("{id:#},{$ne: {tokens.id:#}", accountId, token.getId()).with("{$push:{tokens:#}}", token).getN() > 0;

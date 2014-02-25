@@ -46,23 +46,21 @@ public class TokenHandler {
     return true;
   }
 
-  public AccessToken createAccessToken(String accountId, AccessTokenGenerator oauthToken) {
-    return this.createAccessToken(accountId, settings.accessTokenDuration, oauthToken, null);
+  public AccessToken createAccessToken(AccessTokenGenerator oauthToken) {
+    return this.createAccessToken(settings.accessTokenDuration, oauthToken, null);
   }
 
-  public AccessToken createAccessToken(String accountId, AccessTokenGenerator oauthToken, Set<String> scopeIds) {
-    return this.createAccessToken(accountId, settings.accessTokenDuration, oauthToken, scopeIds);
+  public AccessToken createAccessToken(AccessTokenGenerator oauthToken, Set<String> scopeIds) {
+    return this.createAccessToken(settings.accessTokenDuration, oauthToken, scopeIds);
   }
 
-  private AccessToken createAccessToken(String accountId, Duration ttl, AccessTokenGenerator token, Set<String> scopeIds) {
-    checkArgument(!Strings.isNullOrEmpty(accountId));
-
+  private AccessToken createAccessToken(Duration ttl, AccessTokenGenerator token, Set<String> scopeIds) {
     if (scopeIds == null || scopeIds.isEmpty()) {
-      scopeIds = checkNotNull(token).getScopeIds();
+      scopeIds = token.getScopeIds();
     }
 
     AccessToken newAccessToken = new AccessToken();
-
+    newAccessToken.setAccountId(token.getAccountId());
     newAccessToken.expiresIn(ttl);
     newAccessToken.setScopeIds(scopeIds);
 
@@ -75,7 +73,7 @@ public class TokenHandler {
     }
     newAccessToken.setServiceProviderId(token.getServiceProviderId());
 
-    if (!registerToken(accountId, newAccessToken)) {
+    if (!registerToken(token.getAccountId(), newAccessToken)) {
       return null;
     }
 
@@ -87,7 +85,7 @@ public class TokenHandler {
     checkArgument(!Strings.isNullOrEmpty(accountId));
 
     AuthorizationCode newAuthorizationCode = new AuthorizationCode();
-
+    newAuthorizationCode.setAccountId(accountId);
     // A AuthorizationCode is available only for 1 minute
     newAuthorizationCode.expiresIn(Duration.standardMinutes(1));
     newAuthorizationCode.setScopeIds(scopeIds);
@@ -104,22 +102,20 @@ public class TokenHandler {
     return newAuthorizationCode;
   }
 
-  public RefreshToken createRefreshToken(String accountId, AuthorizationCode authorizationCode) {
-    checkArgument(!Strings.isNullOrEmpty(accountId));
-
+  public RefreshToken createRefreshToken(AuthorizationCode authorizationCode) {
     if (!tokenRepository.revokeToken(authorizationCode.getId())) {
       return null;
     }
 
     RefreshToken refreshToken = new RefreshToken();
-
+    refreshToken.setAccountId(authorizationCode.getAccountId());
     // A RefreshToken is valid 50 years
     refreshToken.expiresIn(Duration.standardDays(50 * 365));
     refreshToken.setScopeIds(authorizationCode.getScopeIds());
     refreshToken.setServiceProviderId(authorizationCode.getServiceProviderId());
 
     // Register the new token
-    if (!registerToken(accountId, refreshToken)) {
+    if (!registerToken(authorizationCode.getAccountId(), refreshToken)) {
       return null;
     }
 

@@ -85,6 +85,7 @@ public class TokenEndpointTest {
 
   static final AuthorizationCode validAuthCode = new AuthorizationCode() {{
     setId("validAuthCode");
+    setAccountId("account");
     setCreationTime(now.minus(Duration.standardHours(1)));
     expiresIn(Duration.standardHours(2));
     setServiceProviderId("sp");
@@ -94,6 +95,7 @@ public class TokenEndpointTest {
   }};
   static final AuthorizationCode validAuthCodeWithOfflineAccess = new AuthorizationCode() {{
     setId("validAuthCodeWithOfflineAccess");
+    setAccountId("account");
     setCreationTime(now.minus(Duration.standardHours(1)));
     expiresIn(Duration.standardHours(2));
     setServiceProviderId("sp");
@@ -104,6 +106,7 @@ public class TokenEndpointTest {
 
   static final AccessToken accessToken = new AccessToken() {{
     setId("accessToken");
+    setAccountId("account");
     setCreationTime(now);
     expiresIn(Duration.standardDays(1));
     setServiceProviderId(validAuthCode.getServiceProviderId());
@@ -111,6 +114,7 @@ public class TokenEndpointTest {
   }};
   static final RefreshToken refreshToken = new RefreshToken() {{
     setId("refreshToken");
+    setAccountId("account");
     setCreationTime(now);
     expiresIn(Duration.standardDays(100));
     setServiceProviderId(validAuthCode.getServiceProviderId());
@@ -118,6 +122,7 @@ public class TokenEndpointTest {
   }};
   static final AccessToken accessTokenWithOfflineAccess = new AccessToken() {{
     setId("accessTokenWithOfflineAccess");
+    setAccountId("account");
     setCreationTime(now);
     expiresIn(Duration.standardDays(1));
     setServiceProviderId(refreshToken.getServiceProviderId());
@@ -125,34 +130,27 @@ public class TokenEndpointTest {
   }};
   static final AccessToken refreshedAccessToken = new AccessToken() {{
     setId("refreshedAccessToken");
+    setAccountId("account");
     setCreationTime(tomorrow);
     expiresIn(Duration.standardDays(1));
     setServiceProviderId(refreshToken.getServiceProviderId());
     setScopeIds(ImmutableSet.of("dp1s1", "dp3s1"));
   }};
 
-  static final Account account = new Account() {{
-    setId("account");
-  }};
-
   @Inject @Rule public InProcessResteasy resteasy;
 
-  @Before public void setUpMocks(TokenHandler tokenHandler, AccountRepository accountRepository) {
+  @Before public void setUpMocks(TokenHandler tokenHandler) {
     when(tokenHandler.getCheckedToken("valid", AuthorizationCode.class)).thenReturn(validAuthCode);
     when(tokenHandler.getCheckedToken("offline", AuthorizationCode.class)).thenReturn(validAuthCodeWithOfflineAccess);
     when(tokenHandler.getCheckedToken("invalid", AuthorizationCode.class)).thenReturn(null);
     when(tokenHandler.getCheckedToken("valid", RefreshToken.class)).thenReturn(refreshToken);
     when(tokenHandler.getCheckedToken("invalid", RefreshToken.class)).thenReturn(null);
 
-    when(tokenHandler.createAccessToken(account.getId(), validAuthCode)).thenReturn(accessToken);
-    when(tokenHandler.createRefreshToken(account.getId(), validAuthCodeWithOfflineAccess)).thenReturn(refreshToken);
-    when(tokenHandler.createAccessToken(account.getId(), refreshToken)).thenReturn(accessTokenWithOfflineAccess);
-    when(tokenHandler.createAccessToken(account.getId(), refreshToken, refreshedAccessToken.getScopeIds()))
+    when(tokenHandler.createAccessToken(validAuthCode)).thenReturn(accessToken);
+    when(tokenHandler.createRefreshToken(validAuthCodeWithOfflineAccess)).thenReturn(refreshToken);
+    when(tokenHandler.createAccessToken(refreshToken)).thenReturn(accessTokenWithOfflineAccess);
+    when(tokenHandler.createAccessToken(refreshToken, refreshedAccessToken.getScopeIds()))
         .thenReturn(refreshedAccessToken);
-
-    when(accountRepository.getAccountByTokenId(validAuthCode.getId())).thenReturn(account);
-    when(accountRepository.getAccountByTokenId(validAuthCodeWithOfflineAccess.getId())).thenReturn(account);
-    when(accountRepository.getAccountByTokenId(refreshToken.getId())).thenReturn(account);
   }
 
   @Before public void setUp() {
@@ -268,7 +266,7 @@ public class TokenEndpointTest {
 
     IdToken.Payload payload = idToken.getPayload();
     assertThat(payload.getIssuer()).isEqualTo(InProcessResteasy.BASE_URI.toString());
-    assertThat(payload.getSubject()).isEqualTo(account.getId());
+    assertThat(payload.getSubject()).isEqualTo("account");
     assertThat(payload.getAudience()).isEqualTo("sp");
     assertThat(payload.getIssuedAtTimeSeconds()).isEqualTo(TimeUnit.MILLISECONDS.toSeconds(clock.currentTimeMillis()));
     assertThat(payload.getExpirationTimeSeconds()).isEqualTo(payload.getIssuedAtTimeSeconds() + settings.idTokenDuration.getStandardSeconds());
@@ -297,7 +295,7 @@ public class TokenEndpointTest {
 
     IdToken.Payload payload = idToken.getPayload();
     assertThat(payload.getIssuer()).isEqualTo(InProcessResteasy.BASE_URI.toString());
-    assertThat(payload.getSubject()).isEqualTo(account.getId());
+    assertThat(payload.getSubject()).isEqualTo("account");
     assertThat(payload.getAudience()).isEqualTo("sp");
     assertThat(payload.getIssuedAtTimeSeconds()).isEqualTo(TimeUnit.MILLISECONDS.toSeconds(clock.currentTimeMillis()));
     assertThat(payload.getExpirationTimeSeconds()).isEqualTo(payload.getIssuedAtTimeSeconds() + settings.idTokenDuration.getStandardSeconds());

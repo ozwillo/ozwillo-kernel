@@ -116,12 +116,6 @@ public class TokenEndpoint {
       return errorResponse("invalid_token", null);
     }
 
-    Account account = accountRepository.getAccountByTokenId(refreshToken.getId());
-
-    if (account == null) {
-      return errorResponse("invalid_token", null);
-    }
-
     // Verify that the client that wants to use the refresh token is the client that created it
     String client_id = ((ClientPrincipal) securityContext.getUserPrincipal()).getClientId();
     if (!refreshToken.getServiceProviderId().equals(client_id)) {
@@ -141,7 +135,7 @@ public class TokenEndpoint {
       asked_scopes = refreshToken.getScopeIds();
     }
 
-    AccessToken accessToken = tokenHandler.createAccessToken(account.getId(), refreshToken, asked_scopes);
+    AccessToken accessToken = tokenHandler.createAccessToken(refreshToken, asked_scopes);
 
     if (accessToken == null) {
       return Response.serverError().build();
@@ -171,12 +165,6 @@ public class TokenEndpoint {
       return errorResponse("invalid_token", null);
     }
 
-    Account account = accountRepository.getAccountByTokenId(authorizationCode.getId());
-
-    if (account == null) {
-      return errorResponse("invalid_token", null);
-    }
-
     if (!authorizationCode.getRedirectUri().equals(redirect_uri)) {
       logger.warn("Received redirect_uri {} does not match the one received at the authorization request.", redirect_uri);
       return errorResponse("invalid_request", "Invalid parameter value: redirect_uri");
@@ -195,7 +183,7 @@ public class TokenEndpoint {
     // Create a refresh token if asked
     RefreshToken refreshToken = null;
     if (authorizationCode.getScopeIds().contains("offline_access")) {
-      refreshToken = tokenHandler.createRefreshToken(account.getId(), authorizationCode);
+      refreshToken = tokenHandler.createRefreshToken(authorizationCode);
 
       if (refreshToken == null) {
         return Response.serverError().build();
@@ -206,7 +194,7 @@ public class TokenEndpoint {
     }
 
     // Create a new access token based on the authorization code (or the new refresh token if needed)
-    AccessToken accessToken = tokenHandler.createAccessToken(account.getId(), refreshToken == null ? authorizationCode : refreshToken);
+    AccessToken accessToken = tokenHandler.createAccessToken(refreshToken == null ? authorizationCode : refreshToken);
 
     if (accessToken == null) {
       return Response.serverError().build();
@@ -226,7 +214,7 @@ public class TokenEndpoint {
         JWS_HEADER,
         new IdToken.Payload()
             .setIssuer(uriInfo.getBaseUri().toString())
-            .setSubject(account.getId())
+            .setSubject(accessToken.getAccountId())
             .setAudience(client_id)
             .setExpirationTimeSeconds(issuedAt + settings.idTokenDuration.getStandardSeconds())
             .setIssuedAtTimeSeconds(issuedAt)

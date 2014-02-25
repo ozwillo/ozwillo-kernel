@@ -57,14 +57,15 @@ public class IntrospectionEndpointTest {
     setScopeIds(ImmutableSet.of("dp2s1"));
   }};
 
-  static final AccessToken validToken = new AccessToken() {{
-    setId("valid");
-    setScopeIds(ImmutableSet.of("openid", "dp1s1", "dp1s3", "dp3s1"));
-    expiresIn(Duration.standardDays(1));
-  }};
-
   static final Account account = new Account() {{
     setId("account");
+  }};
+
+  static final AccessToken validToken = new AccessToken() {{
+    setId("valid");
+    setAccountId(account.getId());
+    setScopeIds(ImmutableSet.of("openid", "dp1s1", "dp1s3", "dp3s1"));
+    expiresIn(Duration.standardDays(1));
   }};
 
   @Inject @Rule public InProcessResteasy resteasy;
@@ -74,7 +75,7 @@ public class IntrospectionEndpointTest {
     when(tokenHandler.getCheckedToken(eq("valid"), any(Class.class))).thenReturn(validToken);
     when(tokenHandler.getCheckedToken(eq("invalid"), any(Class.class))).thenReturn(null);
 
-    when(accountRepository.getAccountByTokenId(validToken.getId())).thenReturn(account);
+    when(accountRepository.getAccount(account.getId())).thenReturn(account);
 
     when(applicationRepository.getDataProvider(dp1.getId())).thenReturn(dp1);
     when(applicationRepository.getDataProvider(dp2.getId())).thenReturn(dp2);

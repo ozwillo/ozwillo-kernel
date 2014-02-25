@@ -5,8 +5,6 @@ import oasis.model.InvalidVersionException;
 public interface AccountRepository {
   Account getAccount(String id);
 
-  Account getAccountByTokenId(String tokenId);
-
   UserAccount getUserAccountByEmail(String email);
 
   UserAccount getUserAccountById(String id);

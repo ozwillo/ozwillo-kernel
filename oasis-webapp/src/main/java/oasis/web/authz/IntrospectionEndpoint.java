@@ -69,8 +69,7 @@ public class IntrospectionEndpoint {
       return error();
     }
 
-    // XXX: load an entire account just for an account id ?
-    Account account = accountRepository.getAccountByTokenId(accessToken.getId());
+    Account account = accountRepository.getAccount(accessToken.getAccountId());
 
     IntrospectionResponse introspectionResponse;
     long issuedAtTime = accessToken.getCreationTime().getMillis();
