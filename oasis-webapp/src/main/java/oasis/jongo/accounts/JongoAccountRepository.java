@@ -31,22 +31,34 @@ public class JongoAccountRepository implements AccountRepository {
 
   @Override
   public Account getAccount(String id) {
-    return this.getAccountCollection().findOne("{id:#}", id).as(Account.class);
+    return this.getAccountCollection()
+        .findOne("{id:#}", id)
+        .projection("{tokens: 0, authorizedScopes: 0}")
+        .as(Account.class);
   }
 
   @Override
   public UserAccount getUserAccountByEmail(String email) {
-    return this.getAccountCollection().findOne("{emailAddress:#}", email).as(UserAccount.class);
+    return this.getAccountCollection()
+        .findOne("{emailAddress:#}", email)
+        .projection("{tokens: 0, authorizedScopes: 0}")
+        .as(UserAccount.class);
   }
 
   @Override
   public UserAccount getUserAccountById(String id) {
-    return this.getAccountCollection().findOne("{id:#}", id).as(UserAccount.class);
+    return this.getAccountCollection()
+        .findOne("{id:#}", id)
+        .projection("{tokens: 0, authorizedScopes: 0}")
+        .as(UserAccount.class);
   }
 
   @Override
   public AgentAccount getAgentAccountById(String id) {
-    return getAccountCollection().findOne("{id:#}", id).as(AgentAccount.class);
+    return getAccountCollection()
+        .findOne("{id:#}", id)
+        .projection("{tokens: 0, authorizedScopes: 0}")
+        .as(AgentAccount.class);
   }
 
   @Override
@@ -79,6 +91,7 @@ public class JongoAccountRepository implements AccountRepository {
   public Iterable<AgentAccount> getAgentsForOrganization(String organizationId, int start, int limit) {
     return getAccountCollection()
         .find("{ organizationId: # }", organizationId)
+        .projection("{tokens: 0, authorizedScopes: 0}")
         .skip(start)
         .limit(limit)
         .as(AgentAccount.class);
@@ -88,6 +101,7 @@ public class JongoAccountRepository implements AccountRepository {
   public AgentAccount findAndRemove(String agentId, long[] versions) throws InvalidVersionException {
     AgentAccount res = getAccountCollection()
         .findAndModify("{id: #, modified: { $in: # } }", agentId, versions)
+        .projection("{tokens: 0, authorizedScopes: 0}")
         .remove()
         .as(AgentAccount.class);
     if (res == null) {
