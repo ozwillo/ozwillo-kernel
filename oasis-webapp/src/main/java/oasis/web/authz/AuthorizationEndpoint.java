@@ -48,9 +48,9 @@ import oasis.model.authz.AuthorizationRepository;
 import oasis.model.authz.AuthorizedScopes;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
-import oasis.web.authn.AccountPrincipal;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.User;
+import oasis.web.authn.UserSessionPrincipal;
 import oasis.web.view.View;
 
 @Path("/a/auth")
@@ -118,7 +118,7 @@ public class AuthorizationEndpoint {
     validateScopeIds(scopeIds);
 
     // TODO: OpenID Connect specifics
-    String userId = ((AccountPrincipal) securityContext.getUserPrincipal()).getAccountId();
+    String userId = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken().getAccountId();
 
     final String nonce = getParameter("nonce");
 
@@ -147,7 +147,8 @@ public class AuthorizationEndpoint {
     initRedirectUriBuilder(redirect_uri);
     appendQueryParam("state", state);
 
-    String userId = ((AccountPrincipal)securityContext.getUserPrincipal()).getAccountId();
+    String userId = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken().getAccountId();
+
     authorizationRepository.authorize(userId, client_id, selectedScopeIds);
 
     return generateAuthorizationCodeAndRedirect(userId, scopeIds, client_id, redirect_uri, nonce);

@@ -4,20 +4,25 @@ import static com.google.common.base.Preconditions.*;
 
 import javax.inject.Inject;
 
+import org.joda.time.Instant;
 import org.jongo.Jongo;
 import org.jongo.MongoCollection;
 
 import com.google.common.base.Strings;
+import com.mongodb.WriteResult;
 
 import oasis.model.accounts.Account;
 import oasis.model.authn.Token;
 import oasis.model.authn.TokenRepository;
+import oasis.openidconnect.OpenIdConnectModule;
 
 public class JongoTokenRepository implements TokenRepository {
   private final Jongo jongo;
+  private final OpenIdConnectModule.Settings settings;
 
-  @Inject JongoTokenRepository(Jongo jongo) {
+  @Inject JongoTokenRepository(Jongo jongo, OpenIdConnectModule.Settings settings) {
     this.jongo = jongo;
+    this.settings = settings;
   }
 
   protected MongoCollection getAccountCollection() {
@@ -55,5 +60,17 @@ public class JongoTokenRepository implements TokenRepository {
         .update("{ tokens.id: # }", tokenId)
         .with("{ $pull: { tokens: { $or: [ { id: # }, { ancestorIds: # } ] } } }", tokenId, tokenId)
         .getN() > 0;
+  }
+
+  public boolean renewToken(String tokenId) {
+    long creationTime = Instant.now().getMillis();
+    long expirationTime = creationTime + settings.sidTokenDuration.getMillis();
+
+    WriteResult writeResult = this.getAccountCollection()
+        .update("{ tokens.id: # }", tokenId)
+        // TODO: Pass directly the instance of Instant
+        .with("{ $set: { tokens.$.creationTime: #, tokens.$.expirationTime: # } }", creationTime, expirationTime);
+
+    return writeResult.getN() == 1;
   }
 }

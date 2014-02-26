@@ -14,13 +14,15 @@ import javax.ws.rs.core.SecurityContext;
 
 import com.google.common.collect.ImmutableMap;
 
+import oasis.model.accounts.Account;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
+import oasis.model.authn.SidToken;
 import oasis.model.social.Identity;
 import oasis.model.social.IdentityRepository;
-import oasis.web.authn.AccountPrincipal;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.User;
+import oasis.web.authn.UserSessionPrincipal;
 import oasis.web.view.View;
 
 @Authenticated
@@ -35,11 +37,13 @@ public class ProfilePage {
   @GET
   @Produces(MediaType.TEXT_HTML)
   public Response get() {
-    String accountId = ((AccountPrincipal) securityContext.getUserPrincipal()).getAccountId();
-    UserAccount userAccount = accountRepository.getUserAccountById(accountId);
-    if (userAccount == null) {
+    SidToken sidToken = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken();
+    Account account = accountRepository.getAccount(sidToken.getAccountId());
+    if (!(account instanceof UserAccount)) {
       return Response.serverError().build();
     }
+
+    UserAccount userAccount = (UserAccount) account;
     Identity identity = identityRepository.getIdentity(userAccount.getIdentityId());
     if (identity == null) {
       return Response.serverError().build();

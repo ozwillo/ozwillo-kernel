@@ -7,7 +7,6 @@ import java.util.Set;
 import javax.inject.Inject;
 
 import org.joda.time.Duration;
-import org.joda.time.Instant;
 
 import com.google.api.client.util.Clock;
 import com.google.common.base.Strings;
@@ -16,6 +15,7 @@ import oasis.model.authn.AccessToken;
 import oasis.model.authn.AccessTokenGenerator;
 import oasis.model.authn.AuthorizationCode;
 import oasis.model.authn.RefreshToken;
+import oasis.model.authn.SidToken;
 import oasis.model.authn.Token;
 import oasis.model.authn.TokenRepository;
 import oasis.openidconnect.OpenIdConnectModule;
@@ -120,6 +120,20 @@ public class TokenHandler {
     }
 
     return refreshToken;
+  }
+
+  public SidToken createSidToken(String accountId) {
+    checkArgument(!Strings.isNullOrEmpty(accountId));
+
+    SidToken newSidToken = new SidToken();
+    newSidToken.setAccountId(accountId);
+    newSidToken.expiresIn(settings.sidTokenDuration);
+
+    if (!registerToken(accountId, newSidToken)) {
+      return null;
+    }
+
+    return newSidToken;
   }
 
   public boolean registerToken(String accountId, Token token) {

@@ -17,9 +17,9 @@ import oasis.auditlog.log4j.logstash.LogstashLog4JAuditModule;
 import oasis.auditlog.noop.NoopAuditLogModule;
 import oasis.http.HttpServer;
 import oasis.http.HttpServerModule;
-import oasis.openidconnect.OpenIdConnectModule;
-import oasis.jongo.guice.JongoModule;
 import oasis.jongo.JongoService;
+import oasis.jongo.guice.JongoModule;
+import oasis.openidconnect.OpenIdConnectModule;
 import oasis.tools.CommandLineTool;
 import oasis.web.guice.OasisGuiceModule;
 import oasis.web.kibana.KibanaModule;
@@ -47,6 +47,7 @@ public class WebApp extends CommandLineTool {
         // TODO: refactor to use a single subtree of the config
         OpenIdConnectModule.create(config.withOnlyPath("oasis.openid-connect")
             .withFallback(config.withOnlyPath("oasis.oauth"))
+            .withFallback(config.withOnlyPath("oasis.session"))
             .withFallback(config.withOnlyPath("oasis.conf-dir")))
     );
 

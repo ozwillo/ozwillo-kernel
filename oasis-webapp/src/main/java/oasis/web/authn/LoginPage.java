@@ -19,11 +19,17 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.collect.ImmutableMap;
 
 import oasis.auditlog.AuditLogEvent;
 import oasis.auditlog.AuditLogService;
 import oasis.model.accounts.Account;
+import oasis.model.authn.SidToken;
+import oasis.services.authn.TokenHandler;
+import oasis.services.authn.TokenSerializer;
 import oasis.services.authn.UserPasswordAuthenticator;
 import oasis.services.cookies.CookieFactory;
 import oasis.web.StaticResources;
@@ -32,9 +38,12 @@ import oasis.web.view.View;
 
 @Path("/a/login")
 public class LoginPage {
+  private static final Logger logger = LoggerFactory.getLogger(LoginPage.class);
+
   public static final String CONTINUE_PARAM = "continue";
 
   @Inject UserPasswordAuthenticator userPasswordAuthenticator;
+  @Inject TokenHandler tokenHandler;
   @Inject AuditLogService auditLogService;
 
   @Context SecurityContext securityContext;
@@ -60,10 +69,15 @@ public class LoginPage {
       continueUrl = defaultContinueUrl();
     }
 
-    // Attempt auth
     try {
-      // Attempt auth
       Account account = userPasswordAuthenticator.authenticate(userName, password);
+
+      SidToken sidToken = tokenHandler.createSidToken(account.getId());
+      if (sidToken == null) {
+        // XXX: This shouldn't be audited because it shouldn't be the user fault
+        logger.error("No SidToken was created for Account {}.", account.getId());
+        return Response.serverError().build();
+      }
 
       log(userName, LoginLogEvent.LoginResult.AUTHENTICATION_SUCCEEDED);
 
@@ -71,7 +85,7 @@ public class LoginPage {
       // TODO: One-Time Password
       return Response
           .seeOther(continueUrl)
-          .cookie(CookieFactory.createSessionCookie(UserAuthenticationFilter.COOKIE_NAME, account.getId(), securityContext.isSecure())) // TODO: remember me
+          .cookie(CookieFactory.createSessionCookie(UserAuthenticationFilter.COOKIE_NAME, TokenSerializer.serialize(sidToken), securityContext.isSecure())) // TODO: remember me
           .build();
     } catch (LoginException e) {
       log(userName, LoginLogEvent.LoginResult.AUTHENTICATION_FAILED);
