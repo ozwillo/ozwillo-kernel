@@ -14,6 +14,7 @@ import javax.net.ssl.SSLContext;
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.NewCookie;
 
 import org.jboss.resteasy.client.jaxrs.ClientHttpEngine;
 import org.jboss.resteasy.client.jaxrs.internal.ClientInvocation;
@@ -107,17 +108,20 @@ public class InProcessClientHttpEngine implements ClientHttpEngine {
     };
 
     response.setStatus(mockResponse.getStatus());
-    response.setHeaders(transformHeaders(mockResponse.getOutputHeaders()));
+    response.setHeaders(transformHeaders(mockResponse.getOutputHeaders(), mockResponse.getNewCookies()));
 
     return response;
   }
 
-  private MultivaluedMap<String, String> transformHeaders(MultivaluedMap<String, Object> outputHeaders) {
+  private MultivaluedMap<String, String> transformHeaders(MultivaluedMap<String, Object> outputHeaders, List<NewCookie> newCookies) {
     MultivaluedMap<String, String> headers = new CaseInsensitiveMap<String>();
     for (Map.Entry<String, List<Object>> header : outputHeaders.entrySet()) {
       for (Object value : header.getValue()) {
         headers.add(header.getKey(), dispatcher.getProviderFactory().toHeaderString(value));
       }
+    }
+    for (NewCookie newCookie : newCookies) {
+      headers.add(HttpHeaders.SET_COOKIE, dispatcher.getProviderFactory().toHeaderString(newCookie));
     }
     return headers;
   }
