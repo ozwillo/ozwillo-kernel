@@ -1,3 +1,3 @@
-[submodule "oasis-webapp/src/test/resources/http-cache"]
-	path = oasis-webapp/src/test/resources/http-cache
+[submodule "oasis-webapp/src/test/resources/http-state"]
+	path = oasis-webapp/src/test/resources/http-state
 	url = https://github.com/abarth/http-state.git

@@ -28,8 +28,8 @@ public class CookieDateParserTest {
   @Parameters(name = "{index}: parseCookieDate({0}) = {1}")
   public static Iterable<Object[]> data() throws IOException {
     ObjectMapper mapper = new ObjectMapper(new JsonFactory().enable(JsonParser.Feature.ALLOW_COMMENTS));
-    JsonNode examples = mapper.readTree(CookieDateParserTest.class.getResource("/http-cache/tests/data/dates/examples.json"));
-    JsonNode bsdExamples = mapper.readTree(CookieDateParserTest.class.getResource("/http-cache/tests/data/dates/bsd-examples.json"));
+    JsonNode examples = mapper.readTree(CookieDateParserTest.class.getResource("/http-state/tests/data/dates/examples.json"));
+    JsonNode bsdExamples = mapper.readTree(CookieDateParserTest.class.getResource("/http-state/tests/data/dates/bsd-examples.json"));
     return FluentIterable.from(Iterables.concat(examples, bsdExamples))
         .transform(new Function<JsonNode, Object[]>() {
           @Override
