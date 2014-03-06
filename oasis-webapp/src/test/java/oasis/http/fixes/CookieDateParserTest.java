@@ -1,6 +1,6 @@
 package oasis.http.fixes;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -10,9 +10,7 @@ import java.util.TimeZone;
 
 import javax.annotation.Nullable;
 
-import org.assertj.core.api.Condition;
 import org.junit.Test;
-import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
@@ -26,18 +24,48 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
 
 @RunWith(Parameterized.class)
-public class CookieDateParserTest extends AbstractCookieDateParserTest {
+public class CookieDateParserTest {
   @Parameters(name = "{index}: parseCookieDate({0}) = {1}")
   public static Iterable<Object[]> data() throws IOException {
-    return AbstractCookieDateParserTest.data();
+    ObjectMapper mapper = new ObjectMapper(new JsonFactory().enable(JsonParser.Feature.ALLOW_COMMENTS));
+    JsonNode examples = mapper.readTree(CookieDateParserTest.class.getResource("/http-cache/tests/data/dates/examples.json"));
+    JsonNode bsdExamples = mapper.readTree(CookieDateParserTest.class.getResource("/http-cache/tests/data/dates/bsd-examples.json"));
+    return FluentIterable.from(Iterables.concat(examples, bsdExamples))
+        .transform(new Function<JsonNode, Object[]>() {
+          @Override
+          public Object[] apply(JsonNode input) {
+            return new Object[] {
+                input.get("test").textValue(),
+                input.get("expected").textValue()
+            };
+          }
+        });
   }
+
+  private static final SimpleDateFormat rfc1123date;
+  static {
+    rfc1123date = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss 'GMT'", Locale.US);
+    rfc1123date.setTimeZone(TimeZone.getTimeZone("GMT"));
+  }
+
+  private final String input;
+  private final String expected;
 
   public CookieDateParserTest(String input, @Nullable String expected) {
-    super(input, expected);
+    this.input = input;
+    this.expected = expected;
   }
 
-  @Override
-  protected Date parseCookieDate(String cookieDate) {
-    return CookieDateParser.parseCookieDate(cookieDate);
+  private static String format(Date date) {
+    if (date == null) return null;
+    return rfc1123date.format(date);
+  }
+
+  @Test
+  public void testParseCookieDate() {
+    Date actual = CookieDateParser.parseCookieDate(input);
+    // XXX: do not use DateAssert#withDateFormat as it stores the format in a static field
+    // also parses 'expected' rather than formatting 'actual'.
+    assertThat(format(actual)).isEqualTo(expected);
   }
 }

@@ -100,7 +100,7 @@ public class NewCookieHeaderDelegate implements HeaderDelegate<NewCookie> {
    * @return the parsed date or {@code null} in case of error
    */
   private Date parseCookieDate(String cookieDate) {
-    return CookieDateRegexpParser.parseCookieDate(cookieDate);
+    return CookieDateParser.parseCookieDate(cookieDate);
   }
 
   @Override
