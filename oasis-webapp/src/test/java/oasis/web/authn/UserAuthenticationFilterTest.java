@@ -88,6 +88,9 @@ public class UserAuthenticationFilterTest {
 
   private void assertRedirectionToLoginForm(Response response) {
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
+    assertThat(response.getCookies()).containsKey(UserAuthenticationFilter.COOKIE_NAME);
+    assertThat(response.getCookies().get(UserAuthenticationFilter.COOKIE_NAME).getExpiry())
+        .describedAs("Cookie expiry").isInThePast();
     UriInfo location = new ResteasyUriInfo(response.getLocation());
     assertThat(location.getAbsolutePath()).isEqualTo(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(LoginPage.class).build());
     assertThat(location.getQueryParameters().getFirst("continue")).isEqualTo("http://localhost/foo/bar?qux=quux");

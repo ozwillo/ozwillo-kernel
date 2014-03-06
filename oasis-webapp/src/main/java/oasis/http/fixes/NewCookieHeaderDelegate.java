@@ -1,14 +1,17 @@
 package oasis.http.fixes;
 
 import java.util.Date;
+import java.util.Iterator;
 
-import javax.ws.rs.ConstrainedTo;
-import javax.ws.rs.RuntimeType;
+import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.ext.RuntimeDelegate;
 import javax.ws.rs.ext.RuntimeDelegate.HeaderDelegate;
 
+import com.google.common.base.Ascii;
 import com.google.common.base.CharMatcher;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Iterators;
 
 /**
  * Implementation of a {@link HeaderDelegate} for {@link NewCookie} that follows RFC 6265.
@@ -18,15 +21,86 @@ import com.google.common.base.CharMatcher;
  * @see <a href="http://tools.ietf.org/html/rfc6265">RFC 6265</a>
  * @see <a href="https://java.net/jira/browse/JAX_RS_SPEC-430">Bug report on the JAX-RS spec</a>
  */
-@ConstrainedTo(RuntimeType.SERVER)
 public class NewCookieHeaderDelegate implements HeaderDelegate<NewCookie> {
   private static final HeaderDelegate<Date> DATE_HEADER_DELEGATE = RuntimeDelegate.getInstance().createHeaderDelegate(Date.class);
 
+  private static final CharMatcher WSP = CharMatcher.anyOf(" \t");
+  private static final Splitter ATTRIBUTES = Splitter.on(';');
+  private static final Splitter COOKIE_AV = Splitter.on('=').limit(2).trimResults(WSP);
+
   @Override
-  public NewCookie fromString(String value) {
-    // Not needed on server side; Set-Cookie should never be sent to the server
-    // Note: that rules out use of NewCookie.valueOf()
-    throw new UnsupportedOperationException();
+  public NewCookie fromString(String newCookie) {
+    Iterator<String> attributes = ATTRIBUTES.split(newCookie).iterator();
+
+    // The first pair is the cookie-name / cookie-value
+    Iterator<String> cookieAv = COOKIE_AV.split(attributes.next()).iterator();
+    String name = cookieAv.next();
+    if (name.isEmpty()) {
+      return null;
+    }
+    if (!cookieAv.hasNext()) {
+      // no '=' sign
+      return null;
+    }
+    String value = cookieAv.next();
+
+    if (!attributes.hasNext()) {
+      return new NewCookie(name, value);
+    }
+
+    // parse the attributes
+    Date expiry = null;
+    int maxAge = NewCookie.DEFAULT_MAX_AGE;
+    String domain = null;
+    String path = null;
+    boolean secure = false;
+    boolean httpOnly = false;
+
+    do {
+      cookieAv = COOKIE_AV.split(attributes.next()).iterator();
+      String attributeName = cookieAv.next();
+      String attributeValue = Iterators.getNext(cookieAv, "");
+      if ("Expires".equalsIgnoreCase(attributeName)) {
+        expiry = parseCookieDate(attributeValue);
+      } else if ("Max-Age".equalsIgnoreCase(attributeName)) {
+        try {
+          // Note: deviation from spec: accepts a leading '+' sign
+          // Normalize all negative values to 0, to avoid conflicts with DEFAULT_MAX_AGE
+          maxAge = Math.max(0, Integer.parseInt(attributeValue));
+        } catch (NumberFormatException nfe) {
+        }
+      } else if ("Domain".equalsIgnoreCase(attributeName)) {
+        if (attributeValue.isEmpty()) {
+          continue;
+        }
+        if (attributeValue.startsWith(".")) {
+          attributeValue = attributeValue.substring(1);
+        }
+        domain = Ascii.toLowerCase(attributeValue);
+      } else if ("Path".equalsIgnoreCase(attributeName)) {
+        if (attributeValue.isEmpty() || !attributeValue.startsWith("/")) {
+          path = null; // reset to default path
+        } else {
+          path = attributeValue;
+        }
+      } else if ("Secure".equalsIgnoreCase(attributeValue)) {
+        secure = true;
+      } else if ("HttpOnly".equalsIgnoreCase(attributeValue)) {
+        httpOnly = true;
+      }
+    } while (attributes.hasNext());
+
+    return new NewCookie(name, value, path, domain, Cookie.DEFAULT_VERSION, null/*comment*/, maxAge, expiry, secure, httpOnly);
+  }
+
+  /**
+   * Parse a cookie date following the
+   * <a href="http://tools.ietf.org/html/rfc6265#section-5.1.1">RFC 6265 algorithm</a>.
+   *
+   * @return the parsed date or {@code null} in case of error
+   */
+  private Date parseCookieDate(String cookieDate) {
+    return CookieDateParser.parseCookieDate(cookieDate);
   }
 
   @Override
