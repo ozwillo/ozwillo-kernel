@@ -2,7 +2,6 @@ package oasis.web;
 
 import java.util.Set;
 
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import com.google.common.collect.ImmutableSet;
 import com.wordnik.swagger.jaxrs.listing.ApiListingResourceJSON;
 import com.wordnik.swagger.jaxrs.listing.ResourceListingProvider;
@@ -30,7 +29,7 @@ import oasis.web.example.OpenIdConnect;
 import oasis.web.kibana.ElasticSearchProxy;
 import oasis.web.kibana.Kibana;
 import oasis.web.notifications.NotificationEndpoint;
-import oasis.web.providers.JacksonContextResolver;
+import oasis.web.providers.JacksonJsonProvider;
 import oasis.web.providers.UriParamConverterProvider;
 import oasis.web.security.SecureFilter;
 import oasis.web.security.StrictRefererFilter;
@@ -47,8 +46,7 @@ public class Application extends javax.ws.rs.core.Application {
         // Hacks and workarounds
         UriParamConverterProvider.class,
         // Providers
-        JacksonContextResolver.class,
-        JacksonJsonProvider.class,
+        JacksonJsonProvider.class, // Note: this is our own implementation
         // Views
         HandlebarsBodyWriter.class,
         // Swagger

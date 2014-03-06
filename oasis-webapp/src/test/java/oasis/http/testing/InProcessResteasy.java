@@ -11,12 +11,11 @@ import org.jboss.resteasy.spi.ResteasyDeployment;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.junit.rules.ExternalResource;
 
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
 import oasis.http.HttpServer;
-import oasis.web.providers.JacksonContextResolver;
+import oasis.web.providers.JacksonJsonProvider;
 
 /**
  * Creates an in-process Resteasy container and client. Depends on Jukito.
@@ -46,8 +45,7 @@ public class InProcessResteasy extends ExternalResource {
   @Override
   protected void before() throws Throwable {
     ResteasyProviderFactory providerFactory = HttpServer.createResteasyProviderFactory(injector);
-    providerFactory.register(JacksonJsonProvider.class);
-    providerFactory.register(JacksonContextResolver.class);
+    providerFactory.register(JacksonJsonProvider.class); // Note: this is our own implementation
 
     deployment = new ResteasyDeployment();
     deployment.setProviderFactory(providerFactory);
@@ -57,7 +55,7 @@ public class InProcessResteasy extends ExternalResource {
 
     client = new ResteasyClientBuilder()
         .httpEngine(new InProcessClientHttpEngine(deployment.getDispatcher(), BASE_URI))
-        .register(JacksonJsonProvider.class)
+        .register(JacksonJsonProvider.class) // Note: this is our own implementation
         .build();
   }
 
