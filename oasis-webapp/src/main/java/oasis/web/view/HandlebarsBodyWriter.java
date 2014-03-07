@@ -12,13 +12,21 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.MessageBodyWriter;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.guava.GuavaModule;
+import com.fasterxml.jackson.datatype.joda.JodaModule;
 import com.github.jknack.handlebars.Context;
 import com.github.jknack.handlebars.Handlebars;
+import com.github.jknack.handlebars.Jackson2Helper;
 import com.github.jknack.handlebars.io.ClassPathTemplateLoader;
 
 public class HandlebarsBodyWriter implements MessageBodyWriter<View> {
   private static final Handlebars HANDLEBARS = new Handlebars(new ClassPathTemplateLoader())
-      .registerHelper("json", new JsonHelper())
+      .registerHelper("json", new Jackson2Helper(new ObjectMapper()
+          .registerModule(new JodaModule())
+          .registerModule(new GuavaModule())
+          .setSerializationInclusion(JsonInclude.Include.NON_EMPTY)))
       .startDelimiter("[[")
       .endDelimiter("]]");
 
