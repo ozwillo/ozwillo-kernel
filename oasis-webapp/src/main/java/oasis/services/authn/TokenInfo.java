@@ -1,5 +1,7 @@
 package oasis.services.authn;
 
+import static oasis.services.authn.TokenHandler.makeId;
+
 import org.joda.time.Instant;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -17,8 +19,8 @@ public class TokenInfo {
   public TokenInfo() {
   }
 
-  public TokenInfo(Token token) {
-    this.id = token.getId();
+  public TokenInfo(Token token, String pass) {
+    this.id = makeId(token.getId(), pass);
     this.iat = token.getCreationTime();
     this.exp = token.getExpirationTime();
   }

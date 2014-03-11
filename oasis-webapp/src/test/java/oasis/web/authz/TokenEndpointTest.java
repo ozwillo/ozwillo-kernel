@@ -140,16 +140,18 @@ public class TokenEndpointTest {
   @Inject @Rule public InProcessResteasy resteasy;
 
   @Before public void setUpMocks(TokenHandler tokenHandler) {
+    when(tokenHandler.generateRandom()).thenReturn("pass");
+
     when(tokenHandler.getCheckedToken("valid", AuthorizationCode.class)).thenReturn(validAuthCode);
     when(tokenHandler.getCheckedToken("offline", AuthorizationCode.class)).thenReturn(validAuthCodeWithOfflineAccess);
     when(tokenHandler.getCheckedToken("invalid", AuthorizationCode.class)).thenReturn(null);
     when(tokenHandler.getCheckedToken("valid", RefreshToken.class)).thenReturn(refreshToken);
     when(tokenHandler.getCheckedToken("invalid", RefreshToken.class)).thenReturn(null);
 
-    when(tokenHandler.createAccessToken(validAuthCode)).thenReturn(accessToken);
-    when(tokenHandler.createRefreshToken(validAuthCodeWithOfflineAccess)).thenReturn(refreshToken);
-    when(tokenHandler.createAccessToken(refreshToken, refreshToken.getScopeIds())).thenReturn(accessTokenWithOfflineAccess);
-    when(tokenHandler.createAccessToken(refreshToken, refreshedAccessToken.getScopeIds()))
+    when(tokenHandler.createAccessToken(validAuthCode, "pass")).thenReturn(accessToken);
+    when(tokenHandler.createRefreshToken(validAuthCodeWithOfflineAccess, "pass")).thenReturn(refreshToken);
+    when(tokenHandler.createAccessToken(refreshToken, refreshToken.getScopeIds(), "pass")).thenReturn(accessTokenWithOfflineAccess);
+    when(tokenHandler.createAccessToken(refreshToken, refreshedAccessToken.getScopeIds(), "pass"))
         .thenReturn(refreshedAccessToken);
   }
 
@@ -258,7 +260,7 @@ public class TokenEndpointTest {
     assertThat(response.getScope().split(" ")).containsOnly("dp1s1", "dp1s3", "dp3s1");
     assertThat(response.getExpiresInSeconds())
         .isEqualTo(new Duration(new Instant(clock.currentTimeMillis()), accessToken.getExpirationTime()).getStandardSeconds());
-    assertThat(response.getAccessToken()).isEqualTo(TokenSerializer.serialize(accessToken));
+    assertThat(response.getAccessToken()).isEqualTo(TokenSerializer.serialize(accessToken, "pass"));
     assertThat(response.getRefreshToken()).isNullOrEmpty();
 
     IdToken idToken = response.parseIdToken();
@@ -287,8 +289,8 @@ public class TokenEndpointTest {
     assertThat(response.getScope().split(" ")).containsOnly("offline_access", "dp1s1", "dp1s3", "dp3s1");
     assertThat(response.getExpiresInSeconds())
         .isEqualTo(new Duration(new Instant(clock.currentTimeMillis()), accessTokenWithOfflineAccess.getExpirationTime()).getStandardSeconds());
-    assertThat(response.getAccessToken()).isEqualTo(TokenSerializer.serialize(accessTokenWithOfflineAccess));
-    assertThat(response.getRefreshToken()).isEqualTo(TokenSerializer.serialize(refreshToken));
+    assertThat(response.getAccessToken()).isEqualTo(TokenSerializer.serialize(accessTokenWithOfflineAccess, "pass"));
+    assertThat(response.getRefreshToken()).isEqualTo(TokenSerializer.serialize(refreshToken, "pass"));
 
     IdToken idToken = response.parseIdToken();
     assertThat(idToken.verifySignature(settings.keyPair.getPublic())).isTrue();
@@ -366,7 +368,7 @@ public class TokenEndpointTest {
     assertThat(response.getScope().split(" ")).containsOnly("dp1s1", "dp3s1");
     assertThat(response.getExpiresInSeconds())
         .isEqualTo(new Duration(new Instant(clock.currentTimeMillis()), refreshedAccessToken.getExpirationTime()).getStandardSeconds());
-    assertThat(response.getAccessToken()).isEqualTo(TokenSerializer.serialize(refreshedAccessToken));
+    assertThat(response.getAccessToken()).isEqualTo(TokenSerializer.serialize(refreshedAccessToken, "pass"));
     assertThat(response.getRefreshToken()).isNullOrEmpty();
   }
 

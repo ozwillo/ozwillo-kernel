@@ -72,7 +72,8 @@ public class LoginPage {
     try {
       Account account = userPasswordAuthenticator.authenticate(userName, password);
 
-      SidToken sidToken = tokenHandler.createSidToken(account.getId());
+      String pass = tokenHandler.generateRandom();
+      SidToken sidToken = tokenHandler.createSidToken(account.getId(), pass);
       if (sidToken == null) {
         // XXX: This shouldn't be audited because it shouldn't be the user fault
         logger.error("No SidToken was created for Account {}.", account.getId());
@@ -85,7 +86,7 @@ public class LoginPage {
       // TODO: One-Time Password
       return Response
           .seeOther(continueUrl)
-          .cookie(CookieFactory.createSessionCookie(UserAuthenticationFilter.COOKIE_NAME, TokenSerializer.serialize(sidToken), securityContext.isSecure())) // TODO: remember me
+          .cookie(CookieFactory.createSessionCookie(UserAuthenticationFilter.COOKIE_NAME, TokenSerializer.serialize(sidToken, pass), securityContext.isSecure())) // TODO: remember me
           .build();
     } catch (LoginException e) {
       log(userName, LoginLogEvent.LoginResult.AUTHENTICATION_FAILED);

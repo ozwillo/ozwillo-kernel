@@ -21,6 +21,10 @@ public abstract class Token {
   @JsonIgnore
   private String accountId;
   @JsonProperty
+  private byte[] hash;
+  @JsonProperty
+  private byte[] salt;
+  @JsonProperty
   private Instant creationTime = Instant.now();
   @JsonProperty
   private Instant expirationTime;
@@ -41,6 +45,22 @@ public abstract class Token {
 
   public void setAccountId(String accountId) {
     this.accountId = accountId;
+  }
+
+  public byte[] getHash() {
+    return hash;
+  }
+
+  public void setHash(byte[] hash) {
+    this.hash = hash;
+  }
+
+  public byte[] getSalt() {
+    return salt;
+  }
+
+  public void setSalt(byte[] salt) {
+    this.salt = salt;
   }
 
   public Instant getCreationTime() {

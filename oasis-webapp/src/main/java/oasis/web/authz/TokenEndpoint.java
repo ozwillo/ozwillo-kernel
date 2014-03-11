@@ -135,13 +135,14 @@ public class TokenEndpoint {
       asked_scopes = refreshToken.getScopeIds();
     }
 
-    AccessToken accessToken = tokenHandler.createAccessToken(refreshToken, asked_scopes);
+    String pass = tokenHandler.generateRandom();
+    AccessToken accessToken = tokenHandler.createAccessToken(refreshToken, asked_scopes, pass);
 
     if (accessToken == null) {
       return Response.serverError().build();
     }
 
-    String access_token = TokenSerializer.serialize(accessToken);
+    String access_token = TokenSerializer.serialize(accessToken, pass);
 
     TokenResponse response = new TokenResponse();
     response.setAccessToken(access_token);
@@ -181,26 +182,28 @@ public class TokenEndpoint {
     IdTokenResponse response = new IdTokenResponse();
 
     AccessToken accessToken;
+    final String pass = tokenHandler.generateRandom();
     if (authorizationCode.getScopeIds().contains("offline_access")) {
-      RefreshToken refreshToken = tokenHandler.createRefreshToken(authorizationCode);
+      String refreshPass = tokenHandler.generateRandom();
+      RefreshToken refreshToken = tokenHandler.createRefreshToken(authorizationCode, refreshPass);
 
       if (refreshToken == null) {
         return Response.serverError().build();
       }
-      String refresh_token = TokenSerializer.serialize(refreshToken);
+      String refresh_token = TokenSerializer.serialize(refreshToken, refreshPass);
 
       response.setRefreshToken(refresh_token);
 
-      accessToken = tokenHandler.createAccessToken(refreshToken, refreshToken.getScopeIds());
+      accessToken = tokenHandler.createAccessToken(refreshToken, refreshToken.getScopeIds(), pass);
     } else {
-      accessToken = tokenHandler.createAccessToken(authorizationCode);
+      accessToken = tokenHandler.createAccessToken(authorizationCode, pass);
     }
 
     if (accessToken == null) {
       return Response.serverError().build();
     }
 
-    String access_token = TokenSerializer.serialize(accessToken);
+    String access_token = TokenSerializer.serialize(accessToken, pass);
 
     long issuedAt = TimeUnit.MILLISECONDS.toSeconds(clock.currentTimeMillis());
 

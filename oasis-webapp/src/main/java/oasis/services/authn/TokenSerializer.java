@@ -17,7 +17,7 @@ public class TokenSerializer {
   private static final BaseEncoding BASE_ENCODING = BaseEncoding.base64Url().omitPadding();
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().registerModule(new JodaModule());
 
-  public static String serialize(Token token) {
+  public static String serialize(Token token, String pass) {
     // We can't serialize a null token
     if (token == null) {
       return null;
@@ -25,7 +25,7 @@ public class TokenSerializer {
 
     // Return base64 encoded json
     try {
-      return BASE_ENCODING.encode(OBJECT_MAPPER.writeValueAsBytes(new TokenInfo(token)));
+      return BASE_ENCODING.encode(OBJECT_MAPPER.writeValueAsBytes(new TokenInfo(token, pass)));
     } catch (JsonProcessingException e) {
       logger.error("Can't serialize the given token {}", token.getId(), e);
       return null;

@@ -156,9 +156,10 @@ public class AuthorizationEndpoint {
 
   private Response generateAuthorizationCodeAndRedirect(String userId, Set<String> scopeIds, String client_id,
       String redirect_uri, @Nullable String nonce) {
-    AuthorizationCode authCode = tokenHandler.createAuthorizationCode(userId, scopeIds, client_id, nonce, redirect_uri);
+    String pass = tokenHandler.generateRandom();
+    AuthorizationCode authCode = tokenHandler.createAuthorizationCode(userId, scopeIds, client_id, nonce, redirect_uri, pass);
 
-    String auth_code = TokenSerializer.serialize(authCode);
+    String auth_code = TokenSerializer.serialize(authCode, pass);
 
     if (auth_code == null) {
       return Response.serverError().build();

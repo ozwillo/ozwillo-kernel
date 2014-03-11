@@ -1,6 +1,6 @@
 package oasis.services.authn;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import org.joda.time.DateTime;
@@ -21,6 +21,7 @@ import com.google.inject.Provides;
 import oasis.model.authn.AccessToken;
 import oasis.model.authn.Token;
 import oasis.model.authn.TokenRepository;
+import oasis.services.authn.login.PasswordHasher;
 
 @RunWith(JukitoRunner.class)
 public class TokenHandlerTest {
@@ -43,21 +44,29 @@ public class TokenHandlerTest {
     setId("validToken");
     setCreationTime(now.minus(Duration.standardHours(1)));
     expiresIn(Duration.standardHours(2));
+    setHash("valid".getBytes());
+    setSalt("salt".getBytes());
   }};
   static final Token expiredToken = new Token() {{
     setId("expiredToken");
     setCreationTime(new DateTime(2008, 1, 20, 11, 10).toInstant());
     setExpirationTime(new DateTime(2013, 10, 30, 19, 42).toInstant());
+    setHash("valid".getBytes());
+    setSalt("salt".getBytes());
   }};
 
-  @Before public void setUpMocks(TokenRepository tokenRepository) {
+  @Before public void setUpMocks(TokenRepository tokenRepository, PasswordHasher passwordHasher) {
     when(tokenRepository.getToken(validToken.getId())).thenReturn(validToken);
     when(tokenRepository.getToken(expiredToken.getId())).thenReturn(expiredToken);
+
+    when(passwordHasher.checkPassword("valid", "valid".getBytes(), "salt".getBytes())).thenReturn(true);
+    when(passwordHasher.checkPassword("expired", "expired".getBytes(), "salt".getBytes())).thenReturn(true);
+    when(passwordHasher.checkPassword("counterfeit", "counterfeit".getBytes(), "salt".getBytes())).thenReturn(false);
   }
 
   @Test public void testGetCheckedToken_validToken() {
     // when
-    Token token = sut.getCheckedToken(TokenSerializer.serialize(validToken), Token.class);
+    Token token = sut.getCheckedToken(TokenSerializer.serialize(validToken, "valid"), Token.class);
 
     // then
     assertThat(token).isSameAs(validToken);
@@ -65,7 +74,7 @@ public class TokenHandlerTest {
 
   @Test public void testGetCheckedToken_validToken_badType() {
     // when
-    AccessToken accessToken = sut.getCheckedToken(TokenSerializer.serialize(validToken), AccessToken.class);
+    AccessToken accessToken = sut.getCheckedToken(TokenSerializer.serialize(validToken, "valid"), AccessToken.class);
 
     // then
     assertThat(accessToken).isNull();
@@ -81,7 +90,7 @@ public class TokenHandlerTest {
 
   @Test public void testGetCheckedToken_expiredToken() {
     // when
-    Token token = sut.getCheckedToken(TokenSerializer.serialize(expiredToken), Token.class);
+    Token token = sut.getCheckedToken(TokenSerializer.serialize(expiredToken, "expired"), Token.class);
 
     // then
     assertThat(token).isNull();
@@ -96,7 +105,15 @@ public class TokenHandlerTest {
     }};
 
     // when
-    Token token = sut.getCheckedToken(TokenSerializer.serialize(fakeExpiredToken), Token.class);
+    Token token = sut.getCheckedToken(TokenSerializer.serialize(fakeExpiredToken, "expired"), Token.class);
+
+    // then
+    assertThat(token).isNull();
+  }
+
+  @Test public void testGetCheckedToken_counterfeitToken() {
+    // when
+    Token token = sut.getCheckedToken(TokenSerializer.serialize(validToken, "counterfeit"), Token.class);
 
     // then
     assertThat(token).isNull();
