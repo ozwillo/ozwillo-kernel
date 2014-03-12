@@ -69,7 +69,7 @@ public class ClientAuthenticationFilter implements ContainerRequestFilter {
     try {
       CharsetDecoder charsetDecoder = CREDENTIALS_ENCODING.newDecoder();
       credentials = charsetDecoder.decode(ByteBuffer.wrap(BaseEncoding.base64().decode(parts.get(1)))).toString();
-    } catch (CharacterCodingException e) {
+    } catch (CharacterCodingException | IllegalArgumentException e) {
       malformedCredentials(requestContext);
       return;
     }

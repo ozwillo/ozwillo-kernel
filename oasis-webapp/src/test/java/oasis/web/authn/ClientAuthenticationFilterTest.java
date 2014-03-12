@@ -78,11 +78,22 @@ public class ClientAuthenticationFilterTest {
   }
 
   @Test
-  public void testMalformedBasicAuth() {
+  public void testMalformedBase64() {
     Response response = resteasy.getClient()
         .target(UriBuilder.fromResource(DummyResource.class).build())
         .request()
-        .header(HttpHeaders.AUTHORIZATION, "Basic invalid")
+        .header(HttpHeaders.AUTHORIZATION, "Basic €")
+        .get();
+
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
+  }
+
+  @Test
+  public void testMalformedUTF8Base64Decoding() {
+    Response response = resteasy.getClient()
+        .target(UriBuilder.fromResource(DummyResource.class).build())
+        .request()
+        .header(HttpHeaders.AUTHORIZATION, "Basic " + BaseEncoding.base64().encode(new byte[] {(byte) 0x80}))
         .get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
