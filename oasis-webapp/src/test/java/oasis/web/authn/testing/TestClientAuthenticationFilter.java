@@ -3,12 +3,18 @@ package oasis.web.authn.testing;
 import java.io.IOException;
 import java.security.Principal;
 
+import javax.annotation.Priority;
+import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.SecurityContext;
 
+import oasis.web.authn.Authenticated;
+import oasis.web.authn.Client;
 import oasis.web.authn.ClientPrincipal;
 
+@Authenticated @Client
+@Priority(Priorities.AUTHENTICATION)
 public class TestClientAuthenticationFilter implements ContainerRequestFilter {
   private final String clientId;
 
