@@ -36,6 +36,7 @@ public class UserAuthenticationFilterTest {
   public static class Module extends JukitoModule {
     @Override
     protected void configureTest() {
+      bind(UserFilter.class);
       bind(UserAuthenticationFilter.class);
 
       bindMock(TokenHandler.class).in(TestSingleton.class);
@@ -59,6 +60,7 @@ public class UserAuthenticationFilterTest {
   }
 
   @Before public void setUp() {
+    resteasy.getDeployment().getProviderFactory().register(UserFilter.class);
     resteasy.getDeployment().getProviderFactory().register(UserAuthenticationFilter.class);
     resteasy.getDeployment().getRegistry().addPerRequestResource(DummyResource.class);
   }
@@ -71,7 +73,7 @@ public class UserAuthenticationFilterTest {
 
   @Test public void testAuthenticated() {
     Response response = resteasy.getClient().target(UriBuilder.fromResource(DummyResource.class).build()).queryParam("qux", "quux").request()
-        .cookie(UserAuthenticationFilter.COOKIE_NAME, "valid")
+        .cookie(UserFilter.COOKIE_NAME, "valid")
         .get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
@@ -80,7 +82,7 @@ public class UserAuthenticationFilterTest {
 
   @Test public void testWithInvalidCookie() {
     Response response = resteasy.getClient().target(UriBuilder.fromResource(DummyResource.class).build()).queryParam("qux", "quux").request()
-        .cookie(UserAuthenticationFilter.COOKIE_NAME, "invalid")
+        .cookie(UserFilter.COOKIE_NAME, "invalid")
         .get();
 
     assertRedirectionToLoginForm(response);
@@ -88,8 +90,8 @@ public class UserAuthenticationFilterTest {
 
   private void assertRedirectionToLoginForm(Response response) {
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
-    assertThat(response.getCookies()).containsKey(UserAuthenticationFilter.COOKIE_NAME);
-    assertThat(response.getCookies().get(UserAuthenticationFilter.COOKIE_NAME).getExpiry())
+    assertThat(response.getCookies()).containsKey(UserFilter.COOKIE_NAME);
+    assertThat(response.getCookies().get(UserFilter.COOKIE_NAME).getExpiry())
         .describedAs("Cookie expiry").isInThePast();
     UriInfo location = new ResteasyUriInfo(response.getLocation());
     assertThat(location.getAbsolutePath()).isEqualTo(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(LoginPage.class).build());

@@ -8,10 +8,11 @@ import java.lang.annotation.Target;
 import javax.ws.rs.NameBinding;
 
 /**
- * Indicates that the JAX-RS resource needs an authenticated user.
+ * Indicates that the JAX-RS resource wants to know the authenticated user (if there's one).
  * <p>
- * Must be used with {@link Authenticated}.
+ * Can be used with {@link Authenticated} to mandate an authenticated user.
  *
+ * @see UserFilter
  * @see UserAuthenticationFilter
  */
 @NameBinding

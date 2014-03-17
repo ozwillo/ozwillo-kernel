@@ -33,13 +33,13 @@ public class LogoutPage {
 
   @GET
   public Response get(@QueryParam(LoginPage.CONTINUE_PARAM) URI continueUrl,
-      @CookieParam(UserAuthenticationFilter.COOKIE_NAME) String sidCookie) {
+      @CookieParam(UserFilter.COOKIE_NAME) String sidCookie) {
     return logout(continueUrl, sidCookie);
   }
 
   @POST
   public Response post(@FormParam(LoginPage.CONTINUE_PARAM) URI continueUrl,
-      @CookieParam(UserAuthenticationFilter.COOKIE_NAME) String sidCookie) {
+      @CookieParam(UserFilter.COOKIE_NAME) String sidCookie) {
     return logout(continueUrl, sidCookie);
   }
 
@@ -57,7 +57,7 @@ public class LogoutPage {
     }
 
     return Response.seeOther(continueUrl)
-        .cookie(CookieFactory.createExpiredCookie(UserAuthenticationFilter.COOKIE_NAME, securityContext.isSecure()))
+        .cookie(CookieFactory.createExpiredCookie(UserFilter.COOKIE_NAME, securityContext.isSecure()))
         .build();
   }
 }

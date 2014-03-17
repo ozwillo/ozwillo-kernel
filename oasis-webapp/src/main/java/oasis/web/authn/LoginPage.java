@@ -82,11 +82,10 @@ public class LoginPage {
 
       log(userName, LoginLogEvent.LoginResult.AUTHENTICATION_SUCCEEDED);
 
-      // TODO: generate session ID
       // TODO: One-Time Password
       return Response
           .seeOther(continueUrl)
-          .cookie(CookieFactory.createSessionCookie(UserAuthenticationFilter.COOKIE_NAME, TokenSerializer.serialize(sidToken, pass), securityContext.isSecure())) // TODO: remember me
+          .cookie(CookieFactory.createSessionCookie(UserFilter.COOKIE_NAME, TokenSerializer.serialize(sidToken, pass), securityContext.isSecure())) // TODO: remember me
           .build();
     } catch (LoginException e) {
       log(userName, LoginLogEvent.LoginResult.AUTHENTICATION_FAILED);
