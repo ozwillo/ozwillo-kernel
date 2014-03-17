@@ -9,6 +9,9 @@
   <form method="POST" action="[[formAction]]" class="form-horizontal">
     <input type="hidden" name="_utf8" value="&#9731;">
     <input type="hidden" name="continue" value="[[continue]]">
+    [[#if cancel]]
+    <input type="hidden" name="cancel" value="[[cancel]]">
+    [[/if]]
 
     <div class="form-group">
       <label for="emailInput" class="col-sm-2 control-label">Email address</label>
@@ -27,6 +30,9 @@
     <div class="form-group">
       <div class="col-sm-offset-2 col-sm-10">
         <button type="submit" class="btn btn-primary">Sign in</button>
+        [[#if cancel]]
+        <a href="[[cancel]]">Cancel</a>
+        [[/if]]
       </div>
     </div>
     </p>

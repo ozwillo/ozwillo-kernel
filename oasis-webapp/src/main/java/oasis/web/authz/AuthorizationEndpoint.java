@@ -2,6 +2,7 @@ package oasis.web.authz;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +30,7 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
 import com.google.api.client.util.Maps;
+import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
@@ -50,11 +52,11 @@ import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.User;
+import oasis.web.authn.UserAuthenticationFilter;
 import oasis.web.authn.UserSessionPrincipal;
 import oasis.web.view.View;
 
 @Path("/a/auth")
-@Authenticated
 @User
 @Produces(MediaType.TEXT_HTML)
 @Api(value = "/a/auth", description = "Authorization Endpoint.")
@@ -62,6 +64,25 @@ public class AuthorizationEndpoint {
   private static final String APPROVE_PATH = "/approve";
 
   private static final Splitter SPACE_SPLITTER = Splitter.on(' ').omitEmptyStrings();
+
+  private class Prompt {
+    boolean interactive = true;
+    boolean login;
+    boolean consent;
+    boolean selectAccount;
+
+    @Override
+    public String toString() {
+      if (!interactive) {
+        return "none";
+      }
+      return Joiner.on(' ').skipNulls().join(Arrays.asList(
+          login ? "login" : null,
+          consent ? "consent" : null,
+          selectAccount ? "select_account" : null
+      ));
+    }
+  }
 
   @Context SecurityContext securityContext;
 
@@ -79,7 +100,7 @@ public class AuthorizationEndpoint {
           "<a href=\"http://openid.net/specs/openid-connect-basic-1_0.html#AuthorizationRequest\">OpenID Connect RFC</a> for more information."
   )
   public Response get(@Context UriInfo uriInfo) {
-    return post(uriInfo.getQueryParameters());
+    return post(uriInfo, uriInfo.getQueryParameters());
   }
 
   @POST
@@ -89,7 +110,7 @@ public class AuthorizationEndpoint {
       notes = "See the <a href=\"http://tools.ietf.org/html/rfc6749#section-3.1\">OAuth 2.0 RFC</a> and " +
           "<a href=\"http://openid.net/specs/openid-connect-basic-1_0.html#AuthorizationRequest\">OpenID Connect RFC</a> for more information."
   )
-  public Response post(MultivaluedMap<String, String> params) {
+  public Response post(@Context UriInfo uriInfo, MultivaluedMap<String, String> params) {
     this.params = params;
 
     final String client_id = getRequiredParameter("client_id");
@@ -118,20 +139,33 @@ public class AuthorizationEndpoint {
     validateScopeIds(scopeIds);
 
     // TODO: OpenID Connect specifics
-    String userId = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken().getAccountId();
+
+    final Prompt prompt = parsePrompt(getParameter("prompt"));
+    if (securityContext.getUserPrincipal() == null || prompt.login) {
+      if (!prompt.interactive) {
+        throw error("login_required", null);
+      }
+      return redirectToLogin(uriInfo, prompt);
+    }
+
+    final String userId = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken().getAccountId();
 
     final String nonce = getParameter("nonce");
 
     Set<String> authorizedScopeIds = getAuthorizedScopeIds(serviceProvider.getId(), userId);
-    if (authorizedScopeIds.containsAll(scopeIds)) {
+    if (authorizedScopeIds.containsAll(scopeIds) && !prompt.consent) {
       // User already authorized all claimed scopes, let it be a "transparent" redirect
       return generateAuthorizationCodeAndRedirect(userId, scopeIds, serviceProvider.getId(), redirect_uri, nonce);
     }
 
+    if (!prompt.interactive) {
+      throw error("consent_required", null);
+    }
     return promptUser(serviceProvider, scopeIds, authorizedScopeIds, redirect_uri, state, nonce);
   }
 
   @POST
+  @Authenticated
   @Path(APPROVE_PATH)
   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
   public Response postScopes(
@@ -152,6 +186,22 @@ public class AuthorizationEndpoint {
     authorizationRepository.authorize(userId, client_id, selectedScopeIds);
 
     return generateAuthorizationCodeAndRedirect(userId, scopeIds, client_id, redirect_uri, nonce);
+  }
+
+  private Response redirectToLogin(UriInfo uriInfo, Prompt prompt) {
+    // Prepare cancel URL
+    appendQueryParam("error", "login_required");
+    // Redirect back to here, except without prompt=login
+    prompt.login = false;
+    String promptValue = prompt.toString();
+    UriBuilder continueUrl = uriInfo.getRequestUriBuilder();
+    if (Strings.isNullOrEmpty(promptValue)) {
+      // remove the prompt parameter entirely
+      continueUrl.replaceQueryParam("prompt");
+    } else {
+      continueUrl.replaceQueryParam("prompt", promptValue);
+    }
+    return UserAuthenticationFilter.loginResponse(continueUrl.build(), redirectUriBuilder.toString(), securityContext);
   }
 
   private Response generateAuthorizationCodeAndRedirect(String userId, Set<String> scopeIds, String client_id,
@@ -298,6 +348,27 @@ public class AuthorizationEndpoint {
       throw error("invalid_scope", "You must include 'openid'");
     }
     return scopeIds;
+  }
+
+  private Prompt parsePrompt(String prompt) {
+    Prompt ret = new Prompt();
+    if (prompt == null) {
+      return ret;
+    }
+    Set<String> promptValues = Sets.newHashSet(SPACE_SPLITTER.split(prompt));
+    ret.interactive = !promptValues.remove("none");
+    if (!ret.interactive && !promptValues.isEmpty()) {
+      // none is not alone
+      throw invalidParam("prompt");
+    }
+    ret.login = promptValues.remove("login");
+    ret.consent = promptValues.remove("consent");
+    ret.selectAccount = promptValues.remove("select_account");
+    if (!promptValues.isEmpty()) {
+      // Unknown prompt value(s)
+      throw invalidParam("prompt");
+    }
+    return ret;
   }
 
   private Set<String> getAuthorizedScopeIds(String client_id, String userId) {

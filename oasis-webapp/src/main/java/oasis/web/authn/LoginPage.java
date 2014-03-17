@@ -22,6 +22,7 @@ import javax.ws.rs.core.UriInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 
 import oasis.auditlog.AuditLogEvent;
@@ -41,6 +42,7 @@ public class LoginPage {
   private static final Logger logger = LoggerFactory.getLogger(LoginPage.class);
 
   public static final String CONTINUE_PARAM = "continue";
+  public static final String CANCEL_PARAM = "cancel";
 
   @Inject UserPasswordAuthenticator userPasswordAuthenticator;
   @Inject TokenHandler tokenHandler;
@@ -51,8 +53,11 @@ public class LoginPage {
 
   @GET
   @Produces(MediaType.TEXT_HTML)
-  public Response get(@QueryParam(CONTINUE_PARAM) URI continueUrl) {
-    return loginForm(Response.ok(), continueUrl, null);
+  public Response get(
+      @QueryParam(CONTINUE_PARAM) URI continueUrl,
+      @QueryParam(CANCEL_PARAM) URI cancelUrl
+  ) {
+    return loginForm(Response.ok(), continueUrl, cancelUrl, null);
   }
 
   @POST
@@ -60,10 +65,11 @@ public class LoginPage {
   public Response post(
       @FormParam("u") @DefaultValue("") String userName,
       @FormParam("pwd") @DefaultValue("") String password,
-      @FormParam("continue") URI continueUrl
+      @FormParam("continue") URI continueUrl,
+      @FormParam("cancel") URI cancelUrl
   ) {
     if (userName.isEmpty()) {
-      return loginForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, null);
+      return loginForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, cancelUrl, null);
     }
     if (continueUrl == null) {
       continueUrl = defaultContinueUrl();
@@ -90,18 +96,13 @@ public class LoginPage {
     } catch (LoginException e) {
       log(userName, LoginLogEvent.LoginResult.AUTHENTICATION_FAILED);
 
-      return loginForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, "Incorrect username or password");
+      return loginForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, cancelUrl, "Incorrect username or password");
     }
   }
 
-  private Response loginForm(Response.ResponseBuilder builder, URI continueUrl, String errorMessage) {
+  private Response loginForm(Response.ResponseBuilder builder, URI continueUrl, URI cancelUrl, String errorMessage) {
     if (continueUrl == null) {
       continueUrl = defaultContinueUrl();
-    }
-
-    // Initialise un message d'erreur vide au besoin
-    if ( errorMessage == null ) {
-      errorMessage = "";
     }
 
     return builder
@@ -114,7 +115,8 @@ public class LoginPage {
         .entity(new View(LoginPage.class, "Login.html", ImmutableMap.of(
             "formAction", UriBuilder.fromResource(LoginPage.class).build(),
             "continue", continueUrl,
-            "errorMessage", errorMessage
+            "cancel", cancelUrl,
+            "errorMessage", Strings.nullToEmpty(errorMessage)
         )))
         .build();
   }

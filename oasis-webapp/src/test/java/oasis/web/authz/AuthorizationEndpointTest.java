@@ -41,6 +41,7 @@ import oasis.model.authn.SidToken;
 import oasis.model.authz.AuthorizationRepository;
 import oasis.model.authz.AuthorizedScopes;
 import oasis.services.authn.TokenHandler;
+import oasis.web.authn.LoginPage;
 import oasis.web.authn.testing.TestUserFilter;
 import oasis.web.view.HandlebarsBodyWriter;
 
@@ -130,11 +131,24 @@ public class AuthorizationEndpointTest {
 
   @Before public void setUp() {
     resteasy.getDeployment().getRegistry().addPerRequestResource(AuthorizationEndpoint.class);
-    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
     resteasy.getDeployment().getProviderFactory().register(HandlebarsBodyWriter.class);
   }
 
+  @Test public void testNotLoggedIn() {
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+        .queryParam("client_id", "application")
+        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("state", "state")
+        .queryParam("response_type", "code")
+        .queryParam("scope", openidScope.getId())
+        .request().get();
+
+    assertRedirectToLogin(response);
+  }
+
   @Test public void testTransparentRedirection() {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
         .queryParam("client_id", "application")
         .queryParam("redirect_uri", "https://application/callback")
@@ -152,6 +166,8 @@ public class AuthorizationEndpointTest {
   }
 
   @Test public void testPromptUser() {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
         .queryParam("client_id", "application")
         .queryParam("redirect_uri", "https://application/callback")
@@ -160,8 +176,72 @@ public class AuthorizationEndpointTest {
         .queryParam("scope", openidScope.getId() + " " + unauthorizedScope.getId())
         .request().get();
 
-    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
-    // XXX: test the response (run the template?)
+    assertConsentPage(response);
+  }
+
+  /**
+   * Same as {@link #testTransparentRedirection()} except with {@code prompt=login}.
+   * <p>Similar to {@link #testNotLoggedIn()} except user is logged-in but we force a login prompt.
+   */
+  @Test public void testPromptLogin() {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+        .queryParam("client_id", "application")
+        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("state", "state")
+        .queryParam("response_type", "code")
+        .queryParam("scope", openidScope.getId())
+        .queryParam("prompt", "login")
+        .request().get();
+
+    assertRedirectToLogin(response);
+  }
+
+  /** Same as {@link #testTransparentRedirection()} except with {@code prompt=consent}. */
+  @Test public void testPromptConsent() {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+        .queryParam("client_id", "application")
+        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("state", "state")
+        .queryParam("response_type", "code")
+        .queryParam("scope", openidScope.getId())
+        .queryParam("prompt", "consent")
+        .request().get();
+
+    assertConsentPage(response);
+  }
+
+  /** Same as {@link #testTransparentRedirection()} except with {@code prompt=none} and no logged-in user. */
+  @Test public void testPromptNone_loginRequired() {
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+        .queryParam("client_id", "application")
+        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("state", "state")
+        .queryParam("response_type", "code")
+        .queryParam("scope", openidScope.getId())
+        .queryParam("prompt", "none")
+        .request().get();
+
+    assertRedirectError(response, "login_required", null);
+  }
+
+  /** Same as {@link #testPromptUser()} except with {@code prompt=none}. */
+  @Test public void testPromptNone_consentRequired() {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+        .queryParam("client_id", "application")
+        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("state", "state")
+        .queryParam("response_type", "code")
+        .queryParam("scope", openidScope.getId() + " " + unauthorizedScope.getId())
+        .queryParam("prompt", "none")
+        .request().get();
+
+    assertRedirectError(response, "consent_required", null);
   }
 
   @Test public void testUnknownClient() {
@@ -235,6 +315,8 @@ public class AuthorizationEndpointTest {
   }
 
   @Test public void testUnknownScope() {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
         .queryParam("client_id", "application")
         .queryParam("redirect_uri", "https://application/callback")
@@ -247,6 +329,8 @@ public class AuthorizationEndpointTest {
   }
 
   @Test public void testScopeMissingOpenid() {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
         .queryParam("client_id", "application")
         .queryParam("redirect_uri", "https://application/callback")
@@ -259,6 +343,8 @@ public class AuthorizationEndpointTest {
   }
 
   @Test public void testMissingScope() {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
         .queryParam("client_id", "application")
         .queryParam("redirect_uri", "https://application/callback")
@@ -267,6 +353,56 @@ public class AuthorizationEndpointTest {
         .request().get();
 
     assertRedirectError(response, "invalid_request", "scope");
+  }
+
+  @Test public void testPromptNoneAndValue() {
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+        .queryParam("client_id", "application")
+        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("state", "state")
+        .queryParam("response_type", "code")
+        .queryParam("scope", openidScope.getId())
+        .queryParam("prompt", "login none")
+        .request().get();
+
+    assertRedirectError(response, "invalid_request", "prompt");
+  }
+
+  @Test public void testUnknownPromptValue() {
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+        .queryParam("client_id", "application")
+        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("state", "state")
+        .queryParam("response_type", "code")
+        .queryParam("scope", openidScope.getId())
+        .queryParam("prompt", "login unknown_value")
+        .request().get();
+
+    assertRedirectError(response, "invalid_request", "prompt");
+  }
+
+  private void assertRedirectToLogin(Response response) {
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
+    UriInfo location = new ResteasyUriInfo(response.getLocation());
+    assertThat(location.getAbsolutePath()).isEqualTo(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(LoginPage.class).build());
+
+    UriInfo continueUrl = new ResteasyUriInfo(URI.create(location.getQueryParameters().getFirst(LoginPage.CONTINUE_PARAM)));
+    assertThat(continueUrl.getAbsolutePath()).isEqualTo(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class).build());
+    assertThat(continueUrl.getQueryParameters())
+        .containsEntry("client_id", singletonList("application"))
+        .containsEntry("redirect_uri", singletonList("https://application/callback"))
+        .containsEntry("state", singletonList("state"))
+        .containsEntry("response_type", singletonList("code"))
+        .containsEntry("scope", singletonList(openidScope.getId()))
+        .doesNotContainEntry("prompt", singletonList("login"));
+
+    UriInfo cancelUrl = new ResteasyUriInfo(URI.create(location.getQueryParameters().getFirst(LoginPage.CANCEL_PARAM)));
+    assertRedirectError(cancelUrl, "login_required", null);
+  }
+
+  private void assertConsentPage(Response response) {
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
+    // XXX: test the response (run the template?)
   }
 
   private void assertErrorNoRedirect(Response response, String error, String errorDescription) {
@@ -279,6 +415,10 @@ public class AuthorizationEndpointTest {
   private void assertRedirectError(Response response, String error, @Nullable String errorDescription) {
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
     UriInfo location = new ResteasyUriInfo(response.getLocation());
+    assertRedirectError(location, error, errorDescription);
+  }
+
+  private void assertRedirectError(UriInfo location, String error, String errorDescription) {
     assertThat(location.getAbsolutePath()).isEqualTo(URI.create("https://application/callback"));
     assertThat(location.getQueryParameters())
         .containsEntry("error", singletonList(error))

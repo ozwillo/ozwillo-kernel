@@ -32,15 +32,18 @@ public class UserAuthenticationFilter implements ContainerRequestFilter {
   }
 
   private void loginResponse(ContainerRequestContext requestContext) {
-    requestContext.abortWith(loginResponse(requestContext.getUriInfo().getRequestUri(), requestContext.getSecurityContext()));
+    requestContext.abortWith(loginResponse(requestContext.getUriInfo().getRequestUri(), null, requestContext.getSecurityContext()));
   }
 
-  public static Response loginResponse(URI continueUrl, SecurityContext securityContext) {
+  public static Response loginResponse(URI continueUrl, @Nullable String cancelUrl, SecurityContext securityContext) {
+    final UriBuilder redirectUri = UriBuilder
+        .fromResource(LoginPage.class)
+        .queryParam(LoginPage.CONTINUE_PARAM, continueUrl);
+    if (cancelUrl != null) {
+      redirectUri.queryParam(LoginPage.CANCEL_PARAM, cancelUrl);
+    }
     return Response
-        .seeOther(UriBuilder
-            .fromResource(LoginPage.class)
-            .queryParam(LoginPage.CONTINUE_PARAM, continueUrl)
-            .build())
+        .seeOther(redirectUri.build())
         .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store")
         .header("Pragma", "no-cache")
         .header(HttpHeaders.VARY, HttpHeaders.COOKIE)
