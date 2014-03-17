@@ -7,6 +7,8 @@ import javax.inject.Inject;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.container.ContainerResponseContext;
+import javax.ws.rs.container.ContainerResponseFilter;
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.SecurityContext;
@@ -19,7 +21,7 @@ import oasis.services.authn.TokenHandler;
 @User
 @Provider
 @Priority(Priorities.AUTHENTICATION - 1)
-public class UserFilter implements ContainerRequestFilter {
+public class UserFilter implements ContainerRequestFilter, ContainerResponseFilter {
 
   static final String COOKIE_NAME = "SID";
 
@@ -64,5 +66,11 @@ public class UserFilter implements ContainerRequestFilter {
         return SecurityContext.FORM_AUTH;
       }
     });
+  }
+
+  @Override
+  public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) throws IOException {
+    responseContext.getHeaders().add(HttpHeaders.VARY, HttpHeaders.COOKIE);
+    responseContext.getHeaders().add(HttpHeaders.CACHE_CONTROL, "private");
   }
 }

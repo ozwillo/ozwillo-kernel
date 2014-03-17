@@ -65,6 +65,7 @@ public class UserFilterTest {
   @Test public void testNoCookie() {
     Response response = resteasy.getClient().target(UriBuilder.fromResource(DummyResource.class).build()).request().get();
 
+    commonAssertions(response);
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.NO_CONTENT);
     assertThat(response.readEntity(SidToken.class)).isNull();
   }
@@ -74,6 +75,7 @@ public class UserFilterTest {
         .cookie(UserFilter.COOKIE_NAME, "valid")
         .get();
 
+    commonAssertions(response);
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
     assertThat(response.readEntity(SidToken.class)).isEqualToComparingFieldByField(validSidToken);
   }
@@ -83,8 +85,15 @@ public class UserFilterTest {
         .cookie(UserFilter.COOKIE_NAME, "invalid")
         .get();
 
+    commonAssertions(response);
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.NO_CONTENT);
     assertThat(response.readEntity(SidToken.class)).isNull();
+  }
+
+  private void commonAssertions(Response response) {
+    assertThat(response.getHeaders()).containsKeys(HttpHeaders.VARY, HttpHeaders.CACHE_CONTROL);
+    assertThat(response.getHeaderString(HttpHeaders.VARY).split("\\s*,\\s*")).contains(HttpHeaders.COOKIE);
+    assertThat(response.getHeaderString(HttpHeaders.CACHE_CONTROL).split("\\s*,\\s*")).contains("private");
   }
 
   @Path("/")
