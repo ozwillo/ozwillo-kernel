@@ -66,13 +66,12 @@ public class JongoTokenRepository implements TokenRepository {
   }
 
   public boolean renewToken(String tokenId) {
-    long creationTime = Instant.now().getMillis();
-    long expirationTime = creationTime + settings.sidTokenDuration.getMillis();
+    Instant expirationTime = Instant.now().plus(settings.sidTokenDuration);
 
     WriteResult writeResult = this.getAccountCollection()
         .update("{ tokens.id: # }", tokenId)
         // TODO: Pass directly the instance of Instant
-        .with("{ $set: { tokens.$.creationTime: #, tokens.$.expirationTime: # } }", creationTime, expirationTime);
+        .with("{ $set: { tokens.$.expirationTime: # } }", expirationTime.getMillis());
 
     return writeResult.getN() == 1;
   }
