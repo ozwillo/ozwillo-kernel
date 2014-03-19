@@ -32,6 +32,7 @@ import com.google.inject.Inject;
 
 import oasis.auditlog.noop.NoopAuditLogModule;
 import oasis.http.testing.InProcessResteasy;
+import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
@@ -76,7 +77,8 @@ public class LoginPageTest {
 
   @Inject @Rule public InProcessResteasy resteasy;
 
-  @Before public void setupMocks(UserPasswordAuthenticator userPasswordAuthenticator, TokenHandler tokenHandler) throws LoginException {
+  @Before public void setupMocks(UserPasswordAuthenticator userPasswordAuthenticator, TokenHandler tokenHandler,
+      AccountRepository accountRepository, TokenRepository tokenRepository) throws LoginException {
     when(userPasswordAuthenticator.authenticate(someUserAccount.getEmailAddress(), "password")).thenReturn(someUserAccount);
     when(userPasswordAuthenticator.authenticate(someUserAccount.getEmailAddress(), "invalid")).thenThrow(FailedLoginException.class);
     when(userPasswordAuthenticator.authenticate(otherUserAccount.getEmailAddress(), "password")).thenReturn(otherUserAccount);
@@ -85,6 +87,11 @@ public class LoginPageTest {
     when(tokenHandler.generateRandom()).thenReturn("pass");
     when(tokenHandler.createSidToken(someUserAccount.getId(), "pass")).thenReturn(someSidToken);
     when(tokenHandler.createSidToken(otherUserAccount.getId(), "pass")).thenReturn(otherSidToken);
+
+    when(accountRepository.getUserAccountById(someUserAccount.getId())).thenReturn(someUserAccount);
+    when(accountRepository.getUserAccountById(otherUserAccount.getId())).thenReturn(otherUserAccount);
+
+    when(tokenRepository.reAuthSidToken(anyString())).thenReturn(true);
   }
 
   @Before public void setUp() throws Exception {
@@ -110,7 +117,8 @@ public class LoginPageTest {
     assertLoginForm(response)
         .matches(hiddenInput("continue", continueUrl))
         .doesNotMatch(hiddenInput("cancel", null))
-        .doesNotContain(">Cancel<");
+        .doesNotContain(">Cancel<")
+        .doesNotMatch(reauthUser(null));
   }
 
   @Test public void loginPageWithCancel() {
@@ -126,7 +134,8 @@ public class LoginPageTest {
     assertLoginForm(response)
         .matches(hiddenInput("continue", continueUrl))
         .matches(hiddenInput("cancel", cancelUrl))
-        .matches(link(cancelUrl));
+        .matches(link(cancelUrl))
+        .doesNotMatch(reauthUser(null));
   }
 
   @Test public void loginPageWhileLoggedIn() {
@@ -135,7 +144,8 @@ public class LoginPageTest {
     Response response = resteasy.getClient().target(UriBuilder.fromResource(LoginPage.class)).request().get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
-    assertLoginForm(response);
+    assertLoginForm(response)
+        .matches(reauthUser(someUserAccount.getEmailAddress()));
   }
 
   @Test public void signIn() {
@@ -202,9 +212,10 @@ public class LoginPageTest {
     assertThat(response.getLocation()).isEqualTo(InProcessResteasy.BASE_URI.resolve(continueUrl));
 
     verify(tokenRepository, never()).revokeToken(anyString());
+    verify(tokenRepository).reAuthSidToken(someSidToken.getId());
   }
 
-  @Test public void signInWhileLoggedInWithOtherUser(TokenRepository tokenRepository) {
+  @Test public void signInWhileLoggedInWithOtherUser() {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(someSidToken));
 
     final String continueUrl = "/foo/bar?qux=quux";
@@ -215,10 +226,8 @@ public class LoginPageTest {
             .param("u", otherUserAccount.getEmailAddress())
             .param("pwd", "password")));
 
-    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
-    assertThat(response.getLocation()).isEqualTo(InProcessResteasy.BASE_URI.resolve(continueUrl));
-
-    verify(tokenRepository).revokeToken(someSidToken.getId());
+    assertLoginForm(response)
+        .matches(reauthUser(someUserAccount.getEmailAddress()));
   }
 
   private StringAssert assertLoginForm(Response response) {
@@ -226,6 +235,12 @@ public class LoginPageTest {
     // XXX: this is really poor-man's checking. We should use the DOM (through Cucumber/Capybara, or an HTML5 parser)
     return assertThat(response.readEntity(String.class))
         .matches("(?s).*\\baction=([\"']?)" + Pattern.quote(UriBuilder.fromResource(LoginPage.class).build().toString()) + "\\1[\\s>].*");
+  }
+
+  private String reauthUser(@Nullable String user) {
+    return "(?s).*class=([\"']?)form-control-static\\1[^>]*>\\s*"
+        + (user == null ? ".*?" : Pattern.quote(HtmlEscapers.htmlEscaper().escape(user)))
+        + "\\s*</.*";
   }
 
   private String hiddenInput(String name, @Nullable String value) {

@@ -8,4 +8,6 @@ public interface TokenRepository {
   boolean revokeToken(String tokenId);
 
   boolean renewToken(String tokenId);
+
+  boolean reAuthSidToken(String tokenId);
 }

@@ -75,4 +75,16 @@ public class JongoTokenRepository implements TokenRepository {
 
     return writeResult.getN() == 1;
   }
+
+  @Override
+  public boolean reAuthSidToken(String tokenId) {
+    Instant authenticationTime = Instant.now();
+
+    WriteResult writeResult = this.getAccountCollection()
+        .update("{ tokens.id: # }", tokenId)
+        // TODO: Pass directly the instance of Instant
+        .with("{ $set: { tokens.$.authenticationTime: # } }", authenticationTime.getMillis());
+
+    return writeResult.getN() != 1;
+  }
 }

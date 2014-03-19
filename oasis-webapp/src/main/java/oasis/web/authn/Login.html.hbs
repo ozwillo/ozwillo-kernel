@@ -4,7 +4,12 @@
 
 [[#partial "content"]]
 <div class="container">
-  <h1>Login to OASIS</h1>
+  <h1>OASIS</h1>
+  [[#if reauthEmail]]
+  <h2>Please re-enter-your password</h2>
+  [[else]]
+  <h2>Sign-in with your Oasis account</h2>
+  [[/if]]
 
   <form method="POST" action="[[formAction]]" class="form-horizontal">
     <input type="hidden" name="_utf8" value="&#9731;">
@@ -17,21 +22,26 @@
       <label for="emailInput" class="col-sm-2 control-label">Email address</label>
 
       <div class="col-sm-10">
+        [[#if reauthEmail]]
+        <p class="form-control-static">[[reauthEmail]]</p>
+        <input type="hidden" name="u">
+        [[else]]
         <input type="email" id="emailInput" class="form-control" name="u" autofocus>
+        [[/if]]
       </div>
     </div>
     <div class="form-group">
       <label for="passwordInput" class="col-sm-2 control-label">Password</label>
 
       <div class="col-sm-10">
-        <input type="password" id="passwordInput" class="form-control" name="pwd">
+        <input type="password" id="passwordInput" class="form-control" name="pwd"[[#if reauthEmail]] autofocus[[/if]]>
       </div>
     </div>
     <div class="form-group">
       <div class="col-sm-offset-2 col-sm-10">
         <button type="submit" class="btn btn-primary">Sign in</button>
         [[#if cancel]]
-        <a href="[[cancel]]">Cancel</a>
+        <a href="[[cancel]]" class="btn btn-link">Cancel</a>
         [[/if]]
       </div>
     </div>

@@ -31,6 +31,8 @@ import com.google.common.collect.ImmutableMap;
 import oasis.auditlog.AuditLogEvent;
 import oasis.auditlog.AuditLogService;
 import oasis.model.accounts.Account;
+import oasis.model.accounts.AccountRepository;
+import oasis.model.accounts.UserAccount;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
 import oasis.services.authn.TokenHandler;
@@ -50,8 +52,9 @@ public class LoginPage {
   public static final String CANCEL_PARAM = "cancel";
 
   @Inject UserPasswordAuthenticator userPasswordAuthenticator;
-  @Inject TokenHandler tokenHandler;
   @Inject TokenRepository tokenRepository;
+  @Inject TokenHandler tokenHandler;
+  @Inject AccountRepository accountRepository;
   @Inject AuditLogService auditLogService;
 
   @Context SecurityContext securityContext;
@@ -82,42 +85,69 @@ public class LoginPage {
       continueUrl = defaultContinueUrl();
     }
 
+    Account account;
     try {
-      Account account = userPasswordAuthenticator.authenticate(userName, password);
-
-      if (securityContext.getUserPrincipal() != null) {
-        SidToken sidToken = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken();
-        if (!account.getId().equals(sidToken.getAccountId())) {
-          // We don't support multi-account, so sign the first session out when changing account
-          tokenRepository.revokeToken(sidToken.getId());
-        }
-      }
-
-      String pass = tokenHandler.generateRandom();
-      SidToken sidToken = tokenHandler.createSidToken(account.getId(), pass);
-      if (sidToken == null) {
-        // XXX: This shouldn't be audited because it shouldn't be the user fault
-        logger.error("No SidToken was created for Account {}.", account.getId());
-        return Response.serverError().build();
-      }
-
-      log(userName, LoginLogEvent.LoginResult.AUTHENTICATION_SUCCEEDED);
-
-      // TODO: One-Time Password
-      return Response
-          .seeOther(continueUrl)
-          .cookie(CookieFactory.createSessionCookie(UserFilter.COOKIE_NAME, TokenSerializer.serialize(sidToken, pass), securityContext.isSecure())) // TODO: remember me
-          .build();
+      account = userPasswordAuthenticator.authenticate(userName, password);
     } catch (LoginException e) {
       log(userName, LoginLogEvent.LoginResult.AUTHENTICATION_FAILED);
-
       return loginForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, cancelUrl, "Incorrect username or password");
     }
+
+    if (securityContext.getUserPrincipal() != null) {
+      return reAuthenticate(userName, account, continueUrl, cancelUrl);
+    }
+
+    return authenticate(userName, account, continueUrl);
+  }
+
+  private Response authenticate(String userName, Account account, URI continueUrl) {
+    String pass = tokenHandler.generateRandom();
+    SidToken sidToken = tokenHandler.createSidToken(account.getId(), pass);
+    if (sidToken == null) {
+      // XXX: This shouldn't be audited because it shouldn't be the user fault
+      logger.error("No SidToken was created for Account {}.", account.getId());
+      return Response.serverError().build();
+    }
+
+    log(userName, LoginLogEvent.LoginResult.AUTHENTICATION_SUCCEEDED);
+
+    // TODO: One-Time Password
+    return Response
+        .seeOther(continueUrl)
+        .cookie(CookieFactory.createSessionCookie(UserFilter.COOKIE_NAME, TokenSerializer.serialize(sidToken, pass), securityContext.isSecure())) // TODO: remember me
+        .build();
+  }
+
+  private Response reAuthenticate(String userName, Account account, URI continueUrl, URI cancelUrl) {SidToken sidToken = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken();
+    if (!account.getId().equals(sidToken.getAccountId())) {
+      // Form has been tampered with, or user signed in with another account since the form was generated
+      // Re-display the form: if user signed out/in, it will show the new (current) user.
+      return loginForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, cancelUrl, null);
+    }
+    if (!tokenRepository.reAuthSidToken(sidToken.getId())) {
+      // XXX: This shouldn't be audited because it shouldn't be the user fault
+      logger.error("Error when updating SidToken {} for Account {}.", sidToken.getId(), account.getId());
+      return Response.serverError().build();
+    }
+
+    log(userName, LoginLogEvent.LoginResult.RE_ENTER_PASSWORD_SUCCEEDED);
+
+    return Response.seeOther(continueUrl).build();
   }
 
   private Response loginForm(Response.ResponseBuilder builder, @Nullable URI continueUrl, @Nullable URI cancelUrl, @Nullable String errorMessage) {
     if (continueUrl == null) {
       continueUrl = defaultContinueUrl();
+    }
+
+    String reauthEmail;
+    if (securityContext.getUserPrincipal() != null) {
+      SidToken sidToken = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken();
+      UserAccount account = accountRepository.getUserAccountById(sidToken.getAccountId());
+      // XXX: what if account is null?
+      reauthEmail = account.getEmailAddress();
+    } else {
+      reauthEmail = "";
     }
 
     return builder
@@ -128,6 +158,7 @@ public class LoginPage {
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
         .entity(new View(LoginPage.class, "Login.html", ImmutableMap.of(
+            "reauthEmail", reauthEmail,
             "formAction", UriBuilder.fromResource(LoginPage.class).build(),
             "continue", continueUrl,
             "cancel", Objects.firstNonNull(cancelUrl, ""),
@@ -171,7 +202,9 @@ public class LoginPage {
     }
 
     public static enum LoginResult {
-      AUTHENTICATION_SUCCEEDED, AUTHENTICATION_FAILED
+      AUTHENTICATION_SUCCEEDED,
+      AUTHENTICATION_FAILED,
+      RE_ENTER_PASSWORD_SUCCEEDED,
     }
   }
 }
