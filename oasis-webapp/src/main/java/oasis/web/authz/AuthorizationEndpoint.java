@@ -132,7 +132,8 @@ public class AuthorizationEndpoint {
     appendQueryParam("state", state);
 
     final String response_type = getRequiredParameter("response_type");
-    validateResponseType(response_type);
+    final String response_mode = getParameter("response_mode");
+    validateResponseTypeAndMode(response_type, response_mode);
 
     final String scope = getRequiredParameter("scope");
     Set<String> scopeIds = Sets.newHashSet(SPACE_SPLITTER.split(scope));
@@ -337,9 +338,15 @@ public class AuthorizationEndpoint {
     }
   }
 
-  private void validateResponseType(String response_type) {
+  private void validateResponseTypeAndMode(String response_type, @Nullable String responseMode) {
     if (!response_type.equals("code")) {
       throw error("unsupported_response_type", "Only 'code' is supported for now.");
+    }
+    if (responseMode == null) {
+      return;
+    }
+    if (!responseMode.equals("query")) {
+      throw invalidParam("response_mode");
     }
   }
 

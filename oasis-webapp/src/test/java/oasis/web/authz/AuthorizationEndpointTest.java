@@ -158,12 +158,7 @@ public class AuthorizationEndpointTest {
         .queryParam("scope", openidScope.getId())
         .request().get();
 
-    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
-    UriInfo location = new ResteasyUriInfo(response.getLocation());
-    assertThat(location.getAbsolutePath()).isEqualTo(URI.create("https://application/callback"));
-    assertThat(location.getQueryParameters())
-        .containsEntry("code", singletonList(TokenSerializer.serialize(authorizationCode, "pass")))
-        .containsEntry("state", singletonList("state"));
+    assertRedirectToApplication(response);
   }
 
   @Test public void testPromptUser() {
@@ -309,10 +304,43 @@ public class AuthorizationEndpointTest {
         .queryParam("client_id", "application")
         .queryParam("redirect_uri", "https://application/callback")
         .queryParam("state", "state")
-        .queryParam("scope", openidScope.getId())
+        .queryParam("scope", openidScope.getId() + " " + unauthorizedScope.getId())
         .request().get();
 
     assertRedirectError(response, "invalid_request", "response_type");
+  }
+
+  /** Same as {@link #testTransparentRedirection()} except with {@code response_mode=code}. */
+  @Test public void testResponseMode() {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+        .queryParam("client_id", "application")
+        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("state", "state")
+        .queryParam("response_type", "code")
+        .queryParam("response_mode", "query")
+        .queryParam("scope", openidScope.getId())
+        .request().get();
+
+    assertRedirectToApplication(response);
+  }
+
+  /**
+   * Send error back to the application, as discussed
+   * <a href="http://lists.openid.net/pipermail/openid-specs-ab/Week-of-Mon-20140317/004678.html">on the mailing list</a>
+   */
+  @Test public void testBadResponseMode() {
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+        .queryParam("client_id", "application")
+        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("state", "state")
+        .queryParam("response_type", "code")
+        .queryParam("response_mode", "fragment")
+        .queryParam("scope", openidScope.getId())
+        .request().get();
+
+    assertRedirectError(response, "invalid_request", "response_mode");
   }
 
   @Test public void testUnknownScope() {
@@ -380,6 +408,15 @@ public class AuthorizationEndpointTest {
         .request().get();
 
     assertRedirectError(response, "invalid_request", "prompt");
+  }
+
+  private void assertRedirectToApplication(Response response) {
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
+    UriInfo location = new ResteasyUriInfo(response.getLocation());
+    assertThat(location.getAbsolutePath()).isEqualTo(URI.create("https://application/callback"));
+    assertThat(location.getQueryParameters())
+        .containsEntry("code", singletonList(TokenSerializer.serialize(authorizationCode, "pass")))
+        .containsEntry("state", singletonList("state"));
   }
 
   private void assertRedirectToLogin(Response response) {
