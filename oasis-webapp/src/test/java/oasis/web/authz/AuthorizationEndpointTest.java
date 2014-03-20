@@ -41,6 +41,7 @@ import oasis.model.authn.SidToken;
 import oasis.model.authz.AuthorizationRepository;
 import oasis.model.authz.AuthorizedScopes;
 import oasis.services.authn.TokenHandler;
+import oasis.services.authn.TokenSerializer;
 import oasis.web.authn.LoginPage;
 import oasis.web.authn.testing.TestUserFilter;
 import oasis.web.view.HandlebarsBodyWriter;
@@ -161,7 +162,7 @@ public class AuthorizationEndpointTest {
     UriInfo location = new ResteasyUriInfo(response.getLocation());
     assertThat(location.getAbsolutePath()).isEqualTo(URI.create("https://application/callback"));
     assertThat(location.getQueryParameters())
-        .containsKey("code")
+        .containsEntry("code", singletonList(TokenSerializer.serialize(authorizationCode, "pass")))
         .containsEntry("state", singletonList("state"));
   }
 
@@ -250,7 +251,7 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", "https://application/callback")
         .queryParam("state", "state")
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId() + " " + unauthorizedScope.getId())
+        .queryParam("scope", openidScope.getId())
         .request().get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
@@ -262,7 +263,7 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", "https://application/callback")
         .queryParam("state", "state")
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId() + " " + unauthorizedScope.getId())
+        .queryParam("scope", openidScope.getId())
         .request().get();
 
     assertErrorNoRedirect(response, "invalid_request", "client_id");
@@ -274,7 +275,7 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", redirectUri)
         .queryParam("state", "state")
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId() + " " + unauthorizedScope.getId())
+        .queryParam("scope", openidScope.getId())
         .request().get();
 
     assertErrorNoRedirect(response, "invalid_request", "redirect_uri");
@@ -285,7 +286,7 @@ public class AuthorizationEndpointTest {
         .queryParam("client_id", "application")
         .queryParam("state", "state")
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId() + " " + unauthorizedScope.getId())
+        .queryParam("scope", openidScope.getId())
         .request().get();
 
     assertErrorNoRedirect(response, "invalid_request", "redirect_uri");
@@ -297,7 +298,7 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", "https://application/callback")
         .queryParam("state", "state")
         .queryParam("response_type", "foobar")
-        .queryParam("scope", openidScope.getId() + " " + unauthorizedScope.getId())
+        .queryParam("scope", openidScope.getId())
         .request().get();
 
     assertRedirectError(response, "unsupported_response_type", null);
@@ -308,7 +309,7 @@ public class AuthorizationEndpointTest {
         .queryParam("client_id", "application")
         .queryParam("redirect_uri", "https://application/callback")
         .queryParam("state", "state")
-        .queryParam("scope", openidScope.getId() + " " + unauthorizedScope.getId())
+        .queryParam("scope", openidScope.getId())
         .request().get();
 
     assertRedirectError(response, "invalid_request", "response_type");
