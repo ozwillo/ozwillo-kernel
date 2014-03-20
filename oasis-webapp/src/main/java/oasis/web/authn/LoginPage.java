@@ -2,6 +2,7 @@ package oasis.web.authn;
 
 import java.net.URI;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.security.auth.login.LoginException;
 import javax.ws.rs.DefaultValue;
@@ -22,6 +23,8 @@ import javax.ws.rs.core.UriInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Objects;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 
@@ -62,6 +65,7 @@ public class LoginPage {
 
   @POST
   @StrictReferer
+  @Produces(MediaType.TEXT_HTML)
   public Response post(
       @FormParam("u") @DefaultValue("") String userName,
       @FormParam("pwd") @DefaultValue("") String password,
@@ -100,7 +104,7 @@ public class LoginPage {
     }
   }
 
-  private Response loginForm(Response.ResponseBuilder builder, URI continueUrl, URI cancelUrl, String errorMessage) {
+  private Response loginForm(Response.ResponseBuilder builder, @Nullable URI continueUrl, @Nullable URI cancelUrl, @Nullable String errorMessage) {
     if (continueUrl == null) {
       continueUrl = defaultContinueUrl();
     }
@@ -115,7 +119,7 @@ public class LoginPage {
         .entity(new View(LoginPage.class, "Login.html", ImmutableMap.of(
             "formAction", UriBuilder.fromResource(LoginPage.class).build(),
             "continue", continueUrl,
-            "cancel", cancelUrl,
+            "cancel", Objects.firstNonNull(cancelUrl, ""),
             "errorMessage", Strings.nullToEmpty(errorMessage)
         )))
         .build();
@@ -126,7 +130,11 @@ public class LoginPage {
   }
 
   static URI defaultContinueUrl(UriInfo uriInfo) {
-    return uriInfo.getBaseUriBuilder().path(StaticResources.class).path(StaticResources.class, "home").build();
+    return defaultContinueUrl(uriInfo.getBaseUriBuilder());
+  }
+
+  @VisibleForTesting static URI defaultContinueUrl(UriBuilder baseUriBuilder) {
+    return baseUriBuilder.path(StaticResources.class).path(StaticResources.class, "home").build();
   }
 
   private void log(String userName, LoginLogEvent.LoginResult loginResult) {
