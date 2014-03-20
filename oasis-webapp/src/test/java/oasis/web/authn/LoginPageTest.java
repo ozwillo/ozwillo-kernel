@@ -34,8 +34,10 @@ import oasis.auditlog.noop.NoopAuditLogModule;
 import oasis.http.testing.InProcessResteasy;
 import oasis.model.accounts.UserAccount;
 import oasis.model.authn.SidToken;
+import oasis.model.authn.TokenRepository;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.UserPasswordAuthenticator;
+import oasis.web.authn.testing.TestUserFilter;
 import oasis.web.view.HandlebarsBodyWriter;
 
 @RunWith(JukitoRunner.class)
@@ -53,25 +55,36 @@ public class LoginPageTest {
     }
   }
 
-  private static final UserAccount userAccount = new UserAccount() {{
-    setId("accountId");
-    setEmailAddress("user@example.com");
+  private static final UserAccount someUserAccount = new UserAccount() {{
+    setId("someUser");
+    setEmailAddress("some@example.com");
   }};
-  private static final SidToken sidToken = new SidToken() {{
-    setId("sidToken");
-    setAccountId(userAccount.getId());
+  private static final UserAccount otherUserAccount = new UserAccount() {{
+    setId("otherUser");
+    setEmailAddress("other@example.com");
+  }};
+  private static final SidToken someSidToken = new SidToken() {{
+    setId("someSidToken");
+    setAccountId(someUserAccount.getId());
+    expiresIn(Duration.standardHours(1));
+  }};
+  private static final SidToken otherSidToken = new SidToken() {{
+    setId("otherSidToken");
+    setAccountId(otherUserAccount.getId());
     expiresIn(Duration.standardHours(1));
   }};
 
   @Inject @Rule public InProcessResteasy resteasy;
 
   @Before public void setupMocks(UserPasswordAuthenticator userPasswordAuthenticator, TokenHandler tokenHandler) throws LoginException {
-    when(userPasswordAuthenticator.authenticate(userAccount.getEmailAddress(), "password")).thenReturn(userAccount);
-    when(userPasswordAuthenticator.authenticate(userAccount.getEmailAddress(), "invalid")).thenThrow(FailedLoginException.class);
+    when(userPasswordAuthenticator.authenticate(someUserAccount.getEmailAddress(), "password")).thenReturn(someUserAccount);
+    when(userPasswordAuthenticator.authenticate(someUserAccount.getEmailAddress(), "invalid")).thenThrow(FailedLoginException.class);
+    when(userPasswordAuthenticator.authenticate(otherUserAccount.getEmailAddress(), "password")).thenReturn(otherUserAccount);
     when(userPasswordAuthenticator.authenticate(eq("unknown@example.com"), anyString())).thenThrow(AccountNotFoundException.class);
 
     when(tokenHandler.generateRandom()).thenReturn("pass");
-    when(tokenHandler.createSidToken(userAccount.getId(), "pass")).thenReturn(sidToken);
+    when(tokenHandler.createSidToken(someUserAccount.getId(), "pass")).thenReturn(someSidToken);
+    when(tokenHandler.createSidToken(otherUserAccount.getId(), "pass")).thenReturn(otherSidToken);
   }
 
   @Before public void setUp() throws Exception {
@@ -116,13 +129,22 @@ public class LoginPageTest {
         .matches(link(cancelUrl));
   }
 
+  @Test public void loginPageWhileLoggedIn() {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(someSidToken));
+
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(LoginPage.class)).request().get();
+
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
+    assertLoginForm(response);
+  }
+
   @Test public void signIn() {
     final String continueUrl = "/foo/bar?qux=quux";
 
     Response response = resteasy.getClient().target(UriBuilder.fromResource(LoginPage.class))
         .request().post(Entity.form(new Form()
             .param("continue", continueUrl)
-            .param("u", userAccount.getEmailAddress())
+            .param("u", someUserAccount.getEmailAddress())
             .param("pwd", "password")));
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
@@ -135,7 +157,7 @@ public class LoginPageTest {
     Response response = resteasy.getClient().target(UriBuilder.fromResource(LoginPage.class))
         .request().post(Entity.form(new Form()
             .param("continue", continueUrl)
-            .param("u", userAccount.getEmailAddress())
+            .param("u", someUserAccount.getEmailAddress())
             .param("pwd", "invalid")));
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
@@ -163,6 +185,40 @@ public class LoginPageTest {
         .matches(hiddenInput("cancel", cancelUrl))
         .matches(link(cancelUrl))
         .contains("Incorrect username or password");
+  }
+
+  @Test public void signInWhileLoggedIn(TokenRepository tokenRepository) {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(someSidToken));
+
+    final String continueUrl = "/foo/bar?qux=quux";
+
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(LoginPage.class))
+        .request().post(Entity.form(new Form()
+            .param("continue", continueUrl)
+            .param("u", someUserAccount.getEmailAddress())
+            .param("pwd", "password")));
+
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
+    assertThat(response.getLocation()).isEqualTo(InProcessResteasy.BASE_URI.resolve(continueUrl));
+
+    verify(tokenRepository, never()).revokeToken(anyString());
+  }
+
+  @Test public void signInWhileLoggedInWithOtherUser(TokenRepository tokenRepository) {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(someSidToken));
+
+    final String continueUrl = "/foo/bar?qux=quux";
+
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(LoginPage.class))
+        .request().post(Entity.form(new Form()
+            .param("continue", continueUrl)
+            .param("u", otherUserAccount.getEmailAddress())
+            .param("pwd", "password")));
+
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
+    assertThat(response.getLocation()).isEqualTo(InProcessResteasy.BASE_URI.resolve(continueUrl));
+
+    verify(tokenRepository).revokeToken(someSidToken.getId());
   }
 
   private StringAssert assertLoginForm(Response response) {

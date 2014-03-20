@@ -63,13 +63,11 @@ public class UserAuthenticationFilterTest {
     resteasy.getDeployment().getRegistry().addPerRequestResource(DummyResource.class);
   }
 
-  @Test public void testNoCookie() {
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(DummyResource.class).build()).queryParam("qux", "quux").request().get();
+  @Test public void testUnauthenticated() {
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(DummyResource.class).path(DummyResource.class, "authRequired").build())
+        .queryParam("qux", "quux").request().get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
-    assertThat(response.getCookies()).containsKey(UserFilter.COOKIE_NAME);
-    assertThat(response.getCookies().get(UserFilter.COOKIE_NAME).getExpiry())
-        .describedAs("Cookie expiry").isInThePast();
     UriInfo location = new ResteasyUriInfo(response.getLocation());
     assertThat(location.getAbsolutePath()).isEqualTo(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(LoginPage.class).build());
     assertThat(location.getQueryParameters().getFirst("continue")).isEqualTo("http://localhost/foo/bar?qux=quux");
@@ -78,21 +76,47 @@ public class UserAuthenticationFilterTest {
   @Test public void testAuthenticated() {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(validSidToken));
 
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(DummyResource.class).build()).queryParam("qux", "quux").request().get();
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(DummyResource.class).path(DummyResource.class, "authRequired").build())
+        .queryParam("qux", "quux").request().get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
     assertThat(response.readEntity(SidToken.class)).isEqualToComparingFieldByField(validSidToken);
   }
 
-  @Path("/foo/bar")
-  @Authenticated @User
+  @Test public void testLoginResponse() {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(validSidToken));
+
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(DummyResource.class).path(DummyResource.class, "redirectToLogin").build())
+        .queryParam("foo", "bar").request().get();
+
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
+    UriInfo location = new ResteasyUriInfo(response.getLocation());
+    assertThat(location.getAbsolutePath()).isEqualTo(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(LoginPage.class).build());
+    assertThat(location.getQueryParameters().getFirst("continue")).isEqualTo("http://localhost/qux/quux?foo=bar");
+
+    // Make sure we don't log the user out!
+    assertThat(response.getCookies()).doesNotContainKey(UserFilter.COOKIE_NAME);
+  }
+
+  @Path("/")
   public static class DummyResource {
     @Context SecurityContext securityContext;
 
+    @Path("/foo/bar")
     @GET
+    @Authenticated @User
     @Produces(MediaType.APPLICATION_JSON)
-    public SidToken get() {
+    public SidToken authRequired() {
       return ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken();
+    }
+
+    @Path("/qux/quux")
+    @GET
+    @User
+    public Response redirectToLogin(@Context UriInfo uriInfo) {
+      assertThat(securityContext.getUserPrincipal()).isNotNull();
+
+      return UserAuthenticationFilter.loginResponse(uriInfo.getRequestUri(), null, securityContext);
     }
   }
 }

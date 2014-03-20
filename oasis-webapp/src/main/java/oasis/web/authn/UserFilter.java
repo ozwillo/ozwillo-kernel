@@ -17,11 +17,14 @@ import javax.ws.rs.ext.Provider;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
 import oasis.services.authn.TokenHandler;
+import oasis.services.cookies.CookieFactory;
 
 @User
 @Provider
 @Priority(Priorities.AUTHENTICATION - 1)
 public class UserFilter implements ContainerRequestFilter, ContainerResponseFilter {
+
+  private static final String SID_PROP = UserFilter.class.getName() + ".sidToken";
 
   static final String COOKIE_NAME = "SID";
 
@@ -32,9 +35,11 @@ public class UserFilter implements ContainerRequestFilter, ContainerResponseFilt
   public void filter(ContainerRequestContext requestContext) throws IOException {
     final Cookie sidCookie = requestContext.getCookies().get(COOKIE_NAME);
     if (sidCookie == null) {
+      requestContext.removeProperty(SID_PROP);
       return;
     }
     SidToken sidToken = tokenHandler.getCheckedToken(sidCookie.getValue(), SidToken.class);
+    requestContext.setProperty(SID_PROP, sidToken);
     if (sidToken == null) {
       return;
     }
@@ -70,6 +75,15 @@ public class UserFilter implements ContainerRequestFilter, ContainerResponseFilt
 
   @Override
   public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) throws IOException {
+    // XXX: do not use the SecurityContext as another filter might have replaced it
+    if (requestContext.getProperty(SID_PROP) == null &&
+        requestContext.getCookies().containsKey(COOKIE_NAME) &&
+        !responseContext.getCookies().containsKey(COOKIE_NAME)) {
+      // Remove SID cookie if set but does not identifies a session
+      // Note that we make sure not to interfere with resources/filters creating a new session!
+      responseContext.getHeaders().add(HttpHeaders.SET_COOKIE,
+          CookieFactory.createExpiredCookie(UserFilter.COOKIE_NAME, requestContext.getSecurityContext().isSecure()));
+    }
     responseContext.getHeaders().add(HttpHeaders.VARY, HttpHeaders.COOKIE);
     responseContext.getHeaders().add(HttpHeaders.CACHE_CONTROL, "private");
   }

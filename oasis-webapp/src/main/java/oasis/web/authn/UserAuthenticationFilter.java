@@ -47,7 +47,6 @@ public class UserAuthenticationFilter implements ContainerRequestFilter {
         .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store")
         .header("Pragma", "no-cache")
         .header(HttpHeaders.VARY, HttpHeaders.COOKIE)
-        .cookie(CookieFactory.createExpiredCookie(UserFilter.COOKIE_NAME, securityContext.isSecure()))
         .build();
   }
 }

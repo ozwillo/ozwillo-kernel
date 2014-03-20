@@ -67,6 +67,7 @@ public class UserFilterTest {
 
     commonAssertions(response);
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.NO_CONTENT);
+    assertThat(response.getCookies()).doesNotContainKey(UserFilter.COOKIE_NAME);
     assertThat(response.readEntity(SidToken.class)).isNull();
   }
 
@@ -77,6 +78,7 @@ public class UserFilterTest {
 
     commonAssertions(response);
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
+    assertThat(response.getCookies()).doesNotContainKey(UserFilter.COOKIE_NAME);
     assertThat(response.readEntity(SidToken.class)).isEqualToComparingFieldByField(validSidToken);
   }
 
@@ -87,6 +89,8 @@ public class UserFilterTest {
 
     commonAssertions(response);
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.NO_CONTENT);
+    assertThat(response.getCookies()).containsKey(UserFilter.COOKIE_NAME);
+    assertThat(response.getCookies().get(UserFilter.COOKIE_NAME).getExpiry()).isInThePast();
     assertThat(response.readEntity(SidToken.class)).isNull();
   }
 

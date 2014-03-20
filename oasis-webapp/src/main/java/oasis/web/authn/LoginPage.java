@@ -32,6 +32,7 @@ import oasis.auditlog.AuditLogEvent;
 import oasis.auditlog.AuditLogService;
 import oasis.model.accounts.Account;
 import oasis.model.authn.SidToken;
+import oasis.model.authn.TokenRepository;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.services.authn.UserPasswordAuthenticator;
@@ -40,6 +41,7 @@ import oasis.web.StaticResources;
 import oasis.web.security.StrictReferer;
 import oasis.web.view.View;
 
+@User
 @Path("/a/login")
 public class LoginPage {
   private static final Logger logger = LoggerFactory.getLogger(LoginPage.class);
@@ -49,6 +51,7 @@ public class LoginPage {
 
   @Inject UserPasswordAuthenticator userPasswordAuthenticator;
   @Inject TokenHandler tokenHandler;
+  @Inject TokenRepository tokenRepository;
   @Inject AuditLogService auditLogService;
 
   @Context SecurityContext securityContext;
@@ -81,6 +84,14 @@ public class LoginPage {
 
     try {
       Account account = userPasswordAuthenticator.authenticate(userName, password);
+
+      if (securityContext.getUserPrincipal() != null) {
+        SidToken sidToken = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken();
+        if (!account.getId().equals(sidToken.getAccountId())) {
+          // We don't support multi-account, so sign the first session out when changing account
+          tokenRepository.revokeToken(sidToken.getId());
+        }
+      }
 
       String pass = tokenHandler.generateRandom();
       SidToken sidToken = tokenHandler.createSidToken(account.getId(), pass);
