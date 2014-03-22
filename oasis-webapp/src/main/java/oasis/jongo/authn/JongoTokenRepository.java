@@ -85,6 +85,6 @@ public class JongoTokenRepository implements TokenRepository {
         // TODO: Pass directly the instance of Instant
         .with("{ $set: { tokens.$.authenticationTime: # } }", authenticationTime.getMillis());
 
-    return writeResult.getN() != 1;
+    return writeResult.getN() == 1;
   }
 }

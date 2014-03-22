@@ -18,6 +18,7 @@ import com.typesafe.config.Config;
 import oasis.jongo.JongoService;
 import oasis.jongo.guice.JongoModule;
 import oasis.model.authn.ClientType;
+import oasis.openidconnect.OpenIdConnectModule;
 import oasis.services.authn.CredentialsService;
 
 public class GenerateClientPasswords extends CommandLineTool {
@@ -46,7 +47,12 @@ public class GenerateClientPasswords extends CommandLineTool {
     }
 
     final Injector injector = Guice.createInjector(
-        JongoModule.create(config.getConfig("oasis.mongo"))
+        JongoModule.create(config.getConfig("oasis.mongo")),
+        // TODO: refactor to use a single subtree of the config
+        OpenIdConnectModule.create(config.withOnlyPath("oasis.openid-connect")
+            .withFallback(config.withOnlyPath("oasis.oauth"))
+            .withFallback(config.withOnlyPath("oasis.session"))
+            .withFallback(config.withOnlyPath("oasis.conf-dir")))
     );
 
     injector.injectMembers(this);
@@ -58,7 +64,11 @@ public class GenerateClientPasswords extends CommandLineTool {
       List<String> serviceProviderIds = jongoProvider.get().getCollection("applications").distinct("serviceProvider.id").as(String.class);
 
       for (String providerId : Iterables.concat(dataProviderIds, serviceProviderIds)) {
-        createCredentials(providerId, providerId);
+        if (providerId.equals("test")) {
+          createCredentials("test", "password");
+        } else {
+          createCredentials(providerId, providerId);
+        }
       }
     } finally {
       jongoService.stop();

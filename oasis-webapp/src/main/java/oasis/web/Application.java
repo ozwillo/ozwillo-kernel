@@ -19,6 +19,7 @@ import oasis.web.authn.LoginPage;
 import oasis.web.authn.LogoutPage;
 import oasis.web.authn.OAuthAuthenticationFilter;
 import oasis.web.authn.UserAuthenticationFilter;
+import oasis.web.authn.UserFilter;
 import oasis.web.authz.AuthorizationEndpoint;
 import oasis.web.authz.IntrospectionEndpoint;
 import oasis.web.authz.KeysEndpoint;
@@ -55,6 +56,7 @@ public class Application extends javax.ws.rs.core.Application {
         SwaggerUI.class,
         ApiDeclarationProvider.class, // Note: this is our own implementation
         // Authentication
+        UserFilter.class,
         UserAuthenticationFilter.class,
         ClientAuthenticationFilter.class,
         OAuthAuthenticationFilter.class,

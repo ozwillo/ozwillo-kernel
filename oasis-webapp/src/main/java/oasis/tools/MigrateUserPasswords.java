@@ -17,6 +17,7 @@ import oasis.jongo.guice.JongoModule;
 import oasis.model.accounts.Account;
 import oasis.model.accounts.AgentAccount;
 import oasis.model.accounts.CitizenAccount;
+import oasis.openidconnect.OpenIdConnectModule;
 import oasis.services.authn.UserPasswordAuthenticator;
 
 public class MigrateUserPasswords extends CommandLineTool {
@@ -45,7 +46,12 @@ public class MigrateUserPasswords extends CommandLineTool {
     }
 
     final Injector injector = Guice.createInjector(
-        JongoModule.create(config.getConfig("oasis.mongo"))
+        JongoModule.create(config.getConfig("oasis.mongo")),
+        // TODO: refactor to use a single subtree of the config
+        OpenIdConnectModule.create(config.withOnlyPath("oasis.openid-connect")
+            .withFallback(config.withOnlyPath("oasis.oauth"))
+            .withFallback(config.withOnlyPath("oasis.session"))
+            .withFallback(config.withOnlyPath("oasis.conf-dir")))
     );
 
     injector.injectMembers(this);

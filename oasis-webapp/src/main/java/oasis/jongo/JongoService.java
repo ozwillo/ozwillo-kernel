@@ -16,6 +16,7 @@ import org.jongo.query.BsonQueryFactory;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 import com.google.common.base.Preconditions;
 import com.mongodb.Mongo;
@@ -46,6 +47,7 @@ public class JongoService implements Provider<Jongo> {
     mongoConnection = new MongoClient(settings.mongoURI);
     jongoConnection = new Jongo(mongoConnection.getDB(settings.mongoURI.getDatabase()), new OasisMapper.Builder()
         .registerModule(new JodaModule())
+        .registerModule(new GuavaModule())
         .addModifier(new MapperModifier() {
           @Override
           public void modify(ObjectMapper mapper) {
