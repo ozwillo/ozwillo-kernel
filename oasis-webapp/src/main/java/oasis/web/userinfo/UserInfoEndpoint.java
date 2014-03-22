@@ -55,10 +55,12 @@ public class UserInfoEndpoint {
   private static final String PROFILE_SCOPE = "profile";
   private static final String PHONE_SCOPE = "phone";
   private static final String ADDRESS_SCOPE = "address";
-  private static final String APPLICATION_JWT = "application/jwt";
+  /** Note: we'd prefer JWT, but OpenID Connect wants us to prefer JSON, so using qs&lt;1.0 here. */
+  private static final String APPLICATION_JWT = "application/jwt; qs=0.99";
 
   @Context UriInfo uriInfo;
   @Context SecurityContext securityContext;
+
   @Inject OpenIdConnectModule.Settings settings;
   @Inject JsonFactory jsonFactory;
   @Inject IdentityRepository identityRepository;
@@ -101,7 +103,7 @@ public class UserInfoEndpoint {
   }
 
   @POST
-  @Produces("application/jwt")
+  @Produces(APPLICATION_JWT)
   @ApiOperation(
       value = "Return Claims about the End-User in signed JWT format.",
       notes = "See the <a href=\"http://openid.net/specs/openid-connect-basic-1_0.html#UserInfo\">OpenID Connect Draft</a>, " +
@@ -191,10 +193,6 @@ public class UserInfoEndpoint {
     }
 
     return userInfo;
-  }
-
-  private WebApplicationException insufficientScopeResponse() {
-    return errorResponse(Response.Status.FORBIDDEN, "insufficient_scope");
   }
 
   private WebApplicationException invalidTokenResponse() {
