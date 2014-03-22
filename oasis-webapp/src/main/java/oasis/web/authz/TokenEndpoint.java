@@ -23,8 +23,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
-import org.joda.time.Instant;
-import org.joda.time.Seconds;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,15 +36,17 @@ import com.google.api.client.util.Clock;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
-import oasis.model.accounts.Account;
-import oasis.model.accounts.AccountRepository;
 import oasis.model.authn.AccessToken;
 import oasis.model.authn.AuthorizationCode;
 import oasis.model.authn.RefreshToken;
+import oasis.model.authn.SidToken;
+import oasis.model.authn.Token;
+import oasis.model.authn.TokenRepository;
 import oasis.openidconnect.OpenIdConnectModule;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
@@ -70,7 +70,7 @@ public class TokenEndpoint {
   @Inject JsonFactory jsonFactory;
   @Inject Clock clock;
 
-  @Inject AccountRepository accountRepository;
+  @Inject TokenRepository tokenRepository;
   @Inject TokenHandler tokenHandler;
 
   @Context UriInfo uriInfo;
@@ -156,7 +156,6 @@ public class TokenEndpoint {
   private Response validateAuthorizationCode() throws GeneralSecurityException, IOException {
     String auth_code = getRequiredParameter("code");
 
-    // TODO: Validate redirect_uri
     String redirect_uri = getRequiredParameter("redirect_uri");
 
     // Get the token behind the given code
@@ -206,6 +205,13 @@ public class TokenEndpoint {
     String access_token = TokenSerializer.serialize(accessToken, pass);
 
     long issuedAt = TimeUnit.MILLISECONDS.toSeconds(clock.currentTimeMillis());
+    Long authTime = null;
+    if (authorizationCode.shouldSendAuthTime()) {
+      Token token = tokenRepository.getToken(Iterables.getLast(authorizationCode.getAncestorIds()));
+      if (token instanceof SidToken) {
+        authTime = TimeUnit.MILLISECONDS.toSeconds(((SidToken) token).getAuthenticationTime().getMillis());
+      }
+    }
 
     response.setAccessToken(access_token);
     response.setTokenType("Bearer");
@@ -222,7 +228,7 @@ public class TokenEndpoint {
             .setExpirationTimeSeconds(issuedAt + settings.idTokenDuration.getStandardSeconds())
             .setIssuedAtTimeSeconds(issuedAt)
             .setNonce(authorizationCode.getNonce())
-        //.setAuthorizationTimeSeconds() // TODO: required if a max_age request is made or if auth_time is requested
+            .setAuthorizationTimeSeconds(authTime)
     ));
 
     return response(Response.Status.OK, response);

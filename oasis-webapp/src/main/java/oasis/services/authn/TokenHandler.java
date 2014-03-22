@@ -88,7 +88,7 @@ public class TokenHandler {
   }
 
   public AuthorizationCode createAuthorizationCode(String accountId, Set<String> scopeIds, String serviceProviderId,
-      @Nullable String nonce, String redirectUri, String pass) {
+      @Nullable String nonce, String redirectUri, boolean shouldSendAuthTime, String pass) {
     checkArgument(!Strings.isNullOrEmpty(accountId));
 
     AuthorizationCode authorizationCode = new AuthorizationCode();
@@ -99,6 +99,7 @@ public class TokenHandler {
     authorizationCode.setServiceProviderId(serviceProviderId);
     authorizationCode.setNonce(nonce);
     authorizationCode.setRedirectUri(redirectUri);
+    authorizationCode.setShouldSendAuthTime(shouldSendAuthTime);
 
     secureToken(authorizationCode, pass);
 
@@ -139,6 +140,8 @@ public class TokenHandler {
     SidToken sidToken = new SidToken();
     sidToken.setAccountId(accountId);
     sidToken.expiresIn(oidcSettings.sidTokenDuration);
+    // TODO: remember me
+    sidToken.setAuthenticationTime(sidToken.getCreationTime());
 
     secureToken(sidToken, pass);
 

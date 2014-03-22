@@ -1,11 +1,8 @@
 package oasis.web.authz;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
@@ -16,7 +13,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeUtils;
 import org.joda.time.Duration;
 import org.joda.time.Instant;
 import org.jukito.JukitoModule;
@@ -26,8 +22,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import com.google.api.client.auth.oauth2.TokenErrorResponse;
 import com.google.api.client.auth.oauth2.TokenResponse;
@@ -42,17 +36,14 @@ import com.google.inject.Inject;
 import com.google.inject.Provides;
 
 import oasis.http.testing.InProcessResteasy;
-import oasis.model.accounts.Account;
-import oasis.model.accounts.AccountRepository;
 import oasis.model.authn.AccessToken;
 import oasis.model.authn.AuthorizationCode;
 import oasis.model.authn.RefreshToken;
-import oasis.model.authn.Token;
+import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
 import oasis.openidconnect.OpenIdConnectModule;
 import oasis.security.KeyPairLoader;
 import oasis.services.authn.TokenHandler;
-import oasis.services.authn.TokenInfo;
 import oasis.services.authn.TokenSerializer;
 import oasis.web.authn.testing.TestClientAuthenticationFilter;
 
@@ -82,6 +73,12 @@ public class TokenEndpointTest {
 
   static final Instant now = new DateTime(2014, 7, 17, 14, 30).toInstant();
   static final Instant tomorrow = now.plus(Duration.standardDays(1));
+  static final Instant oneHourAgo = now.minus(Duration.standardHours(1));
+
+  static final SidToken sidToken = new SidToken() {{
+    setId("sidToken");
+    setAuthenticationTime(oneHourAgo);
+  }};
 
   static final AuthorizationCode validAuthCode = new AuthorizationCode() {{
     setId("validAuthCode");
@@ -92,6 +89,19 @@ public class TokenEndpointTest {
     setScopeIds(ImmutableSet.of("dp1s1", "dp1s3", "dp3s1"));
     setRedirectUri("http://sp.example.com/callback");
     setNonce("nonce");
+    setShouldSendAuthTime(false);
+  }};
+  static final AuthorizationCode validAuthCodeShouldSendAuthTime = new AuthorizationCode() {{
+    setId("validAuthCodeShouldSendAuthTime");
+    setAccountId("account");
+    setCreationTime(now.minus(Duration.standardHours(1)));
+    expiresIn(Duration.standardHours(2));
+    setServiceProviderId("sp");
+    setScopeIds(ImmutableSet.of("dp1s1", "dp1s3", "dp3s1"));
+    setRedirectUri("http://sp.example.com/callback");
+    setNonce("nonce");
+    setParent(sidToken);
+    setShouldSendAuthTime(true);
   }};
   static final AuthorizationCode validAuthCodeWithOfflineAccess = new AuthorizationCode() {{
     setId("validAuthCodeWithOfflineAccess");
@@ -139,20 +149,24 @@ public class TokenEndpointTest {
 
   @Inject @Rule public InProcessResteasy resteasy;
 
-  @Before public void setUpMocks(TokenHandler tokenHandler) {
+  @Before public void setUpMocks(TokenHandler tokenHandler, TokenRepository tokenRepository) {
     when(tokenHandler.generateRandom()).thenReturn("pass");
 
     when(tokenHandler.getCheckedToken("valid", AuthorizationCode.class)).thenReturn(validAuthCode);
+    when(tokenHandler.getCheckedToken("auth_time", AuthorizationCode.class)).thenReturn(validAuthCodeShouldSendAuthTime);
     when(tokenHandler.getCheckedToken("offline", AuthorizationCode.class)).thenReturn(validAuthCodeWithOfflineAccess);
     when(tokenHandler.getCheckedToken("invalid", AuthorizationCode.class)).thenReturn(null);
     when(tokenHandler.getCheckedToken("valid", RefreshToken.class)).thenReturn(refreshToken);
     when(tokenHandler.getCheckedToken("invalid", RefreshToken.class)).thenReturn(null);
 
     when(tokenHandler.createAccessToken(validAuthCode, "pass")).thenReturn(accessToken);
+    when(tokenHandler.createAccessToken(validAuthCodeShouldSendAuthTime, "pass")).thenReturn(accessToken);
     when(tokenHandler.createRefreshToken(validAuthCodeWithOfflineAccess, "pass")).thenReturn(refreshToken);
     when(tokenHandler.createAccessToken(refreshToken, refreshToken.getScopeIds(), "pass")).thenReturn(accessTokenWithOfflineAccess);
     when(tokenHandler.createAccessToken(refreshToken, refreshedAccessToken.getScopeIds(), "pass"))
         .thenReturn(refreshedAccessToken);
+
+    when(tokenRepository.getToken(sidToken.getId())).thenReturn(sidToken);
   }
 
   @Before public void setUp() {
@@ -273,6 +287,37 @@ public class TokenEndpointTest {
     assertThat(payload.getIssuedAtTimeSeconds()).isEqualTo(TimeUnit.MILLISECONDS.toSeconds(clock.currentTimeMillis()));
     assertThat(payload.getExpirationTimeSeconds()).isEqualTo(payload.getIssuedAtTimeSeconds() + settings.idTokenDuration.getStandardSeconds());
     assertThat(payload.getNonce()).isEqualTo("nonce");
+    assertThat(payload.getAuthorizationTimeSeconds()).isNull();
+  }
+
+  @Test public void testValidAuthCodeShouldSendAuthTime(JsonFactory jsonFactory, OpenIdConnectModule.Settings settings, Clock clock) throws Throwable {
+    // given
+    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter("sp"));
+
+    // when
+    Response resp = authCode("auth_time", validAuthCodeShouldSendAuthTime.getRedirectUri());
+
+    // then
+    assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.OK);
+    IdTokenResponse response = jsonFactory.fromInputStream(resp.readEntity(InputStream.class), StandardCharsets.UTF_8, IdTokenResponse.class);
+    assertThat(response.getTokenType()).isEqualTo("Bearer");
+    assertThat(response.getScope().split(" ")).containsOnly("dp1s1", "dp1s3", "dp3s1");
+    assertThat(response.getExpiresInSeconds())
+        .isEqualTo(new Duration(new Instant(clock.currentTimeMillis()), accessToken.getExpirationTime()).getStandardSeconds());
+    assertThat(response.getAccessToken()).isEqualTo(TokenSerializer.serialize(accessToken, "pass"));
+    assertThat(response.getRefreshToken()).isNullOrEmpty();
+
+    IdToken idToken = response.parseIdToken();
+    assertThat(idToken.verifySignature(settings.keyPair.getPublic())).isTrue();
+
+    IdToken.Payload payload = idToken.getPayload();
+    assertThat(payload.getIssuer()).isEqualTo(InProcessResteasy.BASE_URI.toString());
+    assertThat(payload.getSubject()).isEqualTo("account");
+    assertThat(payload.getAudience()).isEqualTo("sp");
+    assertThat(payload.getIssuedAtTimeSeconds()).isEqualTo(TimeUnit.MILLISECONDS.toSeconds(clock.currentTimeMillis()));
+    assertThat(payload.getExpirationTimeSeconds()).isEqualTo(payload.getIssuedAtTimeSeconds() + settings.idTokenDuration.getStandardSeconds());
+    assertThat(payload.getNonce()).isEqualTo("nonce");
+    assertThat(payload.getAuthorizationTimeSeconds()).isEqualTo(TimeUnit.MILLISECONDS.toSeconds(sidToken.getAuthenticationTime().getMillis()));
   }
 
   @Test public void testValidAuthCodeWithOfflineAccess(JsonFactory jsonFactory, OpenIdConnectModule.Settings settings, Clock clock) throws Throwable {

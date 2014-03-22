@@ -6,14 +6,15 @@
   <h1>[[app.name]] needs some authorizations:</h1>
 
   <form method="POST" action="[[urls.formAction]]">
-    <input type="hidden" name="_utf8" value="&#9731;" />
-    <input type="hidden" name="client_id" value="[[app.id]]" />
+    <input type="hidden" name="_utf8" value="&#9731;">
+    <input type="hidden" name="client_id" value="[[app.id]]">
     [[#each parameters.scope]]
-      <input type="hidden" name="scope" value="[[this]]" />
+      <input type="hidden" name="scope" value="[[this]]">
     [[/each]]
-    <input type="hidden" name="redirect_uri" value="[[parameters.redirect_uri]]" />
-    <input type="hidden" name="state" value="[[parameters.state]]" />
-    <input type="hidden" name="nonce" value="[[parameters.nonce]]" />
+    <input type="hidden" name="redirect_uri" value="[[parameters.redirect_uri]]">
+    <input type="hidden" name="send_auth_time" value="[[parameters.send_auth_time]]">
+    <input type="hidden" name="state" value="[[parameters.state]]">
+    <input type="hidden" name="nonce" value="[[parameters.nonce]]">
 
     <div>
       <p>
@@ -21,7 +22,7 @@
       </p>
       <ul>
         [[#each scopes.requiredScopes]]
-          <input type="hidden" name="selected_scope" value="[[id]]" />
+          <input type="hidden" name="selected_scope" value="[[id]]">
           <dl>
             <dt>[[title]]</dt>
             <dd>[[description]]</dd>
@@ -41,7 +42,7 @@
         </p>
         <ul>
           [[#each scopes.optionalScopes]]
-            <input type="checkbox" name="selected_scope" value="[[id]]" />
+            <input type="checkbox" name="selected_scope" value="[[id]]">
             <dl>
               <dt>[[title]]</dt>
               <dd>[[description]]</dd>

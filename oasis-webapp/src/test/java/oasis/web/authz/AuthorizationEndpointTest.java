@@ -16,6 +16,7 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
 import org.jboss.resteasy.spi.ResteasyUriInfo;
+import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Instant;
 import org.jukito.All;
@@ -29,8 +30,12 @@ import org.junit.runner.RunWith;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import com.google.api.client.testing.http.FixedClock;
+import com.google.api.client.util.Clock;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
+import com.google.inject.Provides;
 
 import oasis.http.testing.InProcessResteasy;
 import oasis.model.applications.ApplicationRepository;
@@ -54,6 +59,8 @@ public class AuthorizationEndpointTest {
     protected void configureTest() {
       bind(AuthorizationEndpoint.class);
 
+      bind(Clock.class).to(FixedClock.class);
+
       bindMock(TokenHandler.class).in(TestSingleton.class);
 
       bindManyNamedInstances(String.class, "bad redirect_uri",
@@ -63,11 +70,18 @@ public class AuthorizationEndpointTest {
           "data:text/plain,:foobar"             // opaque
       );
     }
+
+    @Provides FixedClock provideFixedClock() {
+      return new FixedClock(now.getMillis());
+    }
   }
+
+  static final Instant now = new DateTime(2014, 7, 17, 14, 30).toInstant();
 
   private static final SidToken sidToken = new SidToken() {{
     setId("sidToken");
     setAccountId("accountId");
+    setAuthenticationTime(now.minus(Duration.standardHours(1)));
   }};
 
   private static final ServiceProvider serviceProvider = new ServiceProvider() {{
@@ -127,7 +141,7 @@ public class AuthorizationEndpointTest {
 
     when(tokenHandler.generateRandom()).thenReturn("pass");
     when(tokenHandler.createAuthorizationCode(eq(sidToken.getAccountId()), anySetOf(String.class), eq(serviceProvider.getId()),
-        anyString(), eq("https://application/callback"), anyString())).thenReturn(authorizationCode);
+        anyString(), eq("https://application/callback"), anyBoolean(), anyString())).thenReturn(authorizationCode);
   }
 
   @Before public void setUp() {
@@ -147,7 +161,7 @@ public class AuthorizationEndpointTest {
     assertRedirectToLogin(response);
   }
 
-  @Test public void testTransparentRedirection() {
+  @Test public void testTransparentRedirection(TokenHandler tokenHandler) {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
@@ -159,6 +173,9 @@ public class AuthorizationEndpointTest {
         .request().get();
 
     assertRedirectToApplication(response);
+
+    verify(tokenHandler).createAuthorizationCode(sidToken.getAccountId(), ImmutableSet.of(openidScope.getId()), serviceProvider.getId(), null,
+        "https://application/callback", false, "pass");
   }
 
   @Test public void testPromptUser() {
@@ -176,7 +193,7 @@ public class AuthorizationEndpointTest {
   }
 
   /**
-   * Same as {@link #testTransparentRedirection()} except with {@code prompt=login}.
+   * Same as {@link #testTransparentRedirection} except with {@code prompt=login}.
    * <p>Similar to {@link #testNotLoggedIn()} except user is logged-in but we force a login prompt.
    */
   @Test public void testPromptLogin() {
@@ -194,7 +211,7 @@ public class AuthorizationEndpointTest {
     assertRedirectToLogin(response);
   }
 
-  /** Same as {@link #testTransparentRedirection()} except with {@code prompt=consent}. */
+  /** Same as {@link #testTransparentRedirection} except with {@code prompt=consent}. */
   @Test public void testPromptConsent() {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
@@ -210,7 +227,7 @@ public class AuthorizationEndpointTest {
     assertConsentPage(response);
   }
 
-  /** Same as {@link #testTransparentRedirection()} except with {@code prompt=none} and no logged-in user. */
+  /** Same as {@link #testTransparentRedirection} except with {@code prompt=none} and no logged-in user. */
   @Test public void testPromptNone_loginRequired() {
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
         .queryParam("client_id", "application")
@@ -310,7 +327,7 @@ public class AuthorizationEndpointTest {
     assertRedirectError(response, "invalid_request", "response_type");
   }
 
-  /** Same as {@link #testTransparentRedirection()} except with {@code response_mode=code}. */
+  /** Same as {@link #testTransparentRedirection} except with {@code response_mode=code}. */
   @Test public void testResponseMode() {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
@@ -408,6 +425,41 @@ public class AuthorizationEndpointTest {
         .request().get();
 
     assertRedirectError(response, "invalid_request", "prompt");
+  }
+
+  /** Same as {@link #testTransparentRedirection} except with {@code max_age} that needs reauth. */
+  @Test public void testMaxAge_needsReauth() {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+        .queryParam("client_id", "application")
+        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("state", "state")
+        .queryParam("response_type", "code")
+        .queryParam("scope", openidScope.getId())
+        .queryParam("max_age", "1000")
+        .request().get();
+
+    assertRedirectToLogin(response);
+  }
+
+  /** Same as {@link #testTransparentRedirection} except with {@code max_age} OK. */
+  @Test public void testMaxAge_ok(TokenHandler tokenHandler) {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+        .queryParam("client_id", "application")
+        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("state", "state")
+        .queryParam("response_type", "code")
+        .queryParam("scope", openidScope.getId())
+        .queryParam("max_age", "4000")
+        .request().get();
+
+    assertRedirectToApplication(response);
+
+    verify(tokenHandler).createAuthorizationCode(sidToken.getAccountId(), ImmutableSet.of(openidScope.getId()), serviceProvider.getId(), null,
+        "https://application/callback", true, "pass");
   }
 
   private void assertRedirectToApplication(Response response) {

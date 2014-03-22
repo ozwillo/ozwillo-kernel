@@ -5,14 +5,15 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -29,7 +30,7 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
-import com.google.api.client.util.Maps;
+import com.google.api.client.util.Clock;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
@@ -46,6 +47,7 @@ import oasis.model.applications.Scope;
 import oasis.model.applications.ScopeCardinality;
 import oasis.model.applications.ServiceProvider;
 import oasis.model.authn.AuthorizationCode;
+import oasis.model.authn.SidToken;
 import oasis.model.authz.AuthorizationRepository;
 import oasis.model.authz.AuthorizedScopes;
 import oasis.services.authn.TokenHandler;
@@ -89,6 +91,7 @@ public class AuthorizationEndpoint {
   @Inject AuthorizationRepository authorizationRepository;
   @Inject ApplicationRepository applicationRepository;
   @Inject TokenHandler tokenHandler;
+  @Inject Clock clock;
 
   private MultivaluedMap<String, String> params;
   private StringBuilder redirectUriBuilder;
@@ -149,20 +152,37 @@ public class AuthorizationEndpoint {
       return redirectToLogin(uriInfo, prompt);
     }
 
-    final String userId = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken().getAccountId();
+    final SidToken sidToken = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken();
+
+    final String max_age = getParameter("max_age");
+    final boolean shouldSendAuthTime;
+    if (max_age != null) {
+      final long maxAge;
+      try {
+        maxAge = Long.parseLong(max_age);
+      } catch (NumberFormatException nfe) {
+        throw invalidParam("max_age");
+      }
+      if (sidToken.getAuthenticationTime().plus(TimeUnit.SECONDS.toMillis(maxAge)).isBefore(clock.currentTimeMillis())) {
+        return redirectToLogin(uriInfo, prompt);
+      }
+      shouldSendAuthTime = true;
+    } else {
+      shouldSendAuthTime = false;
+    }
 
     final String nonce = getParameter("nonce");
 
-    Set<String> authorizedScopeIds = getAuthorizedScopeIds(serviceProvider.getId(), userId);
+    Set<String> authorizedScopeIds = getAuthorizedScopeIds(serviceProvider.getId(), sidToken.getAccountId());
     if (authorizedScopeIds.containsAll(scopeIds) && !prompt.consent) {
       // User already authorized all claimed scopes, let it be a "transparent" redirect
-      return generateAuthorizationCodeAndRedirect(userId, scopeIds, serviceProvider.getId(), redirect_uri, nonce);
+      return generateAuthorizationCodeAndRedirect(sidToken.getAccountId(), scopeIds, serviceProvider.getId(), nonce, redirect_uri, shouldSendAuthTime);
     }
 
     if (!prompt.interactive) {
       throw error("consent_required", null);
     }
-    return promptUser(serviceProvider, scopeIds, authorizedScopeIds, redirect_uri, state, nonce);
+    return promptUser(serviceProvider, scopeIds, authorizedScopeIds, redirect_uri, state, nonce, shouldSendAuthTime);
   }
 
   @POST
@@ -175,7 +195,8 @@ public class AuthorizationEndpoint {
       @FormParam("client_id") String client_id,
       @FormParam("redirect_uri") String redirect_uri,
       @Nullable @FormParam("state") String state,
-      @Nullable @FormParam("nonce") String nonce
+      @Nullable @FormParam("nonce") String nonce,
+      @FormParam("send_auth_time") @DefaultValue("false") boolean shouldSendAuthTime
   ) {
     // TODO: check CSRF / XSS (check data hasn't been tampered since generation of the form, so we can skip some validations we had already done)
 
@@ -186,7 +207,7 @@ public class AuthorizationEndpoint {
 
     authorizationRepository.authorize(userId, client_id, selectedScopeIds);
 
-    return generateAuthorizationCodeAndRedirect(userId, scopeIds, client_id, redirect_uri, nonce);
+    return generateAuthorizationCodeAndRedirect(userId, scopeIds, client_id, nonce, redirect_uri, shouldSendAuthTime);
   }
 
   private Response redirectToLogin(UriInfo uriInfo, Prompt prompt) {
@@ -206,9 +227,9 @@ public class AuthorizationEndpoint {
   }
 
   private Response generateAuthorizationCodeAndRedirect(String userId, Set<String> scopeIds, String client_id,
-      String redirect_uri, @Nullable String nonce) {
+      @Nullable String nonce, String redirect_uri, boolean shouldSendAuthTime) {
     String pass = tokenHandler.generateRandom();
-    AuthorizationCode authCode = tokenHandler.createAuthorizationCode(userId, scopeIds, client_id, nonce, redirect_uri, pass);
+    AuthorizationCode authCode = tokenHandler.createAuthorizationCode(userId, scopeIds, client_id, nonce, redirect_uri, shouldSendAuthTime, pass);
 
     String auth_code = TokenSerializer.serialize(authCode, pass);
 
@@ -221,7 +242,7 @@ public class AuthorizationEndpoint {
   }
 
   private Response promptUser(ServiceProvider serviceProvider, Set<String> requiredScopeIds, Set<String> authorizedScopeIds,
-      String redirect_uri, @Nullable String state, @Nullable String nonce) {
+      String redirect_uri, @Nullable String state, @Nullable String nonce, boolean shouldSendAuthTime) {
     Set<String> globalClaimedScopeIds = Sets.newHashSet();
     Iterable<ScopeCardinality> scopeCardinalities = serviceProvider.getScopeCardinalities();
     if (scopeCardinalities != null) {
@@ -259,16 +280,6 @@ public class AuthorizationEndpoint {
     // redirectUriBuilder is now used for creating the cancel Uri for the authorization step with the user
     appendQueryParam("error", "access_denied");
 
-    Map<String, Object> parametersMap = Maps.newHashMap();
-    parametersMap.put("redirect_uri", redirect_uri);
-    parametersMap.put("scope", requiredScopeIds);
-    if (state != null) {
-      parametersMap.put("state", state);
-    }
-    if (nonce != null) {
-      parametersMap.put("nonce", nonce);
-    }
-
     // TODO: Improve security by adding a token created by encrypting scopes with a secret
     return Response.ok()
         .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store")
@@ -288,7 +299,13 @@ public class AuthorizationEndpoint {
                     "optionalScopes", optionalScopes,
                     "authorizedScopes", authorizedScopes
                 ),
-                "parameters", parametersMap,
+                "parameters", ImmutableMap.of(
+                    "redirect_uri", redirect_uri,
+                    "scope", requiredScopeIds,
+                    "send_auth_time", shouldSendAuthTime,
+                    "state", Strings.nullToEmpty(state),
+                    "nonce", Strings.nullToEmpty(nonce)
+                ),
                 "app", ImmutableMap.of(
                     "id", serviceProvider.getId(),
                     "name", serviceProvider.getName()
