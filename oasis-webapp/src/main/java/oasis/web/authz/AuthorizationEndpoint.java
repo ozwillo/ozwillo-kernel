@@ -144,6 +144,13 @@ public class AuthorizationEndpoint {
 
     // TODO: OpenID Connect specifics
 
+    if (params.containsKey("request")) {
+      throw error("request_not_supported", null);
+    }
+    if (params.containsKey("request_uri")) {
+      throw error("request_uri_not_supported", null);
+    }
+
     final Prompt prompt = parsePrompt(getParameter("prompt"));
     if (securityContext.getUserPrincipal() == null || prompt.login) {
       if (!prompt.interactive) {

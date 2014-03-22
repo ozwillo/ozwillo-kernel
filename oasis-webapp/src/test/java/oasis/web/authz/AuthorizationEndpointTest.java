@@ -321,7 +321,7 @@ public class AuthorizationEndpointTest {
         .queryParam("client_id", "application")
         .queryParam("redirect_uri", "https://application/callback")
         .queryParam("state", "state")
-        .queryParam("scope", openidScope.getId() + " " + unauthorizedScope.getId())
+        .queryParam("scope", openidScope.getId())
         .request().get();
 
     assertRedirectError(response, "invalid_request", "response_type");
@@ -425,6 +425,32 @@ public class AuthorizationEndpointTest {
         .request().get();
 
     assertRedirectError(response, "invalid_request", "prompt");
+  }
+
+  @Test public void testRequestParam() {
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+        .queryParam("client_id", "application")
+        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("state", "state")
+        .queryParam("response_type", "code")
+        .queryParam("scope", openidScope.getId())
+        .queryParam("request", "whatever")
+        .request().get();
+
+    assertRedirectError(response, "request_not_supported", null);
+  }
+
+  @Test public void testRequestUriParam() {
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+        .queryParam("client_id", "application")
+        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("state", "state")
+        .queryParam("response_type", "code")
+        .queryParam("scope", openidScope.getId())
+        .queryParam("request_uri", "whatever")
+        .request().get();
+
+    assertRedirectError(response, "request_uri_not_supported", null);
   }
 
   /** Same as {@link #testTransparentRedirection} except with {@code max_age} that needs reauth. */
