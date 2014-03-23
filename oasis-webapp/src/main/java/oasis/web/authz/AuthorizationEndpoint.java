@@ -164,6 +164,11 @@ public class AuthorizationEndpoint {
       return redirectToLogin(uriInfo, prompt);
     }
 
+    // Ignore offline_access without prompt=consent
+    if (scopeIds.contains("offline_access") && !prompt.consent) {
+      scopeIds.remove("offline_access");
+    }
+
     final SidToken sidToken = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken();
 
     final String id_token_hint = getParameter("id_token_hint");

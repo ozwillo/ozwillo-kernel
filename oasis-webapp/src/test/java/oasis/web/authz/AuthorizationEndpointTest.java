@@ -109,6 +109,9 @@ public class AuthorizationEndpointTest {
   private static final Scope unauthorizedScope = new Scope() {{
     setId("unauthorized");
   }};
+  private static final Scope offlineAccessScope = new Scope() {{
+    setId("offline_access");
+  }};
 
   private static final AuthorizationCode authorizationCode = new AuthorizationCode() {{
     setId("authCode");
@@ -128,7 +131,7 @@ public class AuthorizationEndpointTest {
       public Iterable<Scope> answer(InvocationOnMock invocation) throws Throwable {
         Set<?> scopeIds = Sets.newHashSet((Set<?>) invocation.getArguments()[0]);
         ArrayList<Scope> ret = new ArrayList<>(3);
-        for (Scope scope : Arrays.asList(openidScope, authorizedScope, unauthorizedScope)) {
+        for (Scope scope : Arrays.asList(openidScope, authorizedScope, unauthorizedScope, offlineAccessScope)) {
           if (scopeIds.remove(scope.getId())) {
             ret.add(scope);
           }
@@ -436,6 +439,23 @@ public class AuthorizationEndpointTest {
         .request().get();
 
     assertRedirectError(response, "invalid_request", "prompt");
+  }
+
+  @Test public void testOfflineAccessIgnoredWithoutPromptConsent(TokenHandler tokenHandler) {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+        .queryParam("client_id", "application")
+        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("state", "state")
+        .queryParam("response_type", "code")
+        .queryParam("scope", openidScope.getId() + " " + offlineAccessScope.getId())
+        .request().get();
+
+    assertRedirectToApplication(response);
+
+    verify(tokenHandler).createAuthorizationCode(sidToken.getAccountId(), ImmutableSet.of(openidScope.getId()), serviceProvider.getId(), null,
+        "https://application/callback", false, "pass");
   }
 
   @Test public void testRequestParam() {
