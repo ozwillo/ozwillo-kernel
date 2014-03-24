@@ -28,24 +28,28 @@ public class StrictRefererFilter implements ContainerRequestFilter {
     if (origin != null) {
       valid = expectedOrigin.equals(origin);
 
-      auditLogService.event(StrictRefererErrorLogEvent.class)
-          .setEndpoint(requestContext.getUriInfo().getPath())
-          .setActualOrigin(origin)
-          .setExpectedOrigin(expectedOrigin)
-          .setFrom(StrictRefererErrorLogEvent.OriginFrom.ORIGIN)
-          .log();
+      if (!valid) {
+        auditLogService.event(StrictRefererErrorLogEvent.class)
+            .setEndpoint(requestContext.getUriInfo().getPath())
+            .setActualOrigin(origin)
+            .setExpectedOrigin(expectedOrigin)
+            .setFrom(StrictRefererErrorLogEvent.OriginFrom.ORIGIN)
+            .log();
+      }
     } else {
       String referer = requestContext.getHeaderString(REFERER_HEADER);
       if (referer != null) {
         String originFromReferer = OriginHelper.originFromUri(referer);
         valid = expectedOrigin.equals(originFromReferer);
 
-        auditLogService.event(StrictRefererErrorLogEvent.class)
-            .setEndpoint(requestContext.getUriInfo().getPath())
-            .setActualOrigin(originFromReferer)
-            .setExpectedOrigin(expectedOrigin)
-            .setFrom(StrictRefererErrorLogEvent.OriginFrom.REFERER)
-            .log();
+        if (!valid) {
+          auditLogService.event(StrictRefererErrorLogEvent.class)
+              .setEndpoint(requestContext.getUriInfo().getPath())
+              .setActualOrigin(originFromReferer)
+              .setExpectedOrigin(expectedOrigin)
+              .setFrom(StrictRefererErrorLogEvent.OriginFrom.REFERER)
+              .log();
+        }
       } else {
         auditLogService.event(StrictRefererErrorLogEvent.class)
             .setEndpoint(requestContext.getUriInfo().getPath())
