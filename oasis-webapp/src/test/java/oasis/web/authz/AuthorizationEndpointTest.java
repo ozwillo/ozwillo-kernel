@@ -30,6 +30,10 @@ import org.junit.runner.RunWith;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import com.google.api.client.auth.openidconnect.IdToken;
+import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.client.json.webtoken.JsonWebSignature;
 import com.google.api.client.testing.http.FixedClock;
 import com.google.api.client.util.Clock;
 import com.google.common.collect.ImmutableSet;
@@ -45,6 +49,8 @@ import oasis.model.authn.AuthorizationCode;
 import oasis.model.authn.SidToken;
 import oasis.model.authz.AuthorizationRepository;
 import oasis.model.authz.AuthorizedScopes;
+import oasis.openidconnect.OpenIdConnectModule;
+import oasis.security.KeyPairLoader;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.web.authn.LoginPage;
@@ -59,6 +65,7 @@ public class AuthorizationEndpointTest {
     protected void configureTest() {
       bind(AuthorizationEndpoint.class);
 
+      bind(JsonFactory.class).to(JacksonFactory.class);
       bind(Clock.class).to(FixedClock.class);
 
       bindMock(TokenHandler.class).in(TestSingleton.class);
@@ -69,6 +76,10 @@ public class AuthorizationEndpointTest {
           "//application/callback",             // relative
           "data:text/plain,:foobar"             // opaque
       );
+
+      bind(OpenIdConnectModule.Settings.class).toInstance(OpenIdConnectModule.Settings.builder()
+          .setKeyPair(KeyPairLoader.generateRandomKeyPair())
+          .build());
     }
 
     @Provides FixedClock provideFixedClock() {
@@ -451,6 +462,112 @@ public class AuthorizationEndpointTest {
         .request().get();
 
     assertRedirectError(response, "request_uri_not_supported", null);
+  }
+
+  @Test public void testIdTokenHint(OpenIdConnectModule.Settings settings, JsonFactory jsonFactory) throws Throwable {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+        .queryParam("client_id", "application")
+        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("state", "state")
+        .queryParam("response_type", "code")
+        .queryParam("scope", openidScope.getId())
+        .queryParam("id_token_hint", IdToken.signUsingRsaSha256(settings.keyPair.getPrivate(),
+            jsonFactory,
+            new JsonWebSignature.Header()
+                .setType("JWS")
+                .setAlgorithm("RS256"),
+            new IdToken.Payload()
+                .setIssuer(InProcessResteasy.BASE_URI.toString())
+                .setSubject(sidToken.getAccountId())))
+        .request().get();
+
+    assertRedirectToApplication(response);
+  }
+
+  @Test public void testIdTokenHint_unparseableJwt() throws Throwable {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+        .queryParam("client_id", "application")
+        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("state", "state")
+        .queryParam("response_type", "code")
+        .queryParam("scope", openidScope.getId())
+        .queryParam("id_token_hint", "not.a.jwt")
+        .request().get();
+
+    assertRedirectError(response, "invalid_request", "id_token_hint");
+  }
+
+  @Test public void testIdTokenHint_badSignature(JsonFactory jsonFactory) throws Throwable {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+        .queryParam("client_id", "application")
+        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("state", "state")
+        .queryParam("response_type", "code")
+        .queryParam("scope", openidScope.getId())
+        .queryParam("id_token_hint", IdToken.signUsingRsaSha256(
+            KeyPairLoader.generateRandomKeyPair().getPrivate(),
+            jsonFactory,
+            new JsonWebSignature.Header()
+                .setType("JWS")
+                .setAlgorithm("RS256"),
+            new IdToken.Payload()
+                .setIssuer(InProcessResteasy.BASE_URI.toString())
+                .setSubject(sidToken.getAccountId())))
+        .request().get();
+
+    assertRedirectError(response, "invalid_request", "id_token_hint");
+  }
+
+  @Test public void testIdTokenHint_badIssuer(OpenIdConnectModule.Settings settings, JsonFactory jsonFactory) throws Throwable {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+        .queryParam("client_id", "application")
+        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("state", "state")
+        .queryParam("response_type", "code")
+        .queryParam("scope", openidScope.getId())
+        .queryParam("id_token_hint", IdToken.signUsingRsaSha256(
+            settings.keyPair.getPrivate(),
+            jsonFactory,
+            new JsonWebSignature.Header()
+                .setType("JWS")
+                .setAlgorithm("RS256"),
+            new IdToken.Payload()
+                .setIssuer("https://invalid-issuer.example.com")
+                .setSubject(sidToken.getAccountId())))
+        .request().get();
+
+    assertRedirectError(response, "invalid_request", "id_token_hint");
+  }
+
+  @Test public void testIdTokenHint_mismatchingSub(OpenIdConnectModule.Settings settings, JsonFactory jsonFactory) throws Throwable {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+        .queryParam("client_id", "application")
+        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("state", "state")
+        .queryParam("response_type", "code")
+        .queryParam("scope", openidScope.getId())
+        .queryParam("id_token_hint", IdToken.signUsingRsaSha256(
+            settings.keyPair.getPrivate(),
+            jsonFactory,
+            new JsonWebSignature.Header()
+                .setType("JWS")
+                .setAlgorithm("RS256"),
+            new IdToken.Payload()
+                .setIssuer(InProcessResteasy.BASE_URI.toString())
+                .setSubject("invalidSub")))
+        .request().get();
+
+    assertRedirectError(response, "login_required", null);
   }
 
   /** Same as {@link #testTransparentRedirection} except with {@code max_age} that needs reauth. */

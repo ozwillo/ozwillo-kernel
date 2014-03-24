@@ -30,6 +30,8 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
+import com.google.api.client.auth.openidconnect.IdToken;
+import com.google.api.client.json.JsonFactory;
 import com.google.api.client.util.Clock;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -50,6 +52,7 @@ import oasis.model.authn.AuthorizationCode;
 import oasis.model.authn.SidToken;
 import oasis.model.authz.AuthorizationRepository;
 import oasis.model.authz.AuthorizedScopes;
+import oasis.openidconnect.OpenIdConnectModule;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.web.authn.Authenticated;
@@ -88,9 +91,11 @@ public class AuthorizationEndpoint {
 
   @Context SecurityContext securityContext;
 
+  @Inject OpenIdConnectModule.Settings settings;
   @Inject AuthorizationRepository authorizationRepository;
   @Inject ApplicationRepository applicationRepository;
   @Inject TokenHandler tokenHandler;
+  @Inject JsonFactory jsonFactory;
   @Inject Clock clock;
 
   private MultivaluedMap<String, String> params;
@@ -160,6 +165,9 @@ public class AuthorizationEndpoint {
     }
 
     final SidToken sidToken = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken();
+
+    final String id_token_hint = getParameter("id_token_hint");
+    validateIdTokenHint(uriInfo, sidToken, id_token_hint);
 
     final String max_age = getParameter("max_age");
     final boolean shouldSendAuthTime;
@@ -400,6 +408,28 @@ public class AuthorizationEndpoint {
       throw invalidParam("prompt");
     }
     return ret;
+  }
+
+  private void validateIdTokenHint(UriInfo uriInfo, SidToken sidToken, String id_token_hint) {
+    if (id_token_hint != null) {
+      final IdToken idTokenHint;
+      try {
+        idTokenHint = IdToken.parse(jsonFactory, id_token_hint);
+        if (!idTokenHint.verifySignature(settings.keyPair.getPublic()) ||
+            !idTokenHint.verifyIssuer(uriInfo.getBaseUri().toString())) {
+          throw invalidParam("id_token_hint");
+        }
+      } catch (WebApplicationException wae) {
+        throw wae;
+      } catch (Throwable t) {
+        throw invalidParam("id_token_hint");
+      }
+      if (!sidToken.getAccountId().equals(idTokenHint.getPayload().getSubject())) {
+        // See https://bitbucket.org/openid/connect/issue/878/messages-2111-define-negative-response-for
+        // for a discussion of the error to use here.
+        throw error("login_required", null);
+      }
+    }
   }
 
   private Set<String> getAuthorizedScopeIds(String client_id, String userId) {
