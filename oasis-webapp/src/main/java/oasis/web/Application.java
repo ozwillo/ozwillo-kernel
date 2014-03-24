@@ -30,6 +30,7 @@ import oasis.web.example.OpenIdConnect;
 import oasis.web.kibana.ElasticSearchProxy;
 import oasis.web.kibana.Kibana;
 import oasis.web.notifications.NotificationEndpoint;
+import oasis.web.openidconnect.OpenIdProviderConfigurationEndpoint;
 import oasis.web.providers.JacksonJsonProvider;
 import oasis.web.providers.UriParamConverterProvider;
 import oasis.web.security.SecureFilter;
@@ -63,6 +64,7 @@ public class Application extends javax.ws.rs.core.Application {
         LoginPage.class,
         LogoutPage.class,
         // Authorization
+        OpenIdProviderConfigurationEndpoint.class,
         AuthorizationEndpoint.class,
         TokenEndpoint.class,
         RevokeEndpoint.class,
