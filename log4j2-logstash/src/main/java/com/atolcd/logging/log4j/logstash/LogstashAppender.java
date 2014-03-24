@@ -1,5 +1,7 @@
 package com.atolcd.logging.log4j.logstash;
 
+import java.io.Serializable;
+
 import org.apache.logging.log4j.core.Filter;
 import org.apache.logging.log4j.core.Layout;
 import org.apache.logging.log4j.core.LogEvent;
@@ -15,7 +17,7 @@ public class LogstashAppender extends AbstractAppender {
 
   private final LogstashManager manager;
 
-  private LogstashAppender(String name, Layout layout, Filter filter, LogstashManager manager, boolean ignoreExceptions) {
+  private LogstashAppender(String name, Layout<? extends Serializable> layout, Filter filter, LogstashManager manager, boolean ignoreExceptions) {
     super(name, filter, layout, ignoreExceptions);
 
     this.manager = manager;
@@ -25,7 +27,7 @@ public class LogstashAppender extends AbstractAppender {
     return createAppender(name, host, port, false, null, null);
   }
 
-  public static LogstashAppender createAppender(String name, String host, int port, boolean ignoreExceptions, Layout layout, Filter filter) {
+  public static LogstashAppender createAppender(String name, String host, int port, boolean ignoreExceptions, Layout<? extends Serializable> layout, Filter filter) {
     if (name == null) {
       LOGGER.error("No name provided for LogstashAppender");
       return null;
@@ -37,7 +39,7 @@ public class LogstashAppender extends AbstractAppender {
     }
 
     if (layout == null) {
-      layout = PatternLayout.createLayout(null, null, null, null, null);
+      layout = PatternLayout.createLayout(null, null, null, null, null, null);
     }
 
     return new LogstashAppender(name, layout, filter, LogstashManager.getLogstashManager(name, host, port), ignoreExceptions);
@@ -48,7 +50,7 @@ public class LogstashAppender extends AbstractAppender {
       @PluginAttribute("host") String host,
       @PluginAttribute("port") String port,
       @PluginAttribute("ignoreExceptions") String ignore,
-      @PluginElement("Layout") Layout layout,
+      @PluginElement("Layout") Layout<? extends Serializable> layout,
       @PluginElement("Filters") Filter filter) {
     boolean ignoreExceptions = Boolean.parseBoolean(ignore);
 

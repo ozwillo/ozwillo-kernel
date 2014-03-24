@@ -1,5 +1,7 @@
 package com.atolcd.logging.log4j.cube;
 
+import java.io.Serializable;
+
 import org.apache.logging.log4j.core.Filter;
 import org.apache.logging.log4j.core.Layout;
 import org.apache.logging.log4j.core.LogEvent;
@@ -17,7 +19,7 @@ public final class CubeAppender extends AbstractAppender {
 
   private final CubeManager manager;
 
-  private CubeAppender(String name, Layout layout, Filter filter, CubeManager manager, boolean ignoreExceptions) {
+  private CubeAppender(String name, Layout<? extends Serializable> layout, Filter filter, CubeManager manager, boolean ignoreExceptions) {
     super(name, filter, layout, ignoreExceptions);
 
     this.manager = manager;
@@ -27,7 +29,7 @@ public final class CubeAppender extends AbstractAppender {
   public static CubeAppender createAppender(@PluginAttribute("name") String name,
       @PluginAttribute("url") String url,
       @PluginAttribute("ignoreExceptions") String ignore,
-      @PluginElement("Layout") Layout layout,
+      @PluginElement("Layout") Layout<? extends Serializable> layout,
       @PluginElement("Filters") Filter filter) {
     boolean ignoreExceptions = Boolean.parseBoolean(ignore);
     if (name == null) {
@@ -41,7 +43,7 @@ public final class CubeAppender extends AbstractAppender {
     }
 
     if (layout == null) {
-      layout = PatternLayout.createLayout(null, null, null, null, null);
+      layout = PatternLayout.createLayout(null, null, null, null, null, null);
     }
 
     return new CubeAppender(name, layout, filter, CubeManager.getCubeManager(name, url), ignoreExceptions);

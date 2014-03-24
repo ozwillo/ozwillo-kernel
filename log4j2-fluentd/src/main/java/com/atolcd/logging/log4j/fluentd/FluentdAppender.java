@@ -1,5 +1,7 @@
 package com.atolcd.logging.log4j.fluentd;
 
+import java.io.Serializable;
+
 import org.apache.logging.log4j.core.Filter;
 import org.apache.logging.log4j.core.Layout;
 import org.apache.logging.log4j.core.LogEvent;
@@ -17,7 +19,7 @@ public class FluentdAppender extends AbstractAppender {
 
   private final FluentdManager manager;
 
-  private FluentdAppender(String name, Layout layout, Filter filter, FluentdManager manager, boolean ignoreExceptions) {
+  private FluentdAppender(String name, Layout<? extends Serializable> layout, Filter filter, FluentdManager manager, boolean ignoreExceptions) {
     super(name, filter, layout, ignoreExceptions);
 
     this.manager = manager;
@@ -28,7 +30,7 @@ public class FluentdAppender extends AbstractAppender {
       @PluginAttribute("url") String url,
       @PluginAttribute("tag") String tag,
       @PluginAttribute("ignoreExceptions") String ignore,
-      @PluginElement("Layout") Layout layout,
+      @PluginElement("Layout") Layout<? extends Serializable> layout,
       @PluginElement("Filters") Filter filter) {
     boolean ignoreExceptions = Boolean.parseBoolean(ignore);
     if (name == null) {
@@ -47,7 +49,7 @@ public class FluentdAppender extends AbstractAppender {
     }
 
     if (layout == null) {
-      layout = PatternLayout.createLayout(null, null, null, null, null);
+      layout = PatternLayout.createLayout(null, null, null, null, null, null);
     }
 
     return new FluentdAppender(name, layout, filter, FluentdManager.getFluentdManager(name, url, tag), ignoreExceptions);

@@ -12,7 +12,7 @@
   <artifactId>log4j2-cube</artifactId>
 
   <properties>
-    <log4j.version>2.0-beta9</log4j.version>
+    <log4j.version>2.0-rc1</log4j.version>
     <resteasy.version>3.0.6.Final</resteasy.version>
     <guava.version>16.0</guava.version>
     <jackson.version>2.3.1</jackson.version>
