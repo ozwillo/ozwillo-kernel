@@ -230,7 +230,7 @@ public class TokenEndpointTest {
     // then
     assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
     TokenErrorResponse response = jsonFactory.fromString(resp.readEntity(String.class), TokenErrorResponse.class);
-    assertThat(response.getError()).isEqualTo("invalid_token");
+    assertThat(response.getError()).isEqualTo("invalid_grant");
   }
 
   @Test public void testAuthCodeMismatchingRedirectUri(JsonFactory jsonFactory) throws Throwable {
@@ -243,7 +243,7 @@ public class TokenEndpointTest {
     // then
     assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
     TokenErrorResponse response = jsonFactory.fromString(resp.readEntity(String.class), TokenErrorResponse.class);
-    assertThat(response.getError()).isEqualTo("invalid_request");
+    assertThat(response.getError()).isEqualTo("invalid_grant");
     assertThat(response.getErrorDescription()).contains("redirect_uri");
   }
 
@@ -257,7 +257,7 @@ public class TokenEndpointTest {
     // then
     assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
     TokenErrorResponse response = jsonFactory.fromString(resp.readEntity(String.class), TokenErrorResponse.class);
-    assertThat(response.getError()).isEqualTo("invalid_token");
+    assertThat(response.getError()).isEqualTo("invalid_grant");
   }
 
   @Test public void testValidAuthCode(JsonFactory jsonFactory, OpenIdConnectModule.Settings settings, Clock clock) throws Throwable {
