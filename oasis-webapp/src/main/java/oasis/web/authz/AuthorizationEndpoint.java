@@ -196,7 +196,7 @@ public class AuthorizationEndpoint {
     Set<String> authorizedScopeIds = getAuthorizedScopeIds(serviceProvider.getId(), sidToken.getAccountId());
     if (authorizedScopeIds.containsAll(scopeIds) && !prompt.consent) {
       // User already authorized all claimed scopes, let it be a "transparent" redirect
-      return generateAuthorizationCodeAndRedirect(sidToken.getAccountId(), scopeIds, serviceProvider.getId(), nonce, redirect_uri, shouldSendAuthTime);
+      return generateAuthorizationCodeAndRedirect(sidToken, scopeIds, serviceProvider.getId(), nonce, redirect_uri, shouldSendAuthTime);
     }
 
     if (!prompt.interactive) {
@@ -223,11 +223,11 @@ public class AuthorizationEndpoint {
     initRedirectUriBuilder(redirect_uri);
     appendQueryParam("state", state);
 
-    String userId = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken().getAccountId();
+    SidToken sidToken = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken();
 
-    authorizationRepository.authorize(userId, client_id, selectedScopeIds);
+    authorizationRepository.authorize(sidToken.getAccountId(), client_id, selectedScopeIds);
 
-    return generateAuthorizationCodeAndRedirect(userId, scopeIds, client_id, nonce, redirect_uri, shouldSendAuthTime);
+    return generateAuthorizationCodeAndRedirect(sidToken, scopeIds, client_id, nonce, redirect_uri, shouldSendAuthTime);
   }
 
   private Response redirectToLogin(UriInfo uriInfo, Prompt prompt) {
@@ -246,10 +246,10 @@ public class AuthorizationEndpoint {
     return UserAuthenticationFilter.loginResponse(continueUrl.build(), redirectUriBuilder.toString(), securityContext);
   }
 
-  private Response generateAuthorizationCodeAndRedirect(String userId, Set<String> scopeIds, String client_id,
+  private Response generateAuthorizationCodeAndRedirect(SidToken sidToken, Set<String> scopeIds, String client_id,
       @Nullable String nonce, String redirect_uri, boolean shouldSendAuthTime) {
     String pass = tokenHandler.generateRandom();
-    AuthorizationCode authCode = tokenHandler.createAuthorizationCode(userId, scopeIds, client_id, nonce, redirect_uri, shouldSendAuthTime, pass);
+    AuthorizationCode authCode = tokenHandler.createAuthorizationCode(sidToken, scopeIds, client_id, nonce, redirect_uri, shouldSendAuthTime, pass);
 
     String auth_code = TokenSerializer.serialize(authCode, pass);
 

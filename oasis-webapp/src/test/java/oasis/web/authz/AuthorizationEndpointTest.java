@@ -154,7 +154,7 @@ public class AuthorizationEndpointTest {
         }});
 
     when(tokenHandler.generateRandom()).thenReturn("pass");
-    when(tokenHandler.createAuthorizationCode(eq(sidToken.getAccountId()), anySetOf(String.class), eq(serviceProvider.getId()),
+    when(tokenHandler.createAuthorizationCode(eq(sidToken), anySetOf(String.class), eq(serviceProvider.getId()),
         anyString(), eq("https://application/callback"), anyBoolean(), anyString())).thenReturn(authorizationCode);
   }
 
@@ -188,7 +188,7 @@ public class AuthorizationEndpointTest {
 
     assertRedirectToApplication(response);
 
-    verify(tokenHandler).createAuthorizationCode(sidToken.getAccountId(), ImmutableSet.of(openidScope.getId()), serviceProvider.getId(), null,
+    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(openidScope.getId()), serviceProvider.getId(), null,
         "https://application/callback", false, "pass");
   }
 
@@ -454,7 +454,7 @@ public class AuthorizationEndpointTest {
 
     assertRedirectToApplication(response);
 
-    verify(tokenHandler).createAuthorizationCode(sidToken.getAccountId(), ImmutableSet.of(openidScope.getId()), serviceProvider.getId(), null,
+    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(openidScope.getId()), serviceProvider.getId(), null,
         "https://application/callback", false, "pass");
   }
 
@@ -621,7 +621,7 @@ public class AuthorizationEndpointTest {
 
     assertRedirectToApplication(response);
 
-    verify(tokenHandler).createAuthorizationCode(sidToken.getAccountId(), ImmutableSet.of(openidScope.getId()), serviceProvider.getId(), null,
+    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(openidScope.getId()), serviceProvider.getId(), null,
         "https://application/callback", true, "pass");
   }
 

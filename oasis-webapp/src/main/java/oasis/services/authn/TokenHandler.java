@@ -58,6 +58,10 @@ public class TokenHandler {
     accessToken.expiresIn(oidcSettings.accessTokenDuration);
     accessToken.setScopeIds(authorizationCode.getScopeIds());
     accessToken.setServiceProviderId(authorizationCode.getServiceProviderId());
+    // Note: store the authorizationCode ID although it's been revoked to be able to
+    // detect code reuse, and revoke all previously issued tokens based on the reused code.
+    // (see http://tools.ietf.org/html/rfc6749#section-4.1.2)
+    accessToken.setParent(authorizationCode);
 
     secureToken(accessToken, pass);
 
@@ -87,12 +91,10 @@ public class TokenHandler {
     return accessToken;
   }
 
-  public AuthorizationCode createAuthorizationCode(String accountId, Set<String> scopeIds, String serviceProviderId,
+  public AuthorizationCode createAuthorizationCode(SidToken sidToken, Set<String> scopeIds, String serviceProviderId,
       @Nullable String nonce, String redirectUri, boolean shouldSendAuthTime, String pass) {
-    checkArgument(!Strings.isNullOrEmpty(accountId));
-
     AuthorizationCode authorizationCode = new AuthorizationCode();
-    authorizationCode.setAccountId(accountId);
+    authorizationCode.setAccountId(sidToken.getAccountId());
     // A AuthorizationCode is available only for 1 minute
     authorizationCode.expiresIn(Duration.standardMinutes(1));
     authorizationCode.setScopeIds(scopeIds);
@@ -100,11 +102,14 @@ public class TokenHandler {
     authorizationCode.setNonce(nonce);
     authorizationCode.setRedirectUri(redirectUri);
     authorizationCode.setShouldSendAuthTime(shouldSendAuthTime);
+    if (!scopeIds.contains("offline_access")) {
+      authorizationCode.setParent(sidToken);
+    }
 
     secureToken(authorizationCode, pass);
 
     // Register the new token
-    if (!tokenRepository.registerToken(accountId, authorizationCode)) {
+    if (!tokenRepository.registerToken(sidToken.getAccountId(), authorizationCode)) {
       return null;
     }
 
@@ -123,6 +128,10 @@ public class TokenHandler {
     refreshToken.expiresIn(Duration.standardDays(50 * 365));
     refreshToken.setScopeIds(authorizationCode.getScopeIds());
     refreshToken.setServiceProviderId(authorizationCode.getServiceProviderId());
+    // Note: store the authorizationCode ID although it's been revoked to be able to
+    // detect code reuse, and revoke all previously issued tokens based on the reused code.
+    // (see http://tools.ietf.org/html/rfc6749#section-4.1.2)
+    refreshToken.setParent(authorizationCode);
 
     secureToken(refreshToken, pass);
 
