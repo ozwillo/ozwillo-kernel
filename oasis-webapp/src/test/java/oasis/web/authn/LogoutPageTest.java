@@ -10,7 +10,6 @@ import javax.ws.rs.core.UriBuilder;
 
 import org.jukito.JukitoModule;
 import org.jukito.JukitoRunner;
-import org.jukito.TestSingleton;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -21,7 +20,7 @@ import com.google.inject.Inject;
 import oasis.http.testing.InProcessResteasy;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
-import oasis.services.authn.TokenHandler;
+import oasis.web.authn.testing.TestUserFilter;
 
 @RunWith(JukitoRunner.class)
 public class LogoutPageTest {
@@ -31,7 +30,6 @@ public class LogoutPageTest {
     protected void configureTest() {
       bind(LogoutPage.class);
 
-      bindMock(TokenHandler.class).in(TestSingleton.class);
 
     }
   }
@@ -42,19 +40,17 @@ public class LogoutPageTest {
 
   @Inject @Rule public InProcessResteasy resteasy;
 
-  @Before public void setUpMocks(TokenHandler tokenHandler) {
-    when(tokenHandler.getCheckedToken("sid", SidToken.class)).thenReturn(sidToken);
+  @Before public void setUpMocks() {
   }
 
   @Before public void setUp() {
     resteasy.getDeployment().getRegistry().addPerRequestResource(LogoutPage.class);
-    resteasy.getDeployment().getProviderFactory().register(UserFilter.class);
   }
 
   @Test public void testLegacyGet_loggedIn_noContinueUrl(TokenRepository tokenRepository) {
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(LogoutPage.class)).request()
-        .cookie(UserFilter.COOKIE_NAME, "sid")
-        .get();
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(LogoutPage.class)).request().get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
     assertThat(response.getLocation()).isEqualTo(LoginPage.defaultContinueUrl(UriBuilder.fromUri(InProcessResteasy.BASE_URI)));
@@ -65,10 +61,11 @@ public class LogoutPageTest {
   }
 
   @Test public void testLegacyGet_loggedIn_withContinueUrl(TokenRepository tokenRepository) {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
     Response response = resteasy.getClient().target(UriBuilder.fromResource(LogoutPage.class))
         .queryParam(LoginPage.CONTINUE_PARAM, "http://www.google.com")
         .request()
-        .cookie(UserFilter.COOKIE_NAME, "sid")
         .get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
