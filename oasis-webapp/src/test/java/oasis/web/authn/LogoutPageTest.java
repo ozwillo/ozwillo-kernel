@@ -48,6 +48,7 @@ public class LogoutPageTest {
 
   @Before public void setUp() {
     resteasy.getDeployment().getRegistry().addPerRequestResource(LogoutPage.class);
+    resteasy.getDeployment().getProviderFactory().register(UserFilter.class);
   }
 
   @Test public void testLegacyGet_loggedIn_noContinueUrl(TokenRepository tokenRepository) {

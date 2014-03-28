@@ -22,34 +22,33 @@ import oasis.model.authn.TokenRepository;
 import oasis.services.authn.TokenHandler;
 import oasis.services.cookies.CookieFactory;
 
+@User
 @Path("/a/logout")
 public class LogoutPage {
   private static final Logger logger = LoggerFactory.getLogger(LogoutPage.class);
 
   @Context SecurityContext securityContext;
   @Context UriInfo uriInfo;
+
   @Inject TokenRepository tokenRepository;
-  @Inject TokenHandler tokenHandler;
 
   @GET
-  public Response get(@QueryParam(LoginPage.CONTINUE_PARAM) URI continueUrl,
-      @CookieParam(UserFilter.COOKIE_NAME) String sidCookie) {
-    return logout(continueUrl, sidCookie);
+  public Response get(@QueryParam(LoginPage.CONTINUE_PARAM) URI continueUrl) {
+    return logout(continueUrl);
   }
 
   @POST
-  public Response post(@FormParam(LoginPage.CONTINUE_PARAM) URI continueUrl,
-      @CookieParam(UserFilter.COOKIE_NAME) String sidCookie) {
-    return logout(continueUrl, sidCookie);
+  public Response post(@FormParam(LoginPage.CONTINUE_PARAM) URI continueUrl) {
+    return logout(continueUrl);
   }
 
-  private Response logout(URI continueUrl, String serializedSidToken) {
+  private Response logout(URI continueUrl) {
     if (continueUrl == null) {
       continueUrl = LoginPage.defaultContinueUrl(uriInfo);
     }
 
-    SidToken sidToken = tokenHandler.getCheckedToken(serializedSidToken, SidToken.class);
-    if (sidToken != null) {
+    if (securityContext.getUserPrincipal() != null) {
+      SidToken sidToken = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken();
       boolean tokenRevoked = tokenRepository.revokeToken(sidToken.getId());
       if (!tokenRevoked) {
         logger.error("No SidToken was found when trying to revoke it.");
