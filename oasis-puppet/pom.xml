@@ -4,7 +4,7 @@
   <parent>
     <artifactId>oasis-parent</artifactId>
     <groupId>fr.pole-numerique.oasis</groupId>
-    <version>0.6.0.1</version>
+    <version>0.7.0-SNAPSHOT</version>
   </parent>
   <artifactId>oasis-puppet</artifactId>
   <packaging>pom</packaging>
