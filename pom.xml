@@ -262,6 +262,14 @@
           <version>2.3</version>
         </plugin>
         <plugin>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>2.5</version>
+          <configuration>
+            <releaseProfiles>release</releaseProfiles>
+            <autoVersionSubmodules>true</autoVersionSubmodules>
+          </configuration>
+        </plugin>
+        <plugin>
           <groupId>org.codehaus.sonar</groupId>
           <artifactId>sonar-maven-plugin</artifactId>
           <version>3.7</version>
@@ -291,6 +299,34 @@
   </modules>
 
   <profiles>
+    <profile>
+      <id>release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <inherited>false</inherited>
+                <phase>initialize</phase>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <configuration>
+                  <executable>git</executable>
+                  <arguments>
+                    <argument>submodule</argument>
+                    <argument>update</argument>
+                    <argument>--init</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
     <profile>
       <id>error-prone</id>
       <activation>
