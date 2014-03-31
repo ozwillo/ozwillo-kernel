@@ -7,15 +7,15 @@ import org.junit.Test;
 public class OriginHelperTest {
   @Test
   public void testDefaultPort() {
-    assertEquals("The origin calculated from a URI without port should contains the default port related to the scheme.",
-        "https://www.example.net:443", OriginHelper.originFromUri("https://www.example.net")
+    assertEquals("The origin calculated from a URI without port should NOT contains the default port related to the scheme.",
+        "https://www.example.net", OriginHelper.originFromUri("https://www.example.net:443")
     );
   }
 
   @Test
   public void testInternationalDomainName() {
     assertEquals("The origin calculated from a URI in unicode should be encoded in punycode.",
-        "https://xn--e1afmkfd.bg:443", OriginHelper.originFromUri("https://пример.bg:443")
+        "https://xn--e1afmkfd.bg", OriginHelper.originFromUri("https://пример.bg")
     );
   }
 
