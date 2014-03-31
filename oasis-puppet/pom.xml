@@ -8,41 +8,6 @@
   </parent>
   <artifactId>oasis-puppet</artifactId>
   <packaging>pom</packaging>
-  <name>Oasis Puppet</name>
-
-  <distributionManagement>
-    <repository>
-      <id>nexus</id>
-      <url>http://nexus.atolcd.priv/content/repositories/releases/</url>
-      <name>Releases</name>
-    </repository>
-    <snapshotRepository>
-      <id>nexus</id>
-      <url>http://nexus.atolcd.priv/content/repositories/snapshots/</url>
-      <name>Snapshots</name>
-    </snapshotRepository>
-  </distributionManagement>
-
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-
-    <assembly.name>assembly.xml</assembly.name>
-  </properties>
-
-  <repositories>
-    <repository>
-      <id>atolcd</id>
-      <name>nexus.atolcd.priv</name>
-      <url>http://nexus.atolcd.priv/content/groups/public/</url>
-      <releases>
-        <updatePolicy>never</updatePolicy>
-      </releases>
-      <snapshots>
-        <updatePolicy>never</updatePolicy>
-      </snapshots>
-    </repository>
-  </repositories>
 
   <build>
     <plugins>
@@ -51,25 +16,40 @@
         <artifactId>exec-maven-plugin</artifactId>
         <executions>
           <execution>
+            <id>librarian-puppet-install</id>
             <goals>
               <goal>exec</goal>
             </goals>
             <phase>generate-sources</phase>
+            <configuration>
+              <arguments>
+                <argument>install</argument>
+              </arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>librarian-puppet-clean</id>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <phase>clean</phase>
+            <configuration>
+              <arguments>
+                <argument>clean</argument>
+              </arguments>
+            </configuration>
           </execution>
         </executions>
         <configuration>
           <executable>librarian-puppet</executable>
-          <arguments>
-            <argument>update</argument>
-          </arguments>
         </configuration>
       </plugin>
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
         <executions>
           <execution>
-            <id>make-assembly</id> <!-- this is used for inheritance merges -->
-            <phase>package</phase> <!-- bind to the packaging phase -->
+            <id>make-assembly</id>
+            <phase>package</phase>
             <goals>
               <goal>single</goal>
             </goals>
@@ -78,7 +58,7 @@
         <configuration>
           <appendAssemblyId>false</appendAssemblyId>
           <descriptors>
-            <descriptor>${assembly.name}</descriptor>
+            <descriptor>assembly.xml</descriptor>
           </descriptors>
         </configuration>
       </plugin>
