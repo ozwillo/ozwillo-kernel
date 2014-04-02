@@ -293,7 +293,6 @@
     <module>oasis-model</module>
     <module>oasis-webapp</module>
     <module>oasis-dist</module>
-    <module>oasis-puppet</module>
     <module>log4j2-cube</module>
     <module>log4j2-fluentd</module>
     <module>log4j2-logstash</module>
@@ -327,6 +326,12 @@
           </plugin>
         </plugins>
       </build>
+    </profile>
+    <profile>
+      <id>puppet</id>
+      <modules>
+        <module>oasis-puppet</module>
+      </modules>
     </profile>
     <profile>
       <id>error-prone</id>
