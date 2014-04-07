@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import oasis.web.authz.AuthorizationEndpoint;
 import oasis.web.authz.KeysEndpoint;
+import oasis.web.authz.RevokeEndpoint;
 import oasis.web.authz.TokenEndpoint;
 import oasis.web.userinfo.UserInfoEndpoint;
 
@@ -68,5 +69,8 @@ public class OpenIdProviderConfigurationEndpoint {
 
     // See http://openid.net/specs/openid-connect-session-1_0.html#EndpointDiscovery
     // TODO: check_session_iframe, end_session_endpoint
+
+    // See http://lists.openid.net/pipermail/openid-specs-ab/Week-of-Mon-20140120/004581.html
+    @JsonProperty String revocation_endpoint = uriInfo.getBaseUriBuilder().path(RevokeEndpoint.class).build().toString();
   }
 }
