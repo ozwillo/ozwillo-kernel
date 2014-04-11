@@ -15,6 +15,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
@@ -172,7 +173,7 @@ public class UserDirectoryEndpoint {
     if (groups == null) {
       return ResponseFactory.notFound("The requested organization does not exist");
     }
-    return Response.ok().entity(groups).build();
+    return Response.ok().entity(new GenericEntity<Collection<Group>>(groups) {}).build();
   }
 
   @POST
@@ -308,7 +309,7 @@ public class UserDirectoryEndpoint {
 
     return Response
         .ok()
-        .entity(agents)
+        .entity(new GenericEntity<Iterable<AgentInfo>>(agents) {})
         .build();
   }
 
@@ -350,7 +351,7 @@ public class UserDirectoryEndpoint {
     }
     return Response
         .ok()
-        .entity(agentIds)
+        .entity(new GenericEntity<Collection<String>>(agentIds) {})
         .build();
   }
 
@@ -394,7 +395,7 @@ public class UserDirectoryEndpoint {
     }
     return Response
         .ok()
-        .entity(groups)
+        .entity(new GenericEntity<Collection<Group>>(groups) {})
         .build();
   }
 

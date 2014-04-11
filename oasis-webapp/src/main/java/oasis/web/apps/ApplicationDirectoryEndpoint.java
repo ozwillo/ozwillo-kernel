@@ -15,6 +15,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
@@ -54,7 +55,7 @@ public class ApplicationDirectoryEndpoint {
       @DefaultValue("0") @QueryParam("start") int start,
       @DefaultValue("25") @QueryParam("limit") int limit) {
     return Response.ok()
-        .entity(applications.getApplicationInstances(start, limit).iterator())
+        .entity(new GenericEntity<Iterable<Application>>(applications.getApplicationInstances(start, limit)) {})
         .build();
   }
 
@@ -190,7 +191,7 @@ public class ApplicationDirectoryEndpoint {
     }
 
     return Response.ok()
-        .entity(dataProviders)
+        .entity(new GenericEntity<Iterable<DataProvider>>(dataProviders) {})
         .build();
   }
 

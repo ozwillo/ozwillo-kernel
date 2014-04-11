@@ -11,6 +11,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
@@ -48,7 +49,7 @@ public class ApplicationMarketEndpoint {
       @DefaultValue("0") @QueryParam("start") int start,
       @DefaultValue("25") @QueryParam("limit") int limit) {
     return Response.ok()
-        .entity(applications.getCatalogApplications(start, limit).iterator())
+        .entity(new GenericEntity<Iterable<Application>>(applications.getCatalogApplications(start, limit)) {})
         .build();
   }
 
