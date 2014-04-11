@@ -4,7 +4,7 @@
 
   <groupId>fr.pole-numerique.oasis</groupId>
   <artifactId>oasis-parent</artifactId>
-  <version>0.7.0-SNAPSHOT</version>
+  <version>0.6.0.3</version>
   <packaging>pom</packaging>
 
   <properties>
@@ -20,7 +20,7 @@
     <connection>scm:git:https://github.com/pole-numerique/oasis.git</connection>
     <developerConnection>scm:git:ssh://gerrit:29418/pole-numerique/oasis</developerConnection>
     <url>https://github.com/pole-numerique/oasis</url>
-    <tag>HEAD</tag>
+    <tag>oasis-parent-0.6.0.3</tag>
   </scm>
 
   <distributionManagement>
