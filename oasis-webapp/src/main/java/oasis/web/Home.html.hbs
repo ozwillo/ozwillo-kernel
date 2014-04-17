@@ -1,13 +1,25 @@
 [[#partial "content"]]
   <h1>Welcome!</h1>
-  <p>API document is available at <a href="swagger-ui.html">/swagger-ui.html</a>
-  <p>Kibana is available <a href="kibana/">here</a> and comes with a <a href="kibana/index.html#/dashboard/file/logstash.json">default dashboard</a>
-  <p>OAuth 2.0 / OpenID Connect 1.0 endpoints are:
+  <p>This is the OASIS Kernel temporary landing page. The Kernel provides:
   <ul>
-    <li><code>/a/auth</code> for the Authorization Endpoint
-    <li><code>/a/token</code> for the Token Endpoint
+    <li>OASIS Core services
+      <ul>
+        <li>Authentication and authorizations
+        <li>Application catalog
+        <li>User management, profile and user graph
+      </ul>
+    <li>OASIS Support services
+      <ul>
+        <li>User notifications
+        <li>Event bus (publish / subscribe)
+        <li>Application log collector
+      </ul>
   </ul>
-  <p>In this first prototype, you must pass <code>openid</code> in the <code>scope</code>, but the endpoints currently do only OAuth 2.0 (i.e. no ID Token yet)
+  <p>More details can be found in <a href="https://github.com/pole-numerique/oasis">the project's README file</a>
+
+  <p>OpenID provider configuration is available at <a href="/.well-known/openid-configuration">/.well-known/openid-configuration</a>
+  <p>API documentation is available at <a href="swagger-ui.html">/swagger-ui.html</a>
+  <p>Kibana is available <a href="kibana/">here</a> and comes with a <a href="kibana/index.html#/dashboard/file/logstash.json">default dashboard</a>
 [[/partial]]
 
 [[! FIXME: Make the path less verbose]]
