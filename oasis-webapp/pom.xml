@@ -3,7 +3,7 @@
   <parent>
     <groupId>fr.pole-numerique.oasis</groupId>
     <artifactId>oasis-parent</artifactId>
-    <version>0.7.0-SNAPSHOT</version>
+    <version>0.6.1</version>
   </parent>
 
   <artifactId>oasis-webapp</artifactId>
