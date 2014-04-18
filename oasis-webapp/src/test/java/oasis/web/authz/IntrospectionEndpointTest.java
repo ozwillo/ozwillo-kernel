@@ -95,7 +95,7 @@ public class IntrospectionEndpointTest {
     Response resp = introspect("valid");
 
     // then
-    assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.UNAUTHORIZED);
+    assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.FORBIDDEN);
   }
 
   @Test public void testEmptyToken() {

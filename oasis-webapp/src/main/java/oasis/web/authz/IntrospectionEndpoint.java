@@ -56,7 +56,7 @@ public class IntrospectionEndpoint {
   public Response post(@FormParam("token") String token) throws IOException {
     DataProvider dataProvider = applicationRepository.getDataProvider(((ClientPrincipal) securityContext.getUserPrincipal()).getClientId());
     if (dataProvider == null) {
-      return Response.status(Response.Status.UNAUTHORIZED)
+      return Response.status(Response.Status.FORBIDDEN)
           .build();
     }
     if (Strings.isNullOrEmpty(token)) {
