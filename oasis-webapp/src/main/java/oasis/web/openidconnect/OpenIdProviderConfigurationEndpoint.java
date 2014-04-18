@@ -64,8 +64,8 @@ public class OpenIdProviderConfigurationEndpoint {
     // TODO: ui_locales_supported
     // This is the default value: @JsonProperty boolean claims_parameter_supported = false;
     // This is the default value: @JsonProperty boolean request_parameter_supported = false;
-    // This is the default value: @JsonProperty boolean request_uri_parameter_supported = true;
-    @JsonProperty boolean require_request_uri_registration = true;
+    @JsonProperty boolean request_uri_parameter_supported = false;
+    // This is the default value: @JsonProperty boolean require_request_uri_registration = false;
     // TODO: op_policy_uri, op_tos_uri
 
     // See http://openid.net/specs/openid-connect-session-1_0.html#EndpointDiscovery
