@@ -25,7 +25,7 @@ import oasis.model.applications.ServiceProvider;
 public class JongoApplicationRepository implements ApplicationRepository {
   private static final Logger logger = LoggerFactory.getLogger(ApplicationRepository.class);
 
-  public static final String APPLICATION_PROJECTION = "{id:1, name:1, iconUri:1, modified:1}";
+  public static final String APPLICATION_PROJECTION = "{dataProviders:0, serviceProvider:0, subscriptions:0}";
   public static final String DATA_PROVIDER_PROJECTION = "{ id:1, dataProviders: {$elemMatch: {id: #} } }";
   public static final String SERVICE_PROVIDER_PROJECTION = "{id:1, serviceProvider:1 }";
 
@@ -134,7 +134,7 @@ public class JongoApplicationRepository implements ApplicationRepository {
   public Iterable<DataProvider> getDataProviders(String appId) {
     JongoApplication app = getApplicationsCollection()
         .findOne("{id: #}", appId)
-        .projection("{id:1, dataProviders:1, applicationType: 1, instanciationType: 1, parentApplicationId: 1 }")
+        .projection("{id:1, dataProviders:1, applicationType: 1, instantiationType: 1, parentApplicationId: 1 }")
         .as(JongoApplication.class);
     if (app == null) {
       return null;
@@ -241,7 +241,7 @@ public class JongoApplicationRepository implements ApplicationRepository {
   public ServiceProvider getServiceProviderFromApplication(String appId) {
     JongoApplication app = getApplicationsCollection()
         .findOne("{id: #}", appId)
-        .projection("{id:1, serviceProvider:1, instanciationType: 1, applicationType: 1, parentApplicationId: 1 }")
+        .projection("{id:1, serviceProvider:1, instantiationType: 1, applicationType: 1, parentApplicationId: 1 }")
         .as(JongoApplication.class);
     if (app == null) {
       return null;

@@ -26,7 +26,7 @@ import oasis.model.directory.Organization;
 public class JongoDirectoryRepository implements DirectoryRepository {
   private static final Logger logger = LoggerFactory.getLogger(DirectoryRepository.class);
 
-  public static final String ORGANIZATION_PROJECTION = "{ name: 1, id: 1, modified: 1}";
+  public static final String ORGANIZATION_PROJECTION = "{ groups: 0 }";
   public static final String GROUP_PROJECTION = "{ id:1, groups: {$elemMatch: {id: #} } }";
   public static final String GROUPS_PROJECTION = "{ id: 1, groups: 1 }";
 
