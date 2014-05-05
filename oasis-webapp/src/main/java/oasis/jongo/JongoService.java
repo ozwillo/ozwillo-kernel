@@ -23,6 +23,7 @@ import com.mongodb.Mongo;
 import com.mongodb.MongoClient;
 
 import oasis.jongo.guice.JongoModule;
+import oasis.model.i18n.LocalizableModule;
 
 @Singleton
 public class JongoService implements Provider<Jongo> {
@@ -48,6 +49,7 @@ public class JongoService implements Provider<Jongo> {
     jongoConnection = new Jongo(mongoConnection.getDB(settings.mongoURI.getDatabase()), new OasisMapper.Builder()
         .registerModule(new JodaModule())
         .registerModule(new GuavaModule())
+        .registerModule(new LocalizableModule())
         .addModifier(new MapperModifier() {
           @Override
           public void modify(ObjectMapper mapper) {

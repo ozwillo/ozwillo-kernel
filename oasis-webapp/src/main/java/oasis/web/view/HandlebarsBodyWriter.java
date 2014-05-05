@@ -21,11 +21,14 @@ import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.Jackson2Helper;
 import com.github.jknack.handlebars.io.ClassPathTemplateLoader;
 
+import oasis.model.i18n.LocalizableModule;
+
 public class HandlebarsBodyWriter implements MessageBodyWriter<View> {
   private static final Handlebars HANDLEBARS = new Handlebars(new ClassPathTemplateLoader())
       .registerHelper("json", new Jackson2Helper(new ObjectMapper()
           .registerModule(new JodaModule())
           .registerModule(new GuavaModule())
+          .registerModule(new LocalizableModule())
           .setSerializationInclusion(JsonInclude.Include.NON_EMPTY)))
       .startDelimiter("[[")
       .endDelimiter("]]");

@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 
+import oasis.model.i18n.LocalizableModule;
 import oasis.web.utils.ResponseFactory;
 
 /**
@@ -34,6 +35,7 @@ public class JacksonJsonProvider extends com.fasterxml.jackson.jaxrs.json.Jackso
     super(new ObjectMapper()
         .registerModule(new JodaModule())
         .registerModule(new GuavaModule())
+        .registerModule(new LocalizableModule())
         .setSerializationInclusion(JsonInclude.Include.NON_EMPTY));
   }
 
