@@ -26,7 +26,6 @@ import oasis.web.authz.KeysEndpoint;
 import oasis.web.authz.RevokeEndpoint;
 import oasis.web.authz.TokenEndpoint;
 import oasis.web.eventbus.EventBusEndpoint;
-import oasis.web.example.OpenIdConnect;
 import oasis.web.kibana.ElasticSearchProxy;
 import oasis.web.kibana.Kibana;
 import oasis.web.notifications.NotificationEndpoint;
@@ -88,7 +87,6 @@ public class Application extends javax.ws.rs.core.Application {
         // Resources
         StaticResources.class,
         UserDirectoryEndpoint.class,
-        OpenIdConnect.class,
         ApplicationDirectoryEndpoint.class,
         ApplicationMarketEndpoint.class,
         ServiceProviderDirectoryEndpoint.class,
