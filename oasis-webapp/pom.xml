@@ -18,11 +18,15 @@
       <groupId>com.atolcd.logging.log4j</groupId>
       <artifactId>log4j2-cube</artifactId>
       <version>${project.version}</version>
+      <!-- Never used, but needed at compile-time -->
+      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>com.atolcd.logging.log4j</groupId>
       <artifactId>log4j2-fluentd</artifactId>
       <version>${project.version}</version>
+      <!-- Never used, but needed at compile-time -->
+      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>com.atolcd.logging.log4j</groupId>
