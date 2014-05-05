@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
 import oasis.model.annotations.Id;
+import oasis.model.i18n.LocalizableString;
 
 @JsonRootName("serviceProvider")
 public class ServiceProvider {
@@ -18,7 +19,7 @@ public class ServiceProvider {
 
   @JsonProperty
   @ApiModelProperty(required = true)
-  private String name;
+  private LocalizableString name = new LocalizableString();
 
   @JsonProperty
   @ApiModelProperty()
@@ -33,10 +34,8 @@ public class ServiceProvider {
    * Does not copy {@link #id} field.
    */
   public ServiceProvider(ServiceProvider other) {
-    this.name = other.getName();
-    if (other.getScopeCardinalities() != null) {
-      this.scopeCardinalities = new ArrayList<>(other.getScopeCardinalities());
-    }
+    this.name = new LocalizableString(other.getName());
+    this.scopeCardinalities = new ArrayList<>(other.getScopeCardinalities());
   }
 
   public String getId() {
@@ -47,12 +46,12 @@ public class ServiceProvider {
     this.id = id;
   }
 
-  public String getName() {
-    return name;
+  public LocalizableString getName() {
+    return name.unmodifiable();
   }
 
-  public void setName(String name) {
-    this.name = name;
+  public void setName(LocalizableString name) {
+    this.name = new LocalizableString(name);
   }
 
   public List<ScopeCardinality> getScopeCardinalities() {

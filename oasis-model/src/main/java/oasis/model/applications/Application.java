@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
 import oasis.model.annotations.Id;
+import oasis.model.i18n.LocalizableString;
 
 @JsonRootName("application")
 public class Application {
@@ -26,11 +27,11 @@ public class Application {
 
   @JsonProperty
   @ApiModelProperty(required = true)
-  private String name;
+  private LocalizableString name = new LocalizableString();
 
   @JsonProperty
   @ApiModelProperty(required = true)
-  private String iconUri;
+  private String iconUri; // XXX: should this be localizable?
 
   @JsonProperty
   @ApiModelProperty
@@ -70,7 +71,7 @@ public class Application {
    * Does not copy {@link #id} field.
    */
   public Application(@Nonnull Application other) {
-    this.name = other.getName();
+    this.name = new LocalizableString(other.getName());
     this.iconUri = other.getIconUri();
     this.instanceAdmin = other.getInstanceAdmin();
     this.classAdmin = other.getClassAdmin();
@@ -88,12 +89,12 @@ public class Application {
     this.id = id;
   }
 
-  public String getName() {
-    return name;
+  public LocalizableString getName() {
+    return name.unmodifiable();
   }
 
-  public void setName(String name) {
-    this.name = name;
+  public void setName(LocalizableString name) {
+    this.name = new LocalizableString(name);
   }
 
   public String getIconUri() {

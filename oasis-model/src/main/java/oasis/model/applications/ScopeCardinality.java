@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
+import oasis.model.i18n.LocalizableString;
+
 @JsonRootName("scopeCardinality")
 public class ScopeCardinality {
   @JsonProperty
@@ -18,10 +20,9 @@ public class ScopeCardinality {
   @ApiModelProperty
   private Integer max;
 
-  // TODO: Manage I18N
   @JsonProperty
   @ApiModelProperty
-  private String motivations;
+  private LocalizableString motivations = new LocalizableString();
 
   public String getScopeId() {
     return scopeId;
@@ -47,11 +48,11 @@ public class ScopeCardinality {
     this.max = max;
   }
 
-  public String getMotivations() {
-    return motivations;
+  public LocalizableString getMotivations() {
+    return motivations.unmodifiable();
   }
 
-  public void setMotivations(String motivations) {
-    this.motivations = motivations;
+  public void setMotivations(LocalizableString motivations) {
+    this.motivations = new LocalizableString(motivations);
   }
 }

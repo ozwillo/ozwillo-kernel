@@ -49,6 +49,7 @@ import oasis.model.authn.AuthorizationCode;
 import oasis.model.authn.SidToken;
 import oasis.model.authz.AuthorizationRepository;
 import oasis.model.authz.AuthorizedScopes;
+import oasis.model.i18n.LocalizableString;
 import oasis.openidconnect.OpenIdConnectModule;
 import oasis.security.KeyPairLoader;
 import oasis.services.authn.TokenHandler;
@@ -97,7 +98,7 @@ public class AuthorizationEndpointTest {
 
   private static final ServiceProvider serviceProvider = new ServiceProvider() {{
     setId("application");
-    setName("Application");
+    setName(new LocalizableString("Application"));
   }};
 
   private static final Scope openidScope = new Scope() {{

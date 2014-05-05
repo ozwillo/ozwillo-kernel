@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
 import oasis.model.annotations.Id;
+import oasis.model.i18n.LocalizableString;
 
 @JsonRootName("scope")
 public class Scope {
@@ -14,15 +15,13 @@ public class Scope {
   @ApiModelProperty
   private String id;
 
-  // TODO: Manage I18N
   @JsonProperty
   @ApiModelProperty
-  private String title;
+  private LocalizableString title = new LocalizableString();
 
-  // TODO: Manage I18N
   @JsonProperty
   @ApiModelProperty
-  private String description;
+  private LocalizableString description = new LocalizableString();
 
   @JsonProperty
   @ApiModelProperty
@@ -37,8 +36,8 @@ public class Scope {
    * Does not copy {@link #id} field.
    */
   public Scope(@Nonnull Scope other) {
-    this.title = other.getTitle();
-    this.description = other.getDescription();
+    this.title = new LocalizableString(other.getTitle());
+    this.description = new LocalizableString(other.getDescription());
     this.dataProviderId = other.getDataProviderId();
   }
 
@@ -50,20 +49,20 @@ public class Scope {
     this.id = id;
   }
 
-  public String getTitle() {
-    return title;
+  public LocalizableString getTitle() {
+    return title.unmodifiable();
   }
 
-  public void setTitle(String title) {
-    this.title = title;
+  public void setTitle(LocalizableString title) {
+    this.title = new LocalizableString(title);
   }
 
-  public String getDescription() {
-    return description;
+  public LocalizableString getDescription() {
+    return description.unmodifiable();
   }
 
-  public void setDescription(String description) {
-    this.description = description;
+  public void setDescription(LocalizableString description) {
+    this.description = new LocalizableString(description);
   }
 
   public String getDataProviderId() {

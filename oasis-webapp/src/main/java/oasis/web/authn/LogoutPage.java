@@ -2,6 +2,7 @@ package oasis.web.authn;
 
 import java.net.URI;
 import java.security.PublicKey;
+import java.util.Locale;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -95,7 +96,8 @@ public class LogoutPage {
     }
     if (serviceProvider != null) {
       viewModel.put("app", ImmutableMap.of(
-          "name", serviceProvider.getName()
+          // TODO: I18N
+          "name", serviceProvider.getName().get(Locale.ROOT)
       ));
     }
     return Response.ok(new View(LogoutPage.class, "Logout.html", viewModel.build())).build();

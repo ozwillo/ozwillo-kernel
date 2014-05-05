@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.net.URI;
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
@@ -30,6 +31,7 @@ import oasis.model.applications.ApplicationRepository;
 import oasis.model.applications.ServiceProvider;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
+import oasis.model.i18n.LocalizableString;
 import oasis.openidconnect.OpenIdConnectModule;
 import oasis.security.KeyPairLoader;
 import oasis.web.authn.testing.TestUserFilter;
@@ -59,7 +61,7 @@ public class LogoutPageTest {
 
   private static final ServiceProvider serviceProvider = new ServiceProvider() {{
     setId("service provider");
-    setName("Test Service Provider");
+    setName(new LocalizableString("Test Service Provider"));
   }};
 
   @Inject @Rule public InProcessResteasy resteasy;
@@ -156,7 +158,7 @@ public class LogoutPageTest {
       assertThat(response.getCookies().get(UserFilter.COOKIE_NAME).getExpiry()).isInTheFuture();
     }
     assertLogoutPage(response)
-        .contains(serviceProvider.getName())
+        .contains(serviceProvider.getName().get(Locale.ROOT))
         .matches(hiddenInput("continue", "http://example.com"));
 
     verify(tokenRepository, never()).revokeToken(sidToken.getId());
@@ -177,7 +179,7 @@ public class LogoutPageTest {
       assertThat(response.getCookies().get(UserFilter.COOKIE_NAME).getExpiry()).isInTheFuture();
     }
     assertLogoutPage(response)
-        .doesNotContain(serviceProvider.getName())
+        .doesNotContain(serviceProvider.getName().get(Locale.ROOT))
         .doesNotMatch(hiddenInput("continue", "http://example.com"));
 
     verify(tokenRepository, never()).revokeToken(sidToken.getId());

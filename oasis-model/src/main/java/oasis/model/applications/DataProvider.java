@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
 import oasis.model.annotations.Id;
+import oasis.model.i18n.LocalizableString;
 
 @JsonRootName("dataProvider")
 public class DataProvider {
@@ -24,7 +25,7 @@ public class DataProvider {
 
   @JsonProperty
   @ApiModelProperty(required = true)
-  private String name;
+  private LocalizableString name = new LocalizableString();
 
   public DataProvider() {
   }
@@ -35,10 +36,8 @@ public class DataProvider {
    * Does not copy {@link #id} field.
    */
   public DataProvider(@Nonnull DataProvider other) {
-    this.name = other.getName();
-    if (other.getScopeIds() != null) {
-      this.scopeIds = new HashSet<>(other.getScopeIds());
-    }
+    this.name = new LocalizableString(other.getName());
+    this.scopeIds = new HashSet<>(other.getScopeIds());
   }
 
   public String getId() {
@@ -49,12 +48,12 @@ public class DataProvider {
     this.id = id;
   }
 
-  public String getName() {
-    return name;
+  public LocalizableString getName() {
+    return name.unmodifiable();
   }
 
-  public void setName(String name) {
-    this.name = name;
+  public void setName(LocalizableString name) {
+    this.name = new LocalizableString(name);
   }
 
   public Set<String> getScopeIds() {
