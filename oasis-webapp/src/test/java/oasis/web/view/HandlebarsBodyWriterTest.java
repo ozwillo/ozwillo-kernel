@@ -30,15 +30,9 @@ public class HandlebarsBodyWriterTest {
   @Test public void testXss() {
     String response = resteasy.getClient().target("/xss").request().get(String.class);
 
-    assertThat(response).doesNotContain("<script>alert");
-  }
-
-  @Test public void testXssViewJson() {
-    String response = resteasy.getClient().target("/xssViaJson").request().get(String.class);
-
     assertThat(response)
-        .doesNotContain("</script><script>alert")
-        .doesNotContain("</script><!--pwnd");
+        .contains("PWND!")
+        .doesNotContain("<script>alert");
   }
 
   @Path("/")
@@ -50,16 +44,6 @@ public class HandlebarsBodyWriterTest {
       return new View(HandlebarsBodyWriterTest.class, "xss.html",
           ImmutableMap.of(
               "tentativeXss", "<script>alert('PWND!')</script>"
-          ));
-    }
-
-    @GET
-    @Path("/xssViaJson")
-    @Produces(MediaType.TEXT_HTML)
-    public View xssViaJson() {
-      return new View(HandlebarsBodyWriterTest.class, "xssViaJson.html",
-          ImmutableMap.of(
-              "initData", ImmutableMap.of("tentativeXss", "</script><script>alert('PWND!');</script><!--pwnd")
           ));
     }
   }

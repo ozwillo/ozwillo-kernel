@@ -132,10 +132,10 @@ public class LogoutPage {
       }
       IdToken.Payload payload = idToken.getPayload();
       if (payload.getAudience() == null) {
-        // there must be an audience
-        assert payload.getAudienceAsList() != null && !payload.getAudienceAsList().isEmpty();
         return null;
       }
+      // there must be an audience
+      assert payload.getAudienceAsList() != null && !payload.getAudienceAsList().isEmpty();
       if (sidToken != null && !sidToken.getAccountId().equals(payload.getSubject())) {
         // The app asked to sign-out another session (we'll assume the user already signed out –and
         // signed in again– but the app didn't caught it up)

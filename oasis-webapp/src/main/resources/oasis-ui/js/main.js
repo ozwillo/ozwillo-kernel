@@ -5,3 +5,7 @@ if (initDataElement) {
 }
 var app = angular.module('app', [])
     .value('initData', initData);
+
+angular.element(document).ready(function() {
+    angular.bootstrap(document, ['app']);
+});

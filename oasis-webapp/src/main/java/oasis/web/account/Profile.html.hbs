@@ -2,10 +2,6 @@
 <title>Oasis - Profile</title>
 [[/partial]]
 
-[[#partial "controllers"]]
-<script src="/js/controllers/profile-ctrl.js"></script>
-[[/partial]]
-
 [[#partial "content"]]
 <div class="container" ng-controller="ProfileCtrl">
   <h1>Profile of [[email]]</h1>
@@ -147,6 +143,20 @@
     </div>
   </form>
 </div>
+
+
+[[#if initData]]
+<script type="application/json" id="initial-data">
+  [[json initData escapeHTML=true]]
+</script>
+[[/if]]
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.7/angular.min.js"></script>
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+<script src="/js/vendor/lodash.min.js"></script>
+<script src="/js/main.js"></script>
+
+<script src="/js/controllers/profile-ctrl.js"></script>
 [[/partial]]
 
 [[! FIXME: Make the path less verbose]]

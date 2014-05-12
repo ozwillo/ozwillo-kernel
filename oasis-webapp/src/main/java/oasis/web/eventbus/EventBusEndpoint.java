@@ -72,7 +72,7 @@ public class EventBusEndpoint {
 
               @Override
               public void failed(Throwable throwable) {
-                logger.error("Error calling webhook {} for eventType {}: {}.", webhook, event.eventType, throwable.getMessage());
+                logger.error("Error calling webhook {} for eventType {}: {}.", webhook, event.eventType, throwable.getMessage(), throwable);
               }
             });
       } catch (Throwable t) {
