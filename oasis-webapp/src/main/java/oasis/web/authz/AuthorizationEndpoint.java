@@ -498,9 +498,6 @@ public class AuthorizationEndpoint {
    */
   @Nullable
   private String getParameter(String paramName) {
-    if (params == null) { // Workaround for https://issues.jboss.org/browse/RESTEASY-1004
-      return null;
-    }
     List<String> values = params.get(paramName);
     if (values == null || values.isEmpty()) {
       return null;
