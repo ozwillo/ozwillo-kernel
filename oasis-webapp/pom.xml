@@ -91,7 +91,7 @@
     </dependency>
     <dependency>
       <groupId>org.jboss.resteasy</groupId>
-      <artifactId>resteasy-netty</artifactId>
+      <artifactId>resteasy-netty4</artifactId>
       <exclusions>
         <exclusion>
           <groupId>org.slf4j</groupId>
@@ -102,6 +102,10 @@
           <artifactId>resteasy-jackson2-provider</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-all</artifactId>
     </dependency>
     <dependency>
       <groupId>com.wordnik</groupId>
