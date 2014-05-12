@@ -143,7 +143,7 @@ public class TokenHandler {
     return refreshToken;
   }
 
-  public SidToken createSidToken(String accountId, String pass) {
+  public SidToken createSidToken(String accountId, byte[] userAgentFingerprint, String pass) {
     checkArgument(!Strings.isNullOrEmpty(accountId));
 
     SidToken sidToken = new SidToken();
@@ -151,6 +151,7 @@ public class TokenHandler {
     sidToken.expiresIn(oidcSettings.sidTokenDuration);
     // TODO: remember me
     sidToken.setAuthenticationTime(sidToken.getCreationTime());
+    sidToken.setUserAgentFingerprint(userAgentFingerprint);
 
     secureToken(sidToken, pass);
 

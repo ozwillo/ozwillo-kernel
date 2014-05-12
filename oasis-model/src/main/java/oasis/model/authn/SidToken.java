@@ -8,6 +8,9 @@ public class SidToken extends Token {
   @JsonProperty
   private Instant authenticationTime;
 
+  @JsonProperty
+  private byte[] userAgentFingerprint;
+
   /**
    * Gets the last time the user authenticated by providing their credentials.
    *
@@ -21,5 +24,13 @@ public class SidToken extends Token {
 
   public void setAuthenticationTime(Instant authenticationTime) {
     this.authenticationTime = authenticationTime;
+  }
+
+  public byte[] getUserAgentFingerprint() {
+    return userAgentFingerprint;
+  }
+
+  public void setUserAgentFingerprint(byte[] userAgentFingerprint) {
+    this.userAgentFingerprint = userAgentFingerprint;
   }
 }

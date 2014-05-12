@@ -1,6 +1,7 @@
 package oasis.web.authn;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import javax.annotation.Priority;
 import javax.inject.Inject;
@@ -18,6 +19,7 @@ import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
 import oasis.services.authn.TokenHandler;
 import oasis.services.cookies.CookieFactory;
+import oasis.web.utils.UserAgentFingerprinter;
 
 @User
 @Provider
@@ -30,6 +32,7 @@ public class UserFilter implements ContainerRequestFilter, ContainerResponseFilt
 
   @Inject TokenRepository tokenRepository;
   @Inject TokenHandler tokenHandler;
+  @Inject UserAgentFingerprinter fingerprinter;
 
   @Override
   public void filter(ContainerRequestContext requestContext) throws IOException {
@@ -43,6 +46,15 @@ public class UserFilter implements ContainerRequestFilter, ContainerResponseFilt
     if (sidToken == null) {
       return;
     }
+
+    if (sidToken.getUserAgentFingerprint() != null && !Arrays.equals(fingerprinter.fingerprint(requestContext), sidToken.getUserAgentFingerprint())) {
+      // Only the same user agent that created the session can use it
+      // XXX: should we forcibly revoke the session if another user agent tries to use it?
+      // TODO: log!
+      requestContext.removeProperty(SID_PROP);
+      return;
+    }
+
     // Renew the token each time the user tries to access a resource
     // XXX: Renew only if the token hasn't been recently created/renewed?
     tokenRepository.renewToken(sidToken.getId());

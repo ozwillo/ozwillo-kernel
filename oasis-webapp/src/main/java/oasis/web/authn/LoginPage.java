@@ -41,6 +41,7 @@ import oasis.services.authn.UserPasswordAuthenticator;
 import oasis.services.cookies.CookieFactory;
 import oasis.web.StaticResources;
 import oasis.web.security.StrictReferer;
+import oasis.web.utils.UserAgentFingerprinter;
 import oasis.web.view.View;
 
 @User
@@ -56,6 +57,7 @@ public class LoginPage {
   @Inject TokenHandler tokenHandler;
   @Inject AccountRepository accountRepository;
   @Inject AuditLogService auditLogService;
+  @Inject UserAgentFingerprinter fingerprinter;
 
   @Context SecurityContext securityContext;
   @Context UriInfo uriInfo;
@@ -73,6 +75,7 @@ public class LoginPage {
   @StrictReferer
   @Produces(MediaType.TEXT_HTML)
   public Response post(
+      @Context HttpHeaders headers,
       @FormParam("u") @DefaultValue("") String userName,
       @FormParam("pwd") @DefaultValue("") String password,
       @FormParam("continue") URI continueUrl,
@@ -97,12 +100,13 @@ public class LoginPage {
       return reAuthenticate(userName, account, continueUrl, cancelUrl);
     }
 
-    return authenticate(userName, account, continueUrl);
+    byte[] fingerprint = fingerprinter.fingerprint(headers);
+    return authenticate(userName, account, continueUrl, fingerprint);
   }
 
-  private Response authenticate(String userName, Account account, URI continueUrl) {
+  private Response authenticate(String userName, Account account, URI continueUrl, byte[] fingerprint) {
     String pass = tokenHandler.generateRandom();
-    SidToken sidToken = tokenHandler.createSidToken(account.getId(), pass);
+    SidToken sidToken = tokenHandler.createSidToken(account.getId(), fingerprint, pass);
     if (sidToken == null) {
       // XXX: This shouldn't be audited because it shouldn't be the user fault
       logger.error("No SidToken was created for Account {}.", account.getId());

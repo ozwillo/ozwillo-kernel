@@ -85,8 +85,8 @@ public class LoginPageTest {
     when(userPasswordAuthenticator.authenticate(eq("unknown@example.com"), anyString())).thenThrow(AccountNotFoundException.class);
 
     when(tokenHandler.generateRandom()).thenReturn("pass");
-    when(tokenHandler.createSidToken(someUserAccount.getId(), "pass")).thenReturn(someSidToken);
-    when(tokenHandler.createSidToken(otherUserAccount.getId(), "pass")).thenReturn(otherSidToken);
+    when(tokenHandler.createSidToken(eq(someUserAccount.getId()), any(byte[].class), eq("pass"))).thenReturn(someSidToken);
+    when(tokenHandler.createSidToken(eq(otherUserAccount.getId()), any(byte[].class), eq("pass"))).thenReturn(otherSidToken);
 
     when(accountRepository.getUserAccountById(someUserAccount.getId())).thenReturn(someUserAccount);
     when(accountRepository.getUserAccountById(otherUserAccount.getId())).thenReturn(otherUserAccount);

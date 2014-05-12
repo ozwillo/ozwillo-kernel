@@ -3,9 +3,12 @@ package oasis.web.authn;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import java.nio.charset.StandardCharsets;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -27,7 +30,9 @@ import com.google.inject.Inject;
 
 import oasis.http.testing.InProcessResteasy;
 import oasis.model.authn.SidToken;
+import oasis.model.authn.TokenRepository;
 import oasis.services.authn.TokenHandler;
+import oasis.web.utils.UserAgentFingerprinter;
 
 @RunWith(JukitoRunner.class)
 public class UserFilterTest {
@@ -38,6 +43,7 @@ public class UserFilterTest {
       bind(UserFilter.class);
 
       bindMock(TokenHandler.class).in(TestSingleton.class);
+      bindMock(UserAgentFingerprinter.class).in(TestSingleton.class);
     }
   }
 
@@ -48,9 +54,13 @@ public class UserFilterTest {
     validSidToken.setId("validSession");
     validSidToken.setCreationTime(now.minus(Duration.standardHours(1)));
     validSidToken.setExpirationTime(now.plus(Duration.standardHours(1)));
+    validSidToken.setUserAgentFingerprint("fingerprint".getBytes(StandardCharsets.UTF_8));
   }
 
   @Inject @Rule public InProcessResteasy resteasy;
+
+  @Inject UserAgentFingerprinter fingerprinter;
+  @Inject TokenRepository tokenRepository;
 
   @Before public void setUpMocks(TokenHandler tokenHandler) {
     when(tokenHandler.getCheckedToken("valid", SidToken.class)).thenReturn(validSidToken);
@@ -62,16 +72,20 @@ public class UserFilterTest {
     resteasy.getDeployment().getRegistry().addPerRequestResource(DummyResource.class);
   }
 
-  @Test public void testNoCookie() {
+  @Test public void testNoCookie(TokenHandler tokenHandler) {
     Response response = resteasy.getClient().target(UriBuilder.fromResource(DummyResource.class).build()).request().get();
 
     commonAssertions(response);
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.NO_CONTENT);
     assertThat(response.getCookies()).doesNotContainKey(UserFilter.COOKIE_NAME);
     assertThat(response.readEntity(SidToken.class)).isNull();
+
+    verifyNoMoreInteractions(tokenHandler, tokenRepository);
   }
 
   @Test public void testAuthenticated() {
+    when(fingerprinter.fingerprint(any(ContainerRequestContext.class))).thenReturn(validSidToken.getUserAgentFingerprint());
+
     Response response = resteasy.getClient().target(UriBuilder.fromResource(DummyResource.class).build()).request()
         .cookie(UserFilter.COOKIE_NAME, "valid")
         .get();
@@ -80,6 +94,8 @@ public class UserFilterTest {
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
     assertThat(response.getCookies()).doesNotContainKey(UserFilter.COOKIE_NAME);
     assertThat(response.readEntity(SidToken.class)).isEqualToComparingFieldByField(validSidToken);
+
+    verify(tokenRepository).renewToken(validSidToken.getId());
   }
 
   @Test public void testWithInvalidCookie() {
@@ -92,6 +108,24 @@ public class UserFilterTest {
     assertThat(response.getCookies()).containsKey(UserFilter.COOKIE_NAME);
     assertThat(response.getCookies().get(UserFilter.COOKIE_NAME).getExpiry()).isInThePast();
     assertThat(response.readEntity(SidToken.class)).isNull();
+
+    verify(tokenRepository, never()).renewToken(validSidToken.getId());
+  }
+
+  @Test public void testWithInvalidFingerprint() {
+    when(fingerprinter.fingerprint(any(ContainerRequestContext.class))).thenReturn("attacker".getBytes(StandardCharsets.UTF_8));
+
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(DummyResource.class).build()).request()
+        .cookie(UserFilter.COOKIE_NAME, "valid")
+        .get();
+
+    commonAssertions(response);
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.NO_CONTENT);
+    assertThat(response.getCookies()).containsKey(UserFilter.COOKIE_NAME);
+    assertThat(response.getCookies().get(UserFilter.COOKIE_NAME).getExpiry()).isInThePast();
+    assertThat(response.readEntity(SidToken.class)).isNull();
+
+    verify(tokenRepository, never()).renewToken(validSidToken.getId());
   }
 
   private void commonAssertions(Response response) {
