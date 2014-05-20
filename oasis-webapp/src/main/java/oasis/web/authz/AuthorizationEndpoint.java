@@ -5,6 +5,7 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -281,16 +282,23 @@ public class AuthorizationEndpoint {
     }
 
     // Some scopes need explicit approval, generate approval form
-    List<Scope> requiredScopes = Lists.newArrayList();
-    List<Scope> optionalScopes = Lists.newArrayList();
-    List<Scope> authorizedScopes = Lists.newArrayList();
+    List<ImmutableMap<String, String>> requiredScopes = Lists.newArrayList();
+    List<ImmutableMap<String, String>> optionalScopes = Lists.newArrayList();
+    List<ImmutableMap<String, String>> authorizedScopes = Lists.newArrayList();
     for (Scope claimedScope : globalClaimedScopes) {
+      String scopeId = claimedScope.getId();
+      ImmutableMap<String, String> scope = ImmutableMap.of(
+          "id", scopeId,
+          // TODO: I18N
+          "title", claimedScope.getTitle().get(Locale.ROOT),
+          "description", claimedScope.getDescription().get(Locale.ROOT)
+      );
       if (authorizedScopeIds.contains(claimedScope.getId())) {
-        authorizedScopes.add(claimedScope);
+        authorizedScopes.add(scope);
       } else if (requiredScopeIds.contains(claimedScope.getId())) {
-        requiredScopes.add(claimedScope);
+        requiredScopes.add(scope);
       } else {
-        optionalScopes.add(claimedScope);
+        optionalScopes.add(scope);
       }
     }
 
@@ -328,7 +336,8 @@ public class AuthorizationEndpoint {
                 ),
                 "app", ImmutableMap.of(
                     "id", serviceProvider.getId(),
-                    "name", serviceProvider.getName()
+                    // TODO: I18N
+                    "name", serviceProvider.getName().get(Locale.ROOT)
                 )
             )
         ))
