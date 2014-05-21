@@ -101,6 +101,8 @@ public class AuthorizationEndpointTest {
     setName(new LocalizableString("Application"));
   }};
 
+  // NOTE: scopes are supposed to have a title and description, we're indirectly
+  // testing our resistance to missing data here by not setting them.
   private static final Scope openidScope = new Scope() {{
     setId("openid");
   }};

@@ -290,8 +290,8 @@ public class AuthorizationEndpoint {
       ImmutableMap<String, String> scope = ImmutableMap.of(
           "id", scopeId,
           // TODO: I18N
-          "title", claimedScope.getTitle().get(Locale.ROOT),
-          "description", claimedScope.getDescription().get(Locale.ROOT)
+          "title", Strings.nullToEmpty(claimedScope.getTitle().get(Locale.ROOT)),
+          "description", Strings.nullToEmpty(claimedScope.getDescription().get(Locale.ROOT))
       );
       if (authorizedScopeIds.contains(claimedScope.getId())) {
         authorizedScopes.add(scope);

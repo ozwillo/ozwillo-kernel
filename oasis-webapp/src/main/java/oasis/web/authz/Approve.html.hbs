@@ -24,7 +24,7 @@
         [[#each scopes.requiredScopes]]
           <input type="hidden" name="selected_scope" value="[[id]]">
           <dl>
-            <dt>[[title]]</dt>
+            <dt>[[#if title]][[title]][[else]][[id]][[/if]]</dt>
             <dd>[[description]]</dd>
           </dl>
         [[/each]]
@@ -44,7 +44,7 @@
           [[#each scopes.optionalScopes]]
             <input type="checkbox" name="selected_scope" value="[[id]]">
             <dl>
-              <dt>[[title]]</dt>
+              <dt>[[#if title]][[title]][[else]][[id]][[/if]]</dt>
               <dd>[[description]]</dd>
             </dl>
           [[/each]]
@@ -60,7 +60,7 @@
         <ul>
           [[#each scopes.authorizedScopes]]
             <dl>
-              <dt>[[title]]</dt>
+              <dt>[[#if title]][[title]][[else]][[id]][[/if]]</dt>
               <dd>[[description]]</dd>
             </dl>
           [[/each]]
