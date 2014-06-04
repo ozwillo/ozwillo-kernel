@@ -282,12 +282,12 @@ public class AgentInfo implements HasModified {
       this.postal_code = other.getPostalCode();
     }
 
-    public String getStreetAddress() {
+    public String getStreet_address() {
       return street_address;
     }
 
-    public Address setStreetAddress(String streetAddress) {
-      this.street_address = streetAddress;
+    public Address setStreet_address(String street_address) {
+      this.street_address = street_address;
       return this;
     }
 
@@ -309,12 +309,12 @@ public class AgentInfo implements HasModified {
       return this;
     }
 
-    public String getPostalCode() {
+    public String getPostal_code() {
       return postal_code;
     }
 
-    public Address setPostalCode(String postalCode) {
-      this.postal_code = postalCode;
+    public Address setPostal_code(String postal_code) {
+      this.postal_code = postal_code;
       return this;
     }
 

@@ -116,9 +116,9 @@ public class UserDirectoryService {
       Address address = new Address();
       address.setCountry(agentInfo.getAddress().getCountry());
       address.setLocality(agentInfo.getAddress().getLocality());
-      address.setPostalCode(agentInfo.getAddress().getPostalCode());
+      address.setPostalCode(agentInfo.getAddress().getPostal_code());
       address.setRegion(agentInfo.getAddress().getRegion());
-      address.setStreetAddress(agentInfo.getAddress().getStreetAddress());
+      address.setStreetAddress(agentInfo.getAddress().getStreet_address());
       res.setAddress(address);
     }
 
