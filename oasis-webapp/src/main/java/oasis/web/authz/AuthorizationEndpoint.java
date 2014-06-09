@@ -39,8 +39,6 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.google.common.escape.Escaper;
-import com.google.common.net.UrlEscapers;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
@@ -100,7 +98,7 @@ public class AuthorizationEndpoint {
   @Inject Clock clock;
 
   private MultivaluedMap<String, String> params;
-  private StringBuilder redirectUriBuilder;
+  private RedirectUri redirectUri;
 
   @GET
   @ApiOperation(
@@ -131,14 +129,14 @@ public class AuthorizationEndpoint {
     }
     // From now on, we can redirect to the client application, for both success and error conditions
 
-    initRedirectUriBuilder(redirect_uri);
+    redirectUri = new RedirectUri(redirect_uri);
 
     // we should send the state back to the client if provided, so it's the first thing to get after validating the
     // client_id and redirect_uri (i.e. after verifying that it's OK to redirect to the client)
     // In case of error retrieving the state (i.e. multi-valued), we'll thus redirect to the client
     // without a state, which is OK (and the expected behavior)
     final String state = getParameter("state");
-    appendQueryParam("state", state);
+    redirectUri.setState(state);
 
     final String response_type = getRequiredParameter("response_type");
     final String response_mode = getParameter("response_mode");
@@ -221,8 +219,7 @@ public class AuthorizationEndpoint {
   ) {
     // TODO: check CSRF / XSS (check data hasn't been tampered since generation of the form, so we can skip some validations we had already done)
 
-    initRedirectUriBuilder(redirect_uri);
-    appendQueryParam("state", state);
+    redirectUri = new RedirectUri(redirect_uri).setState(state);
 
     SidToken sidToken = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken();
 
@@ -233,7 +230,7 @@ public class AuthorizationEndpoint {
 
   private Response redirectToLogin(UriInfo uriInfo, Prompt prompt) {
     // Prepare cancel URL
-    appendQueryParam("error", "login_required");
+    redirectUri.setError("login_required", null);
     // Redirect back to here, except without prompt=login
     prompt.login = false;
     String promptValue = prompt.toString();
@@ -244,7 +241,7 @@ public class AuthorizationEndpoint {
     } else {
       continueUrl.replaceQueryParam("prompt", promptValue);
     }
-    return UserAuthenticationFilter.loginResponse(continueUrl.build(), redirectUriBuilder.toString(), securityContext);
+    return UserAuthenticationFilter.loginResponse(continueUrl.build(), redirectUri.toString(), securityContext);
   }
 
   private Response generateAuthorizationCodeAndRedirect(SidToken sidToken, Set<String> scopeIds, String client_id,
@@ -258,8 +255,8 @@ public class AuthorizationEndpoint {
       return Response.serverError().build();
     }
 
-    appendQueryParam("code", auth_code);
-    return Response.seeOther(URI.create(redirectUriBuilder.toString())).build();
+    redirectUri.setCode(auth_code);
+    return Response.seeOther(URI.create(redirectUri.toString())).build();
   }
 
   private Response promptUser(ServiceProvider serviceProvider, Set<String> requiredScopeIds, Set<String> authorizedScopeIds,
@@ -304,9 +301,8 @@ public class AuthorizationEndpoint {
 
     // TODO: Get the application in order to have more information
 
-    // TODO: Make a URI Service in order to move the URI logic outside of the JAX-RS resource
-    // redirectUriBuilder is now used for creating the cancel Uri for the authorization step with the user
-    appendQueryParam("error", "access_denied");
+    // redirectUri is now used for creating the cancel Uri for the authorization step with the user
+    redirectUri.setError("access_denied", null);
 
     // TODO: Improve security by adding a token created by encrypting scopes with a secret
     return Response.ok()
@@ -319,7 +315,7 @@ public class AuthorizationEndpoint {
         .entity(new View(AuthorizationEndpoint.class, "Approve.html",
             ImmutableMap.of(
                 "urls", ImmutableMap.of(
-                    "cancel", redirectUriBuilder.toString(),
+                    "cancel", redirectUri.toString(),
                     "formAction", UriBuilder.fromResource(AuthorizationEndpoint.class).path(APPROVE_PATH).build()
                 ),
                 "scopes", ImmutableMap.of(
@@ -356,17 +352,6 @@ public class AuthorizationEndpoint {
     return (settings.disableRedirectUriValidation || validRedirectUris.contains(redirect_uri))
         // Note: validate the URI even if it's in the whitelist, just in case. You can never be too careful.
         && RedirectUri.isValid(redirect_uri);
-  }
-
-  private void initRedirectUriBuilder(String redirect_uri) {
-    redirectUriBuilder = new StringBuilder(redirect_uri);
-
-    // Prepare the redirect_uri to end with a query-string so we can just append with '&' separators
-    if (redirect_uri.indexOf('?') < 0) {
-      redirectUriBuilder.append('?');
-    } else {
-      redirectUriBuilder.append('&');
-    }
   }
 
   private void validateResponseTypeAndMode(String response_type, @Nullable String responseMode) {
@@ -439,15 +424,6 @@ public class AuthorizationEndpoint {
     return authorizedScopes.getScopeIds();
   }
 
-  private void appendQueryParam(String paramName, @Nullable String paramValue) {
-    if (paramValue == null) {
-      return;
-    }
-    Escaper escaper = UrlEscapers.urlFormParameterEscaper();
-    assert escaper.escape(paramName).equals(paramName) : "paramName needs escaping!";
-    redirectUriBuilder.append(paramName).append('=').append(escaper.escape(paramValue)).append('&');
-  }
-
   private WebApplicationException invalidParam(String paramName) {
     return invalidRequest("Invalid parameter value: " + paramName);
   }
@@ -461,7 +437,7 @@ public class AuthorizationEndpoint {
   }
 
   private WebApplicationException error(String error, @Nullable String description) {
-    if (redirectUriBuilder == null) {
+    if (redirectUri == null) {
       if (description != null) {
         error += ": " + description;
       }
@@ -470,11 +446,8 @@ public class AuthorizationEndpoint {
           .entity(error)
           .build());
     }
-    appendQueryParam("error", error);
-    if (description != null) {
-      appendQueryParam("error_description", description);
-    }
-    return new RedirectionException(Response.seeOther(URI.create(redirectUriBuilder.toString())).build());
+    redirectUri.setError(error, description);
+    return new RedirectionException(Response.seeOther(URI.create(redirectUri.toString())).build());
   }
 
   /**
@@ -483,7 +456,7 @@ public class AuthorizationEndpoint {
    * Trims the value and normalizes the empty value to {@code null}.
    * <p>
    * If the parameter is included more than once, a {@link WebApplicationException} is thrown that will either display
-   * the error to the user or redirect to the client application, depending on whether the {@link #redirectUriBuilder} field
+   * the error to the user or redirect to the client application, depending on whether the {@link #redirectUri} field
    * is {@code null} or not.
    *
    * @param     paramName the parameter name
@@ -520,7 +493,7 @@ public class AuthorizationEndpoint {
    * <p>
    * If the parameter is missing, has an empty value, or is included more than once, a {@link WebApplicationException}
    * is throw that will either display the error to the user or redirect to the client application, depending on
-   * whether the {@link #redirectUriBuilder} field is {@code null} or not.
+   * whether the {@link #redirectUri} field is {@code null} or not.
    *
    * @param paramName     the parameter name
    * @return the parameter (unique) value (cannot be {@code null}

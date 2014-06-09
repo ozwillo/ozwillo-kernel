@@ -1,11 +1,20 @@
 package oasis.openidconnect;
 
+import static com.google.common.base.Preconditions.*;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import javax.annotation.Nullable;
+
 import com.google.common.base.Strings;
+import com.google.common.escape.Escaper;
+import com.google.common.net.UrlEscapers;
 
 public class RedirectUri {
+
+  private static final Escaper PARAMETER_ESCAPER = UrlEscapers.urlFormParameterEscaper();
+
   /**
    * Checks that the {@code redirect_uri} is valid.
    *
@@ -34,5 +43,51 @@ public class RedirectUri {
     }
 
     return true;
+  }
+
+  private final StringBuilder sb;
+  private char separator;
+  private boolean initialized;
+
+  public RedirectUri(String redirect_uri) {
+    assert isValid(redirect_uri);
+    this.sb = new StringBuilder(redirect_uri);
+
+    separator = (redirect_uri.indexOf('?') < 0)  ? '?' : '&';
+  }
+
+  public RedirectUri setState(@Nullable String state) {
+    // XXX: check that it's only set once?
+    appendQueryParam("state", state);
+    return this;
+  }
+
+  // TODO: add error_uri?
+  public RedirectUri setError(String error, @Nullable String description) {
+    checkState(!initialized);
+    initialized = true;
+    appendQueryParam("error", error);
+    appendQueryParam("error_description", description);
+    return this;
+  }
+
+  public RedirectUri setCode(String code) {
+    checkState(!initialized);
+    initialized = true;
+    appendQueryParam("code", code);
+    return this;
+  }
+
+  public String toString() {
+    return sb.toString();
+  }
+
+  private void appendQueryParam(String paramName, @Nullable String paramValue) {
+    if (paramValue == null) {
+      return;
+    }
+    assert PARAMETER_ESCAPER.escape(paramName).equals(paramName) : "paramName needs escaping!";
+    sb.append(separator).append(paramName).append('=').append(PARAMETER_ESCAPER.escape(paramValue));
+    separator = '&';
   }
 }
