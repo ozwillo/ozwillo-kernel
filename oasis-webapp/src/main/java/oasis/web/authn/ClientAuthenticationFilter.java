@@ -60,8 +60,13 @@ public class ClientAuthenticationFilter implements ContainerRequestFilter {
 
     List<String> parts = AUTH_SCHEME_SPLITTER.splitToList(authorization);
 
-    if (parts.size() != 2 || !SecurityContext.BASIC_AUTH.equalsIgnoreCase(parts.get(0))) {
+    if (parts.isEmpty() || !SecurityContext.BASIC_AUTH.equalsIgnoreCase(parts.get(0))) {
       challenge(requestContext);
+      return;
+    }
+
+    if (parts.size() != 2) {
+      malformedCredentials(requestContext);
       return;
     }
 

@@ -46,8 +46,8 @@ public class ClientAuthenticationFilterTest {
   @Inject @Rule public InProcessResteasy resteasy;
 
   @Before public void setUpMocks(CredentialsService credentialsService) {
-    when(credentialsService.checkPassword(ClientType.PROVIDER, "invalid_id", "invalid_secret")).thenReturn(false);
-    when(credentialsService.checkPassword(ClientType.PROVIDER, "valid_id", "valid_secret")).thenReturn(true);
+    when(credentialsService.checkPassword(ClientType.PROVIDER, "invalid_id", "invalid:secret")).thenReturn(false);
+    when(credentialsService.checkPassword(ClientType.PROVIDER, "valid_id", "valid:secret")).thenReturn(true);
   }
 
   @Before public void setUp() {
@@ -71,10 +71,32 @@ public class ClientAuthenticationFilterTest {
     Response response = resteasy.getClient()
         .target(UriBuilder.fromResource(DummyResource.class).build())
         .request()
-        .header(HttpHeaders.AUTHORIZATION, getAuthorizationHeader("Whatever", "valid_id", "valid_secret"))
+        .header(HttpHeaders.AUTHORIZATION, getAuthorizationHeader("Whatever", "valid_id", "valid:secret"))
         .get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.UNAUTHORIZED);
+  }
+
+  @Test
+  public void testMissingCredentials() {
+    Response response = resteasy.getClient()
+        .target(UriBuilder.fromResource(DummyResource.class).build())
+        .request()
+        .header(HttpHeaders.AUTHORIZATION, "Basic ")
+        .get();
+
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
+  }
+
+  @Test
+  public void testTooManyCredentials() {
+    Response response = resteasy.getClient()
+        .target(UriBuilder.fromResource(DummyResource.class).build())
+        .request()
+        .header(HttpHeaders.AUTHORIZATION, getAuthorizationHeader("Basic", "valid_id", "valid:secret") + " too many values")
+        .get();
+
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
   }
 
   @Test
@@ -100,11 +122,34 @@ public class ClientAuthenticationFilterTest {
   }
 
   @Test
+  public void testWithMalformedCredentials() {
+    Response response = resteasy.getClient()
+        .target(UriBuilder.fromResource(DummyResource.class).build())
+        .request()
+        .header(HttpHeaders.AUTHORIZATION, "Basic " + BaseEncoding.base64().encode("valid_id".getBytes(StandardCharsets.UTF_8)))
+        .get();
+
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
+  }
+
+  @Test
+  public void testWithEmptyClientId() {
+    Response response = resteasy.getClient()
+        .target(UriBuilder.fromResource(DummyResource.class).build())
+        .request()
+        .header(HttpHeaders.AUTHORIZATION, getAuthorizationHeader("Basic", "", "secret"))
+        .get();
+
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.UNAUTHORIZED);
+    assertThat(response.getHeaderString(HttpHeaders.WWW_AUTHENTICATE)).isNotNull();
+  }
+
+  @Test
   public void testWithInvalidCredentials() {
     Response response = resteasy.getClient()
         .target(UriBuilder.fromResource(DummyResource.class).build())
         .request()
-        .header(HttpHeaders.AUTHORIZATION, getAuthorizationHeader("Basic", "invalid_id", "invalid_secret"))
+        .header(HttpHeaders.AUTHORIZATION, getAuthorizationHeader("Basic", "invalid_id", "invalid:secret"))
         .get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.UNAUTHORIZED);
@@ -116,7 +161,7 @@ public class ClientAuthenticationFilterTest {
     Response response = resteasy.getClient()
         .target(UriBuilder.fromResource(DummyResource.class).build())
         .request()
-        .header(HttpHeaders.AUTHORIZATION, getAuthorizationHeader("Basic", "valid_id", "valid_secret"))
+        .header(HttpHeaders.AUTHORIZATION, getAuthorizationHeader("Basic", "valid_id", "valid:secret"))
         .get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
