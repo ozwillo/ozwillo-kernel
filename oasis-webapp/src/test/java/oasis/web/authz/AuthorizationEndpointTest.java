@@ -72,10 +72,11 @@ public class AuthorizationEndpointTest {
       bindMock(TokenHandler.class).in(TestSingleton.class);
 
       bindManyNamedInstances(String.class, "bad redirect_uri",
-          "https://application/callback#hash",  // contains has #hash
+          "https://application/callback#hash",  // has #hash
           "ftp://application/callback",         // non-HTTP scheme
           "//application/callback",             // relative
-          "data:text/plain,:foobar"             // opaque
+          "data:text/plain,:foobar",            // opaque
+          "https://attacker/callback"           // non-whitelisted
       );
 
       bind(OpenIdConnectModule.Settings.class).toInstance(OpenIdConnectModule.Settings.builder()
@@ -99,6 +100,7 @@ public class AuthorizationEndpointTest {
   private static final ServiceProvider serviceProvider = new ServiceProvider() {{
     setId("application");
     setName(new LocalizableString("Application"));
+    setRedirect_uris(Arrays.asList("https://application/callback"));
   }};
 
   // NOTE: scopes are supposed to have a title and description, we're indirectly

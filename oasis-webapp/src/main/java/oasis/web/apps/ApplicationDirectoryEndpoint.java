@@ -33,6 +33,8 @@ import oasis.model.applications.ApplicationRepository;
 import oasis.model.applications.DataProvider;
 import oasis.model.applications.ServiceProvider;
 import oasis.model.authn.ClientType;
+import oasis.openidconnect.OpenIdConnectModule;
+import oasis.openidconnect.RedirectUri;
 import oasis.services.authn.CredentialsService;
 import oasis.services.etag.EtagService;
 import oasis.web.utils.ResponseFactory;
@@ -42,6 +44,7 @@ import oasis.web.utils.ResponseFactory;
 @Api(value = "/d/app", description = "Application directory API")
 public class ApplicationDirectoryEndpoint {
 
+  @Inject OpenIdConnectModule.Settings settings;
   @Inject ApplicationRepository applications;
   @Inject CredentialsService credentialsService;
   @Inject EtagService etagService;
@@ -276,6 +279,19 @@ public class ApplicationDirectoryEndpoint {
 
     if (app.isTenant()) {
       return ResponseFactory.unprocessableEntity("The requested application instance cannot be updated");
+    }
+
+    if (!settings.disableRedirectUriValidation) {
+      // redirect_uris is mandatory, unless we disabled the validation check.
+      if (serviceProvider.getRedirect_uris().isEmpty()) {
+        return ResponseFactory.unprocessableEntity("redirect_uris is mandatory.");
+      }
+    }
+    // Validate each redirect_uri value.
+    for (String redirect_uri : serviceProvider.getRedirect_uris()) {
+      if (!RedirectUri.isValid(redirect_uri)) {
+        return ResponseFactory.unprocessableEntity("Invalid redirect_uris value: " + redirect_uri);
+      }
     }
 
     ServiceProvider newServiceProvider = applications.createServiceProvider(applicationId, serviceProvider);

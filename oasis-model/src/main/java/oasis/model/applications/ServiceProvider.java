@@ -22,8 +22,12 @@ public class ServiceProvider {
   private LocalizableString name = new LocalizableString();
 
   @JsonProperty
-  @ApiModelProperty()
+  @ApiModelProperty
   private List<ScopeCardinality> scopeCardinalities = new ArrayList<>();
+
+  @JsonProperty
+  @ApiModelProperty
+  private List<String> redirect_uris = new ArrayList<>();
 
   public ServiceProvider() {
   }
@@ -60,5 +64,13 @@ public class ServiceProvider {
 
   public void setScopeCardinalities(List<ScopeCardinality> scopeCardinalities) {
     this.scopeCardinalities = new ArrayList<>(scopeCardinalities);
+  }
+
+  public List<String> getRedirect_uris() {
+    return Collections.unmodifiableList(redirect_uris);
+  }
+
+  public void setRedirect_uris(List<String> redirect_uris) {
+    this.redirect_uris = new ArrayList<>(redirect_uris);
   }
 }

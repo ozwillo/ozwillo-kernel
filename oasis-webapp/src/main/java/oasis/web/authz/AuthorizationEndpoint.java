@@ -1,7 +1,6 @@
 package oasis.web.authz;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -54,6 +53,7 @@ import oasis.model.authn.SidToken;
 import oasis.model.authz.AuthorizationRepository;
 import oasis.model.authz.AuthorizedScopes;
 import oasis.openidconnect.OpenIdConnectModule;
+import oasis.openidconnect.RedirectUri;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.web.authn.Authenticated;
@@ -126,7 +126,7 @@ public class AuthorizationEndpoint {
     ServiceProvider serviceProvider = getServiceProvider(client_id);
 
     final String redirect_uri = getRequiredParameter("redirect_uri");
-    if (!isRedirectUriValid(redirect_uri)) {
+    if (!isRedirectUriValid(redirect_uri, serviceProvider.getRedirect_uris())) {
       throw invalidParam("redirect_uri");
     }
     // From now on, we can redirect to the client application, for both success and error conditions
@@ -352,25 +352,10 @@ public class AuthorizationEndpoint {
     return serviceProvider;
   }
 
-  private boolean isRedirectUriValid(String redirect_uri) {
-    final URI ruri;
-    try {
-      ruri = new URI(redirect_uri);
-    } catch (URISyntaxException use) {
-      return false;
-    }
-
-    if (!ruri.isAbsolute() || ruri.isOpaque() || !Strings.isNullOrEmpty(ruri.getRawFragment())) {
-      return false;
-    }
-
-    if (!"http".equals(ruri.getScheme()) && !"https".equals(ruri.getScheme())) {
-      return false;
-    }
-
-    // TODO: check that redirect_uri matches client_id registration
-
-    return true;
+  private boolean isRedirectUriValid(String redirect_uri, List<String> validRedirectUris) {
+    return (settings.disableRedirectUriValidation || validRedirectUris.contains(redirect_uri))
+        // Note: validate the URI even if it's in the whitelist, just in case. You can never be too careful.
+        && RedirectUri.isValid(redirect_uri);
   }
 
   private void initRedirectUriBuilder(String redirect_uri) {
