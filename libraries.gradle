@@ -85,6 +85,7 @@ ext.libs = [
       },
       'javax.servlet:servlet-api:2.5'
     ],
+  swagger_ui:          'org.webjars:swagger-ui:2.0.17',
 
   args4j:              'args4j:args4j:2.0.28',
 

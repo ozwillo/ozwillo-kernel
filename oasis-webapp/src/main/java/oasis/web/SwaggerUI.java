@@ -27,6 +27,25 @@ public class SwaggerUI {
 
   @GET
   @Path("/swagger-ui.html")
+  public Response redirectToNewUri(@Context UriInfo uriInfo) {
+    return Response
+        .status(Response.Status.MOVED_PERMANENTLY)
+        .location(uriInfo.getBaseUriBuilder().path("/swagger-ui/").build())
+        .build();
+  }
+
+  @GET
+  @Path("/swagger-ui/")
+  public Response getDirectory(@Context UriInfo uriInfo) {
+    if (uriInfo.getPath().endsWith("/")) {
+      return get(uriInfo);
+    } else {
+      return redirectToNewUri(uriInfo);
+    }
+  }
+
+  @GET
+  @Path("/swagger-ui/index.html")
   @Produces(MediaType.TEXT_HTML)
   public Response get(@Context UriInfo uriInfo) {
     Map<String, String> model = ImmutableMap.of(
@@ -67,7 +86,7 @@ public class SwaggerUI {
   private Response getResource(String resourceName) throws IOException {
     final URL resource;
     try {
-      resource = Resources.getResource("swagger-ui/" + resourceName);
+      resource = Resources.getResource("META-INF/resources/webjars/swagger-ui/2.0.17/" + resourceName);
     } catch (IllegalArgumentException iae) {
       return ResponseFactory.NOT_FOUND;
     }
