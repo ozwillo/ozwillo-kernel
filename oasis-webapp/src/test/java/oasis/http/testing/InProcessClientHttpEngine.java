@@ -20,7 +20,6 @@ import org.jboss.resteasy.client.jaxrs.ClientHttpEngine;
 import org.jboss.resteasy.client.jaxrs.internal.ClientInvocation;
 import org.jboss.resteasy.client.jaxrs.internal.ClientResponse;
 import org.jboss.resteasy.core.Dispatcher;
-import org.jboss.resteasy.mock.MockHttpRequest;
 import org.jboss.resteasy.mock.MockHttpResponse;
 import org.jboss.resteasy.specimpl.ResteasyHttpHeaders;
 import org.jboss.resteasy.util.CaseInsensitiveMap;
@@ -53,7 +52,8 @@ public class InProcessClientHttpEngine implements ClientHttpEngine {
 
     MultivaluedMap<String, String> requestHeaders = request.getHeaders().asMap();
     mockRequest.getMutableHeaders().putAll(requestHeaders);
-    copyCookies(requestHeaders, mockRequest);
+    Map<String, Cookie> cookies = extractCookies(requestHeaders);
+    mockRequest.setCookies(cookies);
 
     if (request.getEntity() != null) {
       ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -69,17 +69,19 @@ public class InProcessClientHttpEngine implements ClientHttpEngine {
     return mockRequest;
   }
 
-  private void copyCookies(MultivaluedMap<String, String> requestHeaders, MockHttpRequest mockRequest) {
+  private Map<String, Cookie> extractCookies(MultivaluedMap<String, String> requestHeaders) {
+    Map<String, Cookie> cookies = new HashMap<>();
     List<String> cookieHeaders = requestHeaders.get(HttpHeaders.COOKIE);
     if (cookieHeaders == null) {
-      return;
+      return cookies;
     }
 
     for (String cookieHeader : cookieHeaders) {
       for (Cookie cookie : CookieParser.parseCookies(cookieHeader)) {
-        mockRequest.cookie(cookie.getName(), cookie.getValue());
+        cookies.put(cookie.getName(), cookie);
       }
     }
+    return cookies;
   }
 
   private ClientResponse createResponse(final ClientInvocation request, final MockHttpResponse mockResponse) {
@@ -145,5 +147,30 @@ public class InProcessClientHttpEngine implements ClientHttpEngine {
   @Override
   public void close() {
     // no-op
+  }
+
+  /**
+   * Workaround for https://issues.jboss.org/browse/RESTEASY-1020
+   */
+  private static class MockHttpRequest extends org.jboss.resteasy.mock.MockHttpRequest {
+    public static MockHttpRequest create(String httpMethod, URI uri, URI baseUri) {
+      org.jboss.resteasy.mock.MockHttpRequest toCopy = org.jboss.resteasy.mock.MockHttpRequest.create(httpMethod, uri, baseUri);
+      MockHttpRequest ret = new MockHttpRequest();
+      ret.uri = toCopy.getUri();
+      ret.httpHeaders = (ResteasyHttpHeaders) toCopy.getHttpHeaders();
+      ret.httpMethod = toCopy.getHttpMethod();
+      ret.inputStream = toCopy.getInputStream();
+      return ret;
+    }
+
+    @Deprecated
+    @Override
+    public org.jboss.resteasy.mock.MockHttpRequest cookie(String name, String value) {
+      return super.cookie(name, value);
+    }
+
+    public void setCookies(Map<String, Cookie> cookies) {
+      httpHeaders.setCookies(cookies);
+    }
   }
 }
