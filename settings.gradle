@@ -1,0 +1,14 @@
+rootProject.name = 'oasis'
+
+include 'log4j2-cube'
+include 'log4j2-fluentd'
+include 'log4j2-logstash'
+
+include 'oasis-model'
+include 'oasis-webapp'
+include 'oasis-puppet'
+include 'oasis-dist'
+
+rootProject.children.each { project ->
+  project.buildFileName = project.name + '.gradle' - ~'^oasis-'
+}

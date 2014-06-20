@@ -1,11 +1,11 @@
 #! /bin/sh
 ### BEGIN INIT INFO
-# Provides:          ${oasis.service}
+# Provides:          @oasis.service@
 # Required-Start:    $remote_fs $syslog
 # Required-Stop:     $remote_fs $syslog
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: ${oasis.desc} initscript
+# Short-Description: @oasis.desc@ initscript
 # Description:       This file should be used to construct scripts to be
 #                    placed in /etc/init.d.
 ### END INIT INFO
@@ -14,31 +14,21 @@
 
 # PATH should only include /usr/* if it runs after the mountnfs.sh script
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
-DESC="${oasis.desc}"
-NAME="${oasis.service}"
-DAEMON="${oasis.home}/${oasis.service}"
-PIDFILE="/var/run/${oasis.service}.pid"
-SCRIPTNAME="/etc/init.d/${oasis.service}"
+DESC="@oasis.desc@"
+NAME="@oasis.service@"
+DAEMON="@oasis.home@/@oasis.service@"
+DAEMON_ARGS=""
+PIDFILE=/var/run/$NAME.pid
+SCRIPTNAME=/etc/init.d/$NAME
 
-SERVICE_USER="${oasis.user}"
-SERVICE_GROUP="${oasis.group}"
-CONF_DIR="/etc/${oasis.service}"
-LOG_DIR="/var/log/${oasis.service}"
-EXTRA_ARGS=""
-JAVA_OPTS=""
+USER=@oasis.user@
+GROUP=@oasis.group@
 
 # Exit if the package is not installed
 [ -x "$DAEMON" ] || exit 0
 
 # Read configuration variable file if it is present
 [ -r /etc/default/$NAME ] && . /etc/default/$NAME
-
-DAEMON_ARGS="-l $CONF_DIR/log4j2.xml -c $CONF_DIR/oasis.conf $EXTRA_ARGS"
-
-export LOG_DIR
-
-TIMESTAMP=`date +%Y%m%d-%H%M%S`
-export JAVA_OPTS="-Xloggc:$LOG_DIR/gc-$TIMESTAMP.log -XX:+PrintGCDetails -XX:+PrintTenuringDistribution $JAVA_OPTS"
 
 # Load the VERBOSE setting and other rcS variables
 . /lib/init/vars.sh
@@ -57,11 +47,14 @@ do_start()
 	#   1 if daemon was already running
 	#   2 if daemon could not be started
 	start-stop-daemon --start --quiet --pidfile $PIDFILE --startas $DAEMON \
-	  -c $SERVICE_USER -g $SERVICE_GROUP --background --make-pidfile --test > /dev/null \
+	  -c $USER -g $GROUP --background --make-pidfile --test > /dev/null \
 		|| return 1
 	start-stop-daemon --start --quiet --pidfile $PIDFILE --startas $DAEMON \
-		-c $SERVICE_USER -g $SERVICE_GROUP --background --make-pidfile -- $DAEMON_ARGS \
+		-c $USER -g $GROUP --background --make-pidfile -- $DAEMON_ARGS \
 		|| return 2
+	# Add code here, if necessary, that waits for the process to be ready
+	# to handle requests from services started subsequently which depend
+	# on this one.  As a last resort, sleep for some time.
 }
 
 #
@@ -75,7 +68,7 @@ do_stop()
 	#   2 if daemon could not be stopped
 	#   other if a failure occurred
 	start-stop-daemon --stop --quiet --retry=INT/10/KILL/5 --pidfile $PIDFILE --oknodo \
-		-c $SERVICE_USER -g $SERVICE_GROUP
+		-c $USER -g $GROUP
 	RETVAL="$?"
 	[ "$RETVAL" = 2 ] && return 2
 	# Many daemons don't delete their pidfiles when they exit.

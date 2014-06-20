@@ -1,0 +1,117 @@
+apply plugin: 'base'
+
+description = ''
+
+ext.oasis = [
+  home:         '/usr/lib/oasis',
+  service:      'oasis',
+  desc:         'OASIS kernel',
+  user:         'oasis',
+  group:        'oasis',
+]
+// Turns 1.2.3-45-g789abcd (snapshot version) into 1.2.3~45.g789abcd, but leaves 1.2.3 and 1.2.3-4 (release versions) as-is.
+// Note: this is similar to the versions produced by git-buildpackage, except for the "gbp" marker replaced with git-describe's "g"
+ext.debianVersion = project.version.replaceAll('^([^-]+)-([^-]+)-([^-]+)$', '$1~$2.$3')
+
+configurations {
+  distLib
+  jdeb
+}
+
+dependencies {
+  distLib(project(':oasis-webapp')) {
+    exclude module: 'log4j2-cube'
+    exclude module: 'log4j2-fluentd'
+  }
+
+  jdeb libs.jdeb
+}
+
+task explodedDir(type: Sync) {
+  inputs.properties(oasis)
+
+  destinationDir = new File(buildDir, 'tmp/debExploded')
+
+  from('src/linux/') {
+    into 'linux/'
+  }
+  from('src/deb/etc/') {
+    into 'linux/deb/etc/'
+    filter(org.apache.tools.ant.filters.ReplaceTokens, tokens: [
+      'oasis.home':     oasis.home,
+      'oasis.service':  oasis.service,
+      'oasis.desc':     oasis.desc,
+      'oasis.user':     oasis.user,
+      'oasis.group':    oasis.group,
+      ])
+  }
+  from('src/etc/') {
+    into 'linux/etc/'
+    filter(org.apache.tools.ant.filters.ReplaceTokens, tokens: [
+      'oasis.home':     oasis.home,
+      'oasis.service':  oasis.service,
+      'oasis.desc':     oasis.desc,
+      'oasis.user':     oasis.user,
+      'oasis.group':    oasis.group,
+      ])
+  }
+  from(configurations.distLib) {
+    into 'lib/'
+  }
+}
+
+task debControl(type: Sync) {
+  inputs.properties(oasis)
+  inputs.property('debianVersion', debianVersion)
+
+  destinationDir = new File(buildDir, 'tmp/debControl')
+
+  from('src/deb/control') {
+    filter(org.apache.tools.ant.filters.ReplaceTokens, tokens: [
+      'name':           oasis.service,
+      'version':        debianVersion,
+      'oasis.home':     oasis.home,
+      'oasis.service':  oasis.service,
+      'oasis.desc':     oasis.desc,
+      'oasis.user':     oasis.user,
+      'oasis.group':    oasis.group,
+    ])
+  }
+}
+
+task deb(dependsOn: [explodedDir, debControl]) {
+  ext.destfile = "$distsDir/${oasis.service}_${debianVersion}_all.deb"
+  ext.changesOut = "$distsDir/${oasis.service}_${debianVersion}_all.changes"
+
+  // Note: changesIn is mandatory for being able to use changesOut, but the file needs not exist.
+  // So we arbitrarily picks CHANGES.txt as changesIn, and make sure it plays nicely with Gradle incremental builds.
+  inputs.files explodedDir.outputs, debControl.outputs, 'CHANGES.txt'
+  inputs.properties(oasis)
+  inputs.property('debianVersion', debianVersion)
+  outputs.files destfile, changesOut, configurations.jdeb
+} << {
+  ant.taskdef(name: "deb", classname: "org.vafer.jdeb.ant.DebAntTask", classpath: configurations.jdeb.asPath)
+
+  def pathTemplatesDir = "$buildDir/tmp/pathTemplates"
+  // HACK: jDeb Ant task doesn't support data(type:'template') so we fake it with empty folders and data(type:'directory')
+  delete(pathTemplatesDir)
+  mkdir("$pathTemplatesDir/var/log/${oasis.service}")
+
+  ant.deb(destfile: destfile, control: debControl.destinationDir, changesIn: 'CHANGES.txt', changesOut: changesOut, verbose: true) {
+    tarfileset(dir: explodedDir.destinationDir, includes: 'lib/**', prefix: oasis.home, username: oasis.user, group: oasis.group)
+    tarfileset(dir: new File(explodedDir.destinationDir, 'linux/etc'), prefix: "etc/${oasis.service}", username: oasis.user, group: oasis.group)
+    data(type: 'directory', src: pathTemplatesDir) { // Hack for lack of data(type:'template')
+      mapper(type: 'perm', user: oasis.user, group: oasis.group)
+    }
+    data(type: 'file', src: new File(explodedDir.destinationDir, 'linux/daemon.sh'), dst: oasis.service) {
+      mapper(type: 'perm', prefix: oasis.home, filemode: '775')
+    }
+    data(type: 'file', src: new File(explodedDir.destinationDir, 'linux/deb/etc/init.d/service.sh'), dst: "etc/init.d/${oasis.service}") {
+      mapper(type: 'perm', filemode: '755')
+    }
+    data(type: 'file', src: new File(explodedDir.destinationDir, 'linux/deb/etc/default/service-config'), dst: "etc/default/${oasis.service}")
+  }
+}
+assemble.dependsOn deb
+
+task build(dependsOn: assemble, group: BasePlugin.BUILD_GROUP)

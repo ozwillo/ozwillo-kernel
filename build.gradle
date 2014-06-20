@@ -1,0 +1,35 @@
+apply from: './libraries.gradle'
+
+group = 'fr.pole-numerique.oasis'
+version = 'git describe'.execute(null, rootDir).text.trim() - ~'^v'
+
+subprojects {
+  apply plugin: 'errorprone'
+
+  group = rootProject.group
+  version = rootProject.version
+
+  plugins.withType(JavaPlugin).whenPluginAdded {
+    sourceCompatibility = 1.7
+    targetCompatibility = 1.7
+
+    compileJava {
+      sourceCompatibility = 1.7
+      targetCompatibility = 1.7
+      options.encoding = 'UTF-8'
+    }
+  }
+}
+
+buildscript {
+  repositories {
+    mavenCentral()
+  }
+  dependencies {
+    classpath 'net.ltgt.gradle:gradle-errorprone-plugin:latest.release'
+  }
+}
+
+task wrapper(type: Wrapper) {
+  gradleVersion = '1.12'
+}

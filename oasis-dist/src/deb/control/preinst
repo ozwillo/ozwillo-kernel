@@ -6,15 +6,15 @@ case "$1" in
   # If the package has default file it could be sourced, so that
   # the local admin can overwrite the defaults
 
-  [ -f "/etc/default/[[name]]" ] && . /etc/default/[[name]]
+  [ -f "/etc/default/@name@" ] && . /etc/default/@name@
 
-  SERVICE_HOME="[[oasis.home]]"
-  SERVICE_NAME="[[oasis.desc]]"
+  SERVICE_HOME="@oasis.home@"
+  SERVICE_NAME="@oasis.desc@"
 
   # Sane defaults:
 
-  [ -z "$SERVICE_USER" ] && SERVICE_USER="[[oasis.user]]"
-  [ -z "$SERVICE_GROUP" ] && SERVICE_GROUP="[[oasis.group]]"
+  [ -z "$SERVICE_USER" ] && SERVICE_USER="@oasis.user@"
+  [ -z "$SERVICE_GROUP" ] && SERVICE_GROUP="@oasis.group@"
 
   # create user to avoid running server as root
 

@@ -1,0 +1,35 @@
+apply plugin: 'java'
+
+dependencies {
+  compile project(':oasis-model')
+  compile project(':log4j2-cube')
+  compile project(':log4j2-fluentd')
+  compile project(':log4j2-logstash')
+  compile libs.jsr305
+  compile libs.guava
+  compile libs.bouncycastle
+  compile libs.google_oauth_client
+  compile libs.google_http_client
+  compile libs.guice
+  compile libs.jongo
+  compile libs.joda_time
+  compile libs.galimatias
+  compile libs.jackson
+  compile libs.args4j
+  compile libs.config
+  compile libs.resteasy_netty
+  compile libs.handlebars
+  compile libs.swagger_jaxrs
+
+  compile libs.slf4j
+  runtime libs.log4j_runtime
+
+  testCompile libs.junit
+  testCompile libs.mockito
+  testCompile libs.jukito
+  testCompile libs.assertj
+}
+
+sourceSets.main.resources {
+  source sourceSets.main.java
+}
