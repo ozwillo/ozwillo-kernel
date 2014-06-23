@@ -3,6 +3,8 @@ apply from: './libraries.gradle'
 group = 'fr.pole-numerique.oasis'
 version = 'git describe'.execute(null, rootDir).text.trim() - ~'^v'
 
+ext.versionlessOutputs = project.hasProperty("versionlessOutputs") ? Boolean.parseBoolean(project.property("versionlessOutputs")) : false;
+
 subprojects {
   apply plugin: 'errorprone'
 
@@ -17,6 +19,12 @@ subprojects {
       sourceCompatibility = 1.7
       targetCompatibility = 1.7
       options.encoding = 'UTF-8'
+    }
+
+    if (versionlessOutputs) {
+      tasks.withType(AbstractArchiveTask) {
+        archiveName = "${baseName}.${extension}"
+      }
     }
   }
 }

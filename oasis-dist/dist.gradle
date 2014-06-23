@@ -80,8 +80,9 @@ task debControl(type: Sync) {
 }
 
 task deb(dependsOn: [explodedDir, debControl]) {
-  ext.destfile = "$distsDir/${oasis.service}_${debianVersion}_all.deb"
-  ext.changesOut = "$distsDir/${oasis.service}_${debianVersion}_all.changes"
+  def baseName = versionlessOutputs ? oasis.service : "${oasis.service}_${debianVersion}_all"
+  ext.destfile = "${distsDir}/${baseName}.deb"
+  ext.changesOut = "${distsDir}/${baseName}.changes"
 
   // Note: changesIn is mandatory for being able to use changesOut, but the file needs not exist.
   // So we arbitrarily picks CHANGES.txt as changesIn, and make sure it plays nicely with Gradle incremental builds.
