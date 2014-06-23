@@ -33,3 +33,9 @@ dependencies {
 sourceSets.main.resources {
   source sourceSets.main.java
 }
+
+task run(type: JavaExec, dependsOn: classes) {
+  main = 'oasis.web.WebApp'
+  classpath = sourceSets.main.runtimeClasspath
+  systemProperties = System.getProperties()
+}
