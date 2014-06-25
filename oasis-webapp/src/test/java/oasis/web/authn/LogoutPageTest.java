@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.net.URI;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
@@ -62,6 +63,7 @@ public class LogoutPageTest {
   private static final ServiceProvider serviceProvider = new ServiceProvider() {{
     setId("service provider");
     setName(new LocalizableString("Test Service Provider"));
+    setPost_logout_redirect_uris(Collections.singletonList("https://application/after_logout"));
   }};
 
   @Inject @Rule public InProcessResteasy resteasy;
@@ -149,7 +151,7 @@ public class LogoutPageTest {
     );
     Response response = resteasy.getClient().target(UriBuilder.fromResource(LogoutPage.class))
         .queryParam("id_token_hint", idToken)
-        .queryParam("post_logout_redirect_uri", "http://example.com")
+        .queryParam("post_logout_redirect_uri", serviceProvider.getPost_logout_redirect_uris().get(0))
         .request()
         .get();
 
@@ -159,7 +161,38 @@ public class LogoutPageTest {
     }
     assertLogoutPage(response)
         .contains(serviceProvider.getName().get(Locale.ROOT))
-        .matches(hiddenInput("continue", "http://example.com"));
+        .matches(hiddenInput("continue", serviceProvider.getPost_logout_redirect_uris().get(0)));
+
+    verify(tokenRepository, never()).revokeToken(sidToken.getId());
+  }
+
+  @Test public void testGet_loggedIn_withIdTokenHintAndBadPostLogoutRedirectUri(TokenRepository tokenRepository,
+      OpenIdConnectModule.Settings settings, JsonFactory jsonFactory) throws Throwable {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+    String idToken = IdToken.signUsingRsaSha256(settings.keyPair.getPrivate(), jsonFactory,
+        new IdToken.Header()
+            .setType("JWS")
+            .setAlgorithm("RS256")
+            .setKeyId(KeysEndpoint.JSONWEBKEY_PK_ID),
+        new IdToken.Payload()
+            .setIssuer(InProcessResteasy.BASE_URI.toString())
+            .setSubject(sidToken.getAccountId())
+            .setAudience(serviceProvider.getId())
+    );
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(LogoutPage.class))
+        .queryParam("id_token_hint", idToken)
+        .queryParam("post_logout_redirect_uri", "https://unregistered")
+        .request()
+        .get();
+
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
+    if (response.getCookies().containsKey(UserFilter.COOKIE_NAME)) {
+      assertThat(response.getCookies().get(UserFilter.COOKIE_NAME).getExpiry()).isInTheFuture();
+    }
+    assertLogoutPage(response)
+        .contains(serviceProvider.getName().get(Locale.ROOT))
+        .doesNotMatch(hiddenInput("continue", "https://unregistered"));
 
     verify(tokenRepository, never()).revokeToken(sidToken.getId());
   }
@@ -212,12 +245,37 @@ public class LogoutPageTest {
     );
     Response response = resteasy.getClient().target(UriBuilder.fromResource(LogoutPage.class))
         .queryParam("id_token_hint", idToken)
-        .queryParam("post_logout_redirect_uri", "http://example.com")
+        .queryParam("post_logout_redirect_uri", serviceProvider.getPost_logout_redirect_uris().get(0))
         .request()
         .get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
-    assertThat(response.getLocation()).isEqualTo(URI.create("http://example.com"));
+    assertThat(response.getLocation()).isEqualTo(URI.create(serviceProvider.getPost_logout_redirect_uris().get(0)));
+    if (response.getCookies().containsKey(UserFilter.COOKIE_NAME)) {
+      assertThat(response.getCookies().get(UserFilter.COOKIE_NAME).getExpiry()).isInTheFuture();
+    }
+  }
+
+  @Test public void testGet_notLoggedIn_withIdTokenHintAndBadPostLogoutRedirectUri(
+      OpenIdConnectModule.Settings settings, JsonFactory jsonFactory) throws Throwable {
+    String idToken = IdToken.signUsingRsaSha256(settings.keyPair.getPrivate(), jsonFactory,
+        new IdToken.Header()
+            .setType("JWS")
+            .setAlgorithm("RS256")
+            .setKeyId(KeysEndpoint.JSONWEBKEY_PK_ID),
+        new IdToken.Payload()
+            .setIssuer(InProcessResteasy.BASE_URI.toString())
+            .setSubject(sidToken.getAccountId())
+            .setAudience(serviceProvider.getId())
+    );
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(LogoutPage.class))
+        .queryParam("id_token_hint", idToken)
+        .queryParam("post_logout_redirect_uri", "https://unregistered")
+        .request()
+        .get();
+
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
+    assertThat(response.getLocation()).isNotEqualTo(URI.create("https://unregistered"));
     if (response.getCookies().containsKey(UserFilter.COOKIE_NAME)) {
       assertThat(response.getCookies().get(UserFilter.COOKIE_NAME).getExpiry()).isInTheFuture();
     }

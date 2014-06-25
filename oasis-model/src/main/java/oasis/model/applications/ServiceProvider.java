@@ -29,6 +29,10 @@ public class ServiceProvider {
   @ApiModelProperty
   private List<String> redirect_uris = new ArrayList<>();
 
+  @JsonProperty
+  @ApiModelProperty
+  private List<String> post_logout_redirect_uris = new ArrayList<>();
+
   public ServiceProvider() {
   }
 
@@ -72,5 +76,13 @@ public class ServiceProvider {
 
   public void setRedirect_uris(List<String> redirect_uris) {
     this.redirect_uris = new ArrayList<>(redirect_uris);
+  }
+
+  public List<String> getPost_logout_redirect_uris() {
+    return Collections.unmodifiableList(post_logout_redirect_uris);
+  }
+
+  public void setPost_logout_redirect_uris(List<String> post_logout_redirect_uris) {
+    this.post_logout_redirect_uris = new ArrayList<>(post_logout_redirect_uris);
   }
 }
