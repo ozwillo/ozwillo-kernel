@@ -31,9 +31,10 @@ import oasis.model.applications.ApplicationRepository;
 import oasis.model.applications.Subscription;
 import oasis.model.applications.SubscriptionRepository;
 import oasis.services.etag.EtagService;
-import oasis.web.utils.ResponseFactory;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.Client;
+import oasis.web.providers.JacksonJsonProvider;
+import oasis.web.utils.ResponseFactory;
 
 @Authenticated
 @Client
@@ -62,7 +63,9 @@ public class EventBusEndpoint {
       // TODO: better eventbus system
       // TODO: compute signature rather than sending the secret
       try {
-        ClientBuilder.newClient().target(subscription.getWebHook()).request()
+        ClientBuilder.newClient()
+            .register(JacksonJsonProvider.class)
+            .target(subscription.getWebHook()).request()
             .header(SECRET_HEADER, subscription.getSecret())
             .async().post(Entity.json(event), new InvocationCallback<Object>() {
               @Override
