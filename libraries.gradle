@@ -36,11 +36,11 @@ ext.libs = [
     ],
 
   resteasy_netty:      [
-      dependencies.create("org.jboss.resteasy:resteasy-netty4:$resteasyVersion") {
+      dependencies.create("org.jboss.resteasy:resteasy-netty:$resteasyVersion") {
         exclude module: 'slf4j-simple'
         exclude module: 'resteasy-jackson2-provider'
       },
-      'io.netty:netty-all:4.0.19.Final',
+      'io.netty:netty:3.9.2.Final',
     ],
 
   resteasy_client:     "org.jboss.resteasy:resteasy-client:$resteasyVersion",
