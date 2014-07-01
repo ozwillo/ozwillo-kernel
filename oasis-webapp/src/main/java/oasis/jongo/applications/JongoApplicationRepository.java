@@ -3,6 +3,7 @@ package oasis.jongo.applications;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -21,6 +22,7 @@ import oasis.model.applications.Application;
 import oasis.model.applications.ApplicationRepository;
 import oasis.model.applications.DataProvider;
 import oasis.model.applications.ServiceProvider;
+import oasis.model.i18n.LocalizableString;
 
 public class JongoApplicationRepository implements ApplicationRepository {
   private static final Logger logger = LoggerFactory.getLogger(ApplicationRepository.class);
@@ -90,9 +92,11 @@ public class JongoApplicationRepository implements ApplicationRepository {
     StringBuilder updateObject = new StringBuilder("modified:#");
     updateParameters.add(System.currentTimeMillis());
 
-    if (app.getName() != null) {
+    // FIXME: how should we handle localized names? (e.g. removing a translation)
+    final String name = app.getName().get(Locale.ROOT);
+    if (name != null) {
       updateObject.append(",name:#");
-      updateParameters.add(app.getName());
+      updateParameters.add(name);
     }
 
     if (app.getIconUri() != null) {
@@ -185,9 +189,11 @@ public class JongoApplicationRepository implements ApplicationRepository {
     StringBuilder updateObject = new StringBuilder("dataProviders.$.modified:#");
     updateParameters.add(System.currentTimeMillis());
 
-    if (dataProvider.getName() != null) {
+    // FIXME: how should we handle localized names? (e.g. removing a translation)
+    final String name = dataProvider.getName().get(Locale.ROOT);
+    if (name != null) {
       updateObject.append(",dataProviders.$.name:#");
-      updateParameters.add(dataProvider.getName());
+      updateParameters.add(name);
     }
 
     if (dataProvider.getScopeIds() != null) {
@@ -286,9 +292,11 @@ public class JongoApplicationRepository implements ApplicationRepository {
     StringBuilder updateObject = new StringBuilder("serviceProvider.modified:#");
     updateParameters.add(System.currentTimeMillis());
 
-    if (serviceProvider.getName() != null) {
+    // FIXME: how should we handle localized names? (e.g. removing a translation)
+    final String name = serviceProvider.getName().get(Locale.ROOT);
+    if (name != null) {
       updateObject.append(",serviceProvider.name:#");
-      updateParameters.add(serviceProvider.getName());
+      updateParameters.add(name);
     }
 
     if (serviceProvider.getScopeCardinalities() != null) {
