@@ -50,22 +50,23 @@ public class InProcessClientHttpEngine implements ClientHttpEngine {
   private MockHttpRequest createRequest(ClientInvocation request) {
     MockHttpRequest mockRequest = MockHttpRequest.create(request.getMethod(), request.getUri(), baseUri);
 
+  if (request.getEntity() != null) {
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    request.getDelegatingOutputStream().setDelegate(baos);
+    try {
+      request.writeRequestBody(request.getEntityStream());
+      baos.close();
+    } catch (IOException ioe) {
+      throw new RuntimeException(ioe);
+    }
+    mockRequest.setInputStream(new ByteArrayInputStream(baos.toByteArray()));
+  }
+
     MultivaluedMap<String, String> requestHeaders = request.getHeaders().asMap();
     mockRequest.getMutableHeaders().putAll(requestHeaders);
     Map<String, Cookie> cookies = extractCookies(requestHeaders);
     mockRequest.setCookies(cookies);
 
-    if (request.getEntity() != null) {
-      ByteArrayOutputStream baos = new ByteArrayOutputStream();
-      request.getDelegatingOutputStream().setDelegate(baos);
-      try {
-        request.writeRequestBody(request.getEntityStream());
-        baos.close();
-      } catch (IOException ioe) {
-        throw new RuntimeException(ioe);
-      }
-      mockRequest.setInputStream(new ByteArrayInputStream(baos.toByteArray()));
-    }
     return mockRequest;
   }
 
