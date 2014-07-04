@@ -34,6 +34,7 @@ import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
 import oasis.model.i18n.LocalizableString;
 import oasis.openidconnect.OpenIdConnectModule;
+import oasis.openidconnect.RedirectUri;
 import oasis.security.KeyPairLoader;
 import oasis.web.authn.testing.TestUserFilter;
 import oasis.web.authz.KeysEndpoint;
@@ -152,6 +153,7 @@ public class LogoutPageTest {
     Response response = resteasy.getClient().target(UriBuilder.fromResource(LogoutPage.class))
         .queryParam("id_token_hint", idToken)
         .queryParam("post_logout_redirect_uri", serviceProvider.getPost_logout_redirect_uris().get(0))
+        .queryParam("state", "some+state")
         .request()
         .get();
 
@@ -161,7 +163,9 @@ public class LogoutPageTest {
     }
     assertLogoutPage(response)
         .contains(serviceProvider.getName().get(Locale.ROOT))
-        .matches(hiddenInput("continue", serviceProvider.getPost_logout_redirect_uris().get(0)));
+        .matches(hiddenInput("continue", new RedirectUri(serviceProvider.getPost_logout_redirect_uris().get(0))
+            .setState("some+state")
+            .toString()));
 
     verify(tokenRepository, never()).revokeToken(sidToken.getId());
   }
