@@ -35,6 +35,7 @@ import oasis.web.authn.Authenticated;
 import oasis.web.authn.Client;
 import oasis.web.providers.JacksonJsonProvider;
 import oasis.web.utils.ResponseFactory;
+import oasis.web.webhooks.WebhookSignatureFilter;
 
 @Authenticated
 @Client
@@ -65,6 +66,7 @@ public class EventBusEndpoint {
       try {
         ClientBuilder.newClient()
             .register(JacksonJsonProvider.class)
+            .register(new WebhookSignatureFilter(subscription.getSecret()))
             .target(subscription.getWebHook()).request()
             .header(SECRET_HEADER, subscription.getSecret())
             .async().post(Entity.json(event), new InvocationCallback<Object>() {
