@@ -160,7 +160,7 @@ public class AuthorizationEndpointTest {
 
     when(tokenHandler.generateRandom()).thenReturn("pass");
     when(tokenHandler.createAuthorizationCode(eq(sidToken), anySetOf(String.class), eq(serviceProvider.getId()),
-        anyString(), eq("https://application/callback"), anyBoolean(), anyString())).thenReturn(authorizationCode);
+        anyString(), eq("https://application/callback"), anyString())).thenReturn(authorizationCode);
   }
 
   @Before public void setUp() {
@@ -194,7 +194,7 @@ public class AuthorizationEndpointTest {
     assertRedirectToApplication(response);
 
     verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(openidScope.getId()), serviceProvider.getId(), null,
-        "https://application/callback", false, "pass");
+        "https://application/callback", "pass");
   }
 
   @Test public void testPromptUser() {
@@ -460,7 +460,7 @@ public class AuthorizationEndpointTest {
     assertRedirectToApplication(response);
 
     verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(openidScope.getId()), serviceProvider.getId(), null,
-        "https://application/callback", false, "pass");
+        "https://application/callback", "pass");
   }
 
   @Test public void testRequestParam() {
@@ -627,7 +627,7 @@ public class AuthorizationEndpointTest {
     assertRedirectToApplication(response);
 
     verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(openidScope.getId()), serviceProvider.getId(), null,
-        "https://application/callback", true, "pass");
+        "https://application/callback", "pass");
   }
 
   private void assertRedirectToApplication(Response response) {

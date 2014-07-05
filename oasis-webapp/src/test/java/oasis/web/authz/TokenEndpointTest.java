@@ -85,29 +85,18 @@ public class TokenEndpointTest {
     setAccountId("account");
     setCreationTime(now.minus(Duration.standardHours(1)));
     expiresIn(Duration.standardHours(2));
-    setServiceProviderId("sp");
-    setScopeIds(ImmutableSet.of("dp1s1", "dp1s3", "dp3s1"));
-    setRedirectUri("http://sp.example.com/callback");
-    setNonce("nonce");
-    setShouldSendAuthTime(false);
-  }};
-  static final AuthorizationCode validAuthCodeShouldSendAuthTime = new AuthorizationCode() {{
-    setId("validAuthCodeShouldSendAuthTime");
-    setAccountId("account");
-    setCreationTime(now.minus(Duration.standardHours(1)));
-    expiresIn(Duration.standardHours(2));
-    setServiceProviderId("sp");
-    setScopeIds(ImmutableSet.of("dp1s1", "dp1s3", "dp3s1"));
-    setRedirectUri("http://sp.example.com/callback");
-    setNonce("nonce");
     setParent(sidToken);
-    setShouldSendAuthTime(true);
+    setServiceProviderId("sp");
+    setScopeIds(ImmutableSet.of("dp1s1", "dp1s3", "dp3s1"));
+    setRedirectUri("http://sp.example.com/callback");
+    setNonce("nonce");
   }};
   static final AuthorizationCode validAuthCodeWithOfflineAccess = new AuthorizationCode() {{
     setId("validAuthCodeWithOfflineAccess");
     setAccountId("account");
     setCreationTime(now.minus(Duration.standardHours(1)));
     expiresIn(Duration.standardHours(2));
+    setParent(sidToken);
     setServiceProviderId("sp");
     setScopeIds(ImmutableSet.of("offline_access", "dp1s1", "dp1s3", "dp3s1"));
     setRedirectUri("http://sp.example.com/callback");
@@ -119,6 +108,7 @@ public class TokenEndpointTest {
     setAccountId("account");
     setCreationTime(now);
     expiresIn(Duration.standardDays(1));
+    setParent(validAuthCode);
     setServiceProviderId(validAuthCode.getServiceProviderId());
     setScopeIds(validAuthCode.getScopeIds());
   }};
@@ -127,7 +117,8 @@ public class TokenEndpointTest {
     setAccountId("account");
     setCreationTime(now);
     expiresIn(Duration.standardDays(100));
-    setServiceProviderId(validAuthCode.getServiceProviderId());
+    setParent(validAuthCodeWithOfflineAccess);
+    setServiceProviderId(validAuthCodeWithOfflineAccess.getServiceProviderId());
     setScopeIds(validAuthCodeWithOfflineAccess.getScopeIds());
   }};
   static final AccessToken accessTokenWithOfflineAccess = new AccessToken() {{
@@ -135,6 +126,7 @@ public class TokenEndpointTest {
     setAccountId("account");
     setCreationTime(now);
     expiresIn(Duration.standardDays(1));
+    setParent(refreshToken);
     setServiceProviderId(refreshToken.getServiceProviderId());
     setScopeIds(refreshToken.getScopeIds());
   }};
@@ -143,6 +135,7 @@ public class TokenEndpointTest {
     setAccountId("account");
     setCreationTime(tomorrow);
     expiresIn(Duration.standardDays(1));
+    setParent(refreshToken);
     setServiceProviderId(refreshToken.getServiceProviderId());
     setScopeIds(ImmutableSet.of("dp1s1", "dp3s1"));
   }};
@@ -153,14 +146,12 @@ public class TokenEndpointTest {
     when(tokenHandler.generateRandom()).thenReturn("pass");
 
     when(tokenHandler.getCheckedToken("valid", AuthorizationCode.class)).thenReturn(validAuthCode);
-    when(tokenHandler.getCheckedToken("auth_time", AuthorizationCode.class)).thenReturn(validAuthCodeShouldSendAuthTime);
     when(tokenHandler.getCheckedToken("offline", AuthorizationCode.class)).thenReturn(validAuthCodeWithOfflineAccess);
     when(tokenHandler.getCheckedToken("invalid", AuthorizationCode.class)).thenReturn(null);
     when(tokenHandler.getCheckedToken("valid", RefreshToken.class)).thenReturn(refreshToken);
     when(tokenHandler.getCheckedToken("invalid", RefreshToken.class)).thenReturn(null);
 
     when(tokenHandler.createAccessToken(validAuthCode, "pass")).thenReturn(accessToken);
-    when(tokenHandler.createAccessToken(validAuthCodeShouldSendAuthTime, "pass")).thenReturn(accessToken);
     when(tokenHandler.createRefreshToken(validAuthCodeWithOfflineAccess, "pass")).thenReturn(refreshToken);
     when(tokenHandler.createAccessToken(refreshToken, refreshToken.getScopeIds(), "pass")).thenReturn(accessTokenWithOfflineAccess);
     when(tokenHandler.createAccessToken(refreshToken, refreshedAccessToken.getScopeIds(), "pass"))
@@ -266,36 +257,6 @@ public class TokenEndpointTest {
 
     // when
     Response resp = authCode("valid", validAuthCode.getRedirectUri());
-
-    // then
-    assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.OK);
-    IdTokenResponse response = jsonFactory.fromInputStream(resp.readEntity(InputStream.class), StandardCharsets.UTF_8, IdTokenResponse.class);
-    assertThat(response.getTokenType()).isEqualTo("Bearer");
-    assertThat(response.getScope().split(" ")).containsOnly("dp1s1", "dp1s3", "dp3s1");
-    assertThat(response.getExpiresInSeconds())
-        .isEqualTo(new Duration(new Instant(clock.currentTimeMillis()), accessToken.getExpirationTime()).getStandardSeconds());
-    assertThat(response.getAccessToken()).isEqualTo(TokenSerializer.serialize(accessToken, "pass"));
-    assertThat(response.getRefreshToken()).isNullOrEmpty();
-
-    IdToken idToken = response.parseIdToken();
-    assertThat(idToken.verifySignature(settings.keyPair.getPublic())).isTrue();
-
-    IdToken.Payload payload = idToken.getPayload();
-    assertThat(payload.getIssuer()).isEqualTo(InProcessResteasy.BASE_URI.toString());
-    assertThat(payload.getSubject()).isEqualTo("account");
-    assertThat(payload.getAudience()).isEqualTo("sp");
-    assertThat(payload.getIssuedAtTimeSeconds()).isEqualTo(TimeUnit.MILLISECONDS.toSeconds(clock.currentTimeMillis()));
-    assertThat(payload.getExpirationTimeSeconds()).isEqualTo(payload.getIssuedAtTimeSeconds() + settings.idTokenDuration.getStandardSeconds());
-    assertThat(payload.getNonce()).isEqualTo("nonce");
-    assertThat(payload.getAuthorizationTimeSeconds()).isNull();
-  }
-
-  @Test public void testValidAuthCodeShouldSendAuthTime(JsonFactory jsonFactory, OpenIdConnectModule.Settings settings, Clock clock) throws Throwable {
-    // given
-    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter("sp"));
-
-    // when
-    Response resp = authCode("auth_time", validAuthCodeShouldSendAuthTime.getRedirectUri());
 
     // then
     assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.OK);

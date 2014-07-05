@@ -205,13 +205,12 @@ public class TokenEndpoint {
     String access_token = TokenSerializer.serialize(accessToken, pass);
 
     long issuedAt = TimeUnit.MILLISECONDS.toSeconds(clock.currentTimeMillis());
+    // Unconditionally send auth_time, as per https://tools.ietf.org/html/draft-hunt-oauth-v2-user-a4c
     Long authTime = null;
-    if (authorizationCode.shouldSendAuthTime()) {
-      Token token = tokenRepository.getToken(Iterables.getLast(authorizationCode.getAncestorIds()));
-      if (token instanceof SidToken) {
-        authTime = TimeUnit.MILLISECONDS.toSeconds(((SidToken) token).getAuthenticationTime().getMillis());
-      }
-    }
+    Token token = tokenRepository.getToken(Iterables.getLast(authorizationCode.getAncestorIds()));
+    if (token instanceof SidToken) {
+      authTime = TimeUnit.MILLISECONDS.toSeconds(((SidToken) token).getAuthenticationTime().getMillis());
+    } // TODO: else, log error/warning
 
     response.setAccessToken(access_token);
     response.setTokenType("Bearer");

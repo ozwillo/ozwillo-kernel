@@ -92,7 +92,7 @@ public class TokenHandler {
   }
 
   public AuthorizationCode createAuthorizationCode(SidToken sidToken, Set<String> scopeIds, String serviceProviderId,
-      @Nullable String nonce, String redirectUri, boolean shouldSendAuthTime, String pass) {
+      @Nullable String nonce, String redirectUri, String pass) {
     AuthorizationCode authorizationCode = new AuthorizationCode();
     authorizationCode.setAccountId(sidToken.getAccountId());
     // A AuthorizationCode is available only for 1 minute
@@ -101,7 +101,6 @@ public class TokenHandler {
     authorizationCode.setServiceProviderId(serviceProviderId);
     authorizationCode.setNonce(nonce);
     authorizationCode.setRedirectUri(redirectUri);
-    authorizationCode.setShouldSendAuthTime(shouldSendAuthTime);
     if (!scopeIds.contains("offline_access")) {
       authorizationCode.setParent(sidToken);
     }

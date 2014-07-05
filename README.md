@@ -39,6 +39,7 @@ Other standards not implemented by the OASIS Kernel but under consideration (i.e
 
 * [OpenID Connect Dynamic Client Registration 1.0](https://openid.net/specs/openid-connect-registration-1_0.html)
 * [OAuth 2.0 Resource Set Registration](https://tools.ietf.org/html/draft-hardjono-oauth-resource-reg)
+* [Providing User Authentication Information to OAuth 2.0 Clients](http://tools.ietf.org/html/draft-hunt-oauth-v2-user-a4c)
 
 ### Application catalog
 

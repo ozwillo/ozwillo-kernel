@@ -174,7 +174,6 @@ public class AuthorizationEndpoint {
     validateIdTokenHint(uriInfo, sidToken, id_token_hint);
 
     final String max_age = getParameter("max_age");
-    final boolean shouldSendAuthTime;
     if (max_age != null) {
       final long maxAge;
       try {
@@ -185,9 +184,6 @@ public class AuthorizationEndpoint {
       if (sidToken.getAuthenticationTime().plus(TimeUnit.SECONDS.toMillis(maxAge)).isBefore(clock.currentTimeMillis())) {
         return redirectToLogin(uriInfo, prompt);
       }
-      shouldSendAuthTime = true;
-    } else {
-      shouldSendAuthTime = false;
     }
 
     final String nonce = getParameter("nonce");
@@ -195,13 +191,13 @@ public class AuthorizationEndpoint {
     Set<String> authorizedScopeIds = getAuthorizedScopeIds(serviceProvider.getId(), sidToken.getAccountId());
     if (authorizedScopeIds.containsAll(scopeIds) && !prompt.consent) {
       // User already authorized all claimed scopes, let it be a "transparent" redirect
-      return generateAuthorizationCodeAndRedirect(sidToken, scopeIds, serviceProvider.getId(), nonce, redirect_uri, shouldSendAuthTime);
+      return generateAuthorizationCodeAndRedirect(sidToken, scopeIds, serviceProvider.getId(), nonce, redirect_uri);
     }
 
     if (!prompt.interactive) {
       throw error("consent_required", null);
     }
-    return promptUser(serviceProvider, scopeIds, authorizedScopeIds, redirect_uri, state, nonce, shouldSendAuthTime);
+    return promptUser(serviceProvider, scopeIds, authorizedScopeIds, redirect_uri, state, nonce);
   }
 
   @POST
@@ -214,8 +210,7 @@ public class AuthorizationEndpoint {
       @FormParam("client_id") String client_id,
       @FormParam("redirect_uri") String redirect_uri,
       @Nullable @FormParam("state") String state,
-      @Nullable @FormParam("nonce") String nonce,
-      @FormParam("send_auth_time") @DefaultValue("false") boolean shouldSendAuthTime
+      @Nullable @FormParam("nonce") String nonce
   ) {
     // TODO: check CSRF / XSS (check data hasn't been tampered since generation of the form, so we can skip some validations we had already done)
 
@@ -225,7 +220,7 @@ public class AuthorizationEndpoint {
 
     authorizationRepository.authorize(sidToken.getAccountId(), client_id, selectedScopeIds);
 
-    return generateAuthorizationCodeAndRedirect(sidToken, scopeIds, client_id, nonce, redirect_uri, shouldSendAuthTime);
+    return generateAuthorizationCodeAndRedirect(sidToken, scopeIds, client_id, nonce, redirect_uri);
   }
 
   private Response redirectToLogin(UriInfo uriInfo, Prompt prompt) {
@@ -245,9 +240,9 @@ public class AuthorizationEndpoint {
   }
 
   private Response generateAuthorizationCodeAndRedirect(SidToken sidToken, Set<String> scopeIds, String client_id,
-      @Nullable String nonce, String redirect_uri, boolean shouldSendAuthTime) {
+      @Nullable String nonce, String redirect_uri) {
     String pass = tokenHandler.generateRandom();
-    AuthorizationCode authCode = tokenHandler.createAuthorizationCode(sidToken, scopeIds, client_id, nonce, redirect_uri, shouldSendAuthTime, pass);
+    AuthorizationCode authCode = tokenHandler.createAuthorizationCode(sidToken, scopeIds, client_id, nonce, redirect_uri, pass);
 
     String auth_code = TokenSerializer.serialize(authCode, pass);
 
@@ -260,7 +255,7 @@ public class AuthorizationEndpoint {
   }
 
   private Response promptUser(ServiceProvider serviceProvider, Set<String> requiredScopeIds, Set<String> authorizedScopeIds,
-      String redirect_uri, @Nullable String state, @Nullable String nonce, boolean shouldSendAuthTime) {
+      String redirect_uri, @Nullable String state, @Nullable String nonce) {
     Set<String> globalClaimedScopeIds = Sets.newHashSet();
     Iterable<ScopeCardinality> scopeCardinalities = serviceProvider.getScopeCardinalities();
     if (scopeCardinalities != null) {
@@ -326,7 +321,6 @@ public class AuthorizationEndpoint {
                 "parameters", ImmutableMap.of(
                     "redirect_uri", redirect_uri,
                     "scope", requiredScopeIds,
-                    "send_auth_time", shouldSendAuthTime,
                     "state", Strings.nullToEmpty(state),
                     "nonce", Strings.nullToEmpty(nonce)
                 ),
