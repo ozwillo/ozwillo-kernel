@@ -1,11 +1,16 @@
-#
-#SERVER_HOME="@oasis.home@"
+#SERVICE_USER=@oasis.user@
 
 #
-#SERVER_USER="@oasis.user@"
+#SERVICE_GROUP=@oasis.group@
 
 #
-#SERVER_NAME="@oasis.desc@"
+#CONF_DIR="/etc/@oasis.service@"
 
 #
-#SERVER_GROUP="@oasis.group@"
+#LOG_DIR="/var/log/@oasis.service@"
+
+#
+#EXTRA_ARGS=""
+
+#
+#JAVA_OPTS=""
