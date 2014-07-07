@@ -35,6 +35,7 @@ import oasis.web.providers.UriParamConverterProvider;
 import oasis.web.security.SecureFilter;
 import oasis.web.security.StrictRefererFilter;
 import oasis.web.social.SocialEndpoint;
+import oasis.web.status.StatusEndpoint;
 import oasis.web.userdirectory.UserDirectoryEndpoint;
 import oasis.web.userinfo.UserInfoEndpoint;
 import oasis.web.view.HandlebarsBodyWriter;
@@ -55,6 +56,8 @@ public class Application extends javax.ws.rs.core.Application {
         ApiListingResourceJSON.class,
         SwaggerUI.class,
         ApiDeclarationProvider.class, // Note: this is our own implementation
+        // Status
+        StatusEndpoint.class,
         // Authentication
         UserFilter.class,
         UserAuthenticationFilter.class,
