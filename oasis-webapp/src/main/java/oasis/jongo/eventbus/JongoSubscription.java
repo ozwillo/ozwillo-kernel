@@ -1,11 +1,11 @@
-package oasis.jongo.applications;
+package oasis.jongo.eventbus;
 
 import javax.annotation.Nonnull;
 
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import oasis.jongo.etag.HasModified;
-import oasis.model.applications.Subscription;
+import oasis.model.eventbus.Subscription;
 
 @JsonRootName("subscription")
 public class JongoSubscription extends Subscription implements HasModified {

@@ -1,4 +1,4 @@
-package oasis.model.applications;
+package oasis.model.eventbus;
 
 import oasis.model.InvalidVersionException;
 

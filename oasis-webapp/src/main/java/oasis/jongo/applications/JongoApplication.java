@@ -9,10 +9,11 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 import com.google.common.collect.ImmutableList;
 
 import oasis.jongo.etag.HasModified;
+import oasis.jongo.eventbus.JongoSubscription;
 import oasis.model.applications.Application;
 
 @JsonRootName("application")
-class JongoApplication extends Application implements HasModified {
+public class JongoApplication extends Application implements HasModified {
 
   @JsonProperty
   private ImmutableList<JongoDataProvider> dataProviders = ImmutableList.of();

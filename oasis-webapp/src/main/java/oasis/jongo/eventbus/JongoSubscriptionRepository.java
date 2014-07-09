@@ -1,4 +1,4 @@
-package oasis.jongo.applications;
+package oasis.jongo.eventbus;
 
 import javax.inject.Inject;
 
@@ -11,9 +11,10 @@ import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.mongodb.WriteResult;
 
+import oasis.jongo.applications.JongoApplication;
 import oasis.model.InvalidVersionException;
-import oasis.model.applications.Subscription;
-import oasis.model.applications.SubscriptionRepository;
+import oasis.model.eventbus.Subscription;
+import oasis.model.eventbus.SubscriptionRepository;
 
 public class JongoSubscriptionRepository implements SubscriptionRepository {
 

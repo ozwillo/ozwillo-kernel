@@ -28,8 +28,8 @@ import com.wordnik.swagger.annotations.ApiParam;
 
 import oasis.model.InvalidVersionException;
 import oasis.model.applications.ApplicationRepository;
-import oasis.model.applications.Subscription;
-import oasis.model.applications.SubscriptionRepository;
+import oasis.model.eventbus.Subscription;
+import oasis.model.eventbus.SubscriptionRepository;
 import oasis.services.etag.EtagService;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.Client;
