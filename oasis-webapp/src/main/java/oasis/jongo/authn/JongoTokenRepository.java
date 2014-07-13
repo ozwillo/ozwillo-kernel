@@ -11,12 +11,13 @@ import org.jongo.MongoCollection;
 import com.google.common.base.Strings;
 import com.mongodb.WriteResult;
 
+import oasis.jongo.JongoBootstrapper;
 import oasis.model.accounts.Account;
 import oasis.model.authn.Token;
 import oasis.model.authn.TokenRepository;
 import oasis.openidconnect.OpenIdConnectModule;
 
-public class JongoTokenRepository implements TokenRepository {
+public class JongoTokenRepository implements TokenRepository, JongoBootstrapper {
   private final Jongo jongo;
   private final OpenIdConnectModule.Settings settings;
 
@@ -86,5 +87,10 @@ public class JongoTokenRepository implements TokenRepository {
         .with("{ $set: { tokens.$.authenticationTime: # } }", authenticationTime.getMillis());
 
     return writeResult.getN() == 1;
+  }
+
+  @Override
+  public void bootstrap() {
+    getAccountCollection().ensureIndex("{ tokens.id: 1 }", "{ unique: 1, sparse: 1 }");
   }
 }

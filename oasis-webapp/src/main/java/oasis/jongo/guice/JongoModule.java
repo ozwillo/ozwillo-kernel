@@ -1,11 +1,15 @@
 package oasis.jongo.guice;
 
+import static com.google.inject.multibindings.Multibinder.*;
+
 import org.jongo.Jongo;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.multibindings.Multibinder;
 import com.mongodb.MongoClientURI;
 import com.typesafe.config.Config;
 
+import oasis.jongo.JongoBootstrapper;
 import oasis.jongo.JongoService;
 import oasis.jongo.accounts.JongoAccountRepository;
 import oasis.jongo.applications.JongoApplicationRepository;
@@ -88,5 +92,16 @@ public class JongoModule extends AbstractModule {
     bind(SubscriptionRepository.class).to(JongoSubscriptionRepository.class);
     bind(CredentialsRepository.class).to(JongoCredentialsRepository.class);
     bind(EtagService.class).to(JongoEtagService.class);
+
+    Multibinder<JongoBootstrapper> bootstrappers = newSetBinder(binder(), JongoBootstrapper.class);
+    bootstrappers.addBinding().to(JongoAccountRepository.class);
+    bootstrappers.addBinding().to(JongoIdentityRepository.class);
+    bootstrappers.addBinding().to(JongoDirectoryRepository.class);
+    bootstrappers.addBinding().to(JongoNotificationRepository.class);
+    bootstrappers.addBinding().to(JongoApplicationRepository.class);
+    bootstrappers.addBinding().to(JongoAuthorizationRepository.class);
+    bootstrappers.addBinding().to(JongoTokenRepository.class);
+    bootstrappers.addBinding().to(JongoSubscriptionRepository.class);
+    bootstrappers.addBinding().to(JongoCredentialsRepository.class);
   }
 }

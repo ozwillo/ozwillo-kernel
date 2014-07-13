@@ -17,6 +17,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.mongodb.WriteResult;
 
+import oasis.jongo.JongoBootstrapper;
 import oasis.model.InvalidVersionException;
 import oasis.model.applications.Application;
 import oasis.model.applications.ApplicationRepository;
@@ -24,7 +25,7 @@ import oasis.model.applications.DataProvider;
 import oasis.model.applications.ServiceProvider;
 import oasis.model.i18n.LocalizableString;
 
-public class JongoApplicationRepository implements ApplicationRepository {
+public class JongoApplicationRepository implements ApplicationRepository, JongoBootstrapper {
   private static final Logger logger = LoggerFactory.getLogger(ApplicationRepository.class);
 
   public static final String APPLICATION_PROJECTION = "{dataProviders:0, serviceProvider:0, subscriptions:0}";
@@ -384,5 +385,12 @@ public class JongoApplicationRepository implements ApplicationRepository {
         return input;
       }
     });
+  }
+
+  @Override
+  public void bootstrap() {
+    getApplicationsCollection().ensureIndex("{ id: 1 }", "{ unique: 1 }");
+    getApplicationsCollection().ensureIndex("{ serviceProvider.id: 1 }", "{ unique: 1, sparse: 1 }");
+    getApplicationsCollection().ensureIndex("{ dataProviders.id: 1 }", "{ unique: 1, sparse: 1 }");
   }
 }

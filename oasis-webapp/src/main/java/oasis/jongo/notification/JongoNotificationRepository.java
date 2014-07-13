@@ -11,10 +11,11 @@ import org.slf4j.LoggerFactory;
 
 import com.mongodb.WriteResult;
 
+import oasis.jongo.JongoBootstrapper;
 import oasis.model.notification.Notification;
 import oasis.model.notification.NotificationRepository;
 
-public class JongoNotificationRepository implements NotificationRepository {
+public class JongoNotificationRepository implements NotificationRepository, JongoBootstrapper {
 
   private static final Logger logger = LoggerFactory.getLogger(NotificationRepository.class);
 
@@ -89,4 +90,9 @@ public class JongoNotificationRepository implements NotificationRepository {
         .with("{ $set: { status: # } }", status);
   }
 
+  @Override
+  public void bootstrap() {
+    getNotificationCollection().ensureIndex("{ id: 1 }", "{ unique: 1 }");
+    // TODO: add indexes for all other accesses
+  }
 }

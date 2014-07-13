@@ -9,11 +9,12 @@ import org.slf4j.LoggerFactory;
 
 import com.mongodb.WriteResult;
 
+import oasis.jongo.JongoBootstrapper;
 import oasis.model.InvalidVersionException;
 import oasis.model.eventbus.Subscription;
 import oasis.model.eventbus.SubscriptionRepository;
 
-public class JongoSubscriptionRepository implements SubscriptionRepository {
+public class JongoSubscriptionRepository implements SubscriptionRepository, JongoBootstrapper {
 
   private static final Logger logger = LoggerFactory.getLogger(SubscriptionRepository.class);
 
@@ -67,6 +68,12 @@ public class JongoSubscriptionRepository implements SubscriptionRepository {
     return getSubscriptionsCollection()
         .find("{ eventType: # }", eventType)
         .as(Subscription.class);
+  }
+
+  @Override
+  public void bootstrap() {
+    getSubscriptionsCollection().ensureIndex("{ id: 1 }", "{ unique: 1 }");
+    getSubscriptionsCollection().ensureIndex("{ eventType: 1 }");
   }
 
   private MongoCollection getSubscriptionsCollection() {

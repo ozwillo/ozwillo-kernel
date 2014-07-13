@@ -9,11 +9,12 @@ import org.jongo.ResultHandler;
 import com.google.common.io.BaseEncoding;
 import com.mongodb.DBObject;
 
+import oasis.jongo.JongoBootstrapper;
 import oasis.model.authn.ClientType;
 import oasis.model.authn.Credentials;
 import oasis.model.authn.CredentialsRepository;
 
-public class JongoCredentialsRepository implements CredentialsRepository {
+public class JongoCredentialsRepository implements CredentialsRepository, JongoBootstrapper {
   private final Jongo jongo;
 
   @Inject
@@ -37,5 +38,10 @@ public class JongoCredentialsRepository implements CredentialsRepository {
   @Override
   public Credentials getCredentials(ClientType type, String id) {
     return getCredentialsCollection().findOne("{ clientType:#, id:# }", type, id).as(Credentials.class);
+  }
+
+  @Override
+  public void bootstrap() {
+    getCredentialsCollection().ensureIndex("{ clientType: 1, id: 1 }", "{ unique: 1 }");
   }
 }

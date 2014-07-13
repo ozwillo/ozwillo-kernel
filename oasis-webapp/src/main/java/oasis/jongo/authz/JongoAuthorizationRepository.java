@@ -13,13 +13,14 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.mongodb.WriteResult;
 
+import oasis.jongo.JongoBootstrapper;
 import oasis.jongo.applications.JongoScope;
 import oasis.model.accounts.Account;
 import oasis.model.applications.Scope;
 import oasis.model.authz.AuthorizationRepository;
 import oasis.model.authz.AuthorizedScopes;
 
-public class JongoAuthorizationRepository implements AuthorizationRepository {
+public class JongoAuthorizationRepository implements AuthorizationRepository, JongoBootstrapper {
   private static final Logger logger = LoggerFactory.getLogger(JongoAuthorizationRepository.class);
 
   private final Jongo jongo;
@@ -100,5 +101,11 @@ public class JongoAuthorizationRepository implements AuthorizationRepository {
 
   private MongoCollection getScopesCollection() {
     return jongo.getCollection("scopes");
+  }
+
+  @Override
+  public void bootstrap() {
+    getAccountCollection().ensureIndex("{ id: 1, authorizedScopes.serviceProviderId: 1 }", "{ sparse: 1 }");
+    getScopesCollection().ensureIndex("{ id: 1 }", "{ unique: 1 }");
   }
 }

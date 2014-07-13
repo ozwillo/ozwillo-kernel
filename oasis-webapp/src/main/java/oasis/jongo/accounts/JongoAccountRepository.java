@@ -9,13 +9,14 @@ import org.slf4j.LoggerFactory;
 
 import com.mongodb.WriteResult;
 
+import oasis.jongo.JongoBootstrapper;
 import oasis.model.InvalidVersionException;
 import oasis.model.accounts.Account;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.AgentAccount;
 import oasis.model.accounts.UserAccount;
 
-public class JongoAccountRepository implements AccountRepository {
+public class JongoAccountRepository implements AccountRepository, JongoBootstrapper {
   private static final Logger logger = LoggerFactory.getLogger(JongoAccountRepository.class);
 
   private final Jongo jongo;
@@ -122,6 +123,12 @@ public class JongoAccountRepository implements AccountRepository {
     } else if (writeResult.getN() < 1) {
       logger.error("The account {} doesn't exist.", accountId);
     }
+  }
+
+  @Override
+  public void bootstrap() {
+    getAccountCollection().ensureIndex("{ id : 1 }", "{ unique: 1 }");
+    getAccountCollection().ensureIndex("{ emailAddress : 1 }", "{ unique: 1, sparse: 1 }");
   }
 }
 

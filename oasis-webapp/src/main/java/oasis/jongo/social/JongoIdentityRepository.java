@@ -18,11 +18,12 @@ import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.mongodb.WriteResult;
 
+import oasis.jongo.JongoBootstrapper;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.social.Identity;
 import oasis.model.social.IdentityRepository;
 
-public class JongoIdentityRepository implements IdentityRepository {
+public class JongoIdentityRepository implements IdentityRepository, JongoBootstrapper {
   private static final Logger logger = LoggerFactory.getLogger(DirectoryRepository.class);
   private static final Function<JongoRelation, String> RELATION_TYPE_TRANSFORMER = new Function<JongoRelation, String>() {
     @Nullable
@@ -210,8 +211,13 @@ public class JongoIdentityRepository implements IdentityRepository {
     return res;
   }
 
+  @Override
+  public void bootstrap() {
+    getIdentityCollection().ensureIndex("{ id: 1 }", "{ unique: 1 }");
+    // XXX: we'd need to add other indexes but we'll refactor everything soon so wwe don't bother
+  }
+
   private MongoCollection getIdentityCollection() {
     return jongo.getCollection("identity");
   }
-
 }

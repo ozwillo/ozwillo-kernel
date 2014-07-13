@@ -18,12 +18,13 @@ import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
 import com.mongodb.WriteResult;
 
+import oasis.jongo.JongoBootstrapper;
 import oasis.model.InvalidVersionException;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Group;
 import oasis.model.directory.Organization;
 
-public class JongoDirectoryRepository implements DirectoryRepository {
+public class JongoDirectoryRepository implements DirectoryRepository, JongoBootstrapper {
   private static final Logger logger = LoggerFactory.getLogger(DirectoryRepository.class);
 
   public static final String ORGANIZATION_PROJECTION = "{ groups: 0 }";
@@ -274,5 +275,11 @@ public class JongoDirectoryRepository implements DirectoryRepository {
 
   private MongoCollection getOrganizationCollection() {
     return jongo.getCollection("organization");
+  }
+
+  @Override
+  public void bootstrap() {
+    getOrganizationCollection().ensureIndex("{ id: 1 }", "{ unique: 1 }");
+    // XXX: we'd need indexes for groups and agents, but we'll refactor everything soon so we don't bother
   }
 }

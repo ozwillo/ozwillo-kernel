@@ -27,7 +27,10 @@ ext.libs = [
       exclude module: 'httpclient'
     },
 
-  guice:               "com.google.inject:guice:$guiceVersion",
+  guice:               [
+      "com.google.inject:guice:$guiceVersion",
+      "com.google.inject.extensions:guice-multibindings:$guiceVersion",
+    ],
 
   jongo:               [
       'org.jongo:jongo:1.1-early-20140221-1732',
