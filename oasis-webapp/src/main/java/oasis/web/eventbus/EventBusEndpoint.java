@@ -43,7 +43,6 @@ import oasis.web.webhooks.WebhookSignatureFilter;
 @Api(value = "/e", description = "EventBus API")
 public class EventBusEndpoint {
   private static final Logger logger = LoggerFactory.getLogger(EventBusEndpoint.class);
-  private static final String SECRET_HEADER = "X-Webhook-Secret";
 
   @Inject SubscriptionRepository subscriptionRepository;
   @Inject ApplicationRepository applicationRepository;
@@ -52,9 +51,7 @@ public class EventBusEndpoint {
   @POST
   @Path("/publish")
   @Consumes(MediaType.APPLICATION_JSON)
-  @ApiOperation(value = "Publish a typed event into the event bus.",
-      notes = "The header '" + SECRET_HEADER + "' contains the secret defined by the application for this subscription." +
-          "This will be replaced by a response signature.")
+  @ApiOperation(value = "Publish a typed event into the event bus.")
   public Response publish(
       final Event event
   ) {
@@ -62,13 +59,11 @@ public class EventBusEndpoint {
       final String webhook = subscription.getWebHook();
 
       // TODO: better eventbus system
-      // TODO: compute signature rather than sending the secret
       try {
         ClientBuilder.newClient()
             .register(JacksonJsonProvider.class)
             .register(new WebhookSignatureFilter(subscription.getSecret()))
-            .target(subscription.getWebHook()).request()
-            .header(SECRET_HEADER, subscription.getSecret())
+            .target(webhook).request()
             .async().post(Entity.json(event), new InvocationCallback<Object>() {
               @Override
               public void completed(Object o) {
