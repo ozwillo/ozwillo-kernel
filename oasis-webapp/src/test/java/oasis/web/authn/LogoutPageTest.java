@@ -52,6 +52,7 @@ public class LogoutPageTest {
 
       bind(OpenIdConnectModule.Settings.class).toInstance(OpenIdConnectModule.Settings.builder()
           .setKeyPair(KeyPairLoader.generateRandomKeyPair())
+          .setLandingPage(URI.create("https://oasis/landing-page"))
           .build());
     }
   }
@@ -77,11 +78,11 @@ public class LogoutPageTest {
     resteasy.getDeployment().getRegistry().addPerRequestResource(LogoutPage.class);
     resteasy.getDeployment().getProviderFactory().register(HandlebarsBodyWriter.class);
   }
-  @Test public void testLegacyGet_notLoggedIn_noContinueUrl() {
+  @Test public void testGet_notLoggedIn_noParam(OpenIdConnectModule.Settings settings) {
     Response response = resteasy.getClient().target(UriBuilder.fromResource(LogoutPage.class)).request().get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
-    assertThat(response.getLocation()).isEqualTo(LoginPage.defaultContinueUrl(UriBuilder.fromUri(InProcessResteasy.BASE_URI)));
+    assertThat(response.getLocation()).isEqualTo(settings.landingPage);
     if (response.getCookies().containsKey(UserFilter.COOKIE_NAME)) {
       assertThat(response.getCookies().get(UserFilter.COOKIE_NAME).getExpiry()).isInThePast();
     }
@@ -192,7 +193,7 @@ public class LogoutPageTest {
     verify(tokenRepository, never()).revokeToken(sidToken.getId());
   }
 
-  @Test public void testGet_notLoggedIn_noIdTokenHint() {
+  @Test public void testGet_notLoggedIn_noIdTokenHint(OpenIdConnectModule.Settings settings) {
     Response response = resteasy.getClient().target(UriBuilder.fromResource(LogoutPage.class))
         .queryParam("post_logout_redirect_uri", "http://www.google.com")
         .request()
@@ -200,7 +201,7 @@ public class LogoutPageTest {
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
     // post_logout_redirect_url should not be used
-    assertThat(response.getLocation()).isEqualTo(LoginPage.defaultContinueUrl(UriBuilder.fromUri(InProcessResteasy.BASE_URI)));
+    assertThat(response.getLocation()).isEqualTo(settings.landingPage);
     if (response.getCookies().containsKey(UserFilter.COOKIE_NAME)) {
       assertThat(response.getCookies().get(UserFilter.COOKIE_NAME).getExpiry()).isInTheFuture();
     }

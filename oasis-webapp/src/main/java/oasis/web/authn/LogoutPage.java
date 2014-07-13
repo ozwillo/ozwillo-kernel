@@ -104,7 +104,7 @@ public class LogoutPage {
 
   private Response redirectTo(@Nullable URI continueUrl) {
     if (continueUrl == null) {
-      continueUrl = LoginPage.defaultContinueUrl(uriInfo);
+      continueUrl = LoginPage.defaultContinueUrl(settings.landingPage, uriInfo);
     }
     return Response.seeOther(continueUrl).build();
   }
@@ -158,7 +158,7 @@ public class LogoutPage {
   @StrictReferer
   public Response post(@FormParam("continue") URI continueUrl) {
     if (continueUrl == null) {
-      continueUrl = LoginPage.defaultContinueUrl(uriInfo);
+      continueUrl = LoginPage.defaultContinueUrl(settings.landingPage, uriInfo);
     }
 
     final SidToken sidToken = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken();

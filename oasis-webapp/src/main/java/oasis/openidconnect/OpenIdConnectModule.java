@@ -1,9 +1,12 @@
 package oasis.openidconnect;
 
+import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyPair;
 import java.util.concurrent.TimeUnit;
+
+import javax.annotation.Nullable;
 
 import org.joda.time.Duration;
 
@@ -30,12 +33,18 @@ public class OpenIdConnectModule extends AbstractModule {
         publicKeyPath = confDir.resolve(config.getString("oasis.openid-connect.public-key-path"));
       }
 
+      URI landingPage = null;
+      if (config.hasPath("oasis.openid-connect.landing-page")) {
+        landingPage = URI.create(config.getString("oasis.openid-connect.landing-page"));
+      }
+
       return Settings.builder()
           .setKeyPair(KeyPairLoader.loadOrGenerateKeyPair(privateKeyPath, publicKeyPath))
           .setAccessTokenDuration(Duration.millis(config.getDuration("oasis.oauth.access-token-duration", TimeUnit.MILLISECONDS)))
           .setIdTokenDuration(Duration.millis(config.getDuration("oasis.openid-connect.id-token-duration", TimeUnit.MILLISECONDS)))
           .setSidTokenDuration(Duration.millis(config.getDuration("oasis.session.max-idle-timeout", TimeUnit.MILLISECONDS)))
           .setDisableRedirectUriValidation(config.getBoolean("oasis.openid-connect.disable-redirect-uri-validation"))
+          .setLandingPage(landingPage)
           .build();
     }
 
@@ -46,6 +55,7 @@ public class OpenIdConnectModule extends AbstractModule {
       private Duration idTokenDuration;
       private Duration sidTokenDuration;
       private boolean disableRedirectUriValidation;
+      private @Nullable URI landingPage;
 
       public Settings build() {
         return new Settings(this);
@@ -75,6 +85,11 @@ public class OpenIdConnectModule extends AbstractModule {
         this.disableRedirectUriValidation = disableRedirectUriValidation;
         return this;
       }
+
+      public Builder setLandingPage(@Nullable URI landingPage) {
+        this.landingPage = landingPage;
+        return this;
+      }
     }
 
     public final KeyPair keyPair;
@@ -82,6 +97,7 @@ public class OpenIdConnectModule extends AbstractModule {
     public final Duration idTokenDuration;
     public final Duration sidTokenDuration;
     public final boolean disableRedirectUriValidation;
+    public final @Nullable URI landingPage;
 
     private Settings(Builder builder) {
       this.keyPair = builder.keyPair;
@@ -89,6 +105,7 @@ public class OpenIdConnectModule extends AbstractModule {
       this.idTokenDuration = builder.idTokenDuration;
       this.sidTokenDuration = builder.sidTokenDuration;
       this.disableRedirectUriValidation = builder.disableRedirectUriValidation;
+      this.landingPage = builder.landingPage;
     }
   }
 

@@ -35,6 +35,7 @@ import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
+import oasis.openidconnect.OpenIdConnectModule;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.services.authn.UserPasswordAuthenticator;
@@ -58,6 +59,7 @@ public class LoginPage {
   @Inject AccountRepository accountRepository;
   @Inject AuditLogService auditLogService;
   @Inject UserAgentFingerprinter fingerprinter;
+  @Inject OpenIdConnectModule.Settings settings;
 
   @Context SecurityContext securityContext;
   @Context UriInfo uriInfo;
@@ -172,15 +174,14 @@ public class LoginPage {
   }
 
   private URI defaultContinueUrl() {
-    return defaultContinueUrl(uriInfo);
+    return defaultContinueUrl(settings.landingPage, uriInfo);
   }
 
-  static URI defaultContinueUrl(UriInfo uriInfo) {
-    return defaultContinueUrl(uriInfo.getBaseUriBuilder());
-  }
-
-  @VisibleForTesting static URI defaultContinueUrl(UriBuilder baseUriBuilder) {
-    return baseUriBuilder.path(StaticResources.class).path(StaticResources.class, "home").build();
+  static URI defaultContinueUrl(URI landingPage, UriInfo uriInfo) {
+    if (landingPage != null) {
+      return landingPage;
+    }
+    return uriInfo.getBaseUriBuilder().path(StaticResources.class).path(StaticResources.class, "home").build();
   }
 
   private void log(String userName, LoginLogEvent.LoginResult loginResult) {
