@@ -77,41 +77,11 @@ public class LogoutPageTest {
     resteasy.getDeployment().getRegistry().addPerRequestResource(LogoutPage.class);
     resteasy.getDeployment().getProviderFactory().register(HandlebarsBodyWriter.class);
   }
-
-  @Test public void testLegacyGet_loggedIn_withContinueUrl(TokenRepository tokenRepository) {
-    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
-
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(LogoutPage.class))
-        .queryParam(LoginPage.CONTINUE_PARAM, "http://www.google.com")
-        .request()
-        .get();
-
-    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
-    assertThat(response.getLocation()).isEqualTo(URI.create("http://www.google.com"));
-    assertThat(response.getCookies()).containsKey(UserFilter.COOKIE_NAME);
-    assertThat(response.getCookies().get(UserFilter.COOKIE_NAME).getExpiry()).isInThePast();
-
-    verify(tokenRepository).revokeToken(sidToken.getId());
-  }
-
   @Test public void testLegacyGet_notLoggedIn_noContinueUrl() {
     Response response = resteasy.getClient().target(UriBuilder.fromResource(LogoutPage.class)).request().get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
     assertThat(response.getLocation()).isEqualTo(LoginPage.defaultContinueUrl(UriBuilder.fromUri(InProcessResteasy.BASE_URI)));
-    if (response.getCookies().containsKey(UserFilter.COOKIE_NAME)) {
-      assertThat(response.getCookies().get(UserFilter.COOKIE_NAME).getExpiry()).isInThePast();
-    }
-  }
-
-  @Test public void testLegacyGet_notLoggedIn_withContinueUrl() {
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(LogoutPage.class))
-        .queryParam(LoginPage.CONTINUE_PARAM, "http://www.google.com")
-        .request()
-        .get();
-
-    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
-    assertThat(response.getLocation()).isEqualTo(URI.create("http://www.google.com"));
     if (response.getCookies().containsKey(UserFilter.COOKIE_NAME)) {
       assertThat(response.getCookies().get(UserFilter.COOKIE_NAME).getExpiry()).isInThePast();
     }

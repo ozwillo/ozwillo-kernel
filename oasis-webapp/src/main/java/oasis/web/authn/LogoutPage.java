@@ -57,16 +57,7 @@ public class LogoutPage {
   public Response get(
       @Nullable @QueryParam("id_token_hint") String id_token_hint,
       @Nullable @QueryParam("post_logout_redirect_uri") String post_logout_redirect_uri,
-      @Nullable @QueryParam("state") String state,
-      @Nullable @QueryParam(LoginPage.CONTINUE_PARAM) URI continueUrl) {
-    // legacy: if OIDC Session is not used, then possibly use continueUrl
-    // FIXME: remove this, as it can be used as an open redirector, and log the user out with CSRF
-    if (id_token_hint == null && post_logout_redirect_uri == null && continueUrl != null) {
-      return (securityContext.getUserPrincipal() != null)
-          ? post(continueUrl)
-          : redirectTo(continueUrl);
-    }
-
+      @Nullable @QueryParam("state") String state) {
     final SidToken sidToken = (securityContext.getUserPrincipal() != null)
         ? ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken()
         : null;
