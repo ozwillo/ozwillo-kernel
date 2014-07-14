@@ -2,7 +2,6 @@ package oasis.web.authn;
 
 import java.net.URI;
 import java.security.PublicKey;
-import java.util.List;
 import java.util.Locale;
 
 import javax.annotation.Nullable;
@@ -29,12 +28,14 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 
-import oasis.model.applications.ApplicationRepository;
-import oasis.model.applications.ServiceProvider;
+import oasis.model.applications.v2.AppInstance;
+import oasis.model.applications.v2.Service;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
 import oasis.openidconnect.OpenIdConnectModule;
 import oasis.openidconnect.RedirectUri;
+import oasis.services.applications.AppInstanceService;
+import oasis.services.applications.ServiceService;
 import oasis.services.cookies.CookieFactory;
 import oasis.web.security.StrictReferer;
 import oasis.web.view.View;
@@ -50,7 +51,8 @@ public class LogoutPage {
   @Inject TokenRepository tokenRepository;
   @Inject OpenIdConnectModule.Settings settings;
   @Inject JsonFactory jsonFactory;
-  @Inject ApplicationRepository applicationRepository;
+  @Inject AppInstanceService appInstanceService;
+  @Inject ServiceService serviceService;
 
   @GET
   @Produces(MediaType.TEXT_HTML)
@@ -63,17 +65,31 @@ public class LogoutPage {
         : null;
 
     final IdToken.Payload idTokenHint = parseIdTokenHint(id_token_hint, sidToken);
-    final ServiceProvider serviceProvider;
+    post_logout_redirect_uri = Strings.emptyToNull(post_logout_redirect_uri);
 
+    final AppInstance appInstance;
     if (idTokenHint != null) {
       final String client_id = idTokenHint.getAudienceAsList().get(0);
-      serviceProvider = applicationRepository.getServiceProvider(client_id);
+      appInstance = appInstanceService.getAppInstance(client_id);
     } else {
-      serviceProvider = null;
+      appInstance = null;
     }
 
-    if (serviceProvider == null || !isValidPostLogoutRedirectUri(post_logout_redirect_uri, serviceProvider.getPost_logout_redirect_uris())) {
+    final Service service;
+    if (appInstance != null && post_logout_redirect_uri != null) {
+      service = serviceService.getServiceByPostLogoutRedirectUri(appInstance.getId(), post_logout_redirect_uri);
+      if (service == null && !settings.disableRedirectUriValidation) {
+        // don't act as an open redirector!
+        post_logout_redirect_uri = null;
+      }
+    } else {
+      service = null;
       // don't act as an open redirector!
+      post_logout_redirect_uri = null;
+    }
+
+    // Note: validate the URI even if it's in the whitelist, just in case. You can never be too careful.
+    if (post_logout_redirect_uri != null && !RedirectUri.isValid(post_logout_redirect_uri)) {
       post_logout_redirect_uri = null;
     }
 
@@ -93,10 +109,18 @@ public class LogoutPage {
     if (post_logout_redirect_uri != null) {
       viewModel.put("continue", post_logout_redirect_uri);
     }
-    if (serviceProvider != null) {
+    if (appInstance != null) {
       viewModel.put("app", ImmutableMap.of(
           // TODO: I18N
-          "name", serviceProvider.getName().get(Locale.ROOT)
+          "name", appInstance.getName().get(Locale.ROOT)
+      ));
+    }
+    // FIXME: services don't all have a service_uri for now so we need to workaround it.
+    if (service != null && !Strings.isNullOrEmpty(service.getService_uri())) {
+      viewModel.put("service", ImmutableMap.of(
+          // TODO: I18N
+          "name", service.getName().get(Locale.ROOT),
+          "url", service.getService_uri()
       ));
     }
     return Response.ok(new View(LogoutPage.class, "Logout.html", viewModel.build())).build();
@@ -144,13 +168,6 @@ public class LogoutPage {
     } catch (Throwable t) {
       return null;
     }
-  }
-
-  private boolean isValidPostLogoutRedirectUri(String post_logout_redirect_uri, List<String> validRedirectUris) {
-    return !Strings.isNullOrEmpty(post_logout_redirect_uri)
-        && (settings.disableRedirectUriValidation || validRedirectUris.contains(post_logout_redirect_uri))
-        // Note: validate the URI even if it's in the whitelist, just in case. You can never be too careful.
-        && RedirectUri.isValid(post_logout_redirect_uri);
   }
 
   @POST

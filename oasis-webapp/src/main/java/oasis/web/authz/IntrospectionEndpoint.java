@@ -16,17 +16,19 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
+import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Sets;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
-import oasis.model.authn.AccessToken;
 import oasis.model.accounts.Account;
 import oasis.model.accounts.AccountRepository;
-import oasis.model.applications.ApplicationRepository;
-import oasis.model.applications.DataProvider;
+import oasis.model.applications.v2.Scope;
+import oasis.model.applications.v2.ScopeRepository;
+import oasis.model.authn.AccessToken;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authz.GroupService;
 import oasis.web.authn.Authenticated;
@@ -42,7 +44,7 @@ public class IntrospectionEndpoint {
   @Context SecurityContext securityContext;
   @Inject TokenHandler tokenHandler;
   @Inject AccountRepository accountRepository;
-  @Inject ApplicationRepository applicationRepository;
+  @Inject ScopeRepository scopeRepository;
   @Inject GroupService groupService;
 
   @POST
@@ -54,11 +56,6 @@ public class IntrospectionEndpoint {
       response = IntrospectionResponse.class
   )
   public Response post(@FormParam("token") String token) throws IOException {
-    DataProvider dataProvider = applicationRepository.getDataProvider(((ClientPrincipal) securityContext.getUserPrincipal()).getClientId());
-    if (dataProvider == null) {
-      return Response.status(Response.Status.FORBIDDEN)
-          .build();
-    }
     if (Strings.isNullOrEmpty(token)) {
       return error();
     }
@@ -75,9 +72,17 @@ public class IntrospectionEndpoint {
     long issuedAtTime = accessToken.getCreationTime().getMillis();
     long expireAt = accessToken.getExpirationTime().getMillis();
 
-    Set<String> scopeIds = Sets.newHashSet(accessToken.getScopeIds());
-    // Remove all scopes which don't belong to the data provider
-    scopeIds.retainAll(dataProvider.getScopeIds());
+    final Set<String> scopeIds = Sets.newHashSet(accessToken.getScopeIds());
+    // Remove all scopes which don't belong to the application instance
+    String client_id = ((ClientPrincipal) securityContext.getUserPrincipal()).getClientId();
+    scopeIds.retainAll(FluentIterable.from(scopeRepository.getScopesOfAppInstance(client_id))
+        .transform(new Function<Scope, String>() {
+          @Override
+          public String apply(Scope scope) {
+            return scope.getId();
+          }
+        })
+        .toList());
 
     if (scopeIds.isEmpty()) {
       return error();

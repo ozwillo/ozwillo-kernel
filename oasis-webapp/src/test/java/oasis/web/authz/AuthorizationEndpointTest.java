@@ -8,6 +8,8 @@ import static org.mockito.Mockito.eq;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -37,14 +39,16 @@ import com.google.api.client.json.webtoken.JsonWebSignature;
 import com.google.api.client.testing.http.FixedClock;
 import com.google.api.client.util.Clock;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Provides;
 
 import oasis.http.testing.InProcessResteasy;
-import oasis.model.applications.ApplicationRepository;
-import oasis.model.applications.Scope;
-import oasis.model.applications.ServiceProvider;
+import oasis.model.applications.v2.AppInstance;
+import oasis.model.applications.v2.Scope;
+import oasis.model.applications.v2.ScopeRepository;
+import oasis.model.applications.v2.Service;
 import oasis.model.authn.AuthorizationCode;
 import oasis.model.authn.SidToken;
 import oasis.model.authz.AuthorizationRepository;
@@ -52,6 +56,8 @@ import oasis.model.authz.AuthorizedScopes;
 import oasis.model.i18n.LocalizableString;
 import oasis.openidconnect.OpenIdConnectModule;
 import oasis.security.KeyPairLoader;
+import oasis.services.applications.AppInstanceService;
+import oasis.services.applications.ServiceService;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.web.authn.LoginPage;
@@ -69,6 +75,8 @@ public class AuthorizationEndpointTest {
       bind(JsonFactory.class).to(JacksonFactory.class);
       bind(Clock.class).to(FixedClock.class);
 
+      bindMock(AppInstanceService.class).in(TestSingleton.class);
+      bindMock(ServiceService.class).in(TestSingleton.class);
       bindMock(TokenHandler.class).in(TestSingleton.class);
 
       bindManyNamedInstances(String.class, "bad redirect_uri",
@@ -97,25 +105,32 @@ public class AuthorizationEndpointTest {
     setAuthenticationTime(now.minus(Duration.standardHours(1)));
   }};
 
-  private static final ServiceProvider serviceProvider = new ServiceProvider() {{
+  private static final AppInstance appInstance = new AppInstance() {{
+    setId("appInstance");
+    setName(new LocalizableString("Test Application Instance"));
+  }};
+
+  private static final Service service = new Service() {{
     setId("application");
     setName(new LocalizableString("Application"));
-    setRedirect_uris(Arrays.asList("https://application/callback"));
+    setRedirect_uris(Collections.singleton("https://application/callback"));
   }};
 
   // NOTE: scopes are supposed to have a title and description, we're indirectly
   // testing our resistance to missing data here by not setting them.
   private static final Scope openidScope = new Scope() {{
-    setId("openid");
+    setLocal_id("openid");
   }};
   private static final Scope authorizedScope = new Scope() {{
-    setId("authorized");
+    setInstance_id("other-app");
+    setLocal_id("authorized");
   }};
   private static final Scope unauthorizedScope = new Scope() {{
-    setId("unauthorized");
+    setInstance_id("other-app");
+    setLocal_id("unauthorized");
   }};
   private static final Scope offlineAccessScope = new Scope() {{
-    setId("offline_access");
+    setLocal_id("offline_access");
   }};
 
   private static final AuthorizationCode authorizationCode = new AuthorizationCode() {{
@@ -128,13 +143,15 @@ public class AuthorizationEndpointTest {
   @Inject @Rule public InProcessResteasy resteasy;
 
   @Before public void setUpMocks(AuthorizationRepository authorizationRepository,
-      ApplicationRepository applicationRepository, TokenHandler tokenHandler) {
-    when(applicationRepository.getServiceProvider(serviceProvider.getId())).thenReturn(serviceProvider);
+      AppInstanceService appInstanceService, ServiceService serviceService,
+      ScopeRepository scopeRepository, TokenHandler tokenHandler) {
+    when(appInstanceService.getAppInstance(appInstance.getId())).thenReturn(appInstance);
+    when(serviceService.getServiceByRedirectUri(appInstance.getId(), Iterables.getOnlyElement(service.getRedirect_uris()))).thenReturn(service);
 
-    when(authorizationRepository.getScopes(anySetOf(String.class))).thenAnswer(new Answer<Iterable<Scope>>() {
+    when(scopeRepository.getScopes(anyCollectionOf(String.class))).thenAnswer(new Answer<Iterable<Scope>>() {
       @Override
       public Iterable<Scope> answer(InvocationOnMock invocation) throws Throwable {
-        Set<?> scopeIds = Sets.newHashSet((Set<?>) invocation.getArguments()[0]);
+        Collection<?> scopeIds = Sets.newHashSet((Collection<?>) invocation.getArguments()[0]);
         ArrayList<Scope> ret = new ArrayList<>(3);
         for (Scope scope : Arrays.asList(openidScope, authorizedScope, unauthorizedScope, offlineAccessScope)) {
           if (scopeIds.remove(scope.getId())) {
@@ -148,19 +165,19 @@ public class AuthorizationEndpointTest {
         return ret;
       }
     });
-    when(authorizationRepository.getScopes(Sets.newHashSet(openidScope.getId())))
+    when(scopeRepository.getScopes(Sets.newHashSet(openidScope.getId())))
         .thenReturn(singletonList(openidScope));
-    when(authorizationRepository.getScopes(Sets.newHashSet(openidScope.getId(), unauthorizedScope.getId())))
+    when(scopeRepository.getScopes(Sets.newHashSet(openidScope.getId(), unauthorizedScope.getId())))
         .thenReturn(singletonList(openidScope));
 
-    when(authorizationRepository.getAuthorizedScopes(sidToken.getAccountId(), serviceProvider.getId()))
+    when(authorizationRepository.getAuthorizedScopes(sidToken.getAccountId(), appInstance.getId()))
         .thenReturn(new AuthorizedScopes() {{
           setScopeIds(Sets.newHashSet(openidScope.getId(), authorizedScope.getId()));
         }});
 
     when(tokenHandler.generateRandom()).thenReturn("pass");
-    when(tokenHandler.createAuthorizationCode(eq(sidToken), anySetOf(String.class), eq(serviceProvider.getId()),
-        anyString(), eq("https://application/callback"), anyString())).thenReturn(authorizationCode);
+    when(tokenHandler.createAuthorizationCode(eq(sidToken), anySetOf(String.class), eq(appInstance.getId()),
+        anyString(), eq(Iterables.getOnlyElement(service.getRedirect_uris())), anyString())).thenReturn(authorizationCode);
   }
 
   @Before public void setUp() {
@@ -170,8 +187,8 @@ public class AuthorizationEndpointTest {
 
   @Test public void testNotLoggedIn() {
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
-        .queryParam("client_id", "application")
-        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", Iterables.getOnlyElement(service.getRedirect_uris()))
         .queryParam("state", "state")
         .queryParam("response_type", "code")
         .queryParam("scope", openidScope.getId())
@@ -184,8 +201,8 @@ public class AuthorizationEndpointTest {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
-        .queryParam("client_id", "application")
-        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", Iterables.getOnlyElement(service.getRedirect_uris()))
         .queryParam("state", "state")
         .queryParam("response_type", "code")
         .queryParam("scope", openidScope.getId())
@@ -193,16 +210,16 @@ public class AuthorizationEndpointTest {
 
     assertRedirectToApplication(response);
 
-    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(openidScope.getId()), serviceProvider.getId(), null,
-        "https://application/callback", "pass");
+    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(openidScope.getId()), appInstance.getId(), null,
+        Iterables.getOnlyElement(service.getRedirect_uris()), "pass");
   }
 
   @Test public void testPromptUser() {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
-        .queryParam("client_id", "application")
-        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", Iterables.getOnlyElement(service.getRedirect_uris()))
         .queryParam("state", "state")
         .queryParam("response_type", "code")
         .queryParam("scope", openidScope.getId() + " " + unauthorizedScope.getId())
@@ -219,8 +236,8 @@ public class AuthorizationEndpointTest {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
-        .queryParam("client_id", "application")
-        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", Iterables.getOnlyElement(service.getRedirect_uris()))
         .queryParam("state", "state")
         .queryParam("response_type", "code")
         .queryParam("scope", openidScope.getId())
@@ -235,8 +252,8 @@ public class AuthorizationEndpointTest {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
-        .queryParam("client_id", "application")
-        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", Iterables.getOnlyElement(service.getRedirect_uris()))
         .queryParam("state", "state")
         .queryParam("response_type", "code")
         .queryParam("scope", openidScope.getId())
@@ -249,8 +266,8 @@ public class AuthorizationEndpointTest {
   /** Same as {@link #testTransparentRedirection} except with {@code prompt=none} and no logged-in user. */
   @Test public void testPromptNone_loginRequired() {
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
-        .queryParam("client_id", "application")
-        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", Iterables.getOnlyElement(service.getRedirect_uris()))
         .queryParam("state", "state")
         .queryParam("response_type", "code")
         .queryParam("scope", openidScope.getId())
@@ -265,8 +282,8 @@ public class AuthorizationEndpointTest {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
-        .queryParam("client_id", "application")
-        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", Iterables.getOnlyElement(service.getRedirect_uris()))
         .queryParam("state", "state")
         .queryParam("response_type", "code")
         .queryParam("scope", openidScope.getId() + " " + unauthorizedScope.getId())
@@ -279,7 +296,7 @@ public class AuthorizationEndpointTest {
   @Test public void testUnknownClient() {
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
         .queryParam("client_id", "unknown")
-        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("redirect_uri", Iterables.getOnlyElement(service.getRedirect_uris()))
         .queryParam("state", "state")
         .queryParam("response_type", "code")
         .queryParam("scope", openidScope.getId())
@@ -291,7 +308,7 @@ public class AuthorizationEndpointTest {
 
   @Test public void testMissingClient() {
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
-        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("redirect_uri", Iterables.getOnlyElement(service.getRedirect_uris()))
         .queryParam("state", "state")
         .queryParam("response_type", "code")
         .queryParam("scope", openidScope.getId())
@@ -302,7 +319,7 @@ public class AuthorizationEndpointTest {
 
   @Test public void testBadRedirectUri(@All("bad redirect_uri") String redirectUri) {
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
-        .queryParam("client_id", "application")
+        .queryParam("client_id", appInstance.getId())
         .queryParam("redirect_uri", redirectUri)
         .queryParam("state", "state")
         .queryParam("response_type", "code")
@@ -314,7 +331,7 @@ public class AuthorizationEndpointTest {
 
   @Test public void testMissingRedirectUri() {
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
-        .queryParam("client_id", "application")
+        .queryParam("client_id", appInstance.getId())
         .queryParam("state", "state")
         .queryParam("response_type", "code")
         .queryParam("scope", openidScope.getId())
@@ -325,8 +342,8 @@ public class AuthorizationEndpointTest {
 
   @Test public void testBadResponseType() {
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
-        .queryParam("client_id", "application")
-        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", Iterables.getOnlyElement(service.getRedirect_uris()))
         .queryParam("state", "state")
         .queryParam("response_type", "foobar")
         .queryParam("scope", openidScope.getId())
@@ -337,8 +354,8 @@ public class AuthorizationEndpointTest {
 
   @Test public void testMissingResponseType() {
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
-        .queryParam("client_id", "application")
-        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", Iterables.getOnlyElement(service.getRedirect_uris()))
         .queryParam("state", "state")
         .queryParam("scope", openidScope.getId())
         .request().get();
@@ -351,8 +368,8 @@ public class AuthorizationEndpointTest {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
-        .queryParam("client_id", "application")
-        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", Iterables.getOnlyElement(service.getRedirect_uris()))
         .queryParam("state", "state")
         .queryParam("response_type", "code")
         .queryParam("response_mode", "query")
@@ -368,8 +385,8 @@ public class AuthorizationEndpointTest {
    */
   @Test public void testBadResponseMode() {
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
-        .queryParam("client_id", "application")
-        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", Iterables.getOnlyElement(service.getRedirect_uris()))
         .queryParam("state", "state")
         .queryParam("response_type", "code")
         .queryParam("response_mode", "fragment")
@@ -383,8 +400,8 @@ public class AuthorizationEndpointTest {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
-        .queryParam("client_id", "application")
-        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", Iterables.getOnlyElement(service.getRedirect_uris()))
         .queryParam("state", "state")
         .queryParam("response_type", "code")
         .queryParam("scope", openidScope.getId() + " unknown_scope")
@@ -397,8 +414,8 @@ public class AuthorizationEndpointTest {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
-        .queryParam("client_id", "application")
-        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", Iterables.getOnlyElement(service.getRedirect_uris()))
         .queryParam("state", "state")
         .queryParam("response_type", "code")
         .queryParam("scope", authorizedScope.getId())
@@ -411,8 +428,8 @@ public class AuthorizationEndpointTest {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
-        .queryParam("client_id", "application")
-        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", Iterables.getOnlyElement(service.getRedirect_uris()))
         .queryParam("state", "state")
         .queryParam("response_type", "code")
         .request().get();
@@ -422,8 +439,8 @@ public class AuthorizationEndpointTest {
 
   @Test public void testPromptNoneAndValue() {
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
-        .queryParam("client_id", "application")
-        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", Iterables.getOnlyElement(service.getRedirect_uris()))
         .queryParam("state", "state")
         .queryParam("response_type", "code")
         .queryParam("scope", openidScope.getId())
@@ -435,8 +452,8 @@ public class AuthorizationEndpointTest {
 
   @Test public void testUnknownPromptValue() {
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
-        .queryParam("client_id", "application")
-        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", Iterables.getOnlyElement(service.getRedirect_uris()))
         .queryParam("state", "state")
         .queryParam("response_type", "code")
         .queryParam("scope", openidScope.getId())
@@ -450,8 +467,8 @@ public class AuthorizationEndpointTest {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
-        .queryParam("client_id", "application")
-        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", Iterables.getOnlyElement(service.getRedirect_uris()))
         .queryParam("state", "state")
         .queryParam("response_type", "code")
         .queryParam("scope", openidScope.getId() + " " + offlineAccessScope.getId())
@@ -459,14 +476,14 @@ public class AuthorizationEndpointTest {
 
     assertRedirectToApplication(response);
 
-    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(openidScope.getId()), serviceProvider.getId(), null,
-        "https://application/callback", "pass");
+    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(openidScope.getId()), appInstance.getId(), null,
+        Iterables.getOnlyElement(service.getRedirect_uris()), "pass");
   }
 
   @Test public void testRequestParam() {
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
-        .queryParam("client_id", "application")
-        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", Iterables.getOnlyElement(service.getRedirect_uris()))
         .queryParam("state", "state")
         .queryParam("response_type", "code")
         .queryParam("scope", openidScope.getId())
@@ -478,8 +495,8 @@ public class AuthorizationEndpointTest {
 
   @Test public void testRequestUriParam() {
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
-        .queryParam("client_id", "application")
-        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", Iterables.getOnlyElement(service.getRedirect_uris()))
         .queryParam("state", "state")
         .queryParam("response_type", "code")
         .queryParam("scope", openidScope.getId())
@@ -493,8 +510,8 @@ public class AuthorizationEndpointTest {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
-        .queryParam("client_id", "application")
-        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", Iterables.getOnlyElement(service.getRedirect_uris()))
         .queryParam("state", "state")
         .queryParam("response_type", "code")
         .queryParam("scope", openidScope.getId())
@@ -515,8 +532,8 @@ public class AuthorizationEndpointTest {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
-        .queryParam("client_id", "application")
-        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", Iterables.getOnlyElement(service.getRedirect_uris()))
         .queryParam("state", "state")
         .queryParam("response_type", "code")
         .queryParam("scope", openidScope.getId())
@@ -530,8 +547,8 @@ public class AuthorizationEndpointTest {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
-        .queryParam("client_id", "application")
-        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", Iterables.getOnlyElement(service.getRedirect_uris()))
         .queryParam("state", "state")
         .queryParam("response_type", "code")
         .queryParam("scope", openidScope.getId())
@@ -553,8 +570,8 @@ public class AuthorizationEndpointTest {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
-        .queryParam("client_id", "application")
-        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", Iterables.getOnlyElement(service.getRedirect_uris()))
         .queryParam("state", "state")
         .queryParam("response_type", "code")
         .queryParam("scope", openidScope.getId())
@@ -576,8 +593,8 @@ public class AuthorizationEndpointTest {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
-        .queryParam("client_id", "application")
-        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", Iterables.getOnlyElement(service.getRedirect_uris()))
         .queryParam("state", "state")
         .queryParam("response_type", "code")
         .queryParam("scope", openidScope.getId())
@@ -600,8 +617,8 @@ public class AuthorizationEndpointTest {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
-        .queryParam("client_id", "application")
-        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", Iterables.getOnlyElement(service.getRedirect_uris()))
         .queryParam("state", "state")
         .queryParam("response_type", "code")
         .queryParam("scope", openidScope.getId())
@@ -616,8 +633,8 @@ public class AuthorizationEndpointTest {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
-        .queryParam("client_id", "application")
-        .queryParam("redirect_uri", "https://application/callback")
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", Iterables.getOnlyElement(service.getRedirect_uris()))
         .queryParam("state", "state")
         .queryParam("response_type", "code")
         .queryParam("scope", openidScope.getId())
@@ -626,14 +643,14 @@ public class AuthorizationEndpointTest {
 
     assertRedirectToApplication(response);
 
-    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(openidScope.getId()), serviceProvider.getId(), null,
-        "https://application/callback", "pass");
+    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(openidScope.getId()), appInstance.getId(), null,
+        Iterables.getOnlyElement(service.getRedirect_uris()), "pass");
   }
 
   private void assertRedirectToApplication(Response response) {
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
     UriInfo location = new ResteasyUriInfo(response.getLocation());
-    assertThat(location.getAbsolutePath()).isEqualTo(URI.create("https://application/callback"));
+    assertThat(location.getAbsolutePath()).isEqualTo(URI.create(Iterables.getOnlyElement(service.getRedirect_uris())));
     assertThat(location.getQueryParameters())
         .containsEntry("code", singletonList(TokenSerializer.serialize(authorizationCode, "pass")))
         .containsEntry("state", singletonList("state"));
@@ -647,8 +664,8 @@ public class AuthorizationEndpointTest {
     UriInfo continueUrl = new ResteasyUriInfo(URI.create(location.getQueryParameters().getFirst(LoginPage.CONTINUE_PARAM)));
     assertThat(continueUrl.getAbsolutePath()).isEqualTo(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class).build());
     assertThat(continueUrl.getQueryParameters())
-        .containsEntry("client_id", singletonList("application"))
-        .containsEntry("redirect_uri", singletonList("https://application/callback"))
+        .containsEntry("client_id", singletonList(appInstance.getId()))
+        .containsEntry("redirect_uri", singletonList(Iterables.getOnlyElement(service.getRedirect_uris())))
         .containsEntry("state", singletonList("state"))
         .containsEntry("response_type", singletonList("code"))
         .containsEntry("scope", singletonList(openidScope.getId()))
@@ -677,7 +694,7 @@ public class AuthorizationEndpointTest {
   }
 
   private void assertRedirectError(UriInfo location, String error, String errorDescription) {
-    assertThat(location.getAbsolutePath()).isEqualTo(URI.create("https://application/callback"));
+    assertThat(location.getAbsolutePath()).isEqualTo(URI.create(Iterables.getOnlyElement(service.getRedirect_uris())));
     assertThat(location.getQueryParameters())
         .containsEntry("error", singletonList(error))
         .containsEntry("state", singletonList("state"));

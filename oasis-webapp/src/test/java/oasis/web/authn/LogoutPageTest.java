@@ -24,18 +24,21 @@ import org.junit.runner.RunWith;
 import com.google.api.client.auth.openidconnect.IdToken;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.common.collect.Iterables;
 import com.google.common.html.HtmlEscapers;
 import com.google.inject.Inject;
 
 import oasis.http.testing.InProcessResteasy;
-import oasis.model.applications.ApplicationRepository;
-import oasis.model.applications.ServiceProvider;
+import oasis.model.applications.v2.AppInstance;
+import oasis.model.applications.v2.Service;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
 import oasis.model.i18n.LocalizableString;
 import oasis.openidconnect.OpenIdConnectModule;
 import oasis.openidconnect.RedirectUri;
 import oasis.security.KeyPairLoader;
+import oasis.services.applications.AppInstanceService;
+import oasis.services.applications.ServiceService;
 import oasis.web.authn.testing.TestUserFilter;
 import oasis.web.authz.KeysEndpoint;
 import oasis.web.view.HandlebarsBodyWriter;
@@ -62,16 +65,25 @@ public class LogoutPageTest {
     setAccountId("accountId");
   }};
 
-  private static final ServiceProvider serviceProvider = new ServiceProvider() {{
+  private static final AppInstance appInstance = new AppInstance() {{
+    setId("appInstance");
+    setName(new LocalizableString("Test Application Instance"));
+  }};
+
+  private static final Service service = new Service() {{
     setId("service provider");
-    setName(new LocalizableString("Test Service Provider"));
-    setPost_logout_redirect_uris(Collections.singletonList("https://application/after_logout"));
+    setInstance_id(appInstance.getId());
+    setName(new LocalizableString("Test Service"));
+    setService_uri("https://application/service");
+    setPost_logout_redirect_uris(Collections.singleton("https://application/after_logout"));
   }};
 
   @Inject @Rule public InProcessResteasy resteasy;
 
-  @Before public void setUpMocks(ApplicationRepository applicationRepository) {
-    when(applicationRepository.getServiceProvider(serviceProvider.getId())).thenReturn(serviceProvider);
+  @Before public void setUpMocks(AppInstanceService appInstanceService, ServiceService serviceService) {
+    when(appInstanceService.getAppInstance(appInstance.getId())).thenReturn(appInstance);
+    when(serviceService.getServiceByPostLogoutRedirectUri(appInstance.getId(), Iterables.getOnlyElement(service.getPost_logout_redirect_uris())))
+        .thenReturn(service);
   }
 
   @Before public void setUp() {
@@ -119,11 +131,11 @@ public class LogoutPageTest {
         new IdToken.Payload()
             .setIssuer(InProcessResteasy.BASE_URI.toString())
             .setSubject(sidToken.getAccountId())
-            .setAudience(serviceProvider.getId())
+            .setAudience(appInstance.getId())
     );
     Response response = resteasy.getClient().target(UriBuilder.fromResource(LogoutPage.class))
         .queryParam("id_token_hint", idToken)
-        .queryParam("post_logout_redirect_uri", serviceProvider.getPost_logout_redirect_uris().get(0))
+        .queryParam("post_logout_redirect_uri", Iterables.getOnlyElement(service.getPost_logout_redirect_uris()))
         .queryParam("state", "some+state")
         .request()
         .get();
@@ -133,8 +145,10 @@ public class LogoutPageTest {
       assertThat(response.getCookies().get(UserFilter.COOKIE_NAME).getExpiry()).isInTheFuture();
     }
     assertLogoutPage(response)
-        .contains(serviceProvider.getName().get(Locale.ROOT))
-        .matches(hiddenInput("continue", new RedirectUri(serviceProvider.getPost_logout_redirect_uris().get(0))
+        .contains(service.getName().get(Locale.ROOT))
+        .contains(service.getName().get(Locale.ROOT))
+        .contains(service.getService_uri())
+        .matches(hiddenInput("continue", new RedirectUri(Iterables.getOnlyElement(service.getPost_logout_redirect_uris()))
             .setState("some+state")
             .toString()));
 
@@ -153,7 +167,7 @@ public class LogoutPageTest {
         new IdToken.Payload()
             .setIssuer(InProcessResteasy.BASE_URI.toString())
             .setSubject(sidToken.getAccountId())
-            .setAudience(serviceProvider.getId())
+            .setAudience(appInstance.getId())
     );
     Response response = resteasy.getClient().target(UriBuilder.fromResource(LogoutPage.class))
         .queryParam("id_token_hint", idToken)
@@ -166,7 +180,7 @@ public class LogoutPageTest {
       assertThat(response.getCookies().get(UserFilter.COOKIE_NAME).getExpiry()).isInTheFuture();
     }
     assertLogoutPage(response)
-        .contains(serviceProvider.getName().get(Locale.ROOT))
+        .contains(appInstance.getName().get(Locale.ROOT))
         .doesNotMatch(hiddenInput("continue", "https://unregistered"));
 
     verify(tokenRepository, never()).revokeToken(sidToken.getId());
@@ -187,7 +201,9 @@ public class LogoutPageTest {
       assertThat(response.getCookies().get(UserFilter.COOKIE_NAME).getExpiry()).isInTheFuture();
     }
     assertLogoutPage(response)
-        .doesNotContain(serviceProvider.getName().get(Locale.ROOT))
+        .doesNotContain(service.getName().get(Locale.ROOT))
+        .doesNotContain(service.getName().get(Locale.ROOT))
+        .doesNotContain(service.getService_uri())
         .doesNotMatch(hiddenInput("continue", "http://example.com"));
 
     verify(tokenRepository, never()).revokeToken(sidToken.getId());
@@ -216,16 +232,16 @@ public class LogoutPageTest {
         new IdToken.Payload()
             .setIssuer(InProcessResteasy.BASE_URI.toString())
             .setSubject(sidToken.getAccountId())
-            .setAudience(serviceProvider.getId())
+            .setAudience(appInstance.getId())
     );
     Response response = resteasy.getClient().target(UriBuilder.fromResource(LogoutPage.class))
         .queryParam("id_token_hint", idToken)
-        .queryParam("post_logout_redirect_uri", serviceProvider.getPost_logout_redirect_uris().get(0))
+        .queryParam("post_logout_redirect_uri", Iterables.getOnlyElement(service.getPost_logout_redirect_uris()))
         .request()
         .get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
-    assertThat(response.getLocation()).isEqualTo(URI.create(serviceProvider.getPost_logout_redirect_uris().get(0)));
+    assertThat(response.getLocation()).isEqualTo(URI.create(Iterables.getOnlyElement(service.getPost_logout_redirect_uris())));
     if (response.getCookies().containsKey(UserFilter.COOKIE_NAME)) {
       assertThat(response.getCookies().get(UserFilter.COOKIE_NAME).getExpiry()).isInTheFuture();
     }
@@ -241,7 +257,7 @@ public class LogoutPageTest {
         new IdToken.Payload()
             .setIssuer(InProcessResteasy.BASE_URI.toString())
             .setSubject(sidToken.getAccountId())
-            .setAudience(serviceProvider.getId())
+            .setAudience(appInstance.getId())
     );
     Response response = resteasy.getClient().target(UriBuilder.fromResource(LogoutPage.class))
         .queryParam("id_token_hint", idToken)

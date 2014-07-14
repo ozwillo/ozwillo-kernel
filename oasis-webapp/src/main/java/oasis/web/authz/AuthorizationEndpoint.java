@@ -13,7 +13,6 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -42,16 +41,18 @@ import com.google.common.collect.Sets;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
-import oasis.model.applications.ApplicationRepository;
-import oasis.model.applications.Scope;
-import oasis.model.applications.ScopeCardinality;
-import oasis.model.applications.ServiceProvider;
+import oasis.model.applications.v2.AppInstance;
+import oasis.model.applications.v2.AppInstance.NeededScope;
+import oasis.model.applications.v2.Scope;
+import oasis.model.applications.v2.ScopeRepository;
 import oasis.model.authn.AuthorizationCode;
 import oasis.model.authn.SidToken;
 import oasis.model.authz.AuthorizationRepository;
 import oasis.model.authz.AuthorizedScopes;
 import oasis.openidconnect.OpenIdConnectModule;
 import oasis.openidconnect.RedirectUri;
+import oasis.services.applications.AppInstanceService;
+import oasis.services.applications.ServiceService;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.web.authn.Authenticated;
@@ -92,7 +93,9 @@ public class AuthorizationEndpoint {
 
   @Inject OpenIdConnectModule.Settings settings;
   @Inject AuthorizationRepository authorizationRepository;
-  @Inject ApplicationRepository applicationRepository;
+  @Inject AppInstanceService appInstanceService;
+  @Inject ServiceService serviceService;
+  @Inject ScopeRepository scopeRepository;
   @Inject TokenHandler tokenHandler;
   @Inject JsonFactory jsonFactory;
   @Inject Clock clock;
@@ -121,10 +124,10 @@ public class AuthorizationEndpoint {
     this.params = params;
 
     final String client_id = getRequiredParameter("client_id");
-    ServiceProvider serviceProvider = getServiceProvider(client_id);
+    final AppInstance appInstance = getAppInstance(client_id);
 
     final String redirect_uri = getRequiredParameter("redirect_uri");
-    if (!isRedirectUriValid(redirect_uri, serviceProvider.getRedirect_uris())) {
+    if (!isRedirectUriValid(redirect_uri, appInstance.getId())) {
       throw invalidParam("redirect_uri");
     }
     // From now on, we can redirect to the client application, for both success and error conditions
@@ -188,16 +191,16 @@ public class AuthorizationEndpoint {
 
     final String nonce = getParameter("nonce");
 
-    Set<String> authorizedScopeIds = getAuthorizedScopeIds(serviceProvider.getId(), sidToken.getAccountId());
+    Set<String> authorizedScopeIds = getAuthorizedScopeIds(appInstance.getId(), sidToken.getAccountId());
     if (authorizedScopeIds.containsAll(scopeIds) && !prompt.consent) {
       // User already authorized all claimed scopes, let it be a "transparent" redirect
-      return generateAuthorizationCodeAndRedirect(sidToken, scopeIds, serviceProvider.getId(), nonce, redirect_uri);
+      return generateAuthorizationCodeAndRedirect(sidToken, scopeIds, appInstance.getId(), nonce, redirect_uri);
     }
 
     if (!prompt.interactive) {
       throw error("consent_required", null);
     }
-    return promptUser(serviceProvider, scopeIds, authorizedScopeIds, redirect_uri, state, nonce);
+    return promptUser(appInstance, scopeIds, authorizedScopeIds, redirect_uri, state, nonce);
   }
 
   @POST
@@ -254,13 +257,14 @@ public class AuthorizationEndpoint {
     return Response.seeOther(URI.create(redirectUri.toString())).build();
   }
 
-  private Response promptUser(ServiceProvider serviceProvider, Set<String> requiredScopeIds, Set<String> authorizedScopeIds,
+  private Response promptUser(AppInstance serviceProvider, Set<String> requiredScopeIds, Set<String> authorizedScopeIds,
       String redirect_uri, @Nullable String state, @Nullable String nonce) {
     Set<String> globalClaimedScopeIds = Sets.newHashSet();
-    Iterable<ScopeCardinality> scopeCardinalities = serviceProvider.getScopeCardinalities();
-    if (scopeCardinalities != null) {
-      for (ScopeCardinality scopeCardinality : scopeCardinalities) {
-        globalClaimedScopeIds.add(scopeCardinality.getScopeId());
+    Set<NeededScope> neededScopes = serviceProvider.getNeeded_scopes();
+    if (neededScopes != null) {
+      // TODO: display needed scope motivation
+      for (NeededScope neededScope : neededScopes) {
+        globalClaimedScopeIds.add(neededScope.getScope_id());
       }
     }
     globalClaimedScopeIds.addAll(requiredScopeIds);
@@ -268,7 +272,7 @@ public class AuthorizationEndpoint {
 
     Iterable<Scope> globalClaimedScopes;
     try {
-      globalClaimedScopes = authorizationRepository.getScopes(globalClaimedScopeIds);
+      globalClaimedScopes = scopeRepository.getScopes(globalClaimedScopeIds);
     } catch (IllegalArgumentException e) {
       throw error("invalid_scope", e.getMessage());
     }
@@ -282,7 +286,7 @@ public class AuthorizationEndpoint {
       ImmutableMap<String, String> scope = ImmutableMap.of(
           "id", scopeId,
           // TODO: I18N
-          "title", Strings.nullToEmpty(claimedScope.getTitle().get(Locale.ROOT)),
+          "title", Strings.nullToEmpty(claimedScope.getName().get(Locale.ROOT)),
           "description", Strings.nullToEmpty(claimedScope.getDescription().get(Locale.ROOT))
       );
       if (authorizedScopeIds.contains(claimedScope.getId())) {
@@ -334,16 +338,16 @@ public class AuthorizationEndpoint {
         .build();
   }
 
-  private ServiceProvider getServiceProvider(String client_id) {
-    ServiceProvider serviceProvider = applicationRepository.getServiceProvider(client_id);
-    if (serviceProvider == null) {
+  private AppInstance getAppInstance(String client_id) {
+    AppInstance appInstance = appInstanceService.getAppInstance(client_id);
+    if (appInstance == null) {
       throw accessDenied("Unknown client id");
     }
-    return serviceProvider;
+    return appInstance;
   }
 
-  private boolean isRedirectUriValid(String redirect_uri, List<String> validRedirectUris) {
-    return (settings.disableRedirectUriValidation || validRedirectUris.contains(redirect_uri))
+  private boolean isRedirectUriValid(String redirect_uri, String instanceId) {
+    return (settings.disableRedirectUriValidation || serviceService.getServiceByRedirectUri(instanceId, redirect_uri) != null)
         // Note: validate the URI even if it's in the whitelist, just in case. You can never be too careful.
         && RedirectUri.isValid(redirect_uri);
   }

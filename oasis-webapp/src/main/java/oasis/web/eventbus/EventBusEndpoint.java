@@ -27,9 +27,9 @@ import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiParam;
 
 import oasis.model.InvalidVersionException;
-import oasis.model.applications.ApplicationRepository;
 import oasis.model.eventbus.Subscription;
 import oasis.model.eventbus.SubscriptionRepository;
+import oasis.services.applications.AppInstanceService;
 import oasis.services.etag.EtagService;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.Client;
@@ -45,7 +45,7 @@ public class EventBusEndpoint {
   private static final Logger logger = LoggerFactory.getLogger(EventBusEndpoint.class);
 
   @Inject SubscriptionRepository subscriptionRepository;
-  @Inject ApplicationRepository applicationRepository;
+  @Inject AppInstanceService appInstanceService;
   @Inject EtagService etagService;
 
   @POST
@@ -84,23 +84,23 @@ public class EventBusEndpoint {
   }
 
   @POST
-  @Path("/{appId}/subscriptions")
+  @Path("/{instanceId}/subscriptions")
   @Consumes(MediaType.APPLICATION_JSON)
   @ApiOperation(value = "Subscribe to a typed event from the event bus.",
       notes = "The returned location URL get access to the subscription (delete the subscription)")
   public Response subscribe(
-      @PathParam("appId") String appId,
+      @PathParam("instanceId") String instanceId,
       Subscription subscription
   ) {
     // TODO: validate subscription.eventType
 
-    Subscription res = subscriptionRepository.createSubscription(appId, subscription);
+    Subscription res = subscriptionRepository.createSubscription(instanceId, subscription);
     if (res == null) {
-      // null can mean either the application doesn't exist or there's already a subscription for that application and event type
-      if (applicationRepository.getApplication(appId) != null) {
-        return ResponseFactory.conflict("Subscription already exists for this application and event type");
+      // null can mean either the application doesn't exist or there's already a subscription for that application instance and event type
+      if (appInstanceService.getAppInstance(instanceId) != null) {
+        return ResponseFactory.conflict("Subscription already exists for this application instance and event type");
       }
-      return ResponseFactory.notFound("The application does not exist");
+      return ResponseFactory.notFound("The application instance does not exist");
     }
 
     URI uri = UriBuilder

@@ -21,6 +21,10 @@ public class JongoServiceRepository implements ServiceRepository, JongoBootstrap
     this.jongo = jongo;
   }
 
+  private MongoCollection getServicesCollection() {
+    return jongo.getCollection("services");
+  }
+
   @Override
   public Iterable<Service> getVisibleServices() {
     return getServicesCollection().find("{ visible: true }").as(Service.class);
@@ -48,11 +52,23 @@ public class JongoServiceRepository implements ServiceRepository, JongoBootstrap
   }
 
   @Override
-  public void bootstrap() {
-    getServicesCollection().ensureIndex("{ id: 1 }", "{ unique: 1 }");
+  public Service getServiceByRedirectUri(String instanceId, String redirect_uri) {
+    return getServicesCollection()
+        .findOne("{ instance_id: #, redirect_uris: # }", instanceId, redirect_uri)
+        .as(JongoService.class);
   }
 
-  private MongoCollection getServicesCollection() {
-    return jongo.getCollection("services");
+  @Override
+  public Service getServiceByPostLogoutRedirectUri(String instanceId, String post_logout_redirect_uri) {
+    return getServicesCollection()
+        .findOne("{ instance_id: #, post_logout_redirect_uris: # }", instanceId, post_logout_redirect_uri)
+        .as(JongoService.class);
+  }
+
+  @Override
+  public void bootstrap() {
+    getServicesCollection().ensureIndex("{ id: 1 }", "{ unique: 1 }");
+    getServicesCollection().ensureIndex("{ instance_id: 1, redirect_uris: 1 }", "{ unique: 1, sparse: 1 }");
+    getServicesCollection().ensureIndex("{ instance_id: 1, post_logout_redirect_uris: 1 }", "{ unique: 1, sparse: 1 }");
   }
 }
