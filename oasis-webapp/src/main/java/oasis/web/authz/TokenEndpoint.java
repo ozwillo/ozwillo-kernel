@@ -41,6 +41,10 @@ import com.google.common.collect.Sets;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
+import oasis.model.accounts.Account;
+import oasis.model.accounts.AccountRepository;
+import oasis.model.accounts.AgentAccount;
+import oasis.model.applications.v2.AppInstance;
 import oasis.model.authn.AccessToken;
 import oasis.model.authn.AuthorizationCode;
 import oasis.model.authn.RefreshToken;
@@ -48,6 +52,7 @@ import oasis.model.authn.SidToken;
 import oasis.model.authn.Token;
 import oasis.model.authn.TokenRepository;
 import oasis.openidconnect.OpenIdConnectModule;
+import oasis.services.applications.AppInstanceService;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.web.authn.Authenticated;
@@ -72,6 +77,8 @@ public class TokenEndpoint {
 
   @Inject TokenRepository tokenRepository;
   @Inject TokenHandler tokenHandler;
+  @Inject AccountRepository accountRepository;
+  @Inject AppInstanceService appInstanceService;
 
   @Context UriInfo uriInfo;
   @Context SecurityContext securityContext;
@@ -212,6 +219,22 @@ public class TokenEndpoint {
       authTime = TimeUnit.MILLISECONDS.toSeconds(((SidToken) token).getAuthenticationTime().getMillis());
     } // TODO: else, log error/warning
 
+    // Compute whether the user is a "user of the app" and/or "admin of the app"
+    Boolean isAppUser = null;
+    Boolean isAppAdmin = null;
+    // TODO: use real data & algorithm; for now any agent of the organization is a "user of the app"
+    Account account = accountRepository.getAccount(accessToken.getAccountId());
+    if (account instanceof AgentAccount) {
+      AgentAccount agentAccount = (AgentAccount) account;
+      AppInstance appInstance = appInstanceService.getAppInstance(accessToken.getServiceProviderId());
+      if (appInstance != null && agentAccount.getOrganizationId().equals(appInstance.getProvider_id())) {
+        isAppUser = true;
+        if (agentAccount.isAdmin()) {
+          isAppAdmin = true;
+        }
+      }
+    }
+
     response.setAccessToken(access_token);
     response.setTokenType("Bearer");
     response.setExpiresInSeconds(accessToken.expiresIn().getStandardSeconds());
@@ -228,6 +251,8 @@ public class TokenEndpoint {
             .setIssuedAtTimeSeconds(issuedAt)
             .setNonce(authorizationCode.getNonce())
             .setAuthorizationTimeSeconds(authTime)
+            .set("app_user", isAppUser)
+            .set("app_admin", isAppAdmin)
     ));
 
     return response(Response.Status.OK, response);

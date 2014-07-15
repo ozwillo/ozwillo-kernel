@@ -36,6 +36,9 @@ import com.google.inject.Inject;
 import com.google.inject.Provides;
 
 import oasis.http.testing.InProcessResteasy;
+import oasis.model.accounts.AccountRepository;
+import oasis.model.accounts.AgentAccount;
+import oasis.model.applications.v2.AppInstance;
 import oasis.model.authn.AccessToken;
 import oasis.model.authn.AuthorizationCode;
 import oasis.model.authn.RefreshToken;
@@ -43,6 +46,7 @@ import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
 import oasis.openidconnect.OpenIdConnectModule;
 import oasis.security.KeyPairLoader;
+import oasis.services.applications.AppInstanceService;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.web.authn.testing.TestClientAuthenticationFilter;
@@ -56,6 +60,7 @@ public class TokenEndpointTest {
       bind(TokenEndpoint.class);
 
       bindMock(TokenHandler.class).in(TestSingleton.class);
+      bindMock(AppInstanceService.class).in(TestSingleton.class);
 
       bind(Clock.class).to(FixedClock.class);
       bind(JsonFactory.class).to(JacksonFactory.class);
@@ -279,6 +284,54 @@ public class TokenEndpointTest {
     assertThat(payload.getExpirationTimeSeconds()).isEqualTo(payload.getIssuedAtTimeSeconds() + settings.idTokenDuration.getStandardSeconds());
     assertThat(payload.getNonce()).isEqualTo("nonce");
     assertThat(payload.getAuthorizationTimeSeconds()).isEqualTo(TimeUnit.MILLISECONDS.toSeconds(sidToken.getAuthenticationTime().getMillis()));
+    if (payload.containsKey("app_user")) {
+      assertThat(payload.get("app_user")).isEqualTo(Boolean.FALSE);
+    }
+    if (payload.containsKey("app_admin")) {
+      assertThat(payload.get("app_admin")).isEqualTo(Boolean.FALSE);
+    }
+  }
+
+  @Test public void testValidAuthCodeWithAgent(JsonFactory jsonFactory, OpenIdConnectModule.Settings settings, Clock clock,
+      AccountRepository accountRepository, AppInstanceService appInstanceService) throws Throwable {
+    // given
+    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter("sp"));
+    when(accountRepository.getAccount("account")).thenReturn(new AgentAccount() {{
+      setId("account");
+      setOrganizationId("organization");
+      setAdmin(true);
+    }});
+    when(appInstanceService.getAppInstance("sp")).thenReturn(new AppInstance() {{
+      setId("sp");
+      setProvider_id("organization");
+    }});
+
+    // when
+    Response resp = authCode("valid", validAuthCode.getRedirectUri());
+
+    // then
+    assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.OK);
+    IdTokenResponse response = jsonFactory.fromInputStream(resp.readEntity(InputStream.class), StandardCharsets.UTF_8, IdTokenResponse.class);
+    assertThat(response.getTokenType()).isEqualTo("Bearer");
+    assertThat(response.getScope().split(" ")).containsOnly("dp1s1", "dp1s3", "dp3s1");
+    assertThat(response.getExpiresInSeconds())
+        .isEqualTo(new Duration(new Instant(clock.currentTimeMillis()), accessToken.getExpirationTime()).getStandardSeconds());
+    assertThat(response.getAccessToken()).isEqualTo(TokenSerializer.serialize(accessToken, "pass"));
+    assertThat(response.getRefreshToken()).isNullOrEmpty();
+
+    IdToken idToken = response.parseIdToken();
+    assertThat(idToken.verifySignature(settings.keyPair.getPublic())).isTrue();
+
+    IdToken.Payload payload = idToken.getPayload();
+    assertThat(payload.getIssuer()).isEqualTo(InProcessResteasy.BASE_URI.toString());
+    assertThat(payload.getSubject()).isEqualTo("account");
+    assertThat(payload.getAudience()).isEqualTo("sp");
+    assertThat(payload.getIssuedAtTimeSeconds()).isEqualTo(TimeUnit.MILLISECONDS.toSeconds(clock.currentTimeMillis()));
+    assertThat(payload.getExpirationTimeSeconds()).isEqualTo(payload.getIssuedAtTimeSeconds() + settings.idTokenDuration.getStandardSeconds());
+    assertThat(payload.getNonce()).isEqualTo("nonce");
+    assertThat(payload.getAuthorizationTimeSeconds()).isEqualTo(TimeUnit.MILLISECONDS.toSeconds(sidToken.getAuthenticationTime().getMillis()));
+    assertThat(payload.get("app_user")).isEqualTo(Boolean.TRUE);
+    assertThat(payload.get("app_admin")).isEqualTo(Boolean.TRUE);
   }
 
   @Test public void testValidAuthCodeWithOfflineAccess(JsonFactory jsonFactory, OpenIdConnectModule.Settings settings, Clock clock) throws Throwable {
