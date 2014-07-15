@@ -2,13 +2,12 @@ package oasis.jongo.eventbus;
 
 import javax.annotation.Nonnull;
 
-import com.fasterxml.jackson.annotation.JsonRootName;
-
 import oasis.jongo.etag.HasModified;
 import oasis.model.eventbus.Subscription;
 
-@JsonRootName("subscription")
 public class JongoSubscription extends Subscription implements HasModified {
+
+  private String application_id;
 
   private long modified = System.currentTimeMillis();
 
@@ -17,6 +16,14 @@ public class JongoSubscription extends Subscription implements HasModified {
 
   public JongoSubscription(@Nonnull Subscription other) {
     super(other);
+  }
+
+  public String getApplication_id() {
+    return application_id;
+  }
+
+  public void setApplication_id(String application_id) {
+    this.application_id = application_id;
   }
 
   @Override

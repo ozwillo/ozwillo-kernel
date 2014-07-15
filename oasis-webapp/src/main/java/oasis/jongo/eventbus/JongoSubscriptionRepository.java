@@ -7,11 +7,8 @@ import org.jongo.MongoCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
 import com.mongodb.WriteResult;
 
-import oasis.jongo.applications.JongoApplication;
 import oasis.model.InvalidVersionException;
 import oasis.model.eventbus.Subscription;
 import oasis.model.eventbus.SubscriptionRepository;
@@ -32,9 +29,12 @@ public class JongoSubscriptionRepository implements SubscriptionRepository {
     // TODO: validate subscription.eventType
 
     JongoSubscription jongoSubscription = new JongoSubscription(subscription);
-    WriteResult wr = getApplicationsCollection()
-        .update("{ id: # , subscriptions.eventType: { $ne: # } }", appId, subscription.getEventType())
-        .with("{ $push: { subscriptions: # } }", jongoSubscription);
+    jongoSubscription.setApplication_id(appId);
+    // TODO: replace with insert() once we setup a unique index
+    WriteResult wr = getSubscriptionsCollection()
+        .update("{ application_id: # , eventType: { $ne: # } }", appId, subscription.getEventType())
+        .upsert()
+        .with(jongoSubscription);
 
     if (wr.getN() != 1) {
       logger.warn("The application {} does not exist or subscription already exists for that application and event type.", appId);
@@ -45,13 +45,12 @@ public class JongoSubscriptionRepository implements SubscriptionRepository {
 
   @Override
   public boolean deleteSubscription(String subscriptionId, long[] versions) throws InvalidVersionException {
-    WriteResult wr = getApplicationsCollection()
-        .update("{ subscriptions: { $elemMatch: { id: #, modified: { $in: # } } } }", subscriptionId, versions)
-        .with("{ $pull: { subscriptions: { id: #, modified: { $in: # } } } }", subscriptionId, versions);
+    WriteResult wr = getSubscriptionsCollection()
+        .remove("{ id: #, modified: { $in: # } }", subscriptionId, versions);
 
     int n = wr.getN();
     if (n == 0) {
-      if (getApplicationsCollection().count("{ subscriptions.id: # }", subscriptionId) != 0) {
+      if (getSubscriptionsCollection().count("{ id: # }", subscriptionId) != 0) {
         throw new InvalidVersionException("subscription", subscriptionId);
       }
       return false;
@@ -65,19 +64,12 @@ public class JongoSubscriptionRepository implements SubscriptionRepository {
 
   @Override
   public Iterable<Subscription> getSubscriptionsForEventType(String eventType) {
-    Iterable<JongoApplication> apps = getApplicationsCollection()
-        .find("{ subscriptions.eventType: # }", eventType)
-        .projection("{ id: 1, subscriptions.$: 1}")
-        .as(JongoApplication.class);
-    return Iterables.transform(apps, new Function<JongoApplication, Subscription>() {
-      @Override
-      public Subscription apply(JongoApplication input) {
-        return input.getSubscriptions().get(0);
-      }
-    });
+    return getSubscriptionsCollection()
+        .find("{ eventType: # }", eventType)
+        .as(Subscription.class);
   }
 
-  private MongoCollection getApplicationsCollection() {
-    return jongo.getCollection("applications");
+  private MongoCollection getSubscriptionsCollection() {
+    return jongo.getCollection("subscriptions");
   }
 }
