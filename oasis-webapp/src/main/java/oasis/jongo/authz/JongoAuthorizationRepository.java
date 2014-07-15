@@ -14,9 +14,7 @@ import com.google.common.collect.ImmutableSet;
 import com.mongodb.WriteResult;
 
 import oasis.jongo.JongoBootstrapper;
-import oasis.jongo.applications.JongoScope;
 import oasis.model.accounts.Account;
-import oasis.model.applications.Scope;
 import oasis.model.authz.AuthorizationRepository;
 import oasis.model.authz.AuthorizedScopes;
 
@@ -27,27 +25,6 @@ public class JongoAuthorizationRepository implements AuthorizationRepository, Jo
 
   @Inject JongoAuthorizationRepository(Jongo jongo) {
     this.jongo = jongo;
-  }
-
-  @Override
-  public Scope getScope(String scopeId) {
-    return getScopesCollection().findOne("{id:#}", scopeId).as(JongoScope.class);
-  }
-
-  @Override
-  public Iterable<Scope> getScopes(Collection<String> scopeIds) {
-    // TODO: Improve performance by merging all requests into one request
-    // XXX: What should be the behavior of this request if one of the scope id is not present in the database ?
-    // XXX: Should we throw an error, return an empty iterable or just ignore it and return all found scopes ?
-    ImmutableList.Builder<Scope> builder = ImmutableList.builder();
-    for (String scopeId : scopeIds) {
-      Scope scope = getScope(scopeId);
-      if (scope == null) {
-        throw new IllegalArgumentException("The scope " + scopeId + " does not exist.");
-      }
-      builder.add(scope);
-    }
-    return builder.build();
   }
 
   @Override
@@ -99,13 +76,8 @@ public class JongoAuthorizationRepository implements AuthorizationRepository, Jo
     return jongo.getCollection("account");
   }
 
-  private MongoCollection getScopesCollection() {
-    return jongo.getCollection("scopes");
-  }
-
   @Override
   public void bootstrap() {
     getAccountCollection().ensureIndex("{ id: 1, authorizedScopes.serviceProviderId: 1 }", "{ sparse: 1 }");
-    getScopesCollection().ensureIndex("{ id: 1 }", "{ unique: 1 }");
   }
 }
