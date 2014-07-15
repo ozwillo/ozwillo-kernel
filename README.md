@@ -43,16 +43,24 @@ Other standards not implemented by the OASIS Kernel but under consideration (i.e
 
 ### Application catalog
 
-The application catalog is two-fold: it holds a catalog of applications proposed by providers,
-and the instances of those applications as picked or bought by users or organizations.
+The application catalog is three-fold: it holds a catalog of applications proposed by providers,
+the instances of those applications as picked or bought by users or organizations,
+and the services provided by those application instances.
 
-Each application (or instance of an application) can be composed of a so-called Service Provider
-and a number of so-called Data Providers, each being optional.
-The Service Provider is the user-visible (GUI) part of the application,
-whereas the Data Providers make the data available for other applications to use.
+An Application Instance is a piece of software running in the context of an individual or organization who picked our bought it.
+It can make its data available fo other application instances to use.
 
-Signing in to a Service Provider uses OpenID Connect 1.0,
-while authorizations to access data at a Data Provider uses OAuth 2.0.
+A Service is a user-visible (GUI) part of an application instance,
+there can be several services per application instance,
+and each one can be public or private,
+and/or be assigned to specific users.
+
+It doesn't matter how application instances are deployed, i.e. whether they're tenants in a
+single running piece of software or is specifically installed/deployed for a particular
+user or organization.
+
+Signing in to a Service uses OpenID Connect 1.0,
+while authorizations to access data at an Application Instance uses OAuth 2.0. 
 
 ### User management, profile and graph
 
