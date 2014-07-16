@@ -35,7 +35,6 @@ public class MarketSearchEndpoint {
   @Inject ServiceService serviceService;
 
   @GET
-  @Path("/search")
   public Response search(
       // TODO: add search criterias
       @Nullable @QueryParam("hl") final Locale locale,
