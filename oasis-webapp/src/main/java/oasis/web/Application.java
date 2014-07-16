@@ -8,6 +8,12 @@ import com.wordnik.swagger.jaxrs.listing.ResourceListingProvider;
 
 import oasis.web.account.ProfilePage;
 import oasis.web.apidocs.ApiDeclarationProvider;
+import oasis.web.applications.AppInstanceEndpoint;
+import oasis.web.applications.ApplicationEndpoint;
+import oasis.web.applications.InstanceRegistrationEndpoint;
+import oasis.web.applications.MarketBuyEndpoint;
+import oasis.web.applications.MarketSearchEndpoint;
+import oasis.web.applications.ServiceEndpoint;
 import oasis.web.auditlog.AuditLogEndpoint;
 import oasis.web.auditlog.HttpInterceptor;
 import oasis.web.authn.ClientAuthenticationFilter;
@@ -86,6 +92,12 @@ public class Application extends javax.ws.rs.core.Application {
         // Resources
         StaticResources.class,
         UserDirectoryEndpoint.class,
+        MarketSearchEndpoint.class,
+        MarketBuyEndpoint.class,
+        InstanceRegistrationEndpoint.class,
+        ApplicationEndpoint.class,
+        AppInstanceEndpoint.class,
+        ServiceEndpoint.class,
         // Kibana and ElasticSearch proxy
         Kibana.class,
         ElasticSearchProxy.class
