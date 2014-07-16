@@ -42,6 +42,9 @@ import oasis.web.utils.ResponseFactory;
 import oasis.web.webhooks.WebhookSignatureFilter;
 
 @Path("/m/instantiate/{application_id}")
+@Consumes(MediaType.APPLICATION_JSON)
+@Produces(MediaType.APPLICATION_JSON)
+@Authenticated @OAuth
 public class MarketBuyEndpoint {
   private static final Logger logger = LoggerFactory.getLogger(MarketBuyEndpoint.class);
 
@@ -53,13 +56,10 @@ public class MarketBuyEndpoint {
   @Context UriInfo uriInfo;
   @Context SecurityContext securityContext;
 
+  @PathParam("application_id") String applicationId;
+
   @POST
-  @Consumes(MediaType.APPLICATION_JSON)
-  @Produces(MediaType.APPLICATION_JSON)
-  @Authenticated @OAuth
-  public Response instantiate(
-      @PathParam("application_id") String applicationId,
-      AppInstance instance) {
+  public Response instantiate(AppInstance instance) {
     Application application = applicationService.getApplication(applicationId);
     if (application == null) {
       return ResponseFactory.notFound("Application doesn't exist");
