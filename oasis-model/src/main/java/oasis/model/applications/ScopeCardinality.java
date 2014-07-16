@@ -6,6 +6,7 @@ import com.wordnik.swagger.annotations.ApiModelProperty;
 
 import oasis.model.i18n.LocalizableString;
 
+@Deprecated
 @JsonRootName("scopeCardinality")
 public class ScopeCardinality {
   @JsonProperty

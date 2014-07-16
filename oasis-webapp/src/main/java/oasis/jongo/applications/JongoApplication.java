@@ -11,6 +11,7 @@ import com.google.common.collect.ImmutableList;
 import oasis.jongo.etag.HasModified;
 import oasis.model.applications.Application;
 
+@Deprecated
 @JsonRootName("application")
 public class JongoApplication extends Application implements HasModified {
 

@@ -1,22 +1,20 @@
-package oasis.jongo.applications;
+package oasis.jongo.applications.v2;
 
 import javax.annotation.Nonnull;
 
-import com.fasterxml.jackson.annotation.JsonRootName;
-
 import oasis.jongo.etag.HasModified;
-import oasis.model.applications.Scope;
+import oasis.model.applications.v2.Application;
+import oasis.model.applications.v2.Service;
 
-@Deprecated
-@JsonRootName("scope")
-public class JongoScope extends Scope implements HasModified {
+public class JongoService extends Service implements HasModified {
 
   private long modified = System.currentTimeMillis();
 
-  public JongoScope() {
+  public JongoService() {
+    super();
   }
 
-  public JongoScope(@Nonnull Scope other) {
+  public JongoService(@Nonnull Service other) {
     super(other);
   }
 
@@ -28,5 +26,4 @@ public class JongoScope extends Scope implements HasModified {
   public void setModified(long modified) {
     this.modified = modified;
   }
-
 }

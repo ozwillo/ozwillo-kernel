@@ -2,6 +2,7 @@ package oasis.model.applications;
 
 import oasis.model.InvalidVersionException;
 
+@Deprecated
 public interface ApplicationRepository {
   Iterable<Application> getCatalogApplications(int start, int limit);
 

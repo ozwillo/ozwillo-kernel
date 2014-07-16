@@ -13,6 +13,7 @@ import com.wordnik.swagger.annotations.ApiModelProperty;
 import oasis.model.annotations.Id;
 import oasis.model.i18n.LocalizableString;
 
+@Deprecated
 @JsonRootName("dataProvider")
 public class DataProvider {
   @Id

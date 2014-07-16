@@ -25,6 +25,7 @@ import oasis.model.applications.DataProvider;
 import oasis.model.applications.ServiceProvider;
 import oasis.model.i18n.LocalizableString;
 
+@Deprecated
 public class JongoApplicationRepository implements ApplicationRepository, JongoBootstrapper {
   private static final Logger logger = LoggerFactory.getLogger(ApplicationRepository.class);
 

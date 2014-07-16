@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 import oasis.jongo.etag.HasModified;
 import oasis.model.applications.ServiceProvider;
 
+@Deprecated
 @JsonRootName("serviceProvider")
 public class JongoServiceProvider extends ServiceProvider implements HasModified {
 
