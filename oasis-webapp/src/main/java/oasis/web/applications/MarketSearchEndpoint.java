@@ -10,8 +10,10 @@ import javax.inject.Inject;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.GenericEntity;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.slf4j.Logger;
@@ -35,6 +37,7 @@ public class MarketSearchEndpoint {
   @Inject ServiceService serviceService;
 
   @GET
+  @Produces(MediaType.APPLICATION_JSON)
   public Response search(
       // TODO: add search criterias
       @Nullable @QueryParam("hl") final Locale locale,
