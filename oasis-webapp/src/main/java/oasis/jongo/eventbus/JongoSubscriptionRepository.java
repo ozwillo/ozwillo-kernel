@@ -26,19 +26,19 @@ public class JongoSubscriptionRepository implements SubscriptionRepository, Jong
   }
 
   @Override
-  public Subscription createSubscription(String appId, Subscription subscription) {
+  public Subscription createSubscription(String instanceId, Subscription subscription) {
     // TODO: validate subscription.eventType
 
     JongoSubscription jongoSubscription = new JongoSubscription(subscription);
-    jongoSubscription.setApplication_id(appId);
+    jongoSubscription.setInstance_id(instanceId);
     // TODO: replace with insert() once we setup a unique index
     WriteResult wr = getSubscriptionsCollection()
-        .update("{ application_id: # , eventType: { $ne: # } }", appId, subscription.getEventType())
+        .update("{ instance_id: # , eventType: { $ne: # } }", instanceId, subscription.getEventType())
         .upsert()
         .with(jongoSubscription);
 
     if (wr.getN() != 1) {
-      logger.warn("The application {} does not exist or subscription already exists for that application and event type.", appId);
+      logger.warn("The application instance {} does not exist or subscription already exists for that application instance and event type.", instanceId);
       return null;
     }
     return jongoSubscription;

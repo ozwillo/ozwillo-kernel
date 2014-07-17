@@ -7,7 +7,7 @@ import oasis.model.eventbus.Subscription;
 
 public class JongoSubscription extends Subscription implements HasModified {
 
-  private String application_id;
+  private String instance_id;
 
   private long modified = System.currentTimeMillis();
 
@@ -18,12 +18,12 @@ public class JongoSubscription extends Subscription implements HasModified {
     super(other);
   }
 
-  public String getApplication_id() {
-    return application_id;
+  public String getInstance_id() {
+    return instance_id;
   }
 
-  public void setApplication_id(String application_id) {
-    this.application_id = application_id;
+  public void setInstance_id(String instance_id) {
+    this.instance_id = instance_id;
   }
 
   @Override

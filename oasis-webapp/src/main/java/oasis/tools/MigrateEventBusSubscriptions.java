@@ -64,14 +64,23 @@ public class MigrateEventBusSubscriptions extends CommandLineTool {
     try {
       MongoCursor<Application> applications = jongoProvider.get().getCollection("applications")
           .find("{ subscriptions: { $exists: 1 } }")
-          .projection("{ id: 1, subscriptions: 1 }")
+          .projection("{ id: 1, subscriptions: 1, serviceProvider.id: 1, dataProviders.id: 1 }")
           .as(Application.class);
       for (Application application : applications) {
+        String instanceId;
+        if (application.serviceProvider != null) {
+          instanceId = application.serviceProvider.id;
+        } else if (application.dataProviders != null && !application.dataProviders.isEmpty()) {
+          instanceId = application.dataProviders.get(0).id;
+        } else {
+          logger().warn("Not migrating subscriptions: no service provider and data provider");
+          continue;
+        }
         for (JongoSubscription subscription : application.subscriptions) {
-          logger().info("Migrating eventbus subcription {} for application {} and event type {} (webhook: {})",
-              subscription.getId(), application.id, subscription.getEventType(), subscription.getWebHook());
+          logger().info("Migrating eventbus subcription {} for application {} and event type {} (webhook: {}), setting instance ID to {}",
+              subscription.getId(), application.id, subscription.getEventType(), subscription.getWebHook(), instanceId);
           if (!dryRun) {
-            subscription.setApplication_id(application.id);
+            subscription.setInstance_id(instanceId);
             jongoProvider.get().getCollection("subscriptions").insert(subscription);
           }
         }
@@ -90,5 +99,11 @@ public class MigrateEventBusSubscriptions extends CommandLineTool {
   static class Application {
     @JsonProperty String id;
     @JsonProperty List<JongoSubscription> subscriptions;
+    @JsonProperty HasId serviceProvider;
+    @JsonProperty List<HasId> dataProviders;
+  }
+
+  static class HasId {
+    @JsonProperty String id;
   }
 }

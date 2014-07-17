@@ -7,7 +7,7 @@ public interface SubscriptionRepository {
   /**
    * @return the generated subscription id
    */
-  Subscription createSubscription(String appId, Subscription subscription);
+  Subscription createSubscription(String instanceId, Subscription subscription);
 
   boolean deleteSubscription(String subscriptionId, long[] versions) throws InvalidVersionException;
 
