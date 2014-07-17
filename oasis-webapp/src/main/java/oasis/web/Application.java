@@ -13,6 +13,9 @@ import oasis.web.applications.InstanceRegistrationEndpoint;
 import oasis.web.applications.MarketBuyEndpoint;
 import oasis.web.applications.MarketSearchEndpoint;
 import oasis.web.applications.ServiceEndpoint;
+import oasis.web.applications.ServiceSubscriptionEndpoint;
+import oasis.web.applications.SubscriptionEndpoint;
+import oasis.web.applications.UserSubscriptionEndpoint;
 import oasis.web.auditlog.AuditLogEndpoint;
 import oasis.web.auditlog.HttpInterceptor;
 import oasis.web.authn.ClientAuthenticationFilter;
@@ -101,6 +104,9 @@ public class Application extends javax.ws.rs.core.Application {
         ApplicationEndpoint.class,
         AppInstanceEndpoint.class,
         ServiceEndpoint.class,
+        ServiceSubscriptionEndpoint.class,
+        SubscriptionEndpoint.class,
+        UserSubscriptionEndpoint.class,
         // Kibana and ElasticSearch proxy
         Kibana.class,
         ElasticSearchProxy.class

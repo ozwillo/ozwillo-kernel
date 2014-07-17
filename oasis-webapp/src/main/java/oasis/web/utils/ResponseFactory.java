@@ -16,6 +16,10 @@ public class ResponseFactory {
     return build(Response.Status.CONFLICT.getStatusCode(), body);
   }
 
+  public static Response forbidden(String body) {
+    return build(Response.Status.FORBIDDEN.getStatusCode(), body);
+  }
+
   public static Response notFound(String body) {
     return build(Response.Status.NOT_FOUND.getStatusCode(), body);
   }

@@ -16,6 +16,7 @@ import oasis.jongo.applications.v2.JongoAppInstanceRepository;
 import oasis.jongo.applications.v2.JongoApplicationRepository;
 import oasis.jongo.applications.v2.JongoScopeRepository;
 import oasis.jongo.applications.v2.JongoServiceRepository;
+import oasis.jongo.applications.v2.JongoUserSubscriptionRepository;
 import oasis.jongo.authn.JongoCredentialsRepository;
 import oasis.jongo.authn.JongoTokenRepository;
 import oasis.jongo.authz.JongoAuthorizationRepository;
@@ -29,6 +30,7 @@ import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.applications.v2.ApplicationRepository;
 import oasis.model.applications.v2.ScopeRepository;
 import oasis.model.applications.v2.ServiceRepository;
+import oasis.model.applications.v2.UserSubscriptionRepository;
 import oasis.model.authn.CredentialsRepository;
 import oasis.model.authn.TokenRepository;
 import oasis.model.authz.AuthorizationRepository;
@@ -96,6 +98,7 @@ public class JongoModule extends AbstractModule {
     bind(AppInstanceRepository.class).to(JongoAppInstanceRepository.class);
     bind(ServiceRepository.class).to(JongoServiceRepository.class);
     bind(ScopeRepository.class).to(JongoScopeRepository.class);
+    bind(UserSubscriptionRepository.class).to(JongoUserSubscriptionRepository.class);
     bind(AuthorizationRepository.class).to(JongoAuthorizationRepository.class);
     bind(TokenRepository.class).to(JongoTokenRepository.class);
     bind(SubscriptionRepository.class).to(JongoSubscriptionRepository.class);
@@ -115,5 +118,6 @@ public class JongoModule extends AbstractModule {
     bootstrappers.addBinding().to(JongoAppInstanceRepository.class);
     bootstrappers.addBinding().to(JongoServiceRepository.class);
     bootstrappers.addBinding().to(JongoScopeRepository.class);
+    bootstrappers.addBinding().to(JongoUserSubscriptionRepository.class);
   }
 }
