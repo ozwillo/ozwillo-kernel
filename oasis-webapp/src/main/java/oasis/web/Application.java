@@ -6,7 +6,6 @@ import com.google.common.collect.ImmutableSet;
 import com.wordnik.swagger.jaxrs.listing.ApiListingResourceJSON;
 import com.wordnik.swagger.jaxrs.listing.ResourceListingProvider;
 
-import oasis.web.account.ProfilePage;
 import oasis.web.apidocs.ApiDeclarationProvider;
 import oasis.web.applications.AppInstanceEndpoint;
 import oasis.web.applications.ApplicationEndpoint;
@@ -78,7 +77,6 @@ public class Application extends javax.ws.rs.core.Application {
         StrictRefererFilter.class,
         // UserInfo
         UserInfoEndpoint.class,
-        ProfilePage.class,
         // AuditLog
         AuditLogEndpoint.class,
         HttpInterceptor.class,
