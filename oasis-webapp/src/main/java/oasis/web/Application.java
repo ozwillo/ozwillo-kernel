@@ -36,7 +36,6 @@ import oasis.web.providers.JacksonJsonProvider;
 import oasis.web.providers.UriParamConverterProvider;
 import oasis.web.security.SecureFilter;
 import oasis.web.security.StrictRefererFilter;
-import oasis.web.social.SocialEndpoint;
 import oasis.web.status.StatusEndpoint;
 import oasis.web.userdirectory.UserDirectoryEndpoint;
 import oasis.web.userinfo.UserInfoEndpoint;
@@ -80,8 +79,6 @@ public class Application extends javax.ws.rs.core.Application {
         // UserInfo
         UserInfoEndpoint.class,
         ProfilePage.class,
-        // Socal
-        SocialEndpoint.class,
         // AuditLog
         AuditLogEndpoint.class,
         HttpInterceptor.class,

@@ -14,7 +14,6 @@ import oasis.model.accounts.Account;
 import oasis.model.accounts.UserAccount;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Group;
-import oasis.model.social.IdentityRepository;
 
 public class GroupService {
 
@@ -28,13 +27,10 @@ public class GroupService {
       return input.getId();
     }
   };
-  private final IdentityRepository identityRepository;
 
   private final DirectoryRepository directoryRepository;
 
-  @Inject
-  GroupService(IdentityRepository identityRepository, DirectoryRepository directoryRepository) {
-    this.identityRepository = identityRepository;
+  @Inject GroupService(DirectoryRepository directoryRepository) {
     this.directoryRepository = directoryRepository;
   }
 
@@ -50,9 +46,6 @@ public class GroupService {
     if (groupsForAgent != null) {
       res.addAll(Collections2.transform(groupsForAgent, GROUP_ID_TRANSFORMER));
     }
-
-    // groups from identity relation
-    res.addAll(identityRepository.getRelationIdsForIdentity(((UserAccount) account).getIdentityId()));
 
     return res;
   }
