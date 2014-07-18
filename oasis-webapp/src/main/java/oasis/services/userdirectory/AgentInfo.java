@@ -10,7 +10,6 @@ import org.joda.time.format.ISODateTimeFormat;
 import oasis.jongo.etag.HasModified;
 import oasis.model.accounts.UserAccount;
 import oasis.model.directory.OrganizationMembership;
-import oasis.model.social.Identity;
 
 public class AgentInfo implements HasModified {
   private static final DateTimeFormatter BIRTHDATE_FORMATTER = ISODateTimeFormat.date().withDefaultYear(0);
@@ -45,14 +44,14 @@ public class AgentInfo implements HasModified {
   public AgentInfo() {
   }
 
-  public AgentInfo(UserAccount agentAccount, Identity identity, @Nullable OrganizationMembership membership) {
+  public AgentInfo(UserAccount agentAccount, @Nullable OrganizationMembership membership) {
 
     this.id = agentAccount.getId();
     if (membership != null) {
       this.organization_admin = membership.isAdmin() ? Boolean.TRUE : null;
       this.organization_id = membership.getOrganizationId();
     }
-    this.modified = agentAccount.getModified();
+    this.modified = agentAccount.getUpdatedAt();
 
     // Copy agent infos
     this.picture = agentAccount.getPicture();
@@ -61,31 +60,26 @@ public class AgentInfo implements HasModified {
     this.email = agentAccount.getEmailAddress();
     this.email_verified = true; // TODO: use an activation flow (or should we trust the organization admin?)
 
-    // Copy identity infos
-    if (identity != null) {
-      this.name = identity.getName();
-      this.family_name = identity.getFamilyName();
-      this.given_name = identity.getGivenName();
-      this.middle_name = identity.getMiddleName();
-      this.nickname = identity.getNickname();
-      this.gender = identity.getGender();
-      this.birthdate = (identity.getBirthdate() != null ? identity.getBirthdate().toString(BIRTHDATE_FORMATTER) : null);
-      this.phone = identity.getPhoneNumber();
-      // Always send phone_verified (true or false) when there's a phone, never send it (null) otherwise.
-      this.phone_verified = identity.getPhoneNumber() == null ? null : identity.isPhoneNumberVerified();
+    this.name = agentAccount.getName();
+    this.family_name = agentAccount.getFamilyName();
+    this.given_name = agentAccount.getGivenName();
+    this.middle_name = agentAccount.getMiddleName();
+    this.nickname = agentAccount.getNickname();
+    this.gender = agentAccount.getGender();
+    this.birthdate = (agentAccount.getBirthdate() != null ? agentAccount.getBirthdate().toString(BIRTHDATE_FORMATTER) : null);
+    this.phone = agentAccount.getPhoneNumber();
+    // Always send phone_verified (true or false) when there's a phone, never send it (null) otherwise.
+    this.phone_verified = agentAccount.getPhoneNumber() == null ? null : agentAccount.isPhoneNumberVerified();
 
-      // Copy address infos
-      if (identity.getAddress() != null) {
-        this.address = new Address(identity.getAddress());
-      }
+    // Copy address infos
+    if (agentAccount.getAddress() != null) {
+      this.address = new Address(agentAccount.getAddress());
     }
 
-    long updatedAt = Math.max(agentAccount.getModified(), (identity == null ? 0 : identity.getUpdatedAt()));
-
+    long updatedAt = agentAccount.getUpdatedAt();
     if (updatedAt > 0) {
       this.updated_at = TimeUnit.MILLISECONDS.toSeconds(updatedAt);
     }
-
   }
 
   public String getName() {
@@ -279,7 +273,7 @@ public class AgentInfo implements HasModified {
     private Address() {
     }
 
-    private Address(oasis.model.social.Address other) {
+    private Address(oasis.model.accounts.Address other) {
       this.street_address = other.getStreetAddress();
       this.locality = other.getLocality();
       this.region = other.getRegion();

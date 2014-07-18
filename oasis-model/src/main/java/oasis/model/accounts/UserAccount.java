@@ -1,13 +1,13 @@
 package oasis.model.accounts;
 
+import org.joda.time.LocalDate;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.wordnik.swagger.annotations.ApiModelProperty;
 
 public class UserAccount extends Account {
   @JsonProperty
   private String emailAddress;
-
-  @JsonProperty
-  private String identityId;
 
   @JsonProperty
   private String password;
@@ -25,7 +25,37 @@ public class UserAccount extends Account {
   private String locale;
 
   @JsonProperty
-  private long modified;
+  private String name;
+
+  @JsonProperty
+  private String givenName;
+
+  @JsonProperty
+  private String familyName;
+
+  @JsonProperty
+  private String middleName;
+
+  @JsonProperty
+  private String nickname;
+
+  @JsonProperty
+  private String gender;
+
+  @JsonProperty
+  private LocalDate birthdate;
+
+  @JsonProperty
+  private String phoneNumber;
+
+  @JsonProperty
+  private boolean phoneNumberVerified;
+
+  @JsonProperty
+  private Address address;
+
+  @JsonProperty
+  private long updatedAt;
 
   public String getEmailAddress() {
     return emailAddress;
@@ -33,14 +63,6 @@ public class UserAccount extends Account {
 
   public void setEmailAddress(String emailAddress) {
     this.emailAddress = emailAddress;
-  }
-
-  public String getIdentityId() {
-    return identityId;
-  }
-
-  public void setIdentityId(String identityId) {
-    this.identityId = identityId;
   }
 
   public String getPassword() {
@@ -83,11 +105,91 @@ public class UserAccount extends Account {
     this.locale = locale;
   }
 
-  public long getModified() {
-    return modified;
+  public String getName() {
+    return name;
   }
 
-  public void setModified(long modified) {
-    this.modified = modified;
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public String getGivenName() {
+    return givenName;
+  }
+
+  public void setGivenName(String givenName) {
+    this.givenName = givenName;
+  }
+
+  public String getFamilyName() {
+    return familyName;
+  }
+
+  public void setFamilyName(String familyName) {
+    this.familyName = familyName;
+  }
+
+  public String getMiddleName() {
+    return middleName;
+  }
+
+  public void setMiddleName(String middleName) {
+    this.middleName = middleName;
+  }
+
+  public String getNickname() {
+    return nickname;
+  }
+
+  public void setNickname(String nickname) {
+    this.nickname = nickname;
+  }
+
+  public String getGender() {
+    return gender;
+  }
+
+  public void setGender(String gender) {
+    this.gender = gender;
+  }
+
+  public LocalDate getBirthdate() {
+    return birthdate;
+  }
+
+  public void setBirthdate(LocalDate birthdate) {
+    this.birthdate = birthdate;
+  }
+
+  public String getPhoneNumber() {
+    return phoneNumber;
+  }
+
+  public void setPhoneNumber(String phoneNumber) {
+    this.phoneNumber = phoneNumber;
+  }
+
+  public boolean isPhoneNumberVerified() {
+    return phoneNumberVerified;
+  }
+
+  public void setPhoneNumberVerified(boolean phoneNumberVerified) {
+    this.phoneNumberVerified = phoneNumberVerified;
+  }
+
+  public Address getAddress() {
+    return address;
+  }
+
+  public void setAddress(Address address) {
+    this.address = address;
+  }
+
+  public long getUpdatedAt() {
+    return updatedAt;
+  }
+
+  public void setUpdatedAt(long updatedAt) {
+    this.updatedAt = updatedAt;
   }
 }

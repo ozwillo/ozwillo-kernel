@@ -24,8 +24,6 @@ import oasis.model.accounts.UserAccount;
 import oasis.model.authn.AccessToken;
 import oasis.model.directory.OrganizationMembership;
 import oasis.model.directory.OrganizationMembershipRepository;
-import oasis.model.social.Identity;
-import oasis.model.social.IdentityRepository;
 import oasis.openidconnect.OpenIdConnectModule;
 import oasis.security.KeyPairLoader;
 import oasis.web.authn.testing.TestOAuthAuthenticationFilter;
@@ -45,16 +43,11 @@ public class UserInfoEndpointTest {
     }
   }
 
-  private static final Identity identity = new Identity() {{
-
-  }};
   private static final UserAccount citizenAccount = new UserAccount() {{
     setId("citizen");
-    setIdentityId(identity.getId());
   }};
   private static final UserAccount agentAccount = new UserAccount() {{
     setId("agent");
-    setIdentityId(identity.getId());
   }};
   private static final OrganizationMembership agentMembership = new OrganizationMembership() {{
     setId("membership");
@@ -65,12 +58,10 @@ public class UserInfoEndpointTest {
 
   @Inject @Rule public InProcessResteasy resteasy;
 
-  @Before public void setUpMocks(AccountRepository accountRepository, IdentityRepository identityRepository,
+  @Before public void setUpMocks(AccountRepository accountRepository,
       OrganizationMembershipRepository organizationMembershipRepository) {
     when(accountRepository.getAccount(citizenAccount.getId())).thenReturn(citizenAccount);
     when(accountRepository.getAccount(agentAccount.getId())).thenReturn(agentAccount);
-
-    when(identityRepository.getIdentity(identity.getId())).thenReturn(identity);
 
     when(organizationMembershipRepository.getOrganizationForUserIfUnique(agentAccount.getId())).thenReturn(agentMembership);
   }

@@ -34,8 +34,6 @@ import oasis.model.accounts.UserAccount;
 import oasis.model.authn.AccessToken;
 import oasis.model.directory.OrganizationMembership;
 import oasis.model.directory.OrganizationMembershipRepository;
-import oasis.model.social.Identity;
-import oasis.model.social.IdentityRepository;
 import oasis.openidconnect.OpenIdConnectModule;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
@@ -64,7 +62,6 @@ public class UserInfoEndpoint {
 
   @Inject OpenIdConnectModule.Settings settings;
   @Inject JsonFactory jsonFactory;
-  @Inject IdentityRepository identityRepository;
   @Inject AccountRepository accountRepository;
   @Inject OrganizationMembershipRepository organizationMembershipRepository;
 
@@ -140,24 +137,23 @@ public class UserInfoEndpoint {
 
     Set<String> scopeIds = accessToken.getScopeIds();
 
-    Identity identity = identityRepository.getIdentity(userAccount.getIdentityId());
-    UserInfo userInfo = getUserInfo(userAccount, identity, scopeIds);
+    UserInfo userInfo = getUserInfo(userAccount, scopeIds);
     userInfo.setSubject(userAccount.getId());
     return userInfo;
   }
 
-  private UserInfo getUserInfo(UserAccount userAccount, Identity identity, Set<String> scopeIds) {
+  private UserInfo getUserInfo(UserAccount userAccount, Set<String> scopeIds) {
     UserInfo userInfo = new UserInfo();
 
     if (scopeIds.contains(PROFILE_SCOPE)) {
-      String birthDate = identity.getBirthdate() != null ? identity.getBirthdate().toString(BIRTHDATE_FORMATTER) : null;
-      userInfo.setName(identity.getName())
-          .setFamilyName(identity.getFamilyName())
-          .setGivenName(identity.getGivenName())
-          .setMiddleName(identity.getMiddleName())
-          .setNickname(identity.getNickname())
+      String birthDate = userAccount.getBirthdate() != null ? userAccount.getBirthdate().toString(BIRTHDATE_FORMATTER) : null;
+      userInfo.setName(userAccount.getName())
+          .setFamilyName(userAccount.getFamilyName())
+          .setGivenName(userAccount.getGivenName())
+          .setMiddleName(userAccount.getMiddleName())
+          .setNickname(userAccount.getNickname())
           .setPicture(userAccount.getPicture())
-          .setGender(identity.getGender())
+          .setGender(userAccount.getGender())
           .setBirthdate(birthDate)
           .setZoneinfo(userAccount.getZoneInfo())
           .setLocale(userAccount.getLocale());
@@ -168,22 +164,22 @@ public class UserInfoEndpoint {
       userInfo.setEmailVerified(true); // A user account is created only if the email is verified
     }
 
-    if (scopeIds.contains(ADDRESS_SCOPE) && identity.getAddress() != null) {
+    if (scopeIds.contains(ADDRESS_SCOPE) && userAccount.getAddress() != null) {
       UserInfo.Address address = new UserInfo.Address()
-          .setStreetAddress(identity.getAddress().getStreetAddress())
-          .setLocality(identity.getAddress().getLocality())
-          .setRegion(identity.getAddress().getRegion())
-          .setPostalCode(identity.getAddress().getPostalCode())
-          .setCountry(identity.getAddress().getCountry());
+          .setStreetAddress(userAccount.getAddress().getStreetAddress())
+          .setLocality(userAccount.getAddress().getLocality())
+          .setRegion(userAccount.getAddress().getRegion())
+          .setPostalCode(userAccount.getAddress().getPostalCode())
+          .setCountry(userAccount.getAddress().getCountry());
       userInfo.setAddress(address);
     }
 
-    if (scopeIds.contains(PHONE_SCOPE) && identity.getPhoneNumber() != null) {
-      userInfo.setPhone(identity.getPhoneNumber());
-      userInfo.setPhoneVerified(identity.isPhoneNumberVerified());
+    if (scopeIds.contains(PHONE_SCOPE) && userAccount.getPhoneNumber() != null) {
+      userInfo.setPhone(userAccount.getPhoneNumber());
+      userInfo.setPhoneVerified(userAccount.isPhoneNumberVerified());
     }
 
-    long updatedAt = Math.max(userAccount.getModified(), identity.getUpdatedAt());
+    long updatedAt = userAccount.getUpdatedAt();
     if (updatedAt > 0) {
       userInfo.setUpdatedAt(TimeUnit.MILLISECONDS.toSeconds(updatedAt));
     }

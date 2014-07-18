@@ -24,7 +24,6 @@ import oasis.jongo.directory.JongoOrganizationMembershipRepository;
 import oasis.jongo.etag.JongoEtagService;
 import oasis.jongo.eventbus.JongoSubscriptionRepository;
 import oasis.jongo.notification.JongoNotificationRepository;
-import oasis.jongo.social.JongoIdentityRepository;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.applications.v2.ApplicationRepository;
@@ -37,7 +36,6 @@ import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.OrganizationMembershipRepository;
 import oasis.model.eventbus.SubscriptionRepository;
 import oasis.model.notification.NotificationRepository;
-import oasis.model.social.IdentityRepository;
 import oasis.services.etag.EtagService;
 
 public class JongoModule extends AbstractModule {
@@ -91,7 +89,6 @@ public class JongoModule extends AbstractModule {
     bind(Jongo.class).toProvider(JongoService.class);
 
     bind(AccountRepository.class).to(JongoAccountRepository.class);
-    bind(IdentityRepository.class).to(JongoIdentityRepository.class);
     bind(DirectoryRepository.class).to(JongoDirectoryRepository.class);
     bind(OrganizationMembershipRepository.class).to(JongoOrganizationMembershipRepository.class);
     bind(NotificationRepository.class).to(JongoNotificationRepository.class);
@@ -107,7 +104,6 @@ public class JongoModule extends AbstractModule {
 
     Multibinder<JongoBootstrapper> bootstrappers = newSetBinder(binder(), JongoBootstrapper.class);
     bootstrappers.addBinding().to(JongoAccountRepository.class);
-    bootstrappers.addBinding().to(JongoIdentityRepository.class);
     bootstrappers.addBinding().to(JongoDirectoryRepository.class);
     bootstrappers.addBinding().to(JongoOrganizationMembershipRepository.class);
     bootstrappers.addBinding().to(JongoNotificationRepository.class);

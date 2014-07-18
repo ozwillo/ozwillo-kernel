@@ -54,7 +54,7 @@ public class JongoAccountRepository implements AccountRepository, JongoBootstrap
 
   @Override
   public UserAccount createUserAccount(UserAccount user) {
-    user.setModified(System.currentTimeMillis());
+    user.setUpdatedAt(System.currentTimeMillis());
     getAccountCollection().insert(user);
     return user;
   }

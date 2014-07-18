@@ -1,4 +1,4 @@
-package oasis.model.social;
+package oasis.model.accounts;
 
 import javax.annotation.Nonnull;
 
