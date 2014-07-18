@@ -36,10 +36,8 @@ public class JongoTokenRepository implements TokenRepository, JongoBootstrapper 
         .as(Token.class);
   }
 
-  public boolean registerToken(String accountId, Token token) {
-    checkArgument(!Strings.isNullOrEmpty(accountId));
-
-    token.setAccountId(accountId);
+  public boolean registerToken(Token token) {
+    checkArgument(!Strings.isNullOrEmpty(token.getAccountId()));
 
     WriteResult writeResult = this.getTokensCollection()
         .insert(token);

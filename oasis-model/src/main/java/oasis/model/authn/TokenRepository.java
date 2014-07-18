@@ -3,7 +3,7 @@ package oasis.model.authn;
 public interface TokenRepository {
   Token getToken(String tokenId);
 
-  boolean registerToken(String accountId, Token token);
+  boolean registerToken(Token token);
 
   boolean revokeToken(String tokenId);
 

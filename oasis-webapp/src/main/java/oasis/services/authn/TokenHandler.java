@@ -65,7 +65,7 @@ public class TokenHandler {
 
     secureToken(accessToken, pass);
 
-    if (!tokenRepository.registerToken(authorizationCode.getAccountId(), accessToken)) {
+    if (!tokenRepository.registerToken(accessToken)) {
       return null;
     }
     return accessToken;
@@ -83,7 +83,7 @@ public class TokenHandler {
 
     secureToken(accessToken, pass);
 
-    if (!tokenRepository.registerToken(refreshToken.getAccountId(), accessToken)) {
+    if (!tokenRepository.registerToken(accessToken)) {
       return null;
     }
 
@@ -108,7 +108,7 @@ public class TokenHandler {
     secureToken(authorizationCode, pass);
 
     // Register the new token
-    if (!tokenRepository.registerToken(sidToken.getAccountId(), authorizationCode)) {
+    if (!tokenRepository.registerToken(authorizationCode)) {
       return null;
     }
 
@@ -135,7 +135,7 @@ public class TokenHandler {
     secureToken(refreshToken, pass);
 
     // Register the new token
-    if (!tokenRepository.registerToken(authorizationCode.getAccountId(), refreshToken)) {
+    if (!tokenRepository.registerToken(refreshToken)) {
       return null;
     }
 
@@ -154,7 +154,7 @@ public class TokenHandler {
 
     secureToken(sidToken, pass);
 
-    if (!tokenRepository.registerToken(accountId, sidToken)) {
+    if (!tokenRepository.registerToken(sidToken)) {
       return null;
     }
 
