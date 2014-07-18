@@ -2,11 +2,14 @@ package oasis.services.userdirectory;
 
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.Nullable;
+
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 
 import oasis.jongo.etag.HasModified;
 import oasis.model.accounts.AgentAccount;
+import oasis.model.directory.OrganizationMembership;
 import oasis.model.social.Identity;
 
 public class AgentInfo implements HasModified {
@@ -42,11 +45,13 @@ public class AgentInfo implements HasModified {
   public AgentInfo() {
   }
 
-  public AgentInfo(AgentAccount agentAccount, Identity identity) {
+  public AgentInfo(AgentAccount agentAccount, Identity identity, @Nullable OrganizationMembership membership) {
 
     this.id = agentAccount.getId();
-    this.organization_admin = agentAccount.isAdmin() ? Boolean.TRUE : null;
-    this.organization_id = agentAccount.getOrganizationId();
+    if (membership != null) {
+      this.organization_admin = membership.isAdmin() ? Boolean.TRUE : null;
+      this.organization_id = membership.getOrganizationId();
+    }
     this.modified = agentAccount.getModified();
 
     // Copy agent infos

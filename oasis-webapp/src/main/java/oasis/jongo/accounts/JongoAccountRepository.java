@@ -65,7 +65,6 @@ public class JongoAccountRepository implements AccountRepository, JongoBootstrap
   @Override
   public AgentAccount createAgentAccount(String organizationId, AgentAccount agent) {
     agent.setModified(System.currentTimeMillis());
-    agent.setOrganizationId(organizationId);
     getAccountCollection().insert(agent);
     return agent;
   }
@@ -81,21 +80,6 @@ public class JongoAccountRepository implements AccountRepository, JongoBootstrap
     }
 
     return true;
-  }
-
-  @Override
-  public void deleteAgentAccountsFromOrganization(String organizationId) {
-    getAccountCollection().remove("{ organizationId: # }", organizationId);
-  }
-
-  @Override
-  public Iterable<AgentAccount> getAgentsForOrganization(String organizationId, int start, int limit) {
-    return getAccountCollection()
-        .find("{ organizationId: # }", organizationId)
-        .projection("{tokens: 0, authorizedScopes: 0}")
-        .skip(start)
-        .limit(limit)
-        .as(AgentAccount.class);
   }
 
   @Override

@@ -44,6 +44,8 @@ import oasis.model.authn.AuthorizationCode;
 import oasis.model.authn.RefreshToken;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
+import oasis.model.directory.OrganizationMembership;
+import oasis.model.directory.OrganizationMembershipRepository;
 import oasis.openidconnect.OpenIdConnectModule;
 import oasis.security.KeyPairLoader;
 import oasis.services.applications.AppInstanceService;
@@ -293,11 +295,15 @@ public class TokenEndpointTest {
   }
 
   @Test public void testValidAuthCodeWithAgent(JsonFactory jsonFactory, OpenIdConnectModule.Settings settings, Clock clock,
-      AccountRepository accountRepository, AppInstanceService appInstanceService) throws Throwable {
+      AccountRepository accountRepository, AppInstanceService appInstanceService,
+      OrganizationMembershipRepository organizationMembershipRepository) throws Throwable {
     // given
     resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter("sp"));
     when(accountRepository.getAccount("account")).thenReturn(new AgentAccount() {{
       setId("account");
+    }});
+    when(organizationMembershipRepository.getOrganizationForUserIfUnique("account")).thenReturn(new OrganizationMembership() {{
+      setId("membership");
       setOrganizationId("organization");
       setAdmin(true);
     }});

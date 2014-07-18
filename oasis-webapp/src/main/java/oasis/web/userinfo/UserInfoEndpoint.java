@@ -30,9 +30,10 @@ import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.accounts.Account;
 import oasis.model.accounts.AccountRepository;
-import oasis.model.accounts.AgentAccount;
 import oasis.model.accounts.UserAccount;
 import oasis.model.authn.AccessToken;
+import oasis.model.directory.OrganizationMembership;
+import oasis.model.directory.OrganizationMembershipRepository;
 import oasis.model.social.Identity;
 import oasis.model.social.IdentityRepository;
 import oasis.openidconnect.OpenIdConnectModule;
@@ -65,6 +66,7 @@ public class UserInfoEndpoint {
   @Inject JsonFactory jsonFactory;
   @Inject IdentityRepository identityRepository;
   @Inject AccountRepository accountRepository;
+  @Inject OrganizationMembershipRepository organizationMembershipRepository;
 
   @GET
   @Produces(APPLICATION_JWT)
@@ -186,10 +188,10 @@ public class UserInfoEndpoint {
       userInfo.setUpdatedAt(TimeUnit.MILLISECONDS.toSeconds(updatedAt));
     }
 
-    if (userAccount instanceof AgentAccount) {
-      AgentAccount agentAccount = (AgentAccount) userAccount;
-      userInfo.setOrganization_admin(agentAccount.isAdmin());
-      userInfo.setOrganization_id(agentAccount.getOrganizationId());
+    OrganizationMembership membership = organizationMembershipRepository.getOrganizationForUserIfUnique(userAccount.getId());
+    if (membership != null) {
+      userInfo.setOrganization_admin(membership.isAdmin());
+      userInfo.setOrganization_id(membership.getOrganizationId());
     }
 
     return userInfo;

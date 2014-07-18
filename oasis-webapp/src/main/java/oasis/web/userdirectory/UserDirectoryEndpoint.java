@@ -31,6 +31,8 @@ import oasis.model.accounts.AccountRepository;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Group;
 import oasis.model.directory.Organization;
+import oasis.model.directory.OrganizationMembership;
+import oasis.model.directory.OrganizationMembershipRepository;
 import oasis.services.authn.UserPasswordAuthenticator;
 import oasis.services.etag.EtagService;
 import oasis.services.userdirectory.AgentInfo;
@@ -45,19 +47,12 @@ import oasis.web.utils.ResponseFactory;
 @Api(value = "/d", description = "User directory API")
 public class UserDirectoryEndpoint {
 
-  @Inject
-  private DirectoryRepository directory;
-
-  @Inject
-  private AccountRepository account;
-
-  @Inject
-  private EtagService etagService;
-
-  @Inject
-  private UserDirectoryService userDirectoryService;
-  @Inject
-  private UserPasswordAuthenticator userPasswordAuthenticator;
+  @Inject DirectoryRepository directory;
+  @Inject AccountRepository account;
+  @Inject UserDirectoryService userDirectoryService;
+  @Inject OrganizationMembershipRepository organizationMembershipRepository;
+  @Inject EtagService etagService;
+  @Inject UserPasswordAuthenticator userPasswordAuthenticator;
 
   /*
    * Organization
@@ -154,7 +149,7 @@ public class UserDirectoryEndpoint {
     }
 
     // XXX: refactor ?
-    account.deleteAgentAccountsFromOrganization(organizationId);
+    organizationMembershipRepository.deleteMembershipsInOrganization(organizationId);
 
     return ResponseFactory.NO_CONTENT;
   }

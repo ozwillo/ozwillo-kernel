@@ -11,13 +11,9 @@ public interface AccountRepository {
 
   AgentAccount getAgentAccountById(String id);
 
-  AgentAccount createAgentAccount(String organizationId, AgentAccount agent);
+ @Deprecated AgentAccount createAgentAccount(String organizationId, AgentAccount agent);
 
   boolean deleteAgentAccount(String agentId, long[] versions) throws InvalidVersionException;
-
-  void deleteAgentAccountsFromOrganization(String organizationId);
-
-  Iterable<AgentAccount> getAgentsForOrganization(String organizationId, int start, int limit);
 
   AgentAccount findAndRemove(String agentId, long[] versions) throws InvalidVersionException;
 
