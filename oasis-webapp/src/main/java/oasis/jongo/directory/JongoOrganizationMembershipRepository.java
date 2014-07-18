@@ -135,11 +135,4 @@ public class JongoOrganizationMembershipRepository implements OrganizationMember
         .remove("{ organizationId: # }", organizationId)
         .getN() > 0;
   }
-
-  @Override
-  public boolean deleteOrganizationMembershipsForUser(String userId) {
-    return getOrganizationMembershipsCollection()
-        .remove("{ accountId: # }", userId)
-        .getN() > 0;
-  }
 }

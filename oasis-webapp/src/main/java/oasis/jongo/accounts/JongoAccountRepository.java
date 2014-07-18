@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import com.mongodb.WriteResult;
 
 import oasis.jongo.JongoBootstrapper;
-import oasis.model.InvalidVersionException;
 import oasis.model.accounts.Account;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.AgentAccount;
@@ -67,34 +66,7 @@ public class JongoAccountRepository implements AccountRepository, JongoBootstrap
     agent.setModified(System.currentTimeMillis());
     getAccountCollection().insert(agent);
     return agent;
-  }
 
-  @Override
-  public boolean deleteAgentAccount(String agentId, long[] versions) throws InvalidVersionException {
-    WriteResult wr = getAccountCollection().remove("{id: #, modified: { $in: # } }", agentId, versions);
-    if (wr.getN() == 0) {
-      if (getAccountCollection().count("{ id: # }", agentId) != 0) {
-        throw new InvalidVersionException("agentaccount", agentId);
-      }
-      return false;
-    }
-
-    return true;
-  }
-
-  @Override
-  public AgentAccount findAndRemove(String agentId, long[] versions) throws InvalidVersionException {
-    AgentAccount res = getAccountCollection()
-        .findAndModify("{id: #, modified: { $in: # } }", agentId, versions)
-        .projection("{tokens: 0, authorizedScopes: 0}")
-        .remove()
-        .as(AgentAccount.class);
-    if (res == null) {
-      if (getAccountCollection().count("{ id: # }", agentId) != 0) {
-        throw new InvalidVersionException("agentaccount", agentId);
-      }
-    }
-    return res;
   }
 
   @Override

@@ -83,22 +83,6 @@ public class UserDirectoryService {
     return new AgentInfo(createdAgentAccount, createdIdentity, createdMembership);
   }
 
-  public boolean deleteAgentAccount(String agentId, long[] versions) throws InvalidVersionException {
-    AgentAccount agentAccount = accountRepository.findAndRemove(agentId, versions);
-
-    if (agentAccount == null) {
-      return false;
-    }
-
-    boolean deleted = identityRepository.deleteIdentity(agentAccount.getIdentityId());
-    if (!deleted) {
-      // XXX: Identity does not exist, someone removed it for me. No matter, the job is done.
-    }
-
-    organizationMemberRepository.deleteOrganizationMembershipsForUser(agentId);
-    return true;
-  }
-
   private AgentAccount createAgentAccount(AgentInfo agentInfo) {
     AgentAccount res = new AgentAccount();
 

@@ -22,6 +22,4 @@ public interface OrganizationMembershipRepository {
   @Deprecated @Nullable OrganizationMembership getOrganizationForUserIfUnique(String userId);
 
   boolean deleteMembershipsInOrganization(String organizationId);
-
-  boolean deleteOrganizationMembershipsForUser(String userId);
 }

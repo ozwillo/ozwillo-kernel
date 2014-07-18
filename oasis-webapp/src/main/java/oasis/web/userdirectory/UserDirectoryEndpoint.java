@@ -409,26 +409,4 @@ public class UserDirectoryEndpoint {
         .entity(agent)
         .build();
   }
-
-  @DELETE
-  @Path("/agent/{agentId}")
-  @ApiOperation(value = "Delete an agent")
-  public Response deleteAgentAccount(
-      @HeaderParam("If-Match") @ApiParam(required = true) String etagStr,
-      @PathParam("agentId") String agentId) {
-    if (Strings.isNullOrEmpty(etagStr)) {
-      return ResponseFactory.preconditionRequiredIfMatch();
-    }
-
-    boolean deleted = false;
-    try {
-      deleted = userDirectoryService.deleteAgentAccount(agentId, etagService.parseEtag(etagStr));
-    } catch (InvalidVersionException e) {
-      return ResponseFactory.preconditionRequiredIfMatch();
-    }
-    if (!deleted) {
-      return ResponseFactory.notFound("The requested agent does not exist");
-    }
-    return ResponseFactory.NO_CONTENT;
-  }
 }
