@@ -1,7 +1,7 @@
 package oasis.web.userinfo;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -20,8 +20,7 @@ import com.google.inject.Inject;
 
 import oasis.http.testing.InProcessResteasy;
 import oasis.model.accounts.AccountRepository;
-import oasis.model.accounts.AgentAccount;
-import oasis.model.accounts.CitizenAccount;
+import oasis.model.accounts.UserAccount;
 import oasis.model.authn.AccessToken;
 import oasis.model.directory.OrganizationMembership;
 import oasis.model.directory.OrganizationMembershipRepository;
@@ -49,11 +48,11 @@ public class UserInfoEndpointTest {
   private static final Identity identity = new Identity() {{
 
   }};
-  private static final CitizenAccount citizenAccount = new CitizenAccount() {{
+  private static final UserAccount citizenAccount = new UserAccount() {{
     setId("citizen");
     setIdentityId(identity.getId());
   }};
-  private static final AgentAccount agentAccount = new AgentAccount() {{
+  private static final UserAccount agentAccount = new UserAccount() {{
     setId("agent");
     setIdentityId(identity.getId());
   }};

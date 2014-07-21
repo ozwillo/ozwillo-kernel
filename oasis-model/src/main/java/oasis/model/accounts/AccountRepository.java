@@ -7,9 +7,7 @@ public interface AccountRepository {
 
   UserAccount getUserAccountById(String id);
 
-  AgentAccount getAgentAccountById(String id);
-
- @Deprecated AgentAccount createAgentAccount(String organizationId, AgentAccount agent);
+  UserAccount createUserAccount(UserAccount agent);
 
   // FIXME: replace with some updateAccount (or move out of Account)
   void updatePassword(String accountId, String passwordHash, String passwordSalt);

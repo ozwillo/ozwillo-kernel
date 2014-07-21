@@ -8,7 +8,7 @@ import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 
 import oasis.jongo.etag.HasModified;
-import oasis.model.accounts.AgentAccount;
+import oasis.model.accounts.UserAccount;
 import oasis.model.directory.OrganizationMembership;
 import oasis.model.social.Identity;
 
@@ -45,7 +45,7 @@ public class AgentInfo implements HasModified {
   public AgentInfo() {
   }
 
-  public AgentInfo(AgentAccount agentAccount, Identity identity, @Nullable OrganizationMembership membership) {
+  public AgentInfo(UserAccount agentAccount, Identity identity, @Nullable OrganizationMembership membership) {
 
     this.id = agentAccount.getId();
     if (membership != null) {

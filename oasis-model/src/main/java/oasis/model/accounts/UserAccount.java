@@ -1,39 +1,30 @@
 package oasis.model.accounts;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.wordnik.swagger.annotations.ApiModelProperty;
 
-public abstract class UserAccount extends Account {
+public class UserAccount extends Account {
   @JsonProperty
-  @ApiModelProperty(required = true)
   private String emailAddress;
 
   @JsonProperty
-  @ApiModelProperty(required = true)
   private String identityId;
 
   @JsonProperty
-  @ApiModelProperty(required = true)
   private String password;
 
   @JsonProperty
-  @ApiModelProperty(required = true)
   private String passwordSalt;
 
   @JsonProperty
-  @ApiModelProperty
   private String picture;
 
   @JsonProperty
-  @ApiModelProperty
   private String zoneInfo;
 
   @JsonProperty
-  @ApiModelProperty
   private String locale;
 
   @JsonProperty
-  @ApiModelProperty
   private long modified;
 
   public String getEmailAddress() {

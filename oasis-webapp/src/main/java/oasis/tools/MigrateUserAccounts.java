@@ -18,10 +18,10 @@ import oasis.jongo.directory.JongoOrganizationMembership;
 import oasis.jongo.guice.JongoModule;
 import oasis.openidconnect.OpenIdConnectModule;
 
-public class MigrateAgentAccounts extends CommandLineTool {
+public class MigrateUserAccounts extends CommandLineTool {
 
   public static void main(String[] args) throws Exception {
-    new MigrateAgentAccounts().run(args);
+    new MigrateUserAccounts().run(args);
   }
 
   @Option(name = "-n", aliases = "--dry-run")
@@ -32,7 +32,7 @@ public class MigrateAgentAccounts extends CommandLineTool {
 
   @Override
   protected Logger logger() {
-    return LoggerFactory.getLogger(MigrateAgentAccounts.class);
+    return LoggerFactory.getLogger(MigrateUserAccounts.class);
   }
 
   private void run(String[] args) throws Exception {
@@ -71,6 +71,15 @@ public class MigrateAgentAccounts extends CommandLineTool {
             migrateAgent(agent);
           }
         } while (agent != null);
+      }
+      logger().info("Updating all agent and citizen accounts to generic user account");
+      if (!dryRun) {
+        int n =  jongoProvider.get().getCollection("account")
+            .update("{ type: { $in: [ \".CitizenAccount\", \".AgentAccount\" ] } }")
+            .multi()
+            .with("{ $set: { type: \".UserAccount\" } }")
+            .getN();
+        logger().info("  Updated {} accounts.", n);
       }
     } finally {
       jongoService.stop();

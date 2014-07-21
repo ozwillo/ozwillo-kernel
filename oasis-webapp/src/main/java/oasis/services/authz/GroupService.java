@@ -11,7 +11,6 @@ import com.google.common.collect.Collections2;
 import com.google.inject.Inject;
 
 import oasis.model.accounts.Account;
-import oasis.model.accounts.AgentAccount;
 import oasis.model.accounts.UserAccount;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Group;
@@ -46,12 +45,10 @@ public class GroupService {
 
     List<String> res = new ArrayList<>();
 
-    // groups from organization if account is a AgentAccount
-    if (account instanceof AgentAccount) {
-      Collection<Group> groupsForAgent = directoryRepository.getGroupsForAgent(account.getId());
-      if (groupsForAgent != null) {
-        res.addAll(Collections2.transform(groupsForAgent, GROUP_ID_TRANSFORMER));
-      }
+    // groups from organizations
+    Collection<Group> groupsForAgent = directoryRepository.getGroupsForAgent(account.getId());
+    if (groupsForAgent != null) {
+      res.addAll(Collections2.transform(groupsForAgent, GROUP_ID_TRANSFORMER));
     }
 
     // groups from identity relation

@@ -37,7 +37,7 @@ import com.google.inject.Provides;
 
 import oasis.http.testing.InProcessResteasy;
 import oasis.model.accounts.AccountRepository;
-import oasis.model.accounts.AgentAccount;
+import oasis.model.accounts.UserAccount;
 import oasis.model.applications.v2.AppInstance;
 import oasis.model.authn.AccessToken;
 import oasis.model.authn.AuthorizationCode;
@@ -299,7 +299,7 @@ public class TokenEndpointTest {
       OrganizationMembershipRepository organizationMembershipRepository) throws Throwable {
     // given
     resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter("sp"));
-    when(accountRepository.getAccount("account")).thenReturn(new AgentAccount() {{
+    when(accountRepository.getAccount("account")).thenReturn(new UserAccount() {{
       setId("account");
     }});
     when(organizationMembershipRepository.getOrganizationForUserIfUnique("account")).thenReturn(new OrganizationMembership() {{

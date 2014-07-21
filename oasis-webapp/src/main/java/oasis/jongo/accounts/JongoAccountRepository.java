@@ -12,7 +12,6 @@ import com.mongodb.WriteResult;
 import oasis.jongo.JongoBootstrapper;
 import oasis.model.accounts.Account;
 import oasis.model.accounts.AccountRepository;
-import oasis.model.accounts.AgentAccount;
 import oasis.model.accounts.UserAccount;
 
 public class JongoAccountRepository implements AccountRepository, JongoBootstrapper {
@@ -54,19 +53,10 @@ public class JongoAccountRepository implements AccountRepository, JongoBootstrap
   }
 
   @Override
-  public AgentAccount getAgentAccountById(String id) {
-    return getAccountCollection()
-        .findOne("{id:#}", id)
-        .projection("{tokens: 0, authorizedScopes: 0}")
-        .as(AgentAccount.class);
-  }
-
-  @Override
-  public AgentAccount createAgentAccount(String organizationId, AgentAccount agent) {
-    agent.setModified(System.currentTimeMillis());
-    getAccountCollection().insert(agent);
-    return agent;
-
+  public UserAccount createUserAccount(UserAccount user) {
+    user.setModified(System.currentTimeMillis());
+    getAccountCollection().insert(user);
+    return user;
   }
 
   @Override
