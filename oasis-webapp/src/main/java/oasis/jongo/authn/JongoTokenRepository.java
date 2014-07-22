@@ -12,7 +12,6 @@ import com.google.common.base.Strings;
 import com.mongodb.WriteResult;
 
 import oasis.jongo.JongoBootstrapper;
-import oasis.model.accounts.Account;
 import oasis.model.authn.Token;
 import oasis.model.authn.TokenRepository;
 import oasis.openidconnect.OpenIdConnectModule;
@@ -26,23 +25,15 @@ public class JongoTokenRepository implements TokenRepository, JongoBootstrapper 
     this.settings = settings;
   }
 
-  protected MongoCollection getAccountCollection() {
-    return jongo.getCollection("account");
+  protected MongoCollection getTokensCollection() {
+    return jongo.getCollection("tokens");
   }
 
   @Override
   public Token getToken(String tokenId) {
-    Account account = getAccountCollection()
-        .findOne("{tokens.id: #}", tokenId)
-        .projection("{tokens.$: 1, type: 1, id: 1}")
-        .as(Account.class);
-
-    if (account == null || account.getTokens() == null || account.getTokens().isEmpty()) {
-      return null;
-    }
-    Token token = account.getTokens().get(0);
-    token.setAccountId(account.getId());
-    return token;
+    return getTokensCollection()
+        .findOne("{ id: # }", tokenId)
+        .as(Token.class);
   }
 
   public boolean registerToken(String accountId, Token token) {
@@ -50,47 +41,45 @@ public class JongoTokenRepository implements TokenRepository, JongoBootstrapper 
 
     token.setAccountId(accountId);
 
-    WriteResult writeResult = this.getAccountCollection()
-        .update("{ id: # }", accountId)
-        .with("{ $push: { tokens: # } }", token);
+    WriteResult writeResult = this.getTokensCollection()
+        .insert(token);
 
-    return writeResult.getN() > 0;
+    return true;
   }
 
   public boolean revokeToken(String tokenId) {
     checkArgument(!Strings.isNullOrEmpty(tokenId));
 
-    return this.getAccountCollection()
-        .update("{ tokens.id: # }", tokenId)
-        .with("{ $pull: { tokens: { $or: [ { id: # }, { ancestorIds: # } ] } } }", tokenId, tokenId)
+    return this.getTokensCollection()
+        .remove("{ $or: [ { id: # }, { ancestorIds: # } ] }", tokenId, tokenId)
         .getN() > 0;
   }
 
   public boolean renewToken(String tokenId) {
     Instant expirationTime = Instant.now().plus(settings.sidTokenDuration);
 
-    WriteResult writeResult = this.getAccountCollection()
-        .update("{ tokens.id: # }", tokenId)
+    WriteResult writeResult = this.getTokensCollection()
+        .update("{ id: # }", tokenId)
         // TODO: Pass directly the instance of Instant
-        .with("{ $set: { tokens.$.expirationTime: # } }", expirationTime.getMillis());
+        .with("{ $set: { expirationTime: # } }", expirationTime.getMillis());
 
-    return writeResult.getN() == 1;
+    return writeResult.getN() > 0;
   }
 
   @Override
   public boolean reAuthSidToken(String tokenId) {
     Instant authenticationTime = Instant.now();
 
-    WriteResult writeResult = this.getAccountCollection()
-        .update("{ tokens.id: # }", tokenId)
+    WriteResult writeResult = this.getTokensCollection()
+        .update("{ id: # }", tokenId)
         // TODO: Pass directly the instance of Instant
-        .with("{ $set: { tokens.$.authenticationTime: # } }", authenticationTime.getMillis());
+        .with("{ $set: { authenticationTime: # } }", authenticationTime.getMillis());
 
-    return writeResult.getN() == 1;
+    return writeResult.getN() > 0;
   }
 
   @Override
   public void bootstrap() {
-    getAccountCollection().ensureIndex("{ tokens.id: 1 }", "{ unique: 1, sparse: 1 }");
+    getTokensCollection().ensureIndex("{ id: 1 }", "{ unique: 1 }");
   }
 }

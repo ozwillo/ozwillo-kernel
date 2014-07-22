@@ -17,8 +17,7 @@ import oasis.model.annotations.Id;
 public abstract class Token {
   @Id
   private String id;
-  // FIXME: model depends on storage implementation
-  @JsonIgnore
+  @JsonProperty
   private String accountId;
   @JsonProperty
   private byte[] hash;
