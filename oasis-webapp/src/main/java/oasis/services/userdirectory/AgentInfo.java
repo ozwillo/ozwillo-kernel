@@ -11,6 +11,7 @@ import oasis.jongo.etag.HasModified;
 import oasis.model.accounts.UserAccount;
 import oasis.model.directory.OrganizationMembership;
 
+@Deprecated
 public class AgentInfo implements HasModified {
   private static final DateTimeFormatter BIRTHDATE_FORMATTER = ISODateTimeFormat.date().withDefaultYear(0);
 

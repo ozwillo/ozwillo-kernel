@@ -13,6 +13,7 @@ import oasis.model.accounts.UserAccount;
 import oasis.model.directory.OrganizationMembership;
 import oasis.model.directory.OrganizationMembershipRepository;
 
+@Deprecated
 public class UserDirectoryService {
 
   private final AccountRepository accountRepository;

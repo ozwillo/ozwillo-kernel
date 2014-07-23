@@ -288,10 +288,7 @@ public class UserDirectoryEndpoint {
    */
   @GET
   @Path("/org/{organizationId}/agents")
-  @ApiOperation(value = "Retrieve agents of an organization",
-      notes = "Returns agents array",
-      response = AgentInfo.class,
-      responseContainer = "Array")
+  @Deprecated
   public Response getAgentInfos(@PathParam("organizationId") String organizationId,
       @DefaultValue("0") @QueryParam("start") int start,
       @DefaultValue("25") @QueryParam("limit") int limit) {
@@ -310,9 +307,9 @@ public class UserDirectoryEndpoint {
 
   @POST
   @Path("/org/{organizationId}/agents")
-  @ApiOperation(value = "Add an agent in an organization",
-      notes = "The returned location URL get access to the agent (retrieve, delete this agent)",
-      response = AgentInfo.class)
+  @ApiOperation(value = "DEPRECATED: Add an agent in an organization",
+      notes = "DEPRECATED: use the sign-up form then create an organization membership")
+  @Deprecated
   public Response createAgentAccount(@PathParam("organizationId") String organizationId, AgentInfo agentInfo) {
     Organization organization = directory.getOrganization(organizationId);
     if (organization == null) {
@@ -396,8 +393,7 @@ public class UserDirectoryEndpoint {
 
   @GET
   @Path("/agent/{agentId}")
-  @ApiOperation(value = "Retrieve an agent",
-      response = AgentInfo.class)
+  @Deprecated
   public Response getAgentAccount(@PathParam("agentId") String agentId) {
     AgentInfo agent = userDirectoryService.getAgentInfo(agentId);
     if (agent == null) {
