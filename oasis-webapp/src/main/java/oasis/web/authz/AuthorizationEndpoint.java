@@ -35,9 +35,9 @@ import com.google.api.client.util.Clock;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.template.soy.data.SoyListData;
+import com.google.template.soy.data.SoyMapData;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
@@ -59,7 +59,9 @@ import oasis.web.authn.Authenticated;
 import oasis.web.authn.User;
 import oasis.web.authn.UserAuthenticationFilter;
 import oasis.web.authn.UserSessionPrincipal;
-import oasis.web.view.View;
+import oasis.web.view.SoyView;
+import oasis.web.view.soy.AuthorizeSoyInfo;
+import oasis.web.view.soy.AuthorizeSoyInfo.AuthorizeSoyTemplateInfo;
 
 @Path("/a/auth")
 @User
@@ -278,20 +280,20 @@ public class AuthorizationEndpoint {
     }
 
     // Some scopes need explicit approval, generate approval form
-    List<ImmutableMap<String, String>> requiredScopes = Lists.newArrayList();
-    List<ImmutableMap<String, String>> optionalScopes = Lists.newArrayList();
-    List<ImmutableMap<String, String>> authorizedScopes = Lists.newArrayList();
+    SoyListData requiredScopes = new SoyListData();
+    SoyListData optionalScopes = new SoyListData();
+    SoyListData authorizedScopes = new SoyListData();
     for (Scope claimedScope : globalClaimedScopes) {
       String scopeId = claimedScope.getId();
-      ImmutableMap<String, String> scope = ImmutableMap.of(
-          "id", scopeId,
+      SoyMapData scope = new SoyMapData(
+          AuthorizeSoyInfo.Param.ID, scopeId,
           // TODO: I18N
-          "title", Strings.nullToEmpty(claimedScope.getName().get(Locale.ROOT)),
-          "description", Strings.nullToEmpty(claimedScope.getDescription().get(Locale.ROOT))
+          AuthorizeSoyInfo.Param.TITLE, claimedScope.getName().get(Locale.ROOT),
+          AuthorizeSoyInfo.Param.DESCRIPTION, claimedScope.getDescription().get(Locale.ROOT)
       );
-      if (authorizedScopeIds.contains(claimedScope.getId())) {
+      if (authorizedScopeIds.contains(scopeId)) {
         authorizedScopes.add(scope);
-      } else if (requiredScopeIds.contains(claimedScope.getId())) {
+      } else if (requiredScopeIds.contains(scopeId)) {
         requiredScopes.add(scope);
       } else {
         optionalScopes.add(scope);
@@ -311,28 +313,19 @@ public class AuthorizationEndpoint {
         .header("X-Frame-Options", "DENY")
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
-        .entity(new View(AuthorizationEndpoint.class, "Approve.html",
-            ImmutableMap.of(
-                "urls", ImmutableMap.of(
-                    "cancel", redirectUri.toString(),
-                    "formAction", UriBuilder.fromResource(AuthorizationEndpoint.class).path(APPROVE_PATH).build()
-                ),
-                "scopes", ImmutableMap.of(
-                    "requiredScopes", requiredScopes,
-                    "optionalScopes", optionalScopes,
-                    "authorizedScopes", authorizedScopes
-                ),
-                "parameters", ImmutableMap.of(
-                    "redirect_uri", redirect_uri,
-                    "scope", requiredScopeIds,
-                    "state", Strings.nullToEmpty(state),
-                    "nonce", Strings.nullToEmpty(nonce)
-                ),
-                "app", ImmutableMap.of(
-                    "id", serviceProvider.getId(),
-                    // TODO: I18N
-                    "name", serviceProvider.getName().get(Locale.ROOT)
-                )
+        .entity(new SoyView(AuthorizeSoyInfo.AUTHORIZE,
+            new SoyMapData(
+                AuthorizeSoyTemplateInfo.APP_ID, serviceProvider.getId(),
+                // TODO: I18N
+                AuthorizeSoyTemplateInfo.APP_NAME, serviceProvider.getName().get(Locale.ROOT),
+                AuthorizeSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(AuthorizationEndpoint.class).path(APPROVE_PATH).build().toString(),
+                AuthorizeSoyTemplateInfo.CANCEL_URL, redirectUri.toString(),
+                AuthorizeSoyTemplateInfo.REQUIRED_SCOPES, requiredScopes,
+                AuthorizeSoyTemplateInfo.OPTIONAL_SCOPES, optionalScopes,
+                AuthorizeSoyTemplateInfo.AUTHORIZED_SCOPES, authorizedScopes,
+                AuthorizeSoyTemplateInfo.REDIRECT_URI, redirect_uri,
+                AuthorizeSoyTemplateInfo.STATE, state,
+                AuthorizeSoyTemplateInfo.NONCE, nonce
             )
         ))
         .build();

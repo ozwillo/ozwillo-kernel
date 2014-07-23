@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Date;
-import java.util.Map;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -15,12 +14,13 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
+import com.google.template.soy.data.SoyMapData;
 import com.wordnik.swagger.jaxrs.listing.ApiListingResourceJSON;
 
 import oasis.web.utils.ResponseFactory;
-import oasis.web.view.View;
+import oasis.web.view.SoyView;
+import oasis.web.view.soy.SwaggerUISoyInfo;
 
 @Path("/")
 public class SwaggerUI {
@@ -48,11 +48,11 @@ public class SwaggerUI {
   @Path("/swagger-ui/index.html")
   @Produces(MediaType.TEXT_HTML)
   public Response get(@Context UriInfo uriInfo) {
-    Map<String, String> model = ImmutableMap.of(
-            "basePath", uriInfo.getBaseUriBuilder().path("/swagger-ui/").build().toString(),
-            "apiPath", uriInfo.getBaseUriBuilder().path(ApiListingResourceJSON.class).build().toString()
+    SoyMapData model = new SoyMapData(
+        SwaggerUISoyInfo.Param.BASE_PATH, uriInfo.getBaseUriBuilder().path("/swagger-ui/").build().toString(),
+        SwaggerUISoyInfo.Param.API_PATH, uriInfo.getBaseUriBuilder().path(ApiListingResourceJSON.class).build().toString()
     );
-    return Response.ok(new View(SwaggerUI.class, "SwaggerUI.get.html", model)).build();
+    return Response.ok(new SoyView(SwaggerUISoyInfo.SWAGGER_UI, model)).build();
   }
 
   @GET

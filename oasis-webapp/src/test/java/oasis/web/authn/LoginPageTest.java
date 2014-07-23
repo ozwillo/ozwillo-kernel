@@ -39,7 +39,8 @@ import oasis.model.authn.TokenRepository;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.UserPasswordAuthenticator;
 import oasis.web.authn.testing.TestUserFilter;
-import oasis.web.view.HandlebarsBodyWriter;
+import oasis.web.view.SoyGuiceModule;
+import oasis.web.view.SoyTofuBodyWriter;
 
 @RunWith(JukitoRunner.class)
 public class LoginPageTest {
@@ -50,6 +51,7 @@ public class LoginPageTest {
       bind(LoginPage.class);
 
       install(new NoopAuditLogModule());
+      install(new SoyGuiceModule());
 
       bindMock(UserPasswordAuthenticator.class).in(TestSingleton.class);
       bindMock(TokenHandler.class).in(TestSingleton.class);
@@ -96,7 +98,7 @@ public class LoginPageTest {
 
   @Before public void setUp() throws Exception {
     resteasy.getDeployment().getRegistry().addPerRequestResource(LoginPage.class);
-    resteasy.getDeployment().getProviderFactory().register(HandlebarsBodyWriter.class);
+    resteasy.getDeployment().getProviderFactory().register(SoyTofuBodyWriter.class);
   }
 
   @Test public void loginPageWithDefaults() {

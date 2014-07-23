@@ -26,7 +26,7 @@ import com.google.api.client.auth.openidconnect.IdToken;
 import com.google.api.client.json.JsonFactory;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
+import com.google.template.soy.data.SoyMapData;
 
 import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.Service;
@@ -38,7 +38,9 @@ import oasis.services.applications.AppInstanceService;
 import oasis.services.applications.ServiceService;
 import oasis.services.cookies.CookieFactory;
 import oasis.web.security.StrictReferer;
-import oasis.web.view.View;
+import oasis.web.view.SoyView;
+import oasis.web.view.soy.LogoutSoyInfo;
+import oasis.web.view.soy.LogoutSoyInfo.LogoutSoyTemplateInfo;
 
 @User
 @Path("/a/logout")
@@ -104,26 +106,21 @@ public class LogoutPage {
       return redirectTo(post_logout_redirect_uri != null ? URI.create(post_logout_redirect_uri) : null);
     }
 
-    ImmutableMap.Builder<String, Object> viewModel = ImmutableMap.builder();
-    viewModel.put("formAction", UriBuilder.fromResource(LogoutPage.class).build());
+    SoyMapData viewModel = new SoyMapData();
+    viewModel.put(LogoutSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(LogoutPage.class).build().toString());
     if (post_logout_redirect_uri != null) {
-      viewModel.put("continue", post_logout_redirect_uri);
+      viewModel.put(LogoutSoyTemplateInfo.CONTINUE, post_logout_redirect_uri);
     }
     if (appInstance != null) {
-      viewModel.put("app", ImmutableMap.of(
-          // TODO: I18N
-          "name", appInstance.getName().get(Locale.ROOT)
-      ));
+      // TODO: I18N
+      viewModel.put(LogoutSoyTemplateInfo.APP_NAME, appInstance.getName().get(Locale.ROOT));
     }
     // FIXME: services don't all have a service_uri for now so we need to workaround it.
     if (service != null && !Strings.isNullOrEmpty(service.getService_uri())) {
-      viewModel.put("service", ImmutableMap.of(
-          // TODO: I18N
-          "name", service.getName().get(Locale.ROOT),
-          "url", service.getService_uri()
-      ));
+      viewModel.put(LogoutSoyTemplateInfo.SERVICE_NAME, service.getName().get(Locale.ROOT));
+      viewModel.put(LogoutSoyTemplateInfo.SERVICE_URL, service.getService_uri());
     }
-    return Response.ok(new View(LogoutPage.class, "Logout.html", viewModel.build())).build();
+    return Response.ok(new SoyView(LogoutSoyInfo.LOGOUT, viewModel)).build();
   }
 
   private Response redirectTo(@Nullable URI continueUrl) {

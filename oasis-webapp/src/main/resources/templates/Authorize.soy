@@ -1,0 +1,126 @@
+{namespace oasis autoescape="strict"}
+
+/**
+ * Authorization page.
+ */
+{template .authorize}
+{@param  appId:        string} /** application ID. */
+{@param  appName:      string} /** application name. */
+{@param  formAction:   string} /** URL to post the form to. */
+{@param  cancelUrl:    string} /** URL to go to when cancelling. */
+{@param  requiredScopes:   list<[id: string, title: string|null, description: string|null]>} /** list of requested (and thus required) scopes. */
+{@param  optionalScopes:   list<[id: string, title: string|null, description: string|null]>} /** list of optional (pre-registered but not requested) scopes. */
+{@param  authorizedScopes: list<[id: string, title: string|null, description: string|null]>} /** list of already-granted scopes. */
+{@param  redirect_uri: string} /** 'redirect_uri' request parameter */
+{@param? state:        string} /** 'state' request parameter */
+{@param? nonce:        string} /** 'nonce' request parameter */
+
+{call .header}
+  {param title kind="text"}Authorize {$appName}{/param}
+{/call}
+<h1>{$appName} needs some authorizations</h1>
+
+<form method="POST" action="{$formAction}">
+  <input type="hidden" name="_utf8" value="&#9731;">
+  <input type="hidden" name="client_id" value="{$appId}">
+  {foreach $scope in $requiredScopes}
+    <input type="hidden" name="scope" value="{$scope.id}">
+  {/foreach}
+  <input type="hidden" name="redirect_uri" value="{$redirect_uri}">
+  {if $state}
+    <input type="hidden" name="state" value="{$state}">
+  {/if}
+  {if $nonce}
+    <input type="hidden" name="nonce" value="{$nonce}">
+  {/if}
+
+  <div>
+    <p>
+      {$appName} wants to:
+    </p>
+    <ul>
+      {foreach $scope in $requiredScopes}
+        {call .scopeField data="$scope"}
+          {param inputType: 'hidden' /}
+        {/call}
+      {/foreach}
+    </ul>
+    <div>
+      <a href="{$cancelUrl}">Cancel</a>
+      {sp}
+      <button type="submit">Grant it</button>
+    </div>
+  </div>
+
+  {if $optionalScopes and length($optionalScopes)}
+    <div>
+      <p>
+        {$appName} may later need to do the following; you can authorize it in advance by checking the boxes:
+      </p>
+      <ul>
+        {foreach $scope in $optionalScopes}
+          {call .scopeField data="$scope"}
+            {param inputType: 'checkbox' /}
+          {/call}
+        {/foreach}
+      </ul>
+    </div>
+  {/if}
+
+  {if $authorizedScopes and length($authorizedScopes)}
+    <div>
+      <p>
+        You have already authorized {$appName} to:
+      </p>
+      <ul>
+        {foreach $scope in $authorizedScopes}
+          {call .scope data="$scope" /}
+        {/foreach}
+      </ul>
+    </div>
+  {/if}
+</form>
+{call .footer /}
+{/template}
+
+/**
+ * Displays a single scope field in the Authorization page.
+ */
+{template .scopeField private="true"}
+  {@param  inputType:   string} /** type of the 'selected_scope' input field. */
+  {@param  id:          string} /** identifier for the scope. */
+  {@param? title:       string} /** scope's title. */
+  {@param? description: string} /** scope's description. */
+
+  {call .scope}
+    {param id: $id /}
+    {param title kind="html"}
+      {switch $inputType}
+        {case 'hidden'}
+          <input type="{$inputType}" name="selected_scope" value="{$id}">
+          {$title ? $title : $id}
+        {default}
+          <label>
+            <input type="{$inputType}" name="selected_scope" value="{$id}">
+            {sp}
+            {$title ? $title : $id}
+          </label>
+      {/switch}
+    {/param}
+    {param description: $description /}
+  {/call}
+{/template}
+
+
+/**
+ * Displays a single scope in the Authorization page.
+ */
+{template .scope private="true"}
+  {@param  id:          string}      /** scope's id. */
+  {@param? title:       string|html} /** scope's title. */
+  {@param? description: string}      /** scope's description. */
+  <dl>
+    <dt>{$title ? $title : $id}</dt>
+    <dd>{$description}</dd>
+  </dl>
+{/template}

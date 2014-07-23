@@ -1,0 +1,71 @@
+{namespace oasis autoescape="strict"}
+
+/**
+ * Login page (also used to ask logged-in users for their password).
+ */
+{template .login}
+{@param? reauthEmail:  string} /** email of the logged-in user when asking for password. */
+{@param  formAction:   string} /** URL to post the form to. */
+{@param  continue:     string} /** URL to continue to after successful login/re-auth. */
+{@param? cancel:       string} /** URL to go to when canceling (triggers display of a cancel link). */
+{@param? errorMessage: string} /** message in case of error. */
+{call .header}
+  {param title kind="text"}Login{/param}
+{/call}
+<div class="container">
+  <h1>OASIS</h1>
+  <h2>
+    {if $reauthEmail}
+      Please re-enter-your password
+    {else}
+      Sign-in with your Oasis account
+    {/if}
+  </h2>
+
+  <form method="POST" action="{$formAction}" class="form-horizontal">
+    <input type="hidden" name="_utf8" value="&#9731;">
+    <input type="hidden" name="continue" value="{$continue}">
+    {if $cancel}
+      <input type="hidden" name="cancel" value="{$cancel}">
+    {/if}
+
+    <div class="form-group">
+      <label for="emailInput" class="col-sm-2 control-label">Email address</label>
+
+      <div class="col-sm-10">
+        {if $reauthEmail}
+          <p class="form-control-static">{$reauthEmail}</p>
+          <input type="hidden" name="u" value="{$reauthEmail}">
+        {else}
+          <input type="email" id="emailInput" class="form-control" name="u" autofocus>
+        {/if}
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="passwordInput" class="col-sm-2 control-label">Password</label>
+
+      <div class="col-sm-10">
+        <input type="password" id="passwordInput" class="form-control" name="pwd"{if $reauthEmail} autofocus{/if}>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-sm-offset-2 col-sm-10">
+        <button type="submit" class="btn btn-primary">Sign in</button>
+        {if $cancel}
+          {sp}
+          <a href="{$cancel}" class="btn btn-link">Cancel</a>
+        {/if}
+      </div>
+    </div>
+    </p>
+  </form>
+
+  {if $errorMessage}
+    <p class="alert alert-danger">
+      {$errorMessage}
+    </p>
+  {/if}
+</div>
+{call .footer /}
+{/template}
+

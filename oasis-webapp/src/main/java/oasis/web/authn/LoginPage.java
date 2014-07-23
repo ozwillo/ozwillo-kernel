@@ -23,10 +23,7 @@ import javax.ws.rs.core.UriInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Objects;
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
+import com.google.template.soy.data.SoyMapData;
 
 import oasis.auditlog.AuditLogEvent;
 import oasis.auditlog.AuditLogService;
@@ -43,7 +40,9 @@ import oasis.services.cookies.CookieFactory;
 import oasis.web.StaticResources;
 import oasis.web.security.StrictReferer;
 import oasis.web.utils.UserAgentFingerprinter;
-import oasis.web.view.View;
+import oasis.web.view.SoyView;
+import oasis.web.view.soy.LoginSoyInfo;
+import oasis.web.view.soy.LoginSoyInfo.LoginSoyTemplateInfo;
 
 @User
 @Path("/a/login")
@@ -163,12 +162,12 @@ public class LoginPage {
         .header("X-Frame-Options", "DENY")
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
-        .entity(new View(LoginPage.class, "Login.html", ImmutableMap.of(
-            "reauthEmail", reauthEmail,
-            "formAction", UriBuilder.fromResource(LoginPage.class).build(),
-            "continue", continueUrl,
-            "cancel", Objects.firstNonNull(cancelUrl, ""),
-            "errorMessage", Strings.nullToEmpty(errorMessage)
+        .entity(new SoyView(LoginSoyInfo.LOGIN, new SoyMapData(
+            LoginSoyTemplateInfo.REAUTH_EMAIL, reauthEmail,
+            LoginSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(LoginPage.class).build().toString(),
+            LoginSoyTemplateInfo.CONTINUE, continueUrl.toString(),
+            LoginSoyTemplateInfo.CANCEL, cancelUrl != null ? cancelUrl.toString() : null,
+            LoginSoyTemplateInfo.ERROR_MESSAGE, errorMessage
         )))
         .build();
   }

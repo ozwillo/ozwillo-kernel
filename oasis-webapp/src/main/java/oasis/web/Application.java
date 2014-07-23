@@ -38,7 +38,7 @@ import oasis.web.security.StrictRefererFilter;
 import oasis.web.status.StatusEndpoint;
 import oasis.web.userdirectory.UserDirectoryEndpoint;
 import oasis.web.userinfo.UserInfoEndpoint;
-import oasis.web.view.HandlebarsBodyWriter;
+import oasis.web.view.SoyTofuBodyWriter;
 
 public class Application extends javax.ws.rs.core.Application {
 
@@ -50,7 +50,7 @@ public class Application extends javax.ws.rs.core.Application {
         // Providers
         JacksonJsonProvider.class, // Note: this is our own implementation
         // Views
-        HandlebarsBodyWriter.class,
+        SoyTofuBodyWriter.class,
         // Swagger
         ResourceListingProvider.class,
         ApiListingResourceJSON.class,

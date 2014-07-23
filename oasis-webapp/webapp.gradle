@@ -1,4 +1,5 @@
 apply plugin: 'java'
+apply plugin: 'idea' // IDEA needs extra configuration for generated sources *sigh*
 
 dependencies {
   compile project(':oasis-model')
@@ -18,7 +19,7 @@ dependencies {
   compile libs.args4j
   compile libs.config
   compile libs.resteasy_netty
-  compile libs.handlebars
+  compile libs.closure_templates
   compile libs.swagger_jaxrs
 
   compile libs.slf4j
@@ -34,6 +35,50 @@ dependencies {
 
 sourceSets.main.resources {
   source sourceSets.main.java
+}
+
+configurations {
+  soy
+}
+dependencies {
+  soy libs.closure_templates_standalone
+}
+task generateSoyParseInfo(type: JavaExec) {
+  def srcs = sourceSets.main.resources.matching {
+    include '**/*.soy'
+    exclude '**/Common.soy'
+  }
+  def deps = sourceSets.main.resources.matching {
+    include '**/Common.soy'
+  }
+  inputs.source srcs
+  inputs.files deps
+
+  ext.outputDir = "$buildDir/generated-sources/soy/"
+  outputs.dir outputDir
+
+  def javaPackage = 'oasis.web.view.soy'
+
+  main = 'com.google.template.soy.SoyParseInfoGenerator'
+  classpath = configurations.soy
+  args = [
+      '--javaPackage',          javaPackage,
+      '--javaClassNameSource',  'filename',
+      '--outputDirectory',      "$outputDir/${javaPackage.replace('.', '/')}/",
+      '--srcs',                 srcs.files.join(','),
+      '--deps',                 deps.files.join(','),
+    ]
+}
+sourceSets.main.java {
+  srcDir generateSoyParseInfo.outputDir
+}
+compileJava.dependsOn generateSoyParseInfo
+idea {
+  module {
+    // un-exclude $buildDir, then exclude all non-'generated-sources' subdir of $buildDir
+    excludeDirs -= file(buildDir)
+    buildDir.listFiles({ d , f -> f != 'generated-sources' } as FilenameFilter).each { excludeDirs += it }
+  }
 }
 
 task run(type: JavaExec, dependsOn: classes) {

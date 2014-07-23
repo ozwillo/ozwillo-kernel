@@ -62,7 +62,8 @@ import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.web.authn.LoginPage;
 import oasis.web.authn.testing.TestUserFilter;
-import oasis.web.view.HandlebarsBodyWriter;
+import oasis.web.view.SoyGuiceModule;
+import oasis.web.view.SoyTofuBodyWriter;
 
 @RunWith(JukitoRunner.class)
 public class AuthorizationEndpointTest {
@@ -71,6 +72,8 @@ public class AuthorizationEndpointTest {
     @Override
     protected void configureTest() {
       bind(AuthorizationEndpoint.class);
+
+      install(new SoyGuiceModule());
 
       bind(JsonFactory.class).to(JacksonFactory.class);
       bind(Clock.class).to(FixedClock.class);
@@ -182,7 +185,7 @@ public class AuthorizationEndpointTest {
 
   @Before public void setUp() {
     resteasy.getDeployment().getRegistry().addPerRequestResource(AuthorizationEndpoint.class);
-    resteasy.getDeployment().getProviderFactory().register(HandlebarsBodyWriter.class);
+    resteasy.getDeployment().getProviderFactory().register(SoyTofuBodyWriter.class);
   }
 
   @Test public void testNotLoggedIn() {

@@ -41,7 +41,8 @@ import oasis.services.applications.AppInstanceService;
 import oasis.services.applications.ServiceService;
 import oasis.web.authn.testing.TestUserFilter;
 import oasis.web.authz.KeysEndpoint;
-import oasis.web.view.HandlebarsBodyWriter;
+import oasis.web.view.SoyGuiceModule;
+import oasis.web.view.SoyTofuBodyWriter;
 
 @RunWith(JukitoRunner.class)
 public class LogoutPageTest {
@@ -50,6 +51,8 @@ public class LogoutPageTest {
     @Override
     protected void configureTest() {
       bind(LogoutPage.class);
+
+      install(new SoyGuiceModule());
 
       bind(JsonFactory.class).to(JacksonFactory.class);
 
@@ -88,7 +91,7 @@ public class LogoutPageTest {
 
   @Before public void setUp() {
     resteasy.getDeployment().getRegistry().addPerRequestResource(LogoutPage.class);
-    resteasy.getDeployment().getProviderFactory().register(HandlebarsBodyWriter.class);
+    resteasy.getDeployment().getProviderFactory().register(SoyTofuBodyWriter.class);
   }
   @Test public void testGet_notLoggedIn_noParam(OpenIdConnectModule.Settings settings) {
     Response response = resteasy.getClient().target(UriBuilder.fromResource(LogoutPage.class)).request().get();

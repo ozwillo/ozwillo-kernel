@@ -1,0 +1,40 @@
+{namespace oasis autoescape="strict"}
+
+/**
+ * Logout page.
+ */
+{template .logout}
+{@param? appName:     string} /** name of the application that redirected to the logout page. */
+{@param? serviceName: string} /** name of the service that redirected to the logout page. */
+{@param? serviceUrl:  string} /** URL where to return to log back in to the service. */
+{@param  formAction:  string} /** URL to post the form to. */
+{@param? continue:    string} /** URL where to continue to after successful logout. */
+{call .header}
+  {param title kind="text"}Logout{/param}
+{/call}
+<div class="container">
+  <h1>OASIS</h1>
+
+  {if $appName}
+    <p>You've signed out of <b>{$appName}</b></p>
+    {if $serviceName and $serviceUrl}
+      <p>If you signed out by mistake, you can <a href="{$serviceUrl}">go back to <b>{$serviceName}</b></a> to log back in.</p>
+    {/if}
+  {/if}
+
+  <h2>Sign-out from Oasis</h2>
+  <p>Do you want to sign out from Oasis?
+     This will sign you out from all the applications you signed in with your Oasis account during this session.
+  </p>
+  // TODO: list those applications
+  <form method="POST" action="{$formAction}">
+    <input type="hidden" name="_utf8" value="&#9731;">
+    {if $continue}
+      <input type="hidden" name="continue" value="{$continue}">
+    {/if}
+    <button type="submit" class="btn btn-primary btn-lg center-block">Sign out</button>
+  </form>
+</div>
+{call .footer /}
+{/template}
+

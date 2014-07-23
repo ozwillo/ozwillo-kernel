@@ -4,19 +4,21 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Date;
-import java.util.Map;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
+import com.google.template.soy.data.SanitizedContent;
+import com.google.template.soy.data.SoyMapData;
 
 import oasis.web.utils.ResponseFactory;
-import oasis.web.view.View;
+import oasis.web.view.SoyView;
+import oasis.web.view.soy.KibanaConfigSoyInfo;
 
 @Path("/")
 public class Kibana {
@@ -39,10 +41,10 @@ public class Kibana {
   @Path("/kibana/config.js")
   @Produces("application/javascript")
   public Response config() throws IOException {
-    Map<String, String> model = ImmutableMap.of(
-        "esPath", "es"
+    SoyMapData model = new SoyMapData(
+        KibanaConfigSoyInfo.Param.ES_PATH, UriBuilder.fromResource(ElasticSearchProxy.class).build("").toString()
     );
-    return Response.ok(new View(Kibana.class, "Kibana.config.js", model)).build();
+    return Response.ok(new SoyView(KibanaConfigSoyInfo.KIBANA_CONFIG, SanitizedContent.ContentKind.JS, model)).build();
   }
 
   @GET
