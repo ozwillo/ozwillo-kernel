@@ -43,6 +43,8 @@ import oasis.web.utils.UserAgentFingerprinter;
 import oasis.web.view.SoyView;
 import oasis.web.view.soy.LoginSoyInfo;
 import oasis.web.view.soy.LoginSoyInfo.LoginSoyTemplateInfo;
+import oasis.web.view.soy.ReauthSoyInfo;
+import oasis.web.view.soy.ReauthSoyInfo.ReauthSoyTemplateInfo;
 
 @User
 @Path("/a/login")
@@ -65,11 +67,8 @@ public class LoginPage {
 
   @GET
   @Produces(MediaType.TEXT_HTML)
-  public Response get(
-      @QueryParam(CONTINUE_PARAM) URI continueUrl,
-      @QueryParam(CANCEL_PARAM) URI cancelUrl
-  ) {
-    return loginForm(Response.ok(), continueUrl, cancelUrl, null);
+  public Response get(@QueryParam(CONTINUE_PARAM) URI continueUrl) {
+    return loginForm(Response.ok(), continueUrl, null);
   }
 
   @POST
@@ -79,11 +78,10 @@ public class LoginPage {
       @Context HttpHeaders headers,
       @FormParam("u") @DefaultValue("") String userName,
       @FormParam("pwd") @DefaultValue("") String password,
-      @FormParam("continue") URI continueUrl,
-      @FormParam("cancel") URI cancelUrl
+      @FormParam("continue") URI continueUrl
   ) {
     if (userName.isEmpty()) {
-      return loginForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, cancelUrl, null);
+      return loginForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, null);
     }
     if (continueUrl == null) {
       continueUrl = defaultContinueUrl();
@@ -94,11 +92,11 @@ public class LoginPage {
       account = userPasswordAuthenticator.authenticate(userName, password);
     } catch (LoginException e) {
       log(userName, LoginLogEvent.LoginResult.AUTHENTICATION_FAILED);
-      return loginForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, cancelUrl, "Incorrect username or password");
+      return loginForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, "Incorrect username or password");
     }
 
     if (securityContext.getUserPrincipal() != null) {
-      return reAuthenticate(userName, account, continueUrl, cancelUrl);
+      return reAuthenticate(userName, account, continueUrl);
     }
 
     byte[] fingerprint = fingerprinter.fingerprint(headers);
@@ -123,11 +121,12 @@ public class LoginPage {
         .build();
   }
 
-  private Response reAuthenticate(String userName, Account account, URI continueUrl, URI cancelUrl) {SidToken sidToken = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken();
+  private Response reAuthenticate(String userName, Account account, URI continueUrl) {
+    SidToken sidToken = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken();
     if (!account.getId().equals(sidToken.getAccountId())) {
       // Form has been tampered with, or user signed in with another account since the form was generated
       // Re-display the form: if user signed out/in, it will show the new (current) user.
-      return loginForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, cancelUrl, null);
+      return loginForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, null);
     }
     if (!tokenRepository.reAuthSidToken(sidToken.getId())) {
       // XXX: This shouldn't be audited because it shouldn't be the user fault
@@ -140,19 +139,29 @@ public class LoginPage {
     return Response.seeOther(continueUrl).build();
   }
 
-  private Response loginForm(Response.ResponseBuilder builder, @Nullable URI continueUrl, @Nullable URI cancelUrl, @Nullable String errorMessage) {
+  private Response loginForm(Response.ResponseBuilder builder, @Nullable URI continueUrl, @Nullable String errorMessage) {
     if (continueUrl == null) {
       continueUrl = defaultContinueUrl();
     }
 
-    String reauthEmail;
+    SoyView soyView;
     if (securityContext.getUserPrincipal() != null) {
       SidToken sidToken = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken();
       UserAccount account = accountRepository.getUserAccountById(sidToken.getAccountId());
       // XXX: what if account is null?
-      reauthEmail = account.getEmailAddress();
+      soyView = new SoyView(ReauthSoyInfo.REAUTH, new SoyMapData(
+          ReauthSoyTemplateInfo.REAUTH_EMAIL, account.getEmailAddress(),
+          ReauthSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(LoginPage.class).build().toString(),
+          ReauthSoyTemplateInfo.CONTINUE, continueUrl.toString(),
+          ReauthSoyTemplateInfo.ERROR_MESSAGE, errorMessage
+      ));
     } else {
-      reauthEmail = "";
+      soyView = new SoyView(LoginSoyInfo.LOGIN, new SoyMapData(
+          LoginSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(LoginPage.class).build().toString(),
+          LoginSoyTemplateInfo.CONTINUE, continueUrl.toString(),
+          LoginSoyTemplateInfo.ERROR_MESSAGE, errorMessage,
+          LoginSoyTemplateInfo.OVERVIEW, settings.landingPage == null ? null : settings.landingPage.toString()
+      ));
     }
 
     return builder
@@ -162,13 +171,7 @@ public class LoginPage {
         .header("X-Frame-Options", "DENY")
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
-        .entity(new SoyView(LoginSoyInfo.LOGIN, new SoyMapData(
-            LoginSoyTemplateInfo.REAUTH_EMAIL, reauthEmail,
-            LoginSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(LoginPage.class).build().toString(),
-            LoginSoyTemplateInfo.CONTINUE, continueUrl.toString(),
-            LoginSoyTemplateInfo.CANCEL, cancelUrl != null ? cancelUrl.toString() : null,
-            LoginSoyTemplateInfo.ERROR_MESSAGE, errorMessage
-        )))
+        .entity(soyView)
         .build();
   }
 

@@ -1,17 +1,17 @@
+
 {namespace oasis autoescape="strict"}
 
 /**
 * Login page (also used to ask logged-in users for their password).
 */
-{template .login}
+{template .reauth}
+{@param  reauthEmail:  string} /** email of the logged-in user when asking for password. */
 {@param  formAction:   string} /** URL to post the form to. */
 {@param  continue:     string} /** URL to continue to after successful login/re-auth. */
 {@param? errorMessage: string} /** message in case of error. */
-{@param? overview:     string} /** URL to the overview page. */
 {call .header}
   {param title kind="text"}Login{/param}
 {/call}
-
 <div class="maincontainer">
 
   {if $errorMessage}
@@ -20,33 +20,22 @@
     </p>
   {/if}
 
-  // TODO: Add a signup block
-
-  <div class="login">
-    <h1>Login</h1>
+  <div class="reauth">
+    <h1>Please re-enter-your password</h1>
 
     <form method="POST" action="{$formAction}">
       <input type="hidden" name="_utf8" value="&#9731;">
       <input type="hidden" name="continue" value="{$continue}">
 
-      <input type="email" name="u" placeholder="Email" required>
-      <input type="password" name="pwd" placeholder="Password" required>
+      <p>{$reauthEmail}</p>
+      <input type="password" name="pwd" required>
 
       <div class="clear"></div>
       <!-- /clearfix -->
-
-      // TODO: Add a remember me button
 
       <button class="submit submit-sm" type="submit">Go !</button>
     </form>
   </div>
 </div>
-{if $overview}
-<div class="overviewcontainer">
-  <a class="overview" href="{$overview}">
-    Overview <img src="/images/plus.png">
-  </a>
-</div>
-{/if}
 {call .footer /}
 {/template}

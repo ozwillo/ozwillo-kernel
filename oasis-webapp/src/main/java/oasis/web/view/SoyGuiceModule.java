@@ -19,6 +19,7 @@ public class SoyGuiceModule extends AbstractModule {
         .add(getClass().getResource("/templates/Home.soy"))
         .add(getClass().getResource("/templates/SwaggerUI.soy"))
         .add(getClass().getResource("/templates/Login.soy"))
+        .add(getClass().getResource("/templates/Reauth.soy"))
         .add(getClass().getResource("/templates/Logout.soy"))
         .add(getClass().getResource("/templates/Authorize.soy"))
         .add(getClass().getResource("/templates/KibanaConfig.soy"))

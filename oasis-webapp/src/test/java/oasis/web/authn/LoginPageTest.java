@@ -119,25 +119,7 @@ public class LoginPageTest {
     assertLoginForm(response)
         .matches(hiddenInput("continue", continueUrl))
         .doesNotMatch(hiddenInput("cancel", null))
-        .doesNotContain(">Cancel<")
-        .doesNotMatch(reauthUser(null));
-  }
-
-  @Test public void loginPageWithCancel() {
-    final String continueUrl = "/foo/bar?qux=quux";
-    final String cancelUrl = "https://application/callback=state=state&error=login_required";
-
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(LoginPage.class))
-        .queryParam(LoginPage.CONTINUE_PARAM, continueUrl)
-        .queryParam(LoginPage.CANCEL_PARAM, cancelUrl)
-        .request().get();
-
-    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
-    assertLoginForm(response)
-        .matches(hiddenInput("continue", continueUrl))
-        .matches(hiddenInput("cancel", cancelUrl))
-        .matches(link(cancelUrl))
-        .doesNotMatch(reauthUser(null));
+        .doesNotContain(">Cancel<");
   }
 
   @Test public void loginPageWhileLoggedIn() {
@@ -194,8 +176,6 @@ public class LoginPageTest {
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
     assertLoginForm(response)
         .matches(hiddenInput("continue", continueUrl))
-        .matches(hiddenInput("cancel", cancelUrl))
-        .matches(link(cancelUrl))
         .contains("Incorrect username or password");
   }
 
@@ -239,9 +219,9 @@ public class LoginPageTest {
         .matches("(?s).*\\baction=([\"']?)" + Pattern.quote(UriBuilder.fromResource(LoginPage.class).build().toString()) + "\\1[\\s>].*");
   }
 
-  private String reauthUser(@Nullable String user) {
-    return "(?s).*class=([\"']?)form-control-static\\1[^>]*>\\s*"
-        + (user == null ? ".*?" : Pattern.quote(HtmlEscapers.htmlEscaper().escape(user)))
+  private String reauthUser(String user) {
+    return "(?s).*>\\s*"
+        + Pattern.quote(HtmlEscapers.htmlEscaper().escape(user))
         + "\\s*</.*";
   }
 

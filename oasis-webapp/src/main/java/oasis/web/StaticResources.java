@@ -43,6 +43,48 @@ public class StaticResources {
   }
 
   @GET
+  @Path("{resource: .+\\.jpg}")
+  @Produces("image/jpg")
+  public Response jpg(@PathParam("resource") String resourceName) throws IOException {
+    return getResource(resourceName);
+  }
+
+  @GET
+  @Path("{resource: .+\\.png}")
+  @Produces("image/png")
+  public Response png(@PathParam("resource") String resourceName) throws IOException {
+    return getResource(resourceName);
+  }
+
+  @GET
+  @Path("{resource: .+\\.svg}")
+  @Produces("image/svg+xml")
+  public Response svg(@PathParam("resource") String resourceName) throws IOException {
+    return getResource(resourceName);
+  }
+
+  @GET
+  @Path("{resource: .+\\.woff}")
+  @Produces("application/font-woff")
+  public Response woff(@PathParam("resource") String resourceName) throws IOException {
+    return getResource(resourceName);
+  }
+
+  @GET
+  @Path("{resource: .+\\.ttf}")
+  @Produces("application/x-font-ttf")
+  public Response ttf(@PathParam("resource") String resourceName) throws IOException {
+    return getResource(resourceName);
+  }
+
+  @GET
+  @Path("{resource: .+\\.eot}")
+  @Produces("application/vnd.ms-fontobject")
+  public Response eot(@PathParam("resource") String resourceName) throws IOException {
+    return getResource(resourceName);
+  }
+
+  @GET
   @Path("{resource: .+\\.js}")
   @Produces("application/javascript")
   public Response js(@PathParam("resource") String resourceName) throws IOException {

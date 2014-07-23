@@ -12,9 +12,7 @@
 {call .header}
   {param title kind="text"}Logout{/param}
 {/call}
-<div class="container">
-  <h1>OASIS</h1>
-
+<div class="maincontainer">
   {if $appName}
     <p>You've signed out of <b>{$appName}</b></p>
     {if $serviceName and $serviceUrl}
@@ -22,7 +20,7 @@
     {/if}
   {/if}
 
-  <h2>Sign-out from Oasis</h2>
+  <h1>Sign-out from Oasis</h1>
   <p>Do you want to sign out from Oasis?
      This will sign you out from all the applications you signed in with your Oasis account during this session.
   </p>
@@ -32,7 +30,7 @@
     {if $continue}
       <input type="hidden" name="continue" value="{$continue}">
     {/if}
-    <button type="submit" class="btn btn-primary btn-lg center-block">Sign out</button>
+    <button class="submit submit-md" type="submit" name="submit" id="submit">Sign out</button>
   </form>
 </div>
 {call .footer /}

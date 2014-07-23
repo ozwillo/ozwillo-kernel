@@ -20,66 +20,68 @@
 {/call}
 <h1>{$appName} needs some authorizations</h1>
 
-<form method="POST" action="{$formAction}">
-  <input type="hidden" name="_utf8" value="&#9731;">
-  <input type="hidden" name="client_id" value="{$appId}">
-  {foreach $scope in $requiredScopes}
-    <input type="hidden" name="scope" value="{$scope.id}">
-  {/foreach}
-  <input type="hidden" name="redirect_uri" value="{$redirect_uri}">
-  {if $state}
-    <input type="hidden" name="state" value="{$state}">
-  {/if}
-  {if $nonce}
-    <input type="hidden" name="nonce" value="{$nonce}">
-  {/if}
+<div class="maincontainer">
+  <form method="POST" action="{$formAction}">
+    <input type="hidden" name="_utf8" value="&#9731;">
+    <input type="hidden" name="client_id" value="{$appId}">
+    {foreach $scope in $requiredScopes}
+      <input type="hidden" name="scope" value="{$scope.id}">
+    {/foreach}
+    <input type="hidden" name="redirect_uri" value="{$redirect_uri}">
+    {if $state}
+      <input type="hidden" name="state" value="{$state}">
+    {/if}
+    {if $nonce}
+      <input type="hidden" name="nonce" value="{$nonce}">
+    {/if}
 
-  <div>
-    <p>
-      {$appName} wants to:
-    </p>
-    <ul>
-      {foreach $scope in $requiredScopes}
-        {call .scopeField data="$scope"}
-          {param inputType: 'hidden' /}
-        {/call}
-      {/foreach}
-    </ul>
     <div>
-      <a href="{$cancelUrl}">Cancel</a>
-      {sp}
-      <button type="submit">Grant it</button>
-    </div>
-  </div>
-
-  {if $optionalScopes and length($optionalScopes)}
-    <div>
-      <p>
-        {$appName} may later need to do the following; you can authorize it in advance by checking the boxes:
-      </p>
+      <h1>
+        {$appName} wants to:
+      </h1>
       <ul>
-        {foreach $scope in $optionalScopes}
+        {foreach $scope in $requiredScopes}
           {call .scopeField data="$scope"}
-            {param inputType: 'checkbox' /}
+            {param inputType: 'hidden' /}
           {/call}
         {/foreach}
       </ul>
+      <div>
+        <a href="{$cancelUrl}">Cancel</a>
+        {sp}
+        <button type="submit" class="submit submit-md">Grant it</button>
+      </div>
     </div>
-  {/if}
 
-  {if $authorizedScopes and length($authorizedScopes)}
-    <div>
-      <p>
-        You have already authorized {$appName} to:
-      </p>
-      <ul>
-        {foreach $scope in $authorizedScopes}
-          {call .scope data="$scope" /}
-        {/foreach}
-      </ul>
-    </div>
-  {/if}
-</form>
+    {if $optionalScopes and length($optionalScopes)}
+      <div>
+        <h1>
+          {$appName} may later need to do the following; you can authorize it in advance by checking the boxes:
+        </h1>
+        <ul>
+          {foreach $scope in $optionalScopes}
+            {call .scopeField data="$scope"}
+              {param inputType: 'checkbox' /}
+            {/call}
+          {/foreach}
+        </ul>
+      </div>
+    {/if}
+
+    {if $authorizedScopes and length($authorizedScopes)}
+      <div>
+        <h1>
+          You have already authorized {$appName} to:
+        </h1>
+        <ul>
+          {foreach $scope in $authorizedScopes}
+            {call .scope data="$scope" /}
+          {/foreach}
+        </ul>
+      </div>
+    {/if}
+  </form>
+</div>
 {call .footer /}
 {/template}
 
