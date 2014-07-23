@@ -7,6 +7,7 @@ import org.jongo.MongoCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.mongodb.DuplicateKeyException;
 import com.mongodb.WriteResult;
 
 import oasis.jongo.JongoBootstrapper;
@@ -55,7 +56,12 @@ public class JongoAccountRepository implements AccountRepository, JongoBootstrap
   @Override
   public UserAccount createUserAccount(UserAccount user) {
     user.setUpdatedAt(System.currentTimeMillis());
-    getAccountCollection().insert(user);
+    try {
+      getAccountCollection().insert(user);
+    } catch (DuplicateKeyException e) {
+      // Verify that the username was not used before
+      return null;
+    }
     return user;
   }
 

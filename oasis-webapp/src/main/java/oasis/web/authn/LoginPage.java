@@ -68,7 +68,7 @@ public class LoginPage {
   @GET
   @Produces(MediaType.TEXT_HTML)
   public Response get(@QueryParam(CONTINUE_PARAM) URI continueUrl) {
-    return loginForm(Response.ok(), continueUrl, null);
+    return loginOrReauthForm(Response.ok(), continueUrl, null);
   }
 
   @POST
@@ -81,7 +81,7 @@ public class LoginPage {
       @FormParam("continue") URI continueUrl
   ) {
     if (userName.isEmpty()) {
-      return loginForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, null);
+      return loginOrReauthForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, null);
     }
     if (continueUrl == null) {
       continueUrl = defaultContinueUrl();
@@ -92,7 +92,7 @@ public class LoginPage {
       account = userPasswordAuthenticator.authenticate(userName, password);
     } catch (LoginException e) {
       log(userName, LoginLogEvent.LoginResult.AUTHENTICATION_FAILED);
-      return loginForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, "Incorrect username or password");
+      return loginOrReauthForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, "Incorrect username or password");
     }
 
     if (securityContext.getUserPrincipal() != null) {
@@ -104,6 +104,12 @@ public class LoginPage {
   }
 
   private Response authenticate(String userName, Account account, URI continueUrl, byte[] fingerprint) {
+    return authenticate(userName, account, continueUrl, fingerprint, tokenHandler, auditLogService, securityContext);
+  }
+
+  // XXX: Pending activation email
+  static Response authenticate(String userName, Account account, URI continueUrl, byte[] fingerprint, TokenHandler tokenHandler,
+      AuditLogService auditLogService, SecurityContext securityContext) {
     String pass = tokenHandler.generateRandom();
     SidToken sidToken = tokenHandler.createSidToken(account.getId(), fingerprint, pass);
     if (sidToken == null) {
@@ -112,7 +118,7 @@ public class LoginPage {
       return Response.serverError().build();
     }
 
-    log(userName, LoginLogEvent.LoginResult.AUTHENTICATION_SUCCEEDED);
+    log(auditLogService, userName, LoginLogEvent.LoginResult.AUTHENTICATION_SUCCEEDED);
 
     // TODO: One-Time Password
     return Response
@@ -126,7 +132,7 @@ public class LoginPage {
     if (!account.getId().equals(sidToken.getAccountId())) {
       // Form has been tampered with, or user signed in with another account since the form was generated
       // Re-display the form: if user signed out/in, it will show the new (current) user.
-      return loginForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, null);
+      return loginOrReauthForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, null);
     }
     if (!tokenRepository.reAuthSidToken(sidToken.getId())) {
       // XXX: This shouldn't be audited because it shouldn't be the user fault
@@ -139,31 +145,44 @@ public class LoginPage {
     return Response.seeOther(continueUrl).build();
   }
 
-  private Response loginForm(Response.ResponseBuilder builder, @Nullable URI continueUrl, @Nullable String errorMessage) {
+  private Response loginOrReauthForm(Response.ResponseBuilder builder, @Nullable URI continueUrl, @Nullable String errorMessage) {
     if (continueUrl == null) {
       continueUrl = defaultContinueUrl();
     }
 
-    SoyView soyView;
     if (securityContext.getUserPrincipal() != null) {
       SidToken sidToken = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken();
       UserAccount account = accountRepository.getUserAccountById(sidToken.getAccountId());
       // XXX: what if account is null?
-      soyView = new SoyView(ReauthSoyInfo.REAUTH, new SoyMapData(
-          ReauthSoyTemplateInfo.REAUTH_EMAIL, account.getEmailAddress(),
-          ReauthSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(LoginPage.class).build().toString(),
-          ReauthSoyTemplateInfo.CONTINUE, continueUrl.toString(),
-          ReauthSoyTemplateInfo.ERROR_MESSAGE, errorMessage
-      ));
-    } else {
-      soyView = new SoyView(LoginSoyInfo.LOGIN, new SoyMapData(
-          LoginSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(LoginPage.class).build().toString(),
-          LoginSoyTemplateInfo.CONTINUE, continueUrl.toString(),
-          LoginSoyTemplateInfo.ERROR_MESSAGE, errorMessage,
-          LoginSoyTemplateInfo.OVERVIEW, settings.landingPage == null ? null : settings.landingPage.toString()
-      ));
+      return reauthForm(builder, continueUrl, errorMessage, account);
     }
+    return loginForm(builder, continueUrl, settings, errorMessage);
+  }
 
+  static Response reauthForm(Response.ResponseBuilder builder, URI continueUrl, @Nullable String errorMessage, UserAccount userAccount) {
+    SoyView soyView = new SoyView(ReauthSoyInfo.REAUTH, new SoyMapData(
+        ReauthSoyTemplateInfo.REAUTH_EMAIL, userAccount.getEmailAddress(),
+        ReauthSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(LoginPage.class).build().toString(),
+        ReauthSoyTemplateInfo.CONTINUE, continueUrl.toString(),
+        ReauthSoyTemplateInfo.ERROR_MESSAGE, errorMessage
+    ));
+
+    return buildResponseFromView(builder, soyView);
+  }
+
+  static Response loginForm(Response.ResponseBuilder builder, URI continueUrl, OpenIdConnectModule.Settings settings, @Nullable String errorMessage) {
+    SoyView soyView = new SoyView(LoginSoyInfo.LOGIN, new SoyMapData(
+        LoginSoyTemplateInfo.SIGN_UP_FORM_ACTION, UriBuilder.fromResource(SignUpPage.class).build().toString(),
+        LoginSoyTemplateInfo.LOGIN_FORM_ACTION, UriBuilder.fromResource(LoginPage.class).build().toString(),
+        LoginSoyTemplateInfo.CONTINUE, continueUrl.toString(),
+        LoginSoyTemplateInfo.ERROR_MESSAGE, errorMessage,
+        LoginSoyTemplateInfo.OVERVIEW, settings.landingPage == null ? null : settings.landingPage.toString()
+    ));
+
+    return buildResponseFromView(builder, soyView);
+  }
+
+  private static Response buildResponseFromView(Response.ResponseBuilder builder, SoyView soyView) {
     return builder
         .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store")
         .header("Pragma", "no-cache")
@@ -187,6 +206,10 @@ public class LoginPage {
   }
 
   private void log(String userName, LoginLogEvent.LoginResult loginResult) {
+    log(auditLogService, userName, loginResult);
+  }
+
+  static void log(AuditLogService auditLogService, String userName, LoginLogEvent.LoginResult loginResult) {
     auditLogService.event(LoginLogEvent.class)
         .setUserName(userName)
         .setLoginResult(loginResult)

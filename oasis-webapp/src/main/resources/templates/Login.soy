@@ -4,10 +4,11 @@
 * Login page (also used to ask logged-in users for their password).
 */
 {template .login}
-{@param  formAction:   string} /** URL to post the form to. */
-{@param  continue:     string} /** URL to continue to after successful login/re-auth. */
-{@param? errorMessage: string} /** message in case of error. */
-{@param? overview:     string} /** URL to the overview page. */
+{@param  signUpFormAction: string} /** URL to post the sign-up form to. */
+{@param  loginFormAction:  string} /** URL to post the sign-in form to. */
+{@param  continue:         string} /** URL to continue to after successful login/re-auth. */
+{@param? errorMessage:     string} /** message in case of error. */
+{@param? overview:         string} /** URL to the overview page. */
 {call .header}
   {param title kind="text"}Login{/param}
 {/call}
@@ -20,12 +21,33 @@
     </p>
   {/if}
 
-  // TODO: Add a signup block
+  <div class="joinus">
+    <h1>Join Us !</h1>
+    <form method="POST" action="{$signUpFormAction}">
+      <input type="email" name="email" placeholder="Email" required>
+      <input type="password" name="pwd" placeholder="Password" required>
+      <input type="text" name="zipcode" placeholder="Zipcode" required>
+      <select name="country" required>
+        // TODO: Make it dynamic
+        <option value="" disabled>Country
+        <option>France
+        <option>Spain
+        <option>Bulgaria
+        <option>Italy
+        <option>Turkey
+      </select>
+
+      <div class="clear"></div>
+      <!-- /clearfix -->
+
+      <button class="submit submit-sm" type="submit">Go !</button>
+    </form>
+  </div>
 
   <div class="login">
     <h1>Login</h1>
 
-    <form method="POST" action="{$formAction}">
+    <form method="POST" action="{$loginFormAction}">
       <input type="hidden" name="_utf8" value="&#9731;">
       <input type="hidden" name="continue" value="{$continue}">
 

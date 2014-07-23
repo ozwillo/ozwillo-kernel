@@ -19,6 +19,7 @@ import oasis.web.authn.ClientAuthenticationFilter;
 import oasis.web.authn.LoginPage;
 import oasis.web.authn.LogoutPage;
 import oasis.web.authn.OAuthAuthenticationFilter;
+import oasis.web.authn.SignUpPage;
 import oasis.web.authn.UserAuthenticationFilter;
 import oasis.web.authn.UserFilter;
 import oasis.web.authz.AuthorizationEndpoint;
@@ -65,6 +66,7 @@ public class Application extends javax.ws.rs.core.Application {
         OAuthAuthenticationFilter.class,
         LoginPage.class,
         LogoutPage.class,
+        SignUpPage.class,
         // Authorization
         OpenIdProviderConfigurationEndpoint.class,
         AuthorizationEndpoint.class,
