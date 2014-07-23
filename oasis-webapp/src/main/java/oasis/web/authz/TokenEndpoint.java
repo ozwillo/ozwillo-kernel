@@ -222,14 +222,12 @@ public class TokenEndpoint {
     Boolean isAppUser = null;
     Boolean isAppAdmin = null;
     // TODO: use real data & algorithm; for now any agent of the organization is a "user of the app"
-    OrganizationMembership membership = organizationMembershipRepository.getOrganizationForUserIfUnique(accessToken.getAccountId());
+    AppInstance appInstance = appInstanceService.getAppInstance(accessToken.getServiceProviderId());
+    OrganizationMembership membership = organizationMembershipRepository.getOrganizationMembership(accessToken.getAccountId(), appInstance.getProvider_id());
     if (membership != null) {
-      AppInstance appInstance = appInstanceService.getAppInstance(accessToken.getServiceProviderId());
-      if (appInstance != null && membership.getOrganizationId().equals(appInstance.getProvider_id())) {
-        isAppUser = true;
-        if (membership.isAdmin()) {
-          isAppAdmin = true;
-        }
+      isAppUser = true;
+      if (membership.isAdmin()) {
+        isAppAdmin = true;
       }
     }
 

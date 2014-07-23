@@ -82,29 +82,39 @@ public class TokenEndpointTest {
   static final Instant tomorrow = now.plus(Duration.standardDays(1));
   static final Instant oneHourAgo = now.minus(Duration.standardHours(1));
 
+  static final AppInstance appInstance = new AppInstance() {{
+    setId("sp");
+    setProvider_id("organization");
+  }};
+
+  static final UserAccount account = new UserAccount() {{
+    setId("account");
+  }};
+
   static final SidToken sidToken = new SidToken() {{
     setId("sidToken");
+    setAccountId(account.getId());
     setAuthenticationTime(oneHourAgo);
   }};
 
   static final AuthorizationCode validAuthCode = new AuthorizationCode() {{
     setId("validAuthCode");
-    setAccountId("account");
+    setAccountId(account.getId());
     setCreationTime(now.minus(Duration.standardHours(1)));
     expiresIn(Duration.standardHours(2));
     setParent(sidToken);
-    setServiceProviderId("sp");
+    setServiceProviderId(appInstance.getId());
     setScopeIds(ImmutableSet.of("dp1s1", "dp1s3", "dp3s1"));
     setRedirectUri("http://sp.example.com/callback");
     setNonce("nonce");
   }};
   static final AuthorizationCode validAuthCodeWithOfflineAccess = new AuthorizationCode() {{
     setId("validAuthCodeWithOfflineAccess");
-    setAccountId("account");
+    setAccountId(account.getId());
     setCreationTime(now.minus(Duration.standardHours(1)));
     expiresIn(Duration.standardHours(2));
     setParent(sidToken);
-    setServiceProviderId("sp");
+    setServiceProviderId(appInstance.getId());
     setScopeIds(ImmutableSet.of("offline_access", "dp1s1", "dp1s3", "dp3s1"));
     setRedirectUri("http://sp.example.com/callback");
     setNonce("nonce");
@@ -112,7 +122,7 @@ public class TokenEndpointTest {
 
   static final AccessToken accessToken = new AccessToken() {{
     setId("accessToken");
-    setAccountId("account");
+    setAccountId(account.getId());
     setCreationTime(now);
     expiresIn(Duration.standardDays(1));
     setParent(validAuthCode);
@@ -121,7 +131,7 @@ public class TokenEndpointTest {
   }};
   static final RefreshToken refreshToken = new RefreshToken() {{
     setId("refreshToken");
-    setAccountId("account");
+    setAccountId(account.getId());
     setCreationTime(now);
     expiresIn(Duration.standardDays(100));
     setParent(validAuthCodeWithOfflineAccess);
@@ -130,7 +140,7 @@ public class TokenEndpointTest {
   }};
   static final AccessToken accessTokenWithOfflineAccess = new AccessToken() {{
     setId("accessTokenWithOfflineAccess");
-    setAccountId("account");
+    setAccountId(account.getId());
     setCreationTime(now);
     expiresIn(Duration.standardDays(1));
     setParent(refreshToken);
@@ -139,7 +149,7 @@ public class TokenEndpointTest {
   }};
   static final AccessToken refreshedAccessToken = new AccessToken() {{
     setId("refreshedAccessToken");
-    setAccountId("account");
+    setAccountId(account.getId());
     setCreationTime(tomorrow);
     expiresIn(Duration.standardDays(1));
     setParent(refreshToken);
@@ -149,7 +159,8 @@ public class TokenEndpointTest {
 
   @Inject @Rule public InProcessResteasy resteasy;
 
-  @Before public void setUpMocks(TokenHandler tokenHandler, TokenRepository tokenRepository) {
+  @Before public void setUpMocks(TokenHandler tokenHandler, TokenRepository tokenRepository, AccountRepository accountRepository,
+      AppInstanceService appInstanceService) {
     when(tokenHandler.generateRandom()).thenReturn("pass");
 
     when(tokenHandler.getCheckedToken("valid", AuthorizationCode.class)).thenReturn(validAuthCode);
@@ -165,6 +176,9 @@ public class TokenEndpointTest {
         .thenReturn(refreshedAccessToken);
 
     when(tokenRepository.getToken(sidToken.getId())).thenReturn(sidToken);
+
+    when(accountRepository.getAccount(account.getId())).thenReturn(account);
+    when(appInstanceService.getAppInstance(appInstance.getId())).thenReturn(appInstance);
   }
 
   @Before public void setUp() {
@@ -173,7 +187,7 @@ public class TokenEndpointTest {
 
   @Test public void testUnsupportedGrantType(JsonFactory jsonFactory) throws Throwable {
     // given
-    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter("sp"));
+    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
 
     // when
     Response resp = resteasy.getClient().target(UriBuilder.fromResource(TokenEndpoint.class).build()).request()
@@ -187,7 +201,7 @@ public class TokenEndpointTest {
 
   @Test public void testMissingGrantType(JsonFactory jsonFactory) throws Throwable {
     // given
-    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter("sp"));
+    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
 
     // when
     Response resp = resteasy.getClient().target(UriBuilder.fromResource(TokenEndpoint.class).build()).request()
@@ -202,7 +216,7 @@ public class TokenEndpointTest {
 
   @Test public void testDuplicateGrantType(JsonFactory jsonFactory) throws Throwable {
     // given
-    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter("sp"));
+    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
 
     // when
     Response resp = resteasy.getClient().target(UriBuilder.fromResource(TokenEndpoint.class).build()).request()
@@ -220,7 +234,7 @@ public class TokenEndpointTest {
 
   @Test public void testInvalidAuthCode(JsonFactory jsonFactory) throws Throwable {
     // given
-    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter("sp"));
+    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
 
     // when
     Response resp = authCode("invalid", validAuthCode.getRedirectUri());
@@ -233,7 +247,7 @@ public class TokenEndpointTest {
 
   @Test public void testAuthCodeMismatchingRedirectUri(JsonFactory jsonFactory) throws Throwable {
     // given
-    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter("sp"));
+    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
 
     // when
     Response resp = authCode("valid", "http://whatever.example.net");
@@ -260,7 +274,7 @@ public class TokenEndpointTest {
 
   @Test public void testValidAuthCode(JsonFactory jsonFactory, OpenIdConnectModule.Settings settings, Clock clock) throws Throwable {
     // given
-    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter("sp"));
+    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
 
     // when
     Response resp = authCode("valid", validAuthCode.getRedirectUri());
@@ -280,8 +294,8 @@ public class TokenEndpointTest {
 
     IdToken.Payload payload = idToken.getPayload();
     assertThat(payload.getIssuer()).isEqualTo(InProcessResteasy.BASE_URI.toString());
-    assertThat(payload.getSubject()).isEqualTo("account");
-    assertThat(payload.getAudience()).isEqualTo("sp");
+    assertThat(payload.getSubject()).isEqualTo(account.getId());
+    assertThat(payload.getAudience()).isEqualTo(appInstance.getId());
     assertThat(payload.getIssuedAtTimeSeconds()).isEqualTo(TimeUnit.MILLISECONDS.toSeconds(clock.currentTimeMillis()));
     assertThat(payload.getExpirationTimeSeconds()).isEqualTo(payload.getIssuedAtTimeSeconds() + settings.idTokenDuration.getStandardSeconds());
     assertThat(payload.getNonce()).isEqualTo("nonce");
@@ -295,22 +309,16 @@ public class TokenEndpointTest {
   }
 
   @Test public void testValidAuthCodeWithAgent(JsonFactory jsonFactory, OpenIdConnectModule.Settings settings, Clock clock,
-      AccountRepository accountRepository, AppInstanceService appInstanceService,
       OrganizationMembershipRepository organizationMembershipRepository) throws Throwable {
     // given
-    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter("sp"));
-    when(accountRepository.getAccount("account")).thenReturn(new UserAccount() {{
-      setId("account");
-    }});
-    when(organizationMembershipRepository.getOrganizationForUserIfUnique("account")).thenReturn(new OrganizationMembership() {{
-      setId("membership");
-      setOrganizationId("organization");
-      setAdmin(true);
-    }});
-    when(appInstanceService.getAppInstance("sp")).thenReturn(new AppInstance() {{
-      setId("sp");
-      setProvider_id("organization");
-    }});
+    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
+    when(organizationMembershipRepository.getOrganizationMembership(account.getId(), appInstance.getProvider_id())).thenReturn(
+        new OrganizationMembership() {{
+          setId("membership");
+          setAccountId(account.getId());
+          setOrganizationId(appInstance.getProvider_id());
+          setAdmin(true);
+        }});
 
     // when
     Response resp = authCode("valid", validAuthCode.getRedirectUri());
@@ -330,8 +338,8 @@ public class TokenEndpointTest {
 
     IdToken.Payload payload = idToken.getPayload();
     assertThat(payload.getIssuer()).isEqualTo(InProcessResteasy.BASE_URI.toString());
-    assertThat(payload.getSubject()).isEqualTo("account");
-    assertThat(payload.getAudience()).isEqualTo("sp");
+    assertThat(payload.getSubject()).isEqualTo(account.getId());
+    assertThat(payload.getAudience()).isEqualTo(appInstance.getId());
     assertThat(payload.getIssuedAtTimeSeconds()).isEqualTo(TimeUnit.MILLISECONDS.toSeconds(clock.currentTimeMillis()));
     assertThat(payload.getExpirationTimeSeconds()).isEqualTo(payload.getIssuedAtTimeSeconds() + settings.idTokenDuration.getStandardSeconds());
     assertThat(payload.getNonce()).isEqualTo("nonce");
@@ -342,7 +350,7 @@ public class TokenEndpointTest {
 
   @Test public void testValidAuthCodeWithOfflineAccess(JsonFactory jsonFactory, OpenIdConnectModule.Settings settings, Clock clock) throws Throwable {
     // given
-    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter("sp"));
+    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
 
     // when
     Response resp = authCode("offline", validAuthCodeWithOfflineAccess.getRedirectUri());
@@ -362,8 +370,8 @@ public class TokenEndpointTest {
 
     IdToken.Payload payload = idToken.getPayload();
     assertThat(payload.getIssuer()).isEqualTo(InProcessResteasy.BASE_URI.toString());
-    assertThat(payload.getSubject()).isEqualTo("account");
-    assertThat(payload.getAudience()).isEqualTo("sp");
+    assertThat(payload.getSubject()).isEqualTo(account.getId());
+    assertThat(payload.getAudience()).isEqualTo(appInstance.getId());
     assertThat(payload.getIssuedAtTimeSeconds()).isEqualTo(TimeUnit.MILLISECONDS.toSeconds(clock.currentTimeMillis()));
     assertThat(payload.getExpirationTimeSeconds()).isEqualTo(payload.getIssuedAtTimeSeconds() + settings.idTokenDuration.getStandardSeconds());
     assertThat(payload.getNonce()).isEqualTo("nonce");
@@ -379,7 +387,7 @@ public class TokenEndpointTest {
 
   @Test public void testInvalidRefreshToken(JsonFactory jsonFactory) throws Throwable {
     // given
-    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter("sp"));
+    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
 
     // when
     Response resp = refreshToken("invalid", "dp1s1 dp3s1");
@@ -393,7 +401,7 @@ public class TokenEndpointTest {
   @Test public void testRefreshTokenMismatchingScopes(JsonFactory jsonFactory, FixedClock clock) throws Throwable {
     // given
     clock.setTime(tomorrow.getMillis());
-    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter("sp"));
+    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
 
     // when
     Response resp = refreshToken("valid", "dp1s1 unknown dp3s1");
@@ -421,7 +429,7 @@ public class TokenEndpointTest {
   @Test public void testValidRefreshToken(JsonFactory jsonFactory, FixedClock clock) throws Throwable {
     // given
     clock.setTime(tomorrow.getMillis());
-    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter("sp"));
+    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
 
     // when
     Response resp = refreshToken("valid", "dp1s1 dp3s1");
