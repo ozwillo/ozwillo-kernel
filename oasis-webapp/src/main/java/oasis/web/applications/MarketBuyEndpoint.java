@@ -64,11 +64,14 @@ public class MarketBuyEndpoint {
     if (application == null) {
       return ResponseFactory.notFound("Application doesn't exist");
     }
+    Organization organization;
     if (!Strings.isNullOrEmpty(instance.getProvider_id())) {
-      Organization organization = directoryRepository.getOrganization(instance.getProvider_id());
+      organization = directoryRepository.getOrganization(instance.getProvider_id());
       if (organization == null) {
         return ResponseFactory.unprocessableEntity("Organization doesn't exist");
       }
+    } else {
+      organization = null;
     }
 
     instance.setApplication_id(application.getId());
@@ -90,6 +93,8 @@ public class MarketBuyEndpoint {
             .setInstance_id(instance.getId())
             .setClient_id(instance.getId())
             .setClient_secret(instance.getId())
+            .setUser_id(userId)
+            .setOrganization(organization)
             .setInstance_registration_uri(uriInfo.getBaseUriBuilder().path(InstanceRegistrationEndpoint.class).build(instance.getId()))));
     Response response;
     try {
@@ -111,12 +116,13 @@ public class MarketBuyEndpoint {
   }
 
   public static class CreateInstanceRequest {
-    @JsonProperty
-    String instance_id;
+    @JsonProperty String instance_id;
     @JsonProperty String client_id;
     @JsonProperty String client_secret;
-    @JsonProperty
-    URI instance_registration_uri;
+    @JsonProperty String user_id;
+    @JsonProperty String organization_id;
+    @JsonProperty String organization_name;
+    @JsonProperty URI instance_registration_uri;
 
     public CreateInstanceRequest setInstance_id(String instance_id) {
       this.instance_id = instance_id;
@@ -130,6 +136,21 @@ public class MarketBuyEndpoint {
 
     public CreateInstanceRequest setClient_secret(String client_secret) {
       this.client_secret = client_secret;
+      return this;
+    }
+
+    public CreateInstanceRequest setUser_id(String user_id) {
+      this.user_id = user_id;
+      return this;
+    }
+
+    public CreateInstanceRequest setOrganization(Organization organization) {
+      if (organization != null) {
+        organization_id = organization.getId();
+        organization_name = organization.getName();
+      } else {
+        organization_id = organization_name = null;
+      }
       return this;
     }
 
