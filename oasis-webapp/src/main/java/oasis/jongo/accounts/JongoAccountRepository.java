@@ -66,18 +66,6 @@ public class JongoAccountRepository implements AccountRepository, JongoBootstrap
   }
 
   @Override
-  public void updatePassword(String accountId, String passwordHash, String passwordSalt) {
-    WriteResult writeResult = getAccountCollection()
-        .update("{ id: # }", accountId)
-        .with("{ $set: { password: #, passwordSalt: # } }", passwordHash, passwordSalt);
-    if (writeResult.getN() > 1) {
-      logger.error("More than one account provider with id: {}", accountId);
-    } else if (writeResult.getN() < 1) {
-      logger.error("The account {} doesn't exist.", accountId);
-    }
-  }
-
-  @Override
   public void bootstrap() {
     getAccountCollection().ensureIndex("{ id : 1 }", "{ unique: 1 }");
     getAccountCollection().ensureIndex("{ emailAddress : 1 }", "{ unique: 1, sparse: 1 }");

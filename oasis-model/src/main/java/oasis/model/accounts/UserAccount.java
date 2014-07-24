@@ -10,12 +10,6 @@ public class UserAccount extends Account {
   private String emailAddress;
 
   @JsonProperty
-  private String password;
-
-  @JsonProperty
-  private String passwordSalt;
-
-  @JsonProperty
   private String picture;
 
   @JsonProperty
@@ -63,22 +57,6 @@ public class UserAccount extends Account {
 
   public void setEmailAddress(String emailAddress) {
     this.emailAddress = emailAddress;
-  }
-
-  public String getPassword() {
-    return password;
-  }
-
-  public void setPassword(String password) {
-    this.password = password;
-  }
-
-  public String getPasswordSalt() {
-    return passwordSalt;
-  }
-
-  public void setPasswordSalt(String passwordSalt) {
-    this.passwordSalt = passwordSalt;
   }
 
   public String getPicture() {

@@ -8,7 +8,4 @@ public interface AccountRepository {
   UserAccount getUserAccountById(String id);
 
   UserAccount createUserAccount(UserAccount agent);
-
-  // FIXME: replace with some updateAccount (or move out of Account)
-  void updatePassword(String accountId, String passwordHash, String passwordSalt);
 }

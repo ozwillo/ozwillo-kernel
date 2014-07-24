@@ -5,31 +5,24 @@ import javax.security.auth.login.AccountNotFoundException;
 import javax.security.auth.login.FailedLoginException;
 import javax.security.auth.login.LoginException;
 
-import com.google.common.io.BaseEncoding;
-
 import oasis.model.accounts.Account;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
-import oasis.services.authn.login.PasswordHasher;
-import oasis.services.authn.login.SCryptPasswordHasher;
+import oasis.model.authn.ClientType;
 
 public class UserPasswordAuthenticator {
   protected final AccountRepository accountRepository;
-
-  protected final PasswordHasher passwordHasher;
-
-  static final BaseEncoding base64Encoder = BaseEncoding.base64();
+  protected final CredentialsService credentialsService;
 
   @Inject
   UserPasswordAuthenticator(
       AccountRepository accountRepository,
-      SCryptPasswordHasher passwordHasher) {
+      CredentialsService credentialsService) {
     this.accountRepository = accountRepository;
-    this.passwordHasher = passwordHasher;
+    this.credentialsService = credentialsService;
   }
 
   public Account authenticate(String email, String password) throws LoginException {
-
     // Get the user account matching the given email
     UserAccount userAccount = accountRepository.getUserAccountByEmail(email);
 
@@ -39,10 +32,7 @@ public class UserPasswordAuthenticator {
     }
 
     // Check password using a defined PasswordHasher
-    if (!this.passwordHasher.checkPassword(
-        password,
-        base64Encoder.decode(userAccount.getPassword()),
-        base64Encoder.decode(userAccount.getPasswordSalt()))) {
+    if (!credentialsService.checkPassword(ClientType.USER, userAccount.getId(), password)) {
       throw new FailedLoginException();
     }
 
@@ -51,8 +41,6 @@ public class UserPasswordAuthenticator {
   }
 
   public void setPassword(String accountId, String password) {
-    byte[] salt = passwordHasher.createSalt();
-    byte[] hash = passwordHasher.hashPassword(password, salt);
-    accountRepository.updatePassword(accountId, base64Encoder.encode(hash), base64Encoder.encode(salt));
+    credentialsService.setPassword(ClientType.USER, accountId, password);
   }
 }

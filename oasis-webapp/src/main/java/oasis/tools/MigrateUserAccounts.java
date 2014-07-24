@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.io.BaseEncoding;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.typesafe.config.Config;
@@ -16,6 +17,8 @@ import com.typesafe.config.Config;
 import oasis.jongo.JongoService;
 import oasis.jongo.directory.JongoOrganizationMembership;
 import oasis.jongo.guice.JongoModule;
+import oasis.model.authn.ClientType;
+import oasis.model.authn.CredentialsRepository;
 import oasis.openidconnect.OpenIdConnectModule;
 
 public class MigrateUserAccounts extends CommandLineTool {
@@ -29,6 +32,7 @@ public class MigrateUserAccounts extends CommandLineTool {
 
   @Inject JongoService jongoService;
   @Inject Provider<Jongo> jongoProvider;
+  @Inject Provider<CredentialsRepository> credentialsRepositoryProvider;
 
   @Override
   protected Logger logger() {
@@ -90,6 +94,22 @@ public class MigrateUserAccounts extends CommandLineTool {
         logger().info("  Deleting associated index");
         jongoProvider.get().getCollection("account").dropIndex("{ tokens.id: 1 }");
       }
+      logger().info("Migrating credentials to new collection");
+      if (!dryRun) {
+        Credentials credentials;
+        do {
+          credentials = jongoProvider.get()
+              .getCollection("account")
+              .findAndModify("{ password: { $exists: 1 } }")
+              .with("{ $unset: { password: 1, passwordSalt: 1 } }")
+              .as(Credentials.class);
+          if (credentials != null) {
+            credentialsRepositoryProvider.get().saveCredentials(ClientType.USER, credentials.id,
+                BaseEncoding.base64().decode(credentials.password),
+                BaseEncoding.base64().decode(credentials.passwordSalt));
+          }
+        } while (credentials != null);
+      }
     } finally {
       jongoService.stop();
     }
@@ -111,5 +131,11 @@ public class MigrateUserAccounts extends CommandLineTool {
     @JsonProperty String id;
     @JsonProperty String organizationId;
     @JsonProperty boolean admin;
+  }
+
+  static class Credentials {
+    @JsonProperty String id;
+    @JsonProperty String password;
+    @JsonProperty String passwordSalt;
   }
 }
