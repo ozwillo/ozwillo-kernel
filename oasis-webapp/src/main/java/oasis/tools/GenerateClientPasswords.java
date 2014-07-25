@@ -59,11 +59,10 @@ public class GenerateClientPasswords extends CommandLineTool {
 
     jongoService.start();
     try {
-      // Create credentials for each data providers and service providers in credentials collection
-      List<String> dataProviderIds = jongoProvider.get().getCollection("applications").distinct("dataProviders.id").as(String.class);
-      List<String> serviceProviderIds = jongoProvider.get().getCollection("applications").distinct("serviceProvider.id").as(String.class);
+      // Create credentials for each application instance in credentials collection
+      List<String> appInstanceIds = jongoProvider.get().getCollection("app_instances").distinct("id").as(String.class);
 
-      for (String providerId : Iterables.concat(dataProviderIds, serviceProviderIds)) {
+      for (String providerId : appInstanceIds) {
         if (providerId.equals("test")) {
           createCredentials("test", "password");
         } else {
