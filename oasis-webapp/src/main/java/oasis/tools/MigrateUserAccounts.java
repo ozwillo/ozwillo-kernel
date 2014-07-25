@@ -87,6 +87,8 @@ public class MigrateUserAccounts extends CommandLineTool {
             .update("{ tokens: { $exists: 1 } }")
             .multi()
             .with("{ $unset: { tokens: 1 } }");
+        logger().info("  Deleting associated index");
+        jongoProvider.get().getCollection("account").dropIndex("{ tokens.id: 1 }");
       }
     } finally {
       jongoService.stop();
