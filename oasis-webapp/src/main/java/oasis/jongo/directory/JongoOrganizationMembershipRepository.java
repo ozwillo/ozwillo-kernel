@@ -104,7 +104,7 @@ public class JongoOrganizationMembershipRepository implements OrganizationMember
   @Override
   public Iterable<OrganizationMembership> getMembersOfOrganization(String organizationId, int start, int limit) {
     return getOrganizationMembershipsCollection()
-        .find("{ organizationId; # }", organizationId)
+        .find("{ organizationId: # }", organizationId)
         .skip(start)
         .limit(limit)
         .as(OrganizationMembership.class);
@@ -113,7 +113,7 @@ public class JongoOrganizationMembershipRepository implements OrganizationMember
   @Override
   public Iterable<OrganizationMembership> getOrganizationsForUser(String userId, int start, int limit) {
     return getOrganizationMembershipsCollection()
-        .find("{ accountId; # }", userId)
+        .find("{ accountId: # }", userId)
         .skip(start)
         .limit(limit)
         .as(OrganizationMembership.class);
