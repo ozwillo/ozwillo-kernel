@@ -20,6 +20,8 @@ import javax.ws.rs.core.UriInfo;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
+import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.OrganizationMembership;
@@ -33,6 +35,7 @@ import oasis.web.authn.OAuthPrincipal;
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 @Authenticated @OAuth
+@Api(value = "memberships-user", description = "Organization Memberships (from the user point of view)")
 public class UserMembershipEndpoint {
   @Inject OrganizationMembershipRepository organizationMembershipRepository;
   @Inject DirectoryRepository directoryRepository;
@@ -44,6 +47,11 @@ public class UserMembershipEndpoint {
   @PathParam("user_id") String userId;
 
   @GET
+  @ApiOperation(
+      value = "Retrieves organizations the user is a member of",
+      response = UserMembership.class,
+      responseContainer = "Array"
+  )
   public Response get(@QueryParam("start") int start, @QueryParam("limit") int limit) {
     if (!Objects.equals(userId, ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId())) {
       return Response.status(Response.Status.FORBIDDEN).build();
@@ -68,6 +76,10 @@ public class UserMembershipEndpoint {
   }
 
   @POST
+  @ApiOperation(
+      value = "Creates a membership",
+      response = OrganizationMembership.class
+  )
   public Response post(MembershipRequest request) {
     if (!Objects.equals(userId, ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId())) {
       return Response.status(Response.Status.FORBIDDEN).build();

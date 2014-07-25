@@ -19,6 +19,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.api.client.repackaged.com.google.common.base.Strings;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
+import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
@@ -35,6 +37,7 @@ import oasis.web.utils.UserAgentFingerprinter;
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 @Authenticated @OAuth
+@Api(value = "memberships-org", description = "Organization Memberships (from the organization point of view)")
 public class OrganizationMembershipEndpoint {
   @Inject OrganizationMembershipRepository organizationMembershipRepository;
   @Inject AccountRepository accountRepository;
@@ -46,6 +49,11 @@ public class OrganizationMembershipEndpoint {
   @PathParam("organization_id") String organizationId;
 
   @GET
+  @ApiOperation(
+      value = "Retrieves users who are memebrs of the organization",
+      response = OrgMembership.class,
+      responseContainer = "Array"
+  )
   public Response get(@QueryParam("start") int start, @QueryParam("limit") int limit) {
     OrganizationMembership membership = organizationMembershipRepository
         .getOrganizationMembership(organizationId, ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId());
@@ -73,6 +81,11 @@ public class OrganizationMembershipEndpoint {
   }
 
   @POST
+  @ApiOperation(
+      value = "Creates an organization membership; either account_id or email has to be given",
+      notes = "For now, email must match an existing account",
+      response = OrganizationMembership.class
+  )
   public Response post(MembershipRequest request) {
     OrganizationMembership ownerMembership = organizationMembershipRepository
         .getOrganizationMembership(organizationId, ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId());

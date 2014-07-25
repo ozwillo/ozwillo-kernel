@@ -18,6 +18,8 @@ import javax.ws.rs.core.UriInfo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.api.client.repackaged.com.google.common.base.Strings;
+import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.InvalidVersionException;
 import oasis.model.directory.OrganizationMembership;
@@ -31,6 +33,7 @@ import oasis.web.utils.ResponseFactory;
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 @Authenticated @OAuth
+@Api(value = "memberships", description = "Organization membership")
 public class MembershipEndpoint {
   @Inject OrganizationMembershipRepository organizationMembershipRepository;
   @Inject EtagService etagService;
@@ -41,6 +44,10 @@ public class MembershipEndpoint {
   @PathParam("membership_id") String membershipId;
 
   @GET
+  @ApiOperation(
+      value = "Retrieves information about an organization membership",
+      response = OrganizationMembership.class
+  )
   public Response get() {
     OrganizationMembership membership = organizationMembershipRepository.getOrganizationMembership(membershipId);
     if (membership == null) {
@@ -54,6 +61,7 @@ public class MembershipEndpoint {
   }
 
   @DELETE
+  @ApiOperation("Deletes a membership")
   public Response delete(@HeaderParam(HttpHeaders.IF_MATCH) String ifMatch) {
     if (Strings.isNullOrEmpty(ifMatch)) {
       ResponseFactory.preconditionRequiredIfMatch();
@@ -71,6 +79,10 @@ public class MembershipEndpoint {
   }
 
   @PUT
+  @ApiOperation(
+      value = "Updates an organization membership",
+      response = OrganizationMembership.class
+  )
   public Response put(
       @HeaderParam(HttpHeaders.IF_MATCH) String ifMatch,
       MembershipRequest request) {
