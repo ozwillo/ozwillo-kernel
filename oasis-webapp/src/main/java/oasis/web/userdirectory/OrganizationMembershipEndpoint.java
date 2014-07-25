@@ -64,7 +64,7 @@ public class OrganizationMembershipEndpoint {
                 membership.membership_etag = etagService.getEtag(input);
                 membership.account_id = input.getAccountId();
                 // TODO: check access rights to the user name
-                membership.account_name = accountRepository.getUserAccountById(input.getOrganizationId()).getName();
+                membership.account_name = accountRepository.getUserAccountById(input.getAccountId()).getName();
                 membership.admin = input.isAdmin();
                 return membership;
               }
