@@ -24,12 +24,15 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
+import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.applications.v2.CatalogEntry;
 import oasis.services.applications.ApplicationService;
 import oasis.services.applications.ServiceService;
 
 @Path("/m/search")
+@Api(value = "market-search", description = "Searches the market catalog")
 public class MarketSearchEndpoint {
   private static final Logger logger = LoggerFactory.getLogger(MarketSearchEndpoint.class);
 
@@ -38,6 +41,11 @@ public class MarketSearchEndpoint {
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
+  @ApiOperation(
+      value = "Searches the market catalog",
+      response = CatalogEntry.class,
+      responseContainer = "Array"
+  )
   public Response search(
       // TODO: add search criterias
       @Nullable @QueryParam("hl") final Locale locale,

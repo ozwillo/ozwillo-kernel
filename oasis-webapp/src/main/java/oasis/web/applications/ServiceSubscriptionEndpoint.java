@@ -19,6 +19,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.collect.Iterables;
+import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.accounts.AccountRepository;
 import oasis.model.applications.v2.Service;
@@ -37,6 +39,7 @@ import oasis.web.utils.ResponseFactory;
 @Authenticated @OAuth
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
+@Api(value = "subs-service", description = "User-Service subscriptions (from the service point of view)")
 public class ServiceSubscriptionEndpoint {
   @Inject UserSubscriptionRepository userSubscriptionRepository;
   @Inject OrganizationMembershipRepository organizationMembershipRepository;
@@ -50,16 +53,21 @@ public class ServiceSubscriptionEndpoint {
   @PathParam("service_id") String serviceId;
 
   @GET
+  @ApiOperation(
+      value = "Retrieves users subscribed to the service",
+      response = ServiceSub.class,
+      responseContainer = "Array"
+  )
   public Response getSubscriptions() {
     // TODO: only admins of the organization providing the service (or app instance?) can list subscriptions
 
     Iterable<UserSubscription> subscriptions = userSubscriptionRepository.getSubscriptionsForService(serviceId);
     return Response.ok()
-        .entity(new GenericEntity<Iterable<UserSub>>(Iterables.transform(subscriptions,
-            new Function<UserSubscription, UserSub>() {
+        .entity(new GenericEntity<Iterable<ServiceSub>>(Iterables.transform(subscriptions,
+            new Function<UserSubscription, ServiceSub>() {
               @Override
-              public UserSub apply(UserSubscription input) {
-                UserSub sub = new UserSub();
+              public ServiceSub apply(UserSubscription input) {
+                ServiceSub sub = new ServiceSub();
                 sub.id = input.getId();
                 sub.subscription_uri = uriInfo.getBaseUriBuilder().path(SubscriptionEndpoint.class).build(input.getId()).toString();
                 sub.subscription_etag = etagService.getEtag(input);
@@ -76,6 +84,10 @@ public class ServiceSubscriptionEndpoint {
   }
 
   @POST
+  @ApiOperation(
+      value = "Subscribes a user to the service; the user must be a member of the organization providing the service",
+      response = UserSubscription.class
+  )
   public Response subscribe(UserSubscription subscription) {
     if (subscription.getService_id() != null && !serviceId.equals(subscription.getService_id())) {
       return ResponseFactory.unprocessableEntity("service_id doesn't match URL");
@@ -124,7 +136,7 @@ public class ServiceSubscriptionEndpoint {
         .build();
   }
 
-  static class UserSub {
+  static class ServiceSub {
     @JsonProperty String id;
     @JsonProperty String subscription_uri;
     @JsonProperty String subscription_etag;

@@ -14,6 +14,8 @@ import javax.ws.rs.core.Response;
 
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
+import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.Service;
@@ -27,6 +29,7 @@ import oasis.web.utils.ResponseFactory;
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 @Authenticated @OAuth
+@Api(value = "app-instances", description = "Application instances")
 public class AppInstanceEndpoint {
   @Inject AppInstanceService appInstanceService;
   @Inject ServiceService serviceService;
@@ -35,6 +38,10 @@ public class AppInstanceEndpoint {
   String instanceId;
 
   @GET
+  @ApiOperation(
+      value = "Retrieve information on an application instance",
+      response = AppInstance.class
+  )
   public Response getAppInstance() {
     // TODO: only the instance admins should be able to call that API
     AppInstance instance = appInstanceService.getAppInstance(instanceId);
@@ -46,6 +53,11 @@ public class AppInstanceEndpoint {
 
   @GET
   @Path("/services")
+  @ApiOperation(
+      value = "Retrieve the services of the application instance",
+      response = Service.class,
+      responseContainer = "Array"
+  )
   public Response getServices() {
     Iterable<Service> services = serviceService.getServicesOfInstance(instanceId);
     // TODO: check that the instance exists and return a 404 otherwise

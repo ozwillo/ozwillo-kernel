@@ -20,6 +20,8 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.applications.v2.AppInstance.NeededScope;
 import oasis.model.applications.v2.Scope;
@@ -34,6 +36,7 @@ import oasis.web.utils.ResponseFactory;
 
 @Path("/apps/pending-instance/{instance_id}")
 @Authenticated @Client
+@Api(value = "instance-registration", description = "Application Factories' callback")
 public class InstanceRegistrationEndpoint {
   @Inject AppInstanceService appInstanceService;
   @Inject ServiceService serviceService;
@@ -46,6 +49,10 @@ public class InstanceRegistrationEndpoint {
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
+  @ApiOperation(
+      value = "Acknowledges the provisioning of an instance",
+      notes = "See the <a href='https://docs.google.com/document/d/1V0lmEPTVl_UH7Dl-6AsiedALviJvjHW7RGw5jYg0Ah8/edit?usp=sharing'>Application Provisioning Protocol</a>"
+  )
   public Response instantiated(
       @Context UriInfo uriInfo,
       AcknowledgementRequest acknowledgementRequest) {
@@ -81,6 +88,10 @@ public class InstanceRegistrationEndpoint {
   }
 
   @DELETE
+  @ApiOperation(
+      value = "Notifies an error while provisioning the instance",
+      notes = "See the <a href='https://docs.google.com/document/d/1V0lmEPTVl_UH7Dl-6AsiedALviJvjHW7RGw5jYg0Ah8/edit?usp=sharing'>Application Provisioning Protocol</a>"
+  )
   public Response errorInstantiating() {
     if (((ClientPrincipal) securityContext.getUserPrincipal()).getClientId().equals(instanceId)) {
       return Response.status(Response.Status.FORBIDDEN).build();

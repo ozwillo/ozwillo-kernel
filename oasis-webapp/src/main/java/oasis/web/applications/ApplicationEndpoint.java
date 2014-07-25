@@ -9,6 +9,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiOperation;
+
 import oasis.model.applications.v2.Application;
 import oasis.services.applications.ApplicationService;
 import oasis.web.utils.ResponseFactory;
@@ -16,12 +19,17 @@ import oasis.web.utils.ResponseFactory;
 @Path("/apps/app/{application_id}")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
+@Api(value = "apps", description = "Applications")
 public class ApplicationEndpoint {
   @Inject ApplicationService applicationService;
 
   @PathParam("application_id") String applicationId;
 
   @GET
+  @ApiOperation(
+      value = "Get information about an application",
+      response = Application.class
+  )
   public Response getApplication() {
     // TODO: only the application admins should be able to see it if it's "hidden"
     Application application = applicationService.getApplication(applicationId);

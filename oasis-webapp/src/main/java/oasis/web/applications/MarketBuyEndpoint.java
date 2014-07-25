@@ -25,6 +25,8 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Strings;
+import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.Application;
@@ -45,6 +47,7 @@ import oasis.web.webhooks.WebhookSignatureFilter;
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 @Authenticated @OAuth
+@Api(value = "buy", description = "Buying/picking an application")
 public class MarketBuyEndpoint {
   private static final Logger logger = LoggerFactory.getLogger(MarketBuyEndpoint.class);
 
@@ -59,6 +62,10 @@ public class MarketBuyEndpoint {
   @PathParam("application_id") String applicationId;
 
   @POST
+  @ApiOperation(
+      value = "Instantiates an application",
+      response = AppInstance.class
+  )
   public Response instantiate(AppInstance instance) {
     Application application = applicationService.getApplication(applicationId);
     if (application == null) {

@@ -19,6 +19,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.collect.Iterables;
+import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.accounts.AccountRepository;
 import oasis.model.applications.v2.Service;
@@ -38,6 +40,7 @@ import oasis.web.utils.ResponseFactory;
 @Authenticated @OAuth
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
+@Api(value = "subs-user", description = "User-Service subscriptions (from the user point of view)")
 public class UserSubscriptionEndpoint {
   @Inject UserSubscriptionRepository userSubscriptionRepository;
   @Inject OrganizationMembershipRepository organizationMembershipRepository;
@@ -51,6 +54,11 @@ public class UserSubscriptionEndpoint {
   @PathParam("user_id") String userId;
 
   @GET
+  @ApiOperation(
+      value = "Retrieves services to which the user is subscribed",
+      response = UserSub.class,
+      responseContainer = "Array"
+  )
   public Response getSubscriptions() {
     if (userId.equals(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId())) {
       return ResponseFactory.forbidden("Cannot list subscriptions for another user");
@@ -79,6 +87,10 @@ public class UserSubscriptionEndpoint {
   }
 
   @POST
+  @ApiOperation(
+      value = "Subscribes the user to a service",
+      response = UserSubscription.class
+  )
   public Response subscribe(UserSubscription subscription) {
     if (subscription.getUser_id() != null && !userId.equals(subscription.getUser_id())) {
       return ResponseFactory.unprocessableEntity("user_id doesn't match URL");
