@@ -81,6 +81,13 @@ public class MigrateUserAccounts extends CommandLineTool {
             .getN();
         logger().info("  Updated {} accounts.", n);
       }
+      logger().info("Deleting all tokens (stored within accounts)");
+      if (!dryRun) {
+        jongoProvider.get().getCollection("account")
+            .update("{ tokens: { $exists: 1 } }")
+            .multi()
+            .with("{ $unset: { tokens: 1 } }");
+      }
     } finally {
       jongoService.stop();
     }
