@@ -7,7 +7,11 @@ import org.jongo.MongoCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+
 import oasis.jongo.JongoBootstrapper;
+import oasis.model.InvalidVersionException;
 import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.ServiceRepository;
 
@@ -66,8 +70,51 @@ public class JongoServiceRepository implements ServiceRepository, JongoBootstrap
   }
 
   @Override
+  public boolean deleteService(String serviceId, long[] versions) throws InvalidVersionException {
+    int n = getServicesCollection()
+        .remove("{ id: #, modified: { $in: # } }", serviceId, versions)
+        .getN();
+
+    if (n == 0) {
+      if (getServicesCollection().count("{ id: # }", serviceId) > 0) {
+        throw new InvalidVersionException("service", serviceId);
+      }
+      return false;
+    }
+
+    if (n > 1) {
+      logger.error("Deleted {} services with ID {}, that shouldn't have happened", n, serviceId);
+    }
+    return true;
+  }
+
+  @Override
+  public Service updateService(Service service, long[] versions) throws InvalidVersionException {
+    Preconditions.checkArgument(!Strings.isNullOrEmpty(service.getId()));
+    String serviceId = service.getId();
+    // XXX: don't allow updating those properties (should we return an error if attempted?)
+    service.setId(null);
+    service.setLocal_id(null);
+    service.setInstance_id(null);
+    // FIXME: allow unsetting properties
+    service = getServicesCollection()
+        .findAndModify("{ id: #, modified: { $in: # } }", serviceId, versions)
+        .with("{ $set: # }", new JongoService(service))
+        .returnNew()
+        .as(JongoService.class);
+    if (service == null) {
+      if (getServicesCollection().count("{ id: # }", serviceId) > 0) {
+        throw new InvalidVersionException("service", serviceId);
+      }
+      return null;
+    }
+    return service;
+  }
+
+  @Override
   public void bootstrap() {
     getServicesCollection().ensureIndex("{ id: 1 }", "{ unique: 1 }");
+    getServicesCollection().ensureIndex("{ instance_id: 1, local_id: 1 }", "{ unique: 1, sparse: 1 }");
     getServicesCollection().ensureIndex("{ instance_id: 1, redirect_uris: 1 }", "{ unique: 1, sparse: 1 }");
     getServicesCollection().ensureIndex("{ instance_id: 1, post_logout_redirect_uris: 1 }", "{ unique: 1, sparse: 1 }");
   }

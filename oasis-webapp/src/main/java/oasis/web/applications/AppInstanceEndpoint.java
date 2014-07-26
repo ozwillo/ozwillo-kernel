@@ -5,12 +5,15 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
@@ -59,6 +62,7 @@ public class AppInstanceEndpoint {
       responseContainer = "Array"
   )
   public Response getServices() {
+    // TODO: only the instance admins should be able to call that API
     Iterable<Service> services = serviceRepository.getServicesOfInstance(instanceId);
     // TODO: check that the instance exists and return a 404 otherwise
     return Response.ok(new GenericEntity<List<Service>>(
@@ -73,6 +77,31 @@ public class AppInstanceEndpoint {
             })
             .toList()
     ) {})
+        .build();
+  }
+
+  @POST
+  @Path("/services")
+  @ApiOperation(
+      value = "Adds a new service to the application instance",
+      response = Service.class
+  )
+  public Response addService(@Context UriInfo uriInfo, Service service) {
+    // TODO: only the instance admins should be able to call that API
+    if (service.getInstance_id() != null && !service.getInstance_id().equals(instanceId)) {
+      return ResponseFactory.unprocessableEntity("instance_id doesn't match URL");
+    }
+    service.setInstance_id(instanceId);
+    service = serviceRepository.createService(service);
+    if (service == null) {
+      if (appInstanceRepository.getAppInstance(instanceId) == null) {
+        return ResponseFactory.NOT_FOUND;
+      }
+      // Must then be a duplicate key of some sort
+      return Response.status(Response.Status.CONFLICT).build();
+    }
+    return Response.created(uriInfo.getBaseUriBuilder().path(ServiceEndpoint.class).build(service.getId()))
+        .entity(service)
         .build();
   }
 }
