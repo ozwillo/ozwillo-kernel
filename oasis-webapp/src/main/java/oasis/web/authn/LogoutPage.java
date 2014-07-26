@@ -29,13 +29,13 @@ import com.google.common.base.Strings;
 import com.google.template.soy.data.SoyMapData;
 
 import oasis.model.applications.v2.AppInstance;
+import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.applications.v2.Service;
+import oasis.model.applications.v2.ServiceRepository;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
 import oasis.openidconnect.OpenIdConnectModule;
 import oasis.openidconnect.RedirectUri;
-import oasis.services.applications.AppInstanceService;
-import oasis.services.applications.ServiceService;
 import oasis.services.cookies.CookieFactory;
 import oasis.web.security.StrictReferer;
 import oasis.web.view.SoyView;
@@ -53,8 +53,8 @@ public class LogoutPage {
   @Inject TokenRepository tokenRepository;
   @Inject OpenIdConnectModule.Settings settings;
   @Inject JsonFactory jsonFactory;
-  @Inject AppInstanceService appInstanceService;
-  @Inject ServiceService serviceService;
+  @Inject AppInstanceRepository appInstanceRepository;
+  @Inject ServiceRepository serviceRepository;
 
   @GET
   @Produces(MediaType.TEXT_HTML)
@@ -72,14 +72,14 @@ public class LogoutPage {
     final AppInstance appInstance;
     if (idTokenHint != null) {
       final String client_id = idTokenHint.getAudienceAsList().get(0);
-      appInstance = appInstanceService.getAppInstance(client_id);
+      appInstance = appInstanceRepository.getAppInstance(client_id);
     } else {
       appInstance = null;
     }
 
     final Service service;
     if (appInstance != null && post_logout_redirect_uri != null) {
-      service = serviceService.getServiceByPostLogoutRedirectUri(appInstance.getId(), post_logout_redirect_uri);
+      service = serviceRepository.getServiceByPostLogoutRedirectUri(appInstance.getId(), post_logout_redirect_uri);
       if (service == null && !settings.disableRedirectUriValidation) {
         // don't act as an open redirector!
         post_logout_redirect_uri = null;

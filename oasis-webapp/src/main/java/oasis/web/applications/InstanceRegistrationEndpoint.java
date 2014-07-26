@@ -24,11 +24,11 @@ import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.applications.v2.AppInstance.NeededScope;
+import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.applications.v2.Scope;
 import oasis.model.applications.v2.ScopeRepository;
 import oasis.model.applications.v2.Service;
-import oasis.services.applications.AppInstanceService;
-import oasis.services.applications.ServiceService;
+import oasis.model.applications.v2.ServiceRepository;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.Client;
 import oasis.web.authn.ClientPrincipal;
@@ -38,8 +38,8 @@ import oasis.web.utils.ResponseFactory;
 @Authenticated @Client
 @Api(value = "instance-registration", description = "Application Factories' callback")
 public class InstanceRegistrationEndpoint {
-  @Inject AppInstanceService appInstanceService;
-  @Inject ServiceService serviceService;
+  @Inject AppInstanceRepository appInstanceRepository;
+  @Inject ServiceRepository serviceRepository;
   @Inject ScopeRepository scopeRepository;
 
   @PathParam("instance_id") String instanceId;
@@ -67,7 +67,7 @@ public class InstanceRegistrationEndpoint {
     // TODO: check that service's and scope's instance_id is exact.
     // TODO: check existence of needed scopes.
 
-    if (!appInstanceService.instantiated(instanceId, acknowledgementRequest.getNeeded_scopes())) {
+    if (!appInstanceRepository.instantiated(instanceId, acknowledgementRequest.getNeeded_scopes())) {
       return ResponseFactory.notFound("Pending instance not found");
     }
 
@@ -79,7 +79,7 @@ public class InstanceRegistrationEndpoint {
     Map<String, String> acknowledgementResponse = new LinkedHashMap<>(acknowledgementRequest.getServices().size());
     for (Service service : acknowledgementRequest.getServices()) {
       service.setInstance_id(instanceId);
-      service = serviceService.createService(service);
+      service = serviceRepository.createService(service);
       acknowledgementResponse.put(service.getLocal_id(), service.getId());
     }
     return Response.created(uriInfo.getAbsolutePathBuilder().path(AppInstanceEndpoint.class).build(instanceId))
@@ -96,7 +96,7 @@ public class InstanceRegistrationEndpoint {
     if (((ClientPrincipal) securityContext.getUserPrincipal()).getClientId().equals(instanceId)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
-    if (!appInstanceService.deletePendingInstance(instanceId)) {
+    if (!appInstanceRepository.deletePendingInstance(instanceId)) {
       return ResponseFactory.notFound("Pending instance not found");
     }
     return Response.ok().build();

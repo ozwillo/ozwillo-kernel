@@ -13,7 +13,7 @@ import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.applications.v2.Service;
-import oasis.services.applications.ServiceService;
+import oasis.model.applications.v2.ServiceRepository;
 import oasis.web.utils.ResponseFactory;
 
 @Path("/apps/service/{service_id}")
@@ -21,7 +21,7 @@ import oasis.web.utils.ResponseFactory;
 @Produces(MediaType.APPLICATION_JSON)
 @Api(value = "services", description = "Application services")
 public class ServiceEndpoint {
-  @Inject ServiceService serviceService;
+  @Inject ServiceRepository serviceRepository;
 
   @PathParam("service_id") String serviceId;
 
@@ -31,7 +31,7 @@ public class ServiceEndpoint {
       response = Service.class
   )
   public Response getService() {
-    Service service = serviceService.getService(serviceId);
+    Service service = serviceRepository.getService(serviceId);
     if (service == null) {
       return ResponseFactory.notFound("Service not found");
     }

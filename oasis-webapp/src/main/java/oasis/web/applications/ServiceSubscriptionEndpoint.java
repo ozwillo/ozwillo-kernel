@@ -24,11 +24,11 @@ import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.accounts.AccountRepository;
 import oasis.model.applications.v2.Service;
+import oasis.model.applications.v2.ServiceRepository;
 import oasis.model.applications.v2.UserSubscription;
 import oasis.model.applications.v2.UserSubscriptionRepository;
 import oasis.model.directory.OrganizationMembership;
 import oasis.model.directory.OrganizationMembershipRepository;
-import oasis.services.applications.ServiceService;
 import oasis.services.etag.EtagService;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
@@ -43,7 +43,7 @@ import oasis.web.utils.ResponseFactory;
 public class ServiceSubscriptionEndpoint {
   @Inject UserSubscriptionRepository userSubscriptionRepository;
   @Inject OrganizationMembershipRepository organizationMembershipRepository;
-  @Inject ServiceService serviceService;
+  @Inject ServiceRepository serviceRepository;
   @Inject AccountRepository accountRepository;
   @Inject EtagService etagService;
 
@@ -98,7 +98,7 @@ public class ServiceSubscriptionEndpoint {
       return ResponseFactory.unprocessableEntity("This endpoint can only create non-personal subscriptions");
     }
     subscription.setSubscription_type(UserSubscription.SubscriptionType.ORGANIZATION);
-    Service service = serviceService.getService(subscription.getService_id());
+    Service service = serviceRepository.getService(subscription.getService_id());
     if (service == null) {
       return ResponseFactory.unprocessableEntity("Unknown service");
     }

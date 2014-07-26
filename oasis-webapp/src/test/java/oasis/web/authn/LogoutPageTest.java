@@ -30,15 +30,15 @@ import com.google.inject.Inject;
 
 import oasis.http.testing.InProcessResteasy;
 import oasis.model.applications.v2.AppInstance;
+import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.applications.v2.Service;
+import oasis.model.applications.v2.ServiceRepository;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
 import oasis.model.i18n.LocalizableString;
 import oasis.openidconnect.OpenIdConnectModule;
 import oasis.openidconnect.RedirectUri;
 import oasis.security.KeyPairLoader;
-import oasis.services.applications.AppInstanceService;
-import oasis.services.applications.ServiceService;
 import oasis.web.authn.testing.TestUserFilter;
 import oasis.web.authz.KeysEndpoint;
 import oasis.web.view.SoyGuiceModule;
@@ -83,9 +83,9 @@ public class LogoutPageTest {
 
   @Inject @Rule public InProcessResteasy resteasy;
 
-  @Before public void setUpMocks(AppInstanceService appInstanceService, ServiceService serviceService) {
-    when(appInstanceService.getAppInstance(appInstance.getId())).thenReturn(appInstance);
-    when(serviceService.getServiceByPostLogoutRedirectUri(appInstance.getId(), Iterables.getOnlyElement(service.getPost_logout_redirect_uris())))
+  @Before public void setUpMocks(AppInstanceRepository appInstanceRepository, ServiceRepository serviceRepository) {
+    when(appInstanceRepository.getAppInstance(appInstance.getId())).thenReturn(appInstance);
+    when(serviceRepository.getServiceByPostLogoutRedirectUri(appInstance.getId(), Iterables.getOnlyElement(service.getPost_logout_redirect_uris())))
         .thenReturn(service);
   }
 

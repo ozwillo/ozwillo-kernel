@@ -39,6 +39,7 @@ import oasis.http.testing.InProcessResteasy;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.applications.v2.AppInstance;
+import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.authn.AccessToken;
 import oasis.model.authn.AuthorizationCode;
 import oasis.model.authn.RefreshToken;
@@ -48,7 +49,6 @@ import oasis.model.directory.OrganizationMembership;
 import oasis.model.directory.OrganizationMembershipRepository;
 import oasis.openidconnect.OpenIdConnectModule;
 import oasis.security.KeyPairLoader;
-import oasis.services.applications.AppInstanceService;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.web.authn.testing.TestClientAuthenticationFilter;
@@ -62,7 +62,6 @@ public class TokenEndpointTest {
       bind(TokenEndpoint.class);
 
       bindMock(TokenHandler.class).in(TestSingleton.class);
-      bindMock(AppInstanceService.class).in(TestSingleton.class);
 
       bind(Clock.class).to(FixedClock.class);
       bind(JsonFactory.class).to(JacksonFactory.class);
@@ -160,7 +159,7 @@ public class TokenEndpointTest {
   @Inject @Rule public InProcessResteasy resteasy;
 
   @Before public void setUpMocks(TokenHandler tokenHandler, TokenRepository tokenRepository, AccountRepository accountRepository,
-      AppInstanceService appInstanceService) {
+      AppInstanceRepository appInstanceRepository) {
     when(tokenHandler.generateRandom()).thenReturn("pass");
 
     when(tokenHandler.getCheckedToken("valid", AuthorizationCode.class)).thenReturn(validAuthCode);
@@ -178,7 +177,7 @@ public class TokenEndpointTest {
     when(tokenRepository.getToken(sidToken.getId())).thenReturn(sidToken);
 
     when(accountRepository.getUserAccountById(account.getId())).thenReturn(account);
-    when(appInstanceService.getAppInstance(appInstance.getId())).thenReturn(appInstance);
+    when(appInstanceRepository.getAppInstance(appInstance.getId())).thenReturn(appInstance);
   }
 
   @Before public void setUp() {

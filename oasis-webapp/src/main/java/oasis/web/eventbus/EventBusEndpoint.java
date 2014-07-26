@@ -27,9 +27,9 @@ import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiParam;
 
 import oasis.model.InvalidVersionException;
+import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.eventbus.Subscription;
 import oasis.model.eventbus.SubscriptionRepository;
-import oasis.services.applications.AppInstanceService;
 import oasis.services.etag.EtagService;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.Client;
@@ -45,7 +45,7 @@ public class EventBusEndpoint {
   private static final Logger logger = LoggerFactory.getLogger(EventBusEndpoint.class);
 
   @Inject SubscriptionRepository subscriptionRepository;
-  @Inject AppInstanceService appInstanceService;
+  @Inject AppInstanceRepository appInstanceRepository;
   @Inject EtagService etagService;
 
   @POST
@@ -97,7 +97,7 @@ public class EventBusEndpoint {
     Subscription res = subscriptionRepository.createSubscription(instanceId, subscription);
     if (res == null) {
       // null can mean either the application doesn't exist or there's already a subscription for that application instance and event type
-      if (appInstanceService.getAppInstance(instanceId) != null) {
+      if (appInstanceRepository.getAppInstance(instanceId) != null) {
         return ResponseFactory.conflict("Subscription already exists for this application instance and event type");
       }
       return ResponseFactory.notFound("The application instance does not exist");

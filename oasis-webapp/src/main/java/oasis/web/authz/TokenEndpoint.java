@@ -42,6 +42,7 @@ import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.applications.v2.AppInstance;
+import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.authn.AccessToken;
 import oasis.model.authn.AuthorizationCode;
 import oasis.model.authn.RefreshToken;
@@ -51,7 +52,6 @@ import oasis.model.authn.TokenRepository;
 import oasis.model.directory.OrganizationMembership;
 import oasis.model.directory.OrganizationMembershipRepository;
 import oasis.openidconnect.OpenIdConnectModule;
-import oasis.services.applications.AppInstanceService;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.web.authn.Authenticated;
@@ -77,7 +77,7 @@ public class TokenEndpoint {
   @Inject TokenRepository tokenRepository;
   @Inject TokenHandler tokenHandler;
   @Inject OrganizationMembershipRepository organizationMembershipRepository;
-  @Inject AppInstanceService appInstanceService;
+  @Inject AppInstanceRepository appInstanceRepository;
 
   @Context UriInfo uriInfo;
   @Context SecurityContext securityContext;
@@ -222,7 +222,7 @@ public class TokenEndpoint {
     Boolean isAppUser = null;
     Boolean isAppAdmin = null;
     // TODO: use real data & algorithm; for now any agent of the organization is a "user of the app"
-    AppInstance appInstance = appInstanceService.getAppInstance(accessToken.getServiceProviderId());
+    AppInstance appInstance = appInstanceRepository.getAppInstance(accessToken.getServiceProviderId());
     OrganizationMembership membership = organizationMembershipRepository.getOrganizationMembership(accessToken.getAccountId(), appInstance.getProvider_id());
     if (membership != null) {
       isAppUser = true;

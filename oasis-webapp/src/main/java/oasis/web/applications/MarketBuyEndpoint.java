@@ -29,12 +29,12 @@ import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.applications.v2.AppInstance;
+import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.applications.v2.Application;
+import oasis.model.applications.v2.ApplicationRepository;
 import oasis.model.authn.ClientType;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Organization;
-import oasis.services.applications.AppInstanceService;
-import oasis.services.applications.ApplicationService;
 import oasis.services.authn.CredentialsService;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
@@ -51,9 +51,9 @@ import oasis.web.webhooks.WebhookSignatureFilter;
 public class MarketBuyEndpoint {
   private static final Logger logger = LoggerFactory.getLogger(MarketBuyEndpoint.class);
 
-  @Inject ApplicationService applicationService;
+  @Inject ApplicationRepository applicationRepository;
   @Inject DirectoryRepository directoryRepository;
-  @Inject AppInstanceService appInstanceService;
+  @Inject AppInstanceRepository appInstanceRepository;
   @Inject CredentialsService credentialsService;
 
   @Context UriInfo uriInfo;
@@ -67,7 +67,7 @@ public class MarketBuyEndpoint {
       response = AppInstance.class
   )
   public Response instantiate(AppInstance instance) {
-    Application application = applicationService.getApplication(applicationId);
+    Application application = applicationRepository.getApplication(applicationId);
     if (application == null) {
       return ResponseFactory.notFound("Application doesn't exist");
     }
@@ -86,7 +86,7 @@ public class MarketBuyEndpoint {
     instance.setInstantiator_id(userId);
     instance.setStatus(AppInstance.InstantiationStatus.PENDING);
 
-    instance = appInstanceService.createAppInstance(instance);
+    instance = appInstanceRepository.createAppInstance(instance);
     // FIXME: temporarily set the password to the instance id
     credentialsService.setPassword(ClientType.PROVIDER, instance.getId(), instance.getId());
 
@@ -114,11 +114,11 @@ public class MarketBuyEndpoint {
       return ResponseFactory.build(Response.Status.GATEWAY_TIMEOUT, "Application factory timed-out");
     }
     if (response.getStatusInfo().getFamily() != Response.Status.Family.SUCCESSFUL) {
-      appInstanceService.deletePendingInstance(instance.getId());
+      appInstanceRepository.deletePendingInstance(instance.getId());
       return ResponseFactory.build(Response.Status.BAD_GATEWAY, "Application factory failed");
     }
     // Get the possibly-updated instance
-    instance = appInstanceService.getAppInstance(instance.getId());
+    instance = appInstanceRepository.getAppInstance(instance.getId());
     return Response.ok(instance).build();
   }
 

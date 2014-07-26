@@ -13,7 +13,7 @@ import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.applications.v2.Application;
-import oasis.services.applications.ApplicationService;
+import oasis.model.applications.v2.ApplicationRepository;
 import oasis.web.utils.ResponseFactory;
 
 @Path("/apps/app/{application_id}")
@@ -21,7 +21,7 @@ import oasis.web.utils.ResponseFactory;
 @Produces(MediaType.APPLICATION_JSON)
 @Api(value = "apps", description = "Applications")
 public class ApplicationEndpoint {
-  @Inject ApplicationService applicationService;
+  @Inject ApplicationRepository applicationRepository;
 
   @PathParam("application_id") String applicationId;
 
@@ -32,7 +32,7 @@ public class ApplicationEndpoint {
   )
   public Response getApplication() {
     // TODO: only the application admins should be able to see it if it's "hidden"
-    Application application = applicationService.getApplication(applicationId);
+    Application application = applicationRepository.getApplication(applicationId);
     if (application == null) {
       return ResponseFactory.notFound("Application not found");
     }

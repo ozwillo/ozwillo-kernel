@@ -45,9 +45,11 @@ import com.google.inject.Provides;
 
 import oasis.http.testing.InProcessResteasy;
 import oasis.model.applications.v2.AppInstance;
+import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.applications.v2.Scope;
 import oasis.model.applications.v2.ScopeRepository;
 import oasis.model.applications.v2.Service;
+import oasis.model.applications.v2.ServiceRepository;
 import oasis.model.authn.AuthorizationCode;
 import oasis.model.authn.SidToken;
 import oasis.model.authz.AuthorizationRepository;
@@ -55,8 +57,6 @@ import oasis.model.authz.AuthorizedScopes;
 import oasis.model.i18n.LocalizableString;
 import oasis.openidconnect.OpenIdConnectModule;
 import oasis.security.KeyPairLoader;
-import oasis.services.applications.AppInstanceService;
-import oasis.services.applications.ServiceService;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.web.authn.LoginPage;
@@ -77,8 +77,6 @@ public class AuthorizationEndpointTest {
       bind(JsonFactory.class).to(JacksonFactory.class);
       bind(Clock.class).to(FixedClock.class);
 
-      bindMock(AppInstanceService.class).in(TestSingleton.class);
-      bindMock(ServiceService.class).in(TestSingleton.class);
       bindMock(TokenHandler.class).in(TestSingleton.class);
 
       bindManyNamedInstances(String.class, "bad redirect_uri",
@@ -145,10 +143,10 @@ public class AuthorizationEndpointTest {
   @Inject @Rule public InProcessResteasy resteasy;
 
   @Before public void setUpMocks(AuthorizationRepository authorizationRepository,
-      AppInstanceService appInstanceService, ServiceService serviceService,
+      AppInstanceRepository appInstanceRepository, ServiceRepository serviceRepository,
       ScopeRepository scopeRepository, TokenHandler tokenHandler) {
-    when(appInstanceService.getAppInstance(appInstance.getId())).thenReturn(appInstance);
-    when(serviceService.getServiceByRedirectUri(appInstance.getId(), Iterables.getOnlyElement(service.getRedirect_uris()))).thenReturn(service);
+    when(appInstanceRepository.getAppInstance(appInstance.getId())).thenReturn(appInstance);
+    when(serviceRepository.getServiceByRedirectUri(appInstance.getId(), Iterables.getOnlyElement(service.getRedirect_uris()))).thenReturn(service);
 
     when(scopeRepository.getScopes(anyCollectionOf(String.class))).thenAnswer(new Answer<Iterable<Scope>>() {
       @Override

@@ -43,16 +43,16 @@ import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstance.NeededScope;
+import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.applications.v2.Scope;
 import oasis.model.applications.v2.ScopeRepository;
+import oasis.model.applications.v2.ServiceRepository;
 import oasis.model.authn.AuthorizationCode;
 import oasis.model.authn.SidToken;
 import oasis.model.authz.AuthorizationRepository;
 import oasis.model.authz.AuthorizedScopes;
 import oasis.openidconnect.OpenIdConnectModule;
 import oasis.openidconnect.RedirectUri;
-import oasis.services.applications.AppInstanceService;
-import oasis.services.applications.ServiceService;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.web.authn.Authenticated;
@@ -95,8 +95,8 @@ public class AuthorizationEndpoint {
 
   @Inject OpenIdConnectModule.Settings settings;
   @Inject AuthorizationRepository authorizationRepository;
-  @Inject AppInstanceService appInstanceService;
-  @Inject ServiceService serviceService;
+  @Inject AppInstanceRepository appInstanceRepository;
+  @Inject ServiceRepository serviceRepository;
   @Inject ScopeRepository scopeRepository;
   @Inject TokenHandler tokenHandler;
   @Inject JsonFactory jsonFactory;
@@ -332,7 +332,7 @@ public class AuthorizationEndpoint {
   }
 
   private AppInstance getAppInstance(String client_id) {
-    AppInstance appInstance = appInstanceService.getAppInstance(client_id);
+    AppInstance appInstance = appInstanceRepository.getAppInstance(client_id);
     if (appInstance == null) {
       throw accessDenied("Unknown client id");
     }
@@ -340,7 +340,7 @@ public class AuthorizationEndpoint {
   }
 
   private boolean isRedirectUriValid(String redirect_uri, String instanceId) {
-    return (settings.disableRedirectUriValidation || serviceService.getServiceByRedirectUri(instanceId, redirect_uri) != null)
+    return (settings.disableRedirectUriValidation || serviceRepository.getServiceByRedirectUri(instanceId, redirect_uri) != null)
         // Note: validate the URI even if it's in the whitelist, just in case. You can never be too careful.
         && RedirectUri.isValid(redirect_uri);
   }

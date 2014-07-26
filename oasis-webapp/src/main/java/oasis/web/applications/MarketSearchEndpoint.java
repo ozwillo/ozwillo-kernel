@@ -27,17 +27,17 @@ import com.google.common.collect.Iterables;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
+import oasis.model.applications.v2.ApplicationRepository;
 import oasis.model.applications.v2.CatalogEntry;
-import oasis.services.applications.ApplicationService;
-import oasis.services.applications.ServiceService;
+import oasis.model.applications.v2.ServiceRepository;
 
 @Path("/m/search")
 @Api(value = "market-search", description = "Searches the market catalog")
 public class MarketSearchEndpoint {
   private static final Logger logger = LoggerFactory.getLogger(MarketSearchEndpoint.class);
 
-  @Inject ApplicationService applicationService;
-  @Inject ServiceService serviceService;
+  @Inject ApplicationRepository applicationRepository;
+  @Inject ServiceRepository serviceRepository;
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
@@ -59,8 +59,8 @@ public class MarketSearchEndpoint {
             FluentIterable.from(
                 Iterables.mergeSorted(
                     Arrays.asList(
-                        applicationService.getVisibleApplications(),
-                        serviceService.getVisibleServices()
+                        applicationRepository.getVisibleApplications(),
+                        serviceRepository.getVisibleServices()
                     ),
                     new Comparator<CatalogEntry>() {
                       Locale l = Objects.firstNonNull(locale, Locale.ROOT);
