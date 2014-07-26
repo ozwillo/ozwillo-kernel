@@ -33,7 +33,6 @@ public class JongoAccountRepository implements AccountRepository, JongoBootstrap
   public Account getAccount(String id) {
     return this.getAccountCollection()
         .findOne("{id:#}", id)
-        .projection("{tokens: 0, authorizedScopes: 0}")
         .as(Account.class);
   }
 
@@ -41,7 +40,6 @@ public class JongoAccountRepository implements AccountRepository, JongoBootstrap
   public UserAccount getUserAccountByEmail(String email) {
     return this.getAccountCollection()
         .findOne("{emailAddress:#}", email)
-        .projection("{tokens: 0, authorizedScopes: 0}")
         .as(UserAccount.class);
   }
 
@@ -49,7 +47,6 @@ public class JongoAccountRepository implements AccountRepository, JongoBootstrap
   public UserAccount getUserAccountById(String id) {
     return this.getAccountCollection()
         .findOne("{id:#}", id)
-        .projection("{tokens: 0, authorizedScopes: 0}")
         .as(UserAccount.class);
   }
 

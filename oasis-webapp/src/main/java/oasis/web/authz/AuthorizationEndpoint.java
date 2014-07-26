@@ -412,7 +412,7 @@ public class AuthorizationEndpoint {
     if (authorizedScopes == null) {
       return Collections.emptySet();
     }
-    return authorizedScopes.getScopeIds();
+    return authorizedScopes.getScope_ids();
   }
 
   private WebApplicationException invalidParam(String paramName) {

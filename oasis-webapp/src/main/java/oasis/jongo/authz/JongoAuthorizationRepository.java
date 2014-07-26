@@ -9,12 +9,9 @@ import org.jongo.MongoCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.mongodb.WriteResult;
 
 import oasis.jongo.JongoBootstrapper;
-import oasis.model.accounts.Account;
 import oasis.model.authz.AuthorizationRepository;
 import oasis.model.authz.AuthorizedScopes;
 
@@ -28,56 +25,40 @@ public class JongoAuthorizationRepository implements AuthorizationRepository, Jo
   }
 
   @Override
-  public AuthorizedScopes getAuthorizedScopes(String accountId, String serviceProviderId) {
-    Account account = getAccountCollection().findOne("{id: #, authorizedScopes.serviceProviderId: #}", accountId, serviceProviderId)
-        .projection("{type: 1, authorizedScopes.$: 1}").as(Account.class);
-    if (account == null || account.getAuthorizedScopes() == null || account.getAuthorizedScopes().isEmpty()) {
-      return null;
-    }
-
-    return account.getAuthorizedScopes().get(0);
+  public AuthorizedScopes getAuthorizedScopes(String accountId, String clientId) {
+    return getAuthorizedScopesCollection()
+        .findOne("{ account_id: #, client_id: # }", accountId, clientId)
+        .as(AuthorizedScopes.class);
   }
 
   @Override
-  public void authorize(String accountId, String serviceProviderId, Collection<String> scopesId) {
-    // Try to add new authorized scopes to an account for a service provider
-    WriteResult writeResult = getAccountCollection().update("{id: #, authorizedScopes.serviceProviderId: #}", accountId, serviceProviderId)
-        .with("{$addToSet: {authorizedScopes.$.scopeIds: {$each : #}}}", ImmutableList.copyOf(scopesId));
-
-    int n = writeResult.getN();
-    if (n > 1) {
-      logger.error("Inserted {} authorizations for accountId {} and serviceProviderId {}, that shouldn't have happened.");
-    } else if (n == 0) {
-      // It seems that the account didn't already have given authorizations to the service provider
-      AuthorizedScopes authorizedScopes = new AuthorizedScopes();
-      authorizedScopes.setServiceProviderId(serviceProviderId);
-      authorizedScopes.setScopeIds(ImmutableSet.copyOf(scopesId));
-
-      writeResult = getAccountCollection().update("{id: #}", accountId).with("{$push: {authorizedScopes: #}}", authorizedScopes);
-      if (writeResult.getN() == 0) {
-        logger.warn("Can't add authorized scopes to the account {}.", accountId);
-      }
-    }
+  public AuthorizedScopes authorize(String accountId, String clientId, Collection<String> scopeIds) {
+    return getAuthorizedScopesCollection()
+        .findAndModify("{ account_id: #, client_id: # }", accountId, clientId)
+        .upsert()
+        .with("{ $addToSet: { scope_ids: { $each: # } } }", ImmutableSet.copyOf(scopeIds))
+        .returnNew()
+        .as(AuthorizedScopes.class);
   }
 
   @Override
-  public boolean revoke(String accountId, String serviceProviderId) {
-    WriteResult writeResult = getAccountCollection().update("{id: #, authorizedScopes.serviceProviderId: #}", accountId, serviceProviderId)
-        .with("{$pull: {authorizedScopes: {serviceProviderId: #}}}", serviceProviderId);
-
-    int n = writeResult.getN();
+  public boolean revoke(String accountId, String clientId) {
+    int n = getAuthorizedScopesCollection()
+        .remove("{ account_id: #, client_id: # }", accountId, clientId)
+        .getN();
     if (n > 1) {
-      logger.error("Deleted {} authorizations for accountId {} and serviceProviderId {}, that shouldn't have happened.");
+      logger.error("Deleted {} authorizations for account_id {} and client_id {}, that shouldn't have happened.", n);
     }
     return n > 0;
   }
 
-  private MongoCollection getAccountCollection() {
-    return jongo.getCollection("account");
+  private MongoCollection getAuthorizedScopesCollection() {
+    return jongo.getCollection("authorized_scopes");
   }
 
   @Override
   public void bootstrap() {
-    getAccountCollection().ensureIndex("{ id: 1, authorizedScopes.serviceProviderId: 1 }", "{ sparse: 1 }");
+    getAuthorizedScopesCollection().ensureIndex("{ id: 1 }", "{ unique: 1 }");
+    getAuthorizedScopesCollection().ensureIndex("{ account_id: 1, client_id: 1 }", "{ unique: 1 }");
   }
 }

@@ -4,33 +4,47 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
-import com.wordnik.swagger.annotations.ApiModelProperty;
+
+import oasis.model.annotations.Id;
 
 @JsonRootName("authorizedScopes")
 public class AuthorizedScopes {
-  @JsonProperty
-  @ApiModelProperty(required = true)
-  private String serviceProviderId;
+  @Id
+  private String id;
+  private String account_id;
+  private String client_id;
+  private Set<String> scope_ids = new HashSet<>();
 
-  @JsonProperty
-  @ApiModelProperty(required = true)
-  private Set<String> scopeIds = new HashSet<>();
-
-  public String getServiceProviderId() {
-    return serviceProviderId;
+  public String getId() {
+    return id;
   }
 
-  public void setServiceProviderId(String serviceProviderId) {
-    this.serviceProviderId = serviceProviderId;
+  public void setId(String id) {
+    this.id = id;
   }
 
-  public Set<String> getScopeIds() {
-    return Collections.unmodifiableSet(scopeIds);
+  public String getAccount_id() {
+    return account_id;
   }
 
-  public void setScopeIds(Set<String> scopeIds) {
-    this.scopeIds = new HashSet<>(scopeIds);
+  public void setAccount_id(String account_id) {
+    this.account_id = account_id;
+  }
+
+  public String getClient_id() {
+    return client_id;
+  }
+
+  public void setClient_id(String client_id) {
+    this.client_id = client_id;
+  }
+
+  public Set<String> getScope_ids() {
+    return Collections.unmodifiableSet(scope_ids);
+  }
+
+  public void setScope_ids(Set<String> scope_ids) {
+    this.scope_ids = new HashSet<>(scope_ids);
   }
 }

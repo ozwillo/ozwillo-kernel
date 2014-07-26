@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Set;
 
 import javax.annotation.Nullable;
 import javax.ws.rs.core.Response;
@@ -175,7 +174,7 @@ public class AuthorizationEndpointTest {
 
     when(authorizationRepository.getAuthorizedScopes(sidToken.getAccountId(), appInstance.getId()))
         .thenReturn(new AuthorizedScopes() {{
-          setScopeIds(Sets.newHashSet(openidScope.getId(), authorizedScope.getId()));
+          setScope_ids(Sets.newHashSet(openidScope.getId(), authorizedScope.getId()));
         }});
 
     when(tokenHandler.generateRandom()).thenReturn("pass");

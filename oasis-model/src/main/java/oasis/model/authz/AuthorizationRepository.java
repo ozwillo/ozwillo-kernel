@@ -3,9 +3,9 @@ package oasis.model.authz;
 import java.util.Collection;
 
 public interface AuthorizationRepository {
-  AuthorizedScopes getAuthorizedScopes(String accountId, String serviceProviderId);
+  AuthorizedScopes getAuthorizedScopes(String accountId, String clientId);
 
-  void authorize(String accountId, String serviceProviderId, Collection<String> scopesId);
+  AuthorizedScopes authorize(String accountId, String clientId, Collection<String> scopeIds);
 
-  boolean revoke(String accountId, String serviceProviderId);
+  boolean revoke(String accountId, String clientId);
 }

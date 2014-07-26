@@ -1,5 +1,8 @@
 package oasis.tools;
 
+import java.util.List;
+import java.util.Set;
+
 import javax.inject.Inject;
 import javax.inject.Provider;
 
@@ -12,6 +15,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.io.BaseEncoding;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.mongodb.CommandFailureException;
 import com.typesafe.config.Config;
 
 import oasis.jongo.JongoService;
@@ -19,6 +23,7 @@ import oasis.jongo.directory.JongoOrganizationMembership;
 import oasis.jongo.guice.JongoModule;
 import oasis.model.authn.ClientType;
 import oasis.model.authn.CredentialsRepository;
+import oasis.model.authz.AuthorizationRepository;
 import oasis.openidconnect.OpenIdConnectModule;
 
 public class MigrateUserAccounts extends CommandLineTool {
@@ -33,6 +38,7 @@ public class MigrateUserAccounts extends CommandLineTool {
   @Inject JongoService jongoService;
   @Inject Provider<Jongo> jongoProvider;
   @Inject Provider<CredentialsRepository> credentialsRepositoryProvider;
+  @Inject Provider<AuthorizationRepository> authorizationRepositoryProvider;
 
   @Override
   protected Logger logger() {
@@ -92,7 +98,9 @@ public class MigrateUserAccounts extends CommandLineTool {
             .multi()
             .with("{ $unset: { tokens: 1 } }");
         logger().info("  Deleting associated index");
-        jongoProvider.get().getCollection("account").dropIndex("{ tokens.id: 1 }");
+        try {
+          jongoProvider.get().getCollection("account").dropIndex("{ tokens.id: 1 }");
+        } catch (CommandFailureException cfe) { /* ignore */ }
       }
       logger().info("Migrating credentials to new collection");
       if (!dryRun) {
@@ -110,6 +118,30 @@ public class MigrateUserAccounts extends CommandLineTool {
           }
         } while (credentials != null);
       }
+      logger().info("Migrating authorized scopes to new collection");
+      if (!dryRun) {
+        AccountWithAuthorizedScopes accountWithAuthorizedScopes;
+        do {
+          accountWithAuthorizedScopes = jongoProvider.get()
+              .getCollection("account")
+              .findAndModify("{ authorizedScopes: { $exists: 1 } }")
+              .with("{ $unset: { authorizedScopes: 1 } }")
+              .as(AccountWithAuthorizedScopes.class);
+          if (accountWithAuthorizedScopes != null && accountWithAuthorizedScopes.authorizedScopes != null) {
+            for (AuthorizedScopes authorizedScopes : accountWithAuthorizedScopes.authorizedScopes) {
+              authorizationRepositoryProvider.get().authorize(
+                  accountWithAuthorizedScopes.id,
+                  authorizedScopes.serviceProviderId,
+                  authorizedScopes.scopeIds);
+            }
+          }
+        } while (accountWithAuthorizedScopes != null);
+        logger().info("  Deleting associated index");
+        try {
+          jongoProvider.get().getCollection("account").dropIndex("{ id: 1, authorizedScopes.serviceProviderId: 1 }");
+        } catch (CommandFailureException cfe) { /* ignore */ }
+      }
+
     } finally {
       jongoService.stop();
     }
@@ -137,5 +169,15 @@ public class MigrateUserAccounts extends CommandLineTool {
     @JsonProperty String id;
     @JsonProperty String password;
     @JsonProperty String passwordSalt;
+  }
+
+  static class AccountWithAuthorizedScopes {
+    @JsonProperty String id;
+    @JsonProperty List<AuthorizedScopes> authorizedScopes;
+  }
+
+  static class AuthorizedScopes {
+    @JsonProperty String serviceProviderId;
+    @JsonProperty Set<String> scopeIds;
   }
 }
