@@ -60,11 +60,11 @@ public class LoginPageTest {
 
   private static final UserAccount someUserAccount = new UserAccount() {{
     setId("someUser");
-    setEmailAddress("some@example.com");
+    setEmail_address("some@example.com");
   }};
   private static final UserAccount otherUserAccount = new UserAccount() {{
     setId("otherUser");
-    setEmailAddress("other@example.com");
+    setEmail_address("other@example.com");
   }};
   private static final SidToken someSidToken = new SidToken() {{
     setId("someSidToken");
@@ -81,9 +81,9 @@ public class LoginPageTest {
 
   @Before public void setupMocks(UserPasswordAuthenticator userPasswordAuthenticator, TokenHandler tokenHandler,
       AccountRepository accountRepository, TokenRepository tokenRepository) throws LoginException {
-    when(userPasswordAuthenticator.authenticate(someUserAccount.getEmailAddress(), "password")).thenReturn(someUserAccount);
-    when(userPasswordAuthenticator.authenticate(someUserAccount.getEmailAddress(), "invalid")).thenThrow(FailedLoginException.class);
-    when(userPasswordAuthenticator.authenticate(otherUserAccount.getEmailAddress(), "password")).thenReturn(otherUserAccount);
+    when(userPasswordAuthenticator.authenticate(someUserAccount.getEmail_address(), "password")).thenReturn(someUserAccount);
+    when(userPasswordAuthenticator.authenticate(someUserAccount.getEmail_address(), "invalid")).thenThrow(FailedLoginException.class);
+    when(userPasswordAuthenticator.authenticate(otherUserAccount.getEmail_address(), "password")).thenReturn(otherUserAccount);
     when(userPasswordAuthenticator.authenticate(eq("unknown@example.com"), anyString())).thenThrow(AccountNotFoundException.class);
 
     when(tokenHandler.generateRandom()).thenReturn("pass");
@@ -129,7 +129,7 @@ public class LoginPageTest {
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
     assertLoginForm(response)
-        .matches(reauthUser(someUserAccount.getEmailAddress()));
+        .matches(reauthUser(someUserAccount.getEmail_address()));
   }
 
   @Test public void signIn() {
@@ -138,7 +138,7 @@ public class LoginPageTest {
     Response response = resteasy.getClient().target(UriBuilder.fromResource(LoginPage.class))
         .request().post(Entity.form(new Form()
             .param("continue", continueUrl)
-            .param("u", someUserAccount.getEmailAddress())
+            .param("u", someUserAccount.getEmail_address())
             .param("pwd", "password")));
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
@@ -151,7 +151,7 @@ public class LoginPageTest {
     Response response = resteasy.getClient().target(UriBuilder.fromResource(LoginPage.class))
         .request().post(Entity.form(new Form()
             .param("continue", continueUrl)
-            .param("u", someUserAccount.getEmailAddress())
+            .param("u", someUserAccount.getEmail_address())
             .param("pwd", "invalid")));
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
@@ -187,7 +187,7 @@ public class LoginPageTest {
     Response response = resteasy.getClient().target(UriBuilder.fromResource(LoginPage.class))
         .request().post(Entity.form(new Form()
             .param("continue", continueUrl)
-            .param("u", someUserAccount.getEmailAddress())
+            .param("u", someUserAccount.getEmail_address())
             .param("pwd", "password")));
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
@@ -205,11 +205,11 @@ public class LoginPageTest {
     Response response = resteasy.getClient().target(UriBuilder.fromResource(LoginPage.class))
         .request().post(Entity.form(new Form()
             .param("continue", continueUrl)
-            .param("u", otherUserAccount.getEmailAddress())
+            .param("u", otherUserAccount.getEmail_address())
             .param("pwd", "password")));
 
     assertLoginForm(response)
-        .matches(reauthUser(someUserAccount.getEmailAddress()));
+        .matches(reauthUser(someUserAccount.getEmail_address()));
   }
 
   private StringAssert assertLoginForm(Response response) {

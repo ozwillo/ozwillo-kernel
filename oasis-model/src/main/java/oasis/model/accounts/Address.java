@@ -2,49 +2,34 @@ package oasis.model.accounts;
 
 import javax.annotation.Nonnull;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonRootName;
-import com.wordnik.swagger.annotations.ApiModelProperty;
-
-@JsonRootName("address")
 public class Address {
-  @JsonProperty
-  @ApiModelProperty
-  private String streetAddress;
+  private String street_address;
 
-  @JsonProperty
-  @ApiModelProperty
   private String locality;
 
-  @JsonProperty
-  @ApiModelProperty
   private String region;
 
-  @JsonProperty
-  @ApiModelProperty
-  private String postalCode;
+  private String postal_code;
 
-  @JsonProperty
-  @ApiModelProperty
   private String country;
 
   public Address() {
   }
 
   public Address(@Nonnull Address other) {
-    this.streetAddress = other.getStreetAddress();
+    this.street_address = other.getStreet_address();
     this.locality = other.getLocality();
     this.region = other.getRegion();
-    this.postalCode = other.getPostalCode();
+    this.postal_code = other.getPostal_code();
     this.country = other.getCountry();
   }
 
-  public String getStreetAddress() {
-    return streetAddress;
+  public String getStreet_address() {
+    return street_address;
   }
 
-  public void setStreetAddress(String streetAddress) {
-    this.streetAddress = streetAddress;
+  public void setStreet_address(String street_address) {
+    this.street_address = street_address;
   }
 
   public String getLocality() {
@@ -63,12 +48,12 @@ public class Address {
     this.region = region;
   }
 
-  public String getPostalCode() {
-    return postalCode;
+  public String getPostal_code() {
+    return postal_code;
   }
 
-  public void setPostalCode(String postalCode) {
-    this.postalCode = postalCode;
+  public void setPostal_code(String postal_code) {
+    this.postal_code = postal_code;
   }
 
   public String getCountry() {

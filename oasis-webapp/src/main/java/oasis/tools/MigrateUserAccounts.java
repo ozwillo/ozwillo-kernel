@@ -85,7 +85,7 @@ public class MigrateUserAccounts extends CommandLineTool {
       logger().info("Updating all accounts to generic user account");
       if (!dryRun) {
         int n =  jongoProvider.get().getCollection("account")
-            .update("{ }")
+            .update("{ type: { $exists: 1 } }")
             .multi()
             .with("{ $unset: { type: 1 } }")
             .getN();
@@ -141,7 +141,32 @@ public class MigrateUserAccounts extends CommandLineTool {
           jongoProvider.get().getCollection("account").dropIndex("{ id: 1, authorizedScopes.serviceProviderId: 1 }");
         } catch (CommandFailureException cfe) { /* ignore */ }
       }
-
+      logger().info("Renaming properties");
+      if (!dryRun) {
+        int n = jongoProvider.get().getCollection("account")
+            .update("{}")
+            .multi()
+            .with("{ $rename: {" +
+                "emailAddress: \"email_address\"," +
+                "zoneInfo: \"zoneinfo\"," +
+                "givenName: \"given_name\"," +
+                "familyName: \"family_name\"," +
+                "middleName: \"middle_name\"," +
+                "phoneNumber: \"phone_number\"," +
+                "phoneNumberVerified: \"phone_number_verified\"," +
+                "updatedAt: \"updated_at\"," +
+                "address.streetAddress: \"address.street_address\"," +
+                "address.postalCode: \"address.postal_code\"" +
+                "} }")
+            .getN();
+        if (n != 0) {
+          logger().info("  Updating associated indexes");
+          try {
+            jongoProvider.get().getCollection("account").dropIndex("{ emailAddress: 1 }");
+          } catch (CommandFailureException cfe) { /* ignore */ }
+          // Don't recreate new index, it'll be done automatically at application startup
+        }
+      }
     } finally {
       jongoService.stop();
     }

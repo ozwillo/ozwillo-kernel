@@ -52,32 +52,32 @@ public class AgentInfo implements HasModified {
       this.organization_admin = membership.isAdmin() ? Boolean.TRUE : null;
       this.organization_id = membership.getOrganizationId();
     }
-    this.modified = agentAccount.getUpdatedAt();
+    this.modified = agentAccount.getUpdated_at();
 
     // Copy agent infos
     this.picture = agentAccount.getPicture();
-    this.zoneinfo = agentAccount.getZoneInfo();
+    this.zoneinfo = agentAccount.getZoneinfo();
     this.locale = agentAccount.getLocale();
-    this.email = agentAccount.getEmailAddress();
+    this.email = agentAccount.getEmail_address();
     this.email_verified = true; // TODO: use an activation flow (or should we trust the organization admin?)
 
     this.name = agentAccount.getName();
-    this.family_name = agentAccount.getFamilyName();
-    this.given_name = agentAccount.getGivenName();
-    this.middle_name = agentAccount.getMiddleName();
+    this.family_name = agentAccount.getFamily_name();
+    this.given_name = agentAccount.getGiven_name();
+    this.middle_name = agentAccount.getMiddle_name();
     this.nickname = agentAccount.getNickname();
     this.gender = agentAccount.getGender();
     this.birthdate = (agentAccount.getBirthdate() != null ? agentAccount.getBirthdate().toString(BIRTHDATE_FORMATTER) : null);
-    this.phone = agentAccount.getPhoneNumber();
+    this.phone = agentAccount.getPhone_number();
     // Always send phone_verified (true or false) when there's a phone, never send it (null) otherwise.
-    this.phone_verified = agentAccount.getPhoneNumber() == null ? null : agentAccount.isPhoneNumberVerified();
+    this.phone_verified = agentAccount.getPhone_number() == null ? null : agentAccount.getPhone_number_verified();
 
     // Copy address infos
     if (agentAccount.getAddress() != null) {
       this.address = new Address(agentAccount.getAddress());
     }
 
-    long updatedAt = agentAccount.getUpdatedAt();
+    long updatedAt = agentAccount.getUpdated_at();
     if (updatedAt > 0) {
       this.updated_at = TimeUnit.MILLISECONDS.toSeconds(updatedAt);
     }
@@ -275,11 +275,11 @@ public class AgentInfo implements HasModified {
     }
 
     private Address(oasis.model.accounts.Address other) {
-      this.street_address = other.getStreetAddress();
+      this.street_address = other.getStreet_address();
       this.locality = other.getLocality();
       this.region = other.getRegion();
       this.country = other.getCountry();
-      this.postal_code = other.getPostalCode();
+      this.postal_code = other.getPostal_code();
     }
 
     public String getStreet_address() {

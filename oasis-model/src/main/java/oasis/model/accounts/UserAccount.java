@@ -8,21 +8,21 @@ public class UserAccount {
   @Id
   private String id;
 
-  private String emailAddress;
+  private String email_address;
 
   private String picture;
 
-  private String zoneInfo;
+  private String zoneinfo;
 
   private String locale;
 
   private String name;
 
-  private String givenName;
+  private String given_name;
 
-  private String familyName;
+  private String family_name;
 
-  private String middleName;
+  private String middle_name;
 
   private String nickname;
 
@@ -30,13 +30,13 @@ public class UserAccount {
 
   private LocalDate birthdate;
 
-  private String phoneNumber;
+  private String phone_number;
 
-  private boolean phoneNumberVerified;
+  private boolean phone_number_verified;
 
   private Address address;
 
-  private long updatedAt;
+  private long updated_at;
 
   public String getId() {
     return id;
@@ -46,12 +46,12 @@ public class UserAccount {
     this.id = id;
   }
 
-  public String getEmailAddress() {
-    return emailAddress;
+  public String getEmail_address() {
+    return email_address;
   }
 
-  public void setEmailAddress(String emailAddress) {
-    this.emailAddress = emailAddress;
+  public void setEmail_address(String email_address) {
+    this.email_address = email_address;
   }
 
   public String getPicture() {
@@ -62,12 +62,12 @@ public class UserAccount {
     this.picture = picture;
   }
 
-  public String getZoneInfo() {
-    return zoneInfo;
+  public String getZoneinfo() {
+    return zoneinfo;
   }
 
-  public void setZoneInfo(String zoneInfo) {
-    this.zoneInfo = zoneInfo;
+  public void setZoneinfo(String zoneinfo) {
+    this.zoneinfo = zoneinfo;
   }
 
   public String getLocale() {
@@ -86,28 +86,28 @@ public class UserAccount {
     this.name = name;
   }
 
-  public String getGivenName() {
-    return givenName;
+  public String getGiven_name() {
+    return given_name;
   }
 
-  public void setGivenName(String givenName) {
-    this.givenName = givenName;
+  public void setGiven_name(String given_name) {
+    this.given_name = given_name;
   }
 
-  public String getFamilyName() {
-    return familyName;
+  public String getFamily_name() {
+    return family_name;
   }
 
-  public void setFamilyName(String familyName) {
-    this.familyName = familyName;
+  public void setFamily_name(String family_name) {
+    this.family_name = family_name;
   }
 
-  public String getMiddleName() {
-    return middleName;
+  public String getMiddle_name() {
+    return middle_name;
   }
 
-  public void setMiddleName(String middleName) {
-    this.middleName = middleName;
+  public void setMiddle_name(String middle_name) {
+    this.middle_name = middle_name;
   }
 
   public String getNickname() {
@@ -134,20 +134,20 @@ public class UserAccount {
     this.birthdate = birthdate;
   }
 
-  public String getPhoneNumber() {
-    return phoneNumber;
+  public String getPhone_number() {
+    return phone_number;
   }
 
-  public void setPhoneNumber(String phoneNumber) {
-    this.phoneNumber = phoneNumber;
+  public void setPhone_number(String phone_number) {
+    this.phone_number = phone_number;
   }
 
-  public boolean isPhoneNumberVerified() {
-    return phoneNumberVerified;
+  public boolean isPhone_number_verified() {
+    return phone_number_verified;
   }
 
-  public void setPhoneNumberVerified(boolean phoneNumberVerified) {
-    this.phoneNumberVerified = phoneNumberVerified;
+  public void setPhone_number_verified(Boolean phone_number_verified) {
+    this.phone_number_verified = phone_number_verified;
   }
 
   public Address getAddress() {
@@ -158,11 +158,11 @@ public class UserAccount {
     this.address = address;
   }
 
-  public long getUpdatedAt() {
-    return updatedAt;
+  public long getUpdated_at() {
+    return updated_at;
   }
 
-  public void setUpdatedAt(long updatedAt) {
-    this.updatedAt = updatedAt;
+  public void setUpdated_at(long updated_at) {
+    this.updated_at = updated_at;
   }
 }

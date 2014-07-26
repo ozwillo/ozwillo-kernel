@@ -17,15 +17,15 @@ public class SignUpService {
 
   public UserAccount signUp(String email, String password, String zipcode, String country) {
     UserAccount userAccount = new UserAccount();
-    userAccount.setEmailAddress(email);
+    userAccount.setEmail_address(email);
     Address address = new Address();
     address.setCountry(country);
-    address.setPostalCode(zipcode);
+    address.setPostal_code(zipcode);
     userAccount.setAddress(address);
     // TODO: Set the locale with the locale selected
     userAccount.setLocale("en-GB");
     // XXX: Set the zone info from the country?
-    userAccount.setZoneInfo("Europe/Paris");
+    userAccount.setZoneinfo("Europe/Paris");
     userAccount = accountRepository.createUserAccount(userAccount);
     if (userAccount != null) {
       userPasswordAuthenticator.setPassword(userAccount.getId(), password);

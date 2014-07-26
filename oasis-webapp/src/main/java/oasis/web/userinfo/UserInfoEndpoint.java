@@ -146,38 +146,38 @@ public class UserInfoEndpoint {
     if (scopeIds.contains(PROFILE_SCOPE)) {
       String birthDate = userAccount.getBirthdate() != null ? userAccount.getBirthdate().toString(BIRTHDATE_FORMATTER) : null;
       userInfo.setName(userAccount.getName())
-          .setFamilyName(userAccount.getFamilyName())
-          .setGivenName(userAccount.getGivenName())
-          .setMiddleName(userAccount.getMiddleName())
+          .setFamilyName(userAccount.getFamily_name())
+          .setGivenName(userAccount.getGiven_name())
+          .setMiddleName(userAccount.getMiddle_name())
           .setNickname(userAccount.getNickname())
           .setPicture(userAccount.getPicture())
           .setGender(userAccount.getGender())
           .setBirthdate(birthDate)
-          .setZoneinfo(userAccount.getZoneInfo())
+          .setZoneinfo(userAccount.getZoneinfo())
           .setLocale(userAccount.getLocale());
     }
 
-    if (scopeIds.contains(EMAIL_SCOPE) && userAccount.getEmailAddress() != null) {
-      userInfo.setEmail(userAccount.getEmailAddress());
+    if (scopeIds.contains(EMAIL_SCOPE) && userAccount.getEmail_address() != null) {
+      userInfo.setEmail(userAccount.getEmail_address());
       userInfo.setEmailVerified(true); // A user account is created only if the email is verified
     }
 
     if (scopeIds.contains(ADDRESS_SCOPE) && userAccount.getAddress() != null) {
       UserInfo.Address address = new UserInfo.Address()
-          .setStreetAddress(userAccount.getAddress().getStreetAddress())
+          .setStreetAddress(userAccount.getAddress().getStreet_address())
           .setLocality(userAccount.getAddress().getLocality())
           .setRegion(userAccount.getAddress().getRegion())
-          .setPostalCode(userAccount.getAddress().getPostalCode())
+          .setPostalCode(userAccount.getAddress().getPostal_code())
           .setCountry(userAccount.getAddress().getCountry());
       userInfo.setAddress(address);
     }
 
-    if (scopeIds.contains(PHONE_SCOPE) && userAccount.getPhoneNumber() != null) {
-      userInfo.setPhone(userAccount.getPhoneNumber());
-      userInfo.setPhoneVerified(userAccount.isPhoneNumberVerified());
+    if (scopeIds.contains(PHONE_SCOPE) && userAccount.getPhone_number() != null) {
+      userInfo.setPhone(userAccount.getPhone_number());
+      userInfo.setPhoneVerified(userAccount.getPhone_number_verified());
     }
 
-    long updatedAt = userAccount.getUpdatedAt();
+    long updatedAt = userAccount.getUpdated_at();
     if (updatedAt > 0) {
       userInfo.setUpdatedAt(TimeUnit.MILLISECONDS.toSeconds(updatedAt));
     }

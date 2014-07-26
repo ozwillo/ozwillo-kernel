@@ -160,7 +160,7 @@ public class LoginPage {
 
   static Response reauthForm(Response.ResponseBuilder builder, URI continueUrl, @Nullable String errorMessage, UserAccount userAccount) {
     SoyView soyView = new SoyView(ReauthSoyInfo.REAUTH, new SoyMapData(
-        ReauthSoyTemplateInfo.REAUTH_EMAIL, userAccount.getEmailAddress(),
+        ReauthSoyTemplateInfo.REAUTH_EMAIL, userAccount.getEmail_address(),
         ReauthSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(LoginPage.class).build().toString(),
         ReauthSoyTemplateInfo.CONTINUE, continueUrl.toString(),
         ReauthSoyTemplateInfo.ERROR_MESSAGE, errorMessage

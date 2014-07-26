@@ -30,14 +30,14 @@ public class JongoAccountRepository implements AccountRepository, JongoBootstrap
   @Override
   public UserAccount getUserAccountByEmail(String email) {
     return this.getAccountCollection()
-        .findOne("{emailAddress:#}", email)
+        .findOne("{ email_address: # }", email)
         .as(UserAccount.class);
   }
 
   @Override
   public UserAccount getUserAccountById(String id) {
     return this.getAccountCollection()
-        .findOne("{id:#}", id)
+        .findOne("{ id: # }", id)
         .as(UserAccount.class);
   }
 
@@ -56,7 +56,7 @@ public class JongoAccountRepository implements AccountRepository, JongoBootstrap
   @Override
   public void bootstrap() {
     getAccountCollection().ensureIndex("{ id : 1 }", "{ unique: 1 }");
-    getAccountCollection().ensureIndex("{ emailAddress : 1 }", "{ unique: 1, sparse: 1 }");
+    getAccountCollection().ensureIndex("{ email_address : 1 }", "{ unique: 1, sparse: 1 }");
   }
 }
 
