@@ -27,7 +27,6 @@ import com.google.template.soy.data.SoyMapData;
 
 import oasis.auditlog.AuditLogEvent;
 import oasis.auditlog.AuditLogService;
-import oasis.model.accounts.Account;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.authn.SidToken;
@@ -87,7 +86,7 @@ public class LoginPage {
       continueUrl = defaultContinueUrl();
     }
 
-    Account account;
+    UserAccount account;
     try {
       account = userPasswordAuthenticator.authenticate(userName, password);
     } catch (LoginException e) {
@@ -103,12 +102,12 @@ public class LoginPage {
     return authenticate(userName, account, continueUrl, fingerprint);
   }
 
-  private Response authenticate(String userName, Account account, URI continueUrl, byte[] fingerprint) {
+  private Response authenticate(String userName, UserAccount account, URI continueUrl, byte[] fingerprint) {
     return authenticate(userName, account, continueUrl, fingerprint, tokenHandler, auditLogService, securityContext);
   }
 
   // XXX: Pending activation email
-  static Response authenticate(String userName, Account account, URI continueUrl, byte[] fingerprint, TokenHandler tokenHandler,
+  static Response authenticate(String userName, UserAccount account, URI continueUrl, byte[] fingerprint, TokenHandler tokenHandler,
       AuditLogService auditLogService, SecurityContext securityContext) {
     String pass = tokenHandler.generateRandom();
     SidToken sidToken = tokenHandler.createSidToken(account.getId(), fingerprint, pass);
@@ -127,7 +126,7 @@ public class LoginPage {
         .build();
   }
 
-  private Response reAuthenticate(String userName, Account account, URI continueUrl) {
+  private Response reAuthenticate(String userName, UserAccount account, URI continueUrl) {
     SidToken sidToken = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken();
     if (!account.getId().equals(sidToken.getAccountId())) {
       // Form has been tampered with, or user signed in with another account since the form was generated

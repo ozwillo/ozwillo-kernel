@@ -5,7 +5,6 @@ import javax.security.auth.login.AccountNotFoundException;
 import javax.security.auth.login.FailedLoginException;
 import javax.security.auth.login.LoginException;
 
-import oasis.model.accounts.Account;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.authn.ClientType;
@@ -22,7 +21,7 @@ public class UserPasswordAuthenticator {
     this.credentialsService = credentialsService;
   }
 
-  public Account authenticate(String email, String password) throws LoginException {
+  public UserAccount authenticate(String email, String password) throws LoginException {
     // Get the user account matching the given email
     UserAccount userAccount = accountRepository.getUserAccountByEmail(email);
 

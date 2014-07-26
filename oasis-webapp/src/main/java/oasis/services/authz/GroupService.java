@@ -10,7 +10,6 @@ import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.inject.Inject;
 
-import oasis.model.accounts.Account;
 import oasis.model.accounts.UserAccount;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Group;
@@ -34,11 +33,7 @@ public class GroupService {
     this.directoryRepository = directoryRepository;
   }
 
-  public List<String> getGroups(Account account) {
-    if (!(account instanceof UserAccount)) {
-      return null;
-    }
-
+  public List<String> getGroups(UserAccount account) {
     List<String> res = new ArrayList<>();
 
     // groups from organizations

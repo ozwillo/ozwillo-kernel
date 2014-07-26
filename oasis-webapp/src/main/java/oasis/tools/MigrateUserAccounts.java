@@ -82,12 +82,12 @@ public class MigrateUserAccounts extends CommandLineTool {
           }
         } while (agent != null);
       }
-      logger().info("Updating all agent and citizen accounts to generic user account");
+      logger().info("Updating all accounts to generic user account");
       if (!dryRun) {
         int n =  jongoProvider.get().getCollection("account")
-            .update("{ type: { $in: [ \".CitizenAccount\", \".AgentAccount\" ] } }")
+            .update("{ }")
             .multi()
-            .with("{ $set: { type: \".UserAccount\" } }")
+            .with("{ $unset: { type: 1 } }")
             .getN();
         logger().info("  Updated {} accounts.", n);
       }

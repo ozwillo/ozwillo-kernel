@@ -60,8 +60,8 @@ public class UserInfoEndpointTest {
 
   @Before public void setUpMocks(AccountRepository accountRepository,
       OrganizationMembershipRepository organizationMembershipRepository) {
-    when(accountRepository.getAccount(citizenAccount.getId())).thenReturn(citizenAccount);
-    when(accountRepository.getAccount(agentAccount.getId())).thenReturn(agentAccount);
+    when(accountRepository.getUserAccountById(citizenAccount.getId())).thenReturn(citizenAccount);
+    when(accountRepository.getUserAccountById(agentAccount.getId())).thenReturn(agentAccount);
 
     when(organizationMembershipRepository.getOrganizationForUserIfUnique(agentAccount.getId())).thenReturn(agentMembership);
   }

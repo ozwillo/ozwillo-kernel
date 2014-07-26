@@ -24,8 +24,8 @@ import com.google.common.collect.Sets;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
-import oasis.model.accounts.Account;
 import oasis.model.accounts.AccountRepository;
+import oasis.model.accounts.UserAccount;
 import oasis.model.applications.v2.Scope;
 import oasis.model.applications.v2.ScopeRepository;
 import oasis.model.authn.AccessToken;
@@ -66,7 +66,7 @@ public class IntrospectionEndpoint {
       return error();
     }
 
-    Account account = accountRepository.getAccount(accessToken.getAccountId());
+    UserAccount account = accountRepository.getUserAccountById(accessToken.getAccountId());
 
     IntrospectionResponse introspectionResponse;
     long issuedAtTime = accessToken.getCreationTime().getMillis();

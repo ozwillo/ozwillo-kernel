@@ -2,7 +2,6 @@ package oasis.services.authn;
 
 import javax.inject.Inject;
 
-import oasis.model.accounts.Account;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.Address;
 import oasis.model.accounts.UserAccount;
@@ -16,7 +15,7 @@ public class SignUpService {
     this.userPasswordAuthenticator = userPasswordAuthenticator;
   }
 
-  public Account signUp(String email, String password, String zipcode, String country) {
+  public UserAccount signUp(String email, String password, String zipcode, String country) {
     UserAccount userAccount = new UserAccount();
     userAccount.setEmailAddress(email);
     Address address = new Address();

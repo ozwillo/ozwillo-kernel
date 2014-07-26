@@ -26,9 +26,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 
 import oasis.http.testing.InProcessResteasy;
-import oasis.model.accounts.Account;
 import oasis.model.accounts.AccountRepository;
-import oasis.model.applications.v2.AppInstance;
+import oasis.model.accounts.UserAccount;
 import oasis.model.applications.v2.Scope;
 import oasis.model.applications.v2.ScopeRepository;
 import oasis.model.authn.AccessToken;
@@ -59,7 +58,7 @@ public class IntrospectionEndpointTest {
       new Scope() {{ setInstance_id("dp2"); setLocal_id("s2"); }}
   );
 
-  static final Account account = new Account() {{
+  static final UserAccount account = new UserAccount() {{
     setId("account");
   }};
 
@@ -77,7 +76,7 @@ public class IntrospectionEndpointTest {
     when(tokenHandler.getCheckedToken(eq("valid"), any(Class.class))).thenReturn(validToken);
     when(tokenHandler.getCheckedToken(eq("invalid"), any(Class.class))).thenReturn(null);
 
-    when(accountRepository.getAccount(account.getId())).thenReturn(account);
+    when(accountRepository.getUserAccountById(account.getId())).thenReturn(account);
 
     when(scopeRepository.getScopesOfAppInstance(anyString())).thenReturn(Collections.<Scope>emptyList());
     when(scopeRepository.getScopesOfAppInstance("dp1")).thenReturn(dp1Scopes);

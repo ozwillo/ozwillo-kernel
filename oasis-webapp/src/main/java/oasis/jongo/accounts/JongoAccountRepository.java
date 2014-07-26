@@ -8,10 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.mongodb.DuplicateKeyException;
-import com.mongodb.WriteResult;
 
 import oasis.jongo.JongoBootstrapper;
-import oasis.model.accounts.Account;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 
@@ -27,13 +25,6 @@ public class JongoAccountRepository implements AccountRepository, JongoBootstrap
 
   protected MongoCollection getAccountCollection() {
     return jongo.getCollection("account");
-  }
-
-  @Override
-  public Account getAccount(String id) {
-    return this.getAccountCollection()
-        .findOne("{id:#}", id)
-        .as(Account.class);
   }
 
   @Override

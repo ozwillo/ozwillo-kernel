@@ -177,7 +177,7 @@ public class TokenEndpointTest {
 
     when(tokenRepository.getToken(sidToken.getId())).thenReturn(sidToken);
 
-    when(accountRepository.getAccount(account.getId())).thenReturn(account);
+    when(accountRepository.getUserAccountById(account.getId())).thenReturn(account);
     when(appInstanceService.getAppInstance(appInstance.getId())).thenReturn(appInstance);
   }
 

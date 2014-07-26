@@ -28,7 +28,6 @@ import com.google.api.client.util.Key;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
-import oasis.model.accounts.Account;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.authn.AccessToken;
@@ -125,12 +124,11 @@ public class UserInfoEndpoint {
 
   private UserInfo getUserInfo() {
     OAuthPrincipal oAuthPrincipal = (OAuthPrincipal) securityContext.getUserPrincipal();
-    Account account = accountRepository.getAccount(oAuthPrincipal.getAccessToken().getAccountId());
+    UserAccount userAccount = accountRepository.getUserAccountById(oAuthPrincipal.getAccessToken().getAccountId());
 
-    if (!(account instanceof UserAccount)) {
+    if (userAccount == null) {
       throw invalidTokenResponse();
     }
-    UserAccount userAccount = (UserAccount) account;
 
     AccessToken accessToken = oAuthPrincipal.getAccessToken();
     assert accessToken != null;

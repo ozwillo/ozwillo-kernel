@@ -18,7 +18,7 @@ import javax.ws.rs.core.UriInfo;
 import com.google.api.client.repackaged.com.google.common.base.Strings;
 
 import oasis.auditlog.AuditLogService;
-import oasis.model.accounts.Account;
+import oasis.model.accounts.UserAccount;
 import oasis.openidconnect.OpenIdConnectModule;
 import oasis.services.authn.SignUpService;
 import oasis.services.authn.TokenHandler;
@@ -55,7 +55,7 @@ public class SignUpPage {
     // TODO: Verify that the password as a sufficiently strong length or even a strong entropy
 
     // TODO: Send an activation email to verify the existence of the email address
-    Account account = signUpService.signUp(email, password, zipcode, country);
+    UserAccount account = signUpService.signUp(email, password, zipcode, country);
     if (account == null) {
       // TODO: Allow the user to retrieve their password
       return LoginPage.loginForm(Response.ok(), continueUrl, settings, "The username already exists.");

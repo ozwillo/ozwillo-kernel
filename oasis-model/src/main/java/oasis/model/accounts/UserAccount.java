@@ -2,54 +2,49 @@ package oasis.model.accounts;
 
 import org.joda.time.LocalDate;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.wordnik.swagger.annotations.ApiModelProperty;
+import oasis.model.annotations.Id;
 
-public class UserAccount extends Account {
-  @JsonProperty
+public class UserAccount {
+  @Id
+  private String id;
+
   private String emailAddress;
 
-  @JsonProperty
   private String picture;
 
-  @JsonProperty
   private String zoneInfo;
 
-  @JsonProperty
   private String locale;
 
-  @JsonProperty
   private String name;
 
-  @JsonProperty
   private String givenName;
 
-  @JsonProperty
   private String familyName;
 
-  @JsonProperty
   private String middleName;
 
-  @JsonProperty
   private String nickname;
 
-  @JsonProperty
   private String gender;
 
-  @JsonProperty
   private LocalDate birthdate;
 
-  @JsonProperty
   private String phoneNumber;
 
-  @JsonProperty
   private boolean phoneNumberVerified;
 
-  @JsonProperty
   private Address address;
 
-  @JsonProperty
   private long updatedAt;
+
+  public String getId() {
+    return id;
+  }
+
+  public void setId(String id) {
+    this.id = id;
+  }
 
   public String getEmailAddress() {
     return emailAddress;
