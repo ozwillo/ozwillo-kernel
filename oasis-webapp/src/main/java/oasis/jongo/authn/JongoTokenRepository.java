@@ -79,6 +79,7 @@ public class JongoTokenRepository implements TokenRepository, JongoBootstrapper 
   @Override
   public void bootstrap() {
     getTokensCollection().ensureIndex("{ id: 1 }", "{ unique: 1 }");
+    getTokensCollection().ensureIndex("{ ancestorIds: 1 }");
     getTokensCollection().ensureIndex("{ expirationTime: 1 }", "{ background: 1, expireAfterSeconds: 0 }");
   }
 }
