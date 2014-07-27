@@ -9,6 +9,7 @@ import org.jongo.Jongo;
 import org.jongo.MongoCollection;
 
 import com.google.common.base.Strings;
+import com.mongodb.DuplicateKeyException;
 import com.mongodb.WriteResult;
 
 import oasis.jongo.JongoBootstrapper;
@@ -39,8 +40,12 @@ public class JongoTokenRepository implements TokenRepository, JongoBootstrapper 
   public boolean registerToken(Token token) {
     checkArgument(!Strings.isNullOrEmpty(token.getAccountId()));
 
-    WriteResult writeResult = this.getTokensCollection()
-        .insert(token);
+    try {
+      this.getTokensCollection()
+          .insert(token);
+    } catch (DuplicateKeyException e) {
+      return false;
+    }
 
     return true;
   }

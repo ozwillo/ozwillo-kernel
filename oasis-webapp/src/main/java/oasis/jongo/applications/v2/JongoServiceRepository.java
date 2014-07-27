@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.mongodb.DuplicateKeyException;
 
 import oasis.jongo.JongoBootstrapper;
 import oasis.model.InvalidVersionException;
@@ -37,7 +38,11 @@ public class JongoServiceRepository implements ServiceRepository, JongoBootstrap
   @Override
   public Service createService(Service application) {
     JongoService jongoService = new JongoService(application);
-    getServicesCollection().insert(jongoService);
+    try {
+      getServicesCollection().insert(jongoService);
+    } catch (DuplicateKeyException e) {
+      return null;
+    }
     return jongoService;
   }
 

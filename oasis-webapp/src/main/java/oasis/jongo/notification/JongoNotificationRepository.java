@@ -9,6 +9,7 @@ import org.jongo.MongoCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.mongodb.DuplicateKeyException;
 import com.mongodb.WriteResult;
 
 import oasis.jongo.JongoBootstrapper;
@@ -33,7 +34,11 @@ public class JongoNotificationRepository implements NotificationRepository, Jong
   @Override
   public Notification createNotification(Notification notification) {
     JongoNotification jongoNotification = new JongoNotification(notification);
-    getNotificationCollection().insert(jongoNotification);
+    try {
+      getNotificationCollection().insert(jongoNotification);
+    } catch (DuplicateKeyException e) {
+      return null;
+    }
     return jongoNotification;
   }
 

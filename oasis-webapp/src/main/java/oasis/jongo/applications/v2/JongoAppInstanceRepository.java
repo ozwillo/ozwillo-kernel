@@ -6,16 +6,12 @@ import javax.inject.Inject;
 
 import org.jongo.Jongo;
 import org.jongo.MongoCollection;
-import org.jongo.QueryModifier;
-import org.jongo.ResultHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.mongodb.DBObject;
-import com.mongodb.WriteResult;
+import com.mongodb.DuplicateKeyException;
 
 import oasis.jongo.JongoBootstrapper;
-import oasis.model.InvalidVersionException;
 import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstanceRepository;
 
@@ -32,7 +28,11 @@ public class JongoAppInstanceRepository implements AppInstanceRepository, JongoB
   @Override
   public AppInstance createAppInstance(AppInstance instance) {
     JongoAppInstance jongoAppInstance = new JongoAppInstance(instance);
-    getAppInstancesCollection().insert(jongoAppInstance);
+    try {
+      getAppInstancesCollection().insert(jongoAppInstance);
+    } catch (DuplicateKeyException e) {
+      return null;
+    }
     return jongoAppInstance;
   }
 

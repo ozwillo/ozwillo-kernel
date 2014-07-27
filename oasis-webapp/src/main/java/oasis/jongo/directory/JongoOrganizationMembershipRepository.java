@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
+import com.mongodb.DuplicateKeyException;
 
 import oasis.jongo.JongoBootstrapper;
 import oasis.model.InvalidVersionException;
@@ -45,7 +46,11 @@ public class JongoOrganizationMembershipRepository implements OrganizationMember
     checkArgument(!Strings.isNullOrEmpty(membership.getOrganizationId()));
 
     JongoOrganizationMembership member = new JongoOrganizationMembership(membership);
-    getOrganizationMembershipsCollection().insert(member);
+    try {
+      getOrganizationMembershipsCollection().insert(member);
+    } catch (DuplicateKeyException e) {
+      return null;
+    }
     return member;
   }
 

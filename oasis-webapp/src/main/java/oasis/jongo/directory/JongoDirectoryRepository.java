@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
+import com.mongodb.DuplicateKeyException;
 import com.mongodb.WriteResult;
 
 import oasis.jongo.JongoBootstrapper;
@@ -63,7 +64,11 @@ public class JongoDirectoryRepository implements DirectoryRepository, JongoBoots
   @Override
   public Organization createOrganization(Organization organization) {
     JongoOrganization jongoOrganization = new JongoOrganization(organization);
-    getOrganizationCollection().insert(jongoOrganization);
+    try {
+      getOrganizationCollection().insert(jongoOrganization);
+    } catch (DuplicateKeyException e) {
+      return null;
+    }
     return jongoOrganization;
   }
 
