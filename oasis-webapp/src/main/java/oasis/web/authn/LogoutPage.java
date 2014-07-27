@@ -73,6 +73,9 @@ public class LogoutPage {
     if (idTokenHint != null) {
       final String client_id = idTokenHint.getAudienceAsList().get(0);
       appInstance = appInstanceRepository.getAppInstance(client_id);
+      if (appInstance == null) {
+        logger.debug("No app instance for id_token_hint audience: {}", client_id);
+      }
     } else {
       appInstance = null;
     }
@@ -80,6 +83,10 @@ public class LogoutPage {
     final Service service;
     if (appInstance != null && post_logout_redirect_uri != null) {
       service = serviceRepository.getServiceByPostLogoutRedirectUri(appInstance.getId(), post_logout_redirect_uri);
+      if (service == null) {
+        logger.debug("No service found for id_token_hint audience {} and post_logout_redirect_uri {}",
+            appInstance.getId(), post_logout_redirect_uri);
+      }
       if (service == null && !settings.disableRedirectUriValidation) {
         // don't act as an open redirector!
         post_logout_redirect_uri = null;
@@ -92,6 +99,7 @@ public class LogoutPage {
 
     // Note: validate the URI even if it's in the whitelist, just in case. You can never be too careful.
     if (post_logout_redirect_uri != null && !RedirectUri.isValid(post_logout_redirect_uri)) {
+      logger.debug("Invalid post_logout_redirect_uri {}", post_logout_redirect_uri);
       post_logout_redirect_uri = null;
     }
 
@@ -146,12 +154,17 @@ public class LogoutPage {
     }
     try {
       IdToken idToken = IdToken.parse(jsonFactory, idTokenHint);
-      if (!idToken.verifySignature(publicKey) ||
-          !idToken.verifyIssuer(issuer)) {
+      if (!idToken.verifySignature(publicKey)) {
+        logger.debug("Bad signature for id_token_hint: {}", idTokenHint);
+        return null;
+      }
+      if (!idToken.verifyIssuer(issuer)) {
+        logger.debug("Bad issuer for id_token_hint (expected: {}, actual: {})", issuer, idToken.getPayload().getIssuer());
         return null;
       }
       IdToken.Payload payload = idToken.getPayload();
       if (payload.getAudience() == null) {
+        logger.debug("Missing audience in id_token_hint: {}", idTokenHint);
         return null;
       }
       // there must be an audience
@@ -159,10 +172,13 @@ public class LogoutPage {
       if (sidToken != null && !sidToken.getAccountId().equals(payload.getSubject())) {
         // The app asked to sign-out another session (we'll assume the user already signed out –and
         // signed in again– but the app didn't caught it up)
+        logger.debug("Mismatching subject in id_token_hint (expected: {}, actual: {})",
+            sidToken.getAccountId(), payload.getSubject());
         return null;
       }
       return payload;
-    } catch (Throwable t) {
+    } catch (Exception e) {
+      logger.debug("Error parsing id_token_hint", e);
       return null;
     }
   }
