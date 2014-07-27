@@ -59,7 +59,7 @@ public class JongoTokenRepository implements TokenRepository, JongoBootstrapper 
     WriteResult writeResult = this.getTokensCollection()
         .update("{ id: # }", tokenId)
         // TODO: Pass directly the instance of Instant
-        .with("{ $set: { expirationTime: # } }", expirationTime.getMillis());
+        .with("{ $set: { expirationTime: # } }", expirationTime.toDate());
 
     return writeResult.getN() > 0;
   }
@@ -71,7 +71,7 @@ public class JongoTokenRepository implements TokenRepository, JongoBootstrapper 
     WriteResult writeResult = this.getTokensCollection()
         .update("{ id: # }", tokenId)
         // TODO: Pass directly the instance of Instant
-        .with("{ $set: { authenticationTime: # } }", authenticationTime.getMillis());
+        .with("{ $set: { authenticationTime: # } }", authenticationTime.toDate());
 
     return writeResult.getN() > 0;
   }
