@@ -70,7 +70,7 @@ public class AgentInfo implements HasModified {
     this.birthdate = (agentAccount.getBirthdate() != null ? agentAccount.getBirthdate().toString(BIRTHDATE_FORMATTER) : null);
     this.phone = agentAccount.getPhone_number();
     // Always send phone_verified (true or false) when there's a phone, never send it (null) otherwise.
-    this.phone_verified = agentAccount.getPhone_number() == null ? null : agentAccount.getPhone_number_verified();
+    this.phone_verified = agentAccount.getPhone_number() == null ? null : Boolean.TRUE.equals(agentAccount.getPhone_number_verified());
 
     // Copy address infos
     if (agentAccount.getAddress() != null) {

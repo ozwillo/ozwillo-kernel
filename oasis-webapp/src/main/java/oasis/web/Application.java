@@ -43,6 +43,7 @@ import oasis.web.status.StatusEndpoint;
 import oasis.web.userdirectory.MembershipEndpoint;
 import oasis.web.userdirectory.OrganizationMembershipEndpoint;
 import oasis.web.userdirectory.UserDirectoryEndpoint;
+import oasis.web.userdirectory.UserEndpoint;
 import oasis.web.userdirectory.UserMembershipEndpoint;
 import oasis.web.userinfo.UserInfoEndpoint;
 import oasis.web.view.SoyTofuBodyWriter;
@@ -95,6 +96,7 @@ public class Application extends javax.ws.rs.core.Application {
         // Resources
         StaticResources.class,
         UserDirectoryEndpoint.class,
+        UserEndpoint.class,
         MembershipEndpoint.class,
         UserMembershipEndpoint.class,
         OrganizationMembershipEndpoint.class,

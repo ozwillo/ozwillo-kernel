@@ -1,6 +1,11 @@
 package oasis.model.accounts;
 
+import javax.annotation.Nonnull;
+
 import org.joda.time.LocalDate;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import oasis.model.annotations.Id;
 
@@ -28,15 +33,43 @@ public class UserAccount {
 
   private String gender;
 
+  @JsonProperty
+  @JsonFormat(shape=JsonFormat.Shape.STRING)
   private LocalDate birthdate;
 
   private String phone_number;
 
-  private boolean phone_number_verified;
+  private Boolean phone_number_verified;
 
   private Address address;
 
   private long updated_at;
+
+  public UserAccount() {
+  }
+
+  /**
+   * Copy constructor.
+   * <p>
+   * Does not copy the {@link #id} field.
+   */
+  public UserAccount(@Nonnull UserAccount other) {
+    email_address = other.getEmail_address();
+    picture = other.getPicture();
+    zoneinfo = other.getZoneinfo();
+    locale = other.getLocale();
+    name = other.getName();
+    given_name = other.getGiven_name();
+    family_name = other.getFamily_name();
+    middle_name = other.getMiddle_name();
+    nickname = other.getNickname();
+    gender = other.getGender();
+    birthdate = other.getBirthdate();
+    phone_number = other.getPhone_number();
+    phone_number_verified = other.getPhone_number_verified();
+    address = new Address(other.getAddress());
+    updated_at = other.getUpdated_at();
+  }
 
   public String getId() {
     return id;
@@ -142,7 +175,7 @@ public class UserAccount {
     this.phone_number = phone_number;
   }
 
-  public boolean isPhone_number_verified() {
+  public Boolean getPhone_number_verified() {
     return phone_number_verified;
   }
 

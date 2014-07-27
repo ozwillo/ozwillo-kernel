@@ -6,6 +6,8 @@ import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Provider;
 
+import org.joda.time.LocalDate;
+import org.joda.time.format.ISODateTimeFormat;
 import org.jongo.Jongo;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
@@ -167,6 +169,21 @@ public class MigrateUserAccounts extends CommandLineTool {
           // Don't recreate new index, it'll be done automatically at application startup
         }
       }
+      logger().info("Update birthdate storage format (from array to string)");
+      if (!dryRun) {
+        AccountWithArrayBirthdate account;
+        do {
+          account = jongoProvider.get()
+              .getCollection("account")
+              .findOne("{ birthdate: { $exists: 1, $not: { $type: 2 } } }") // where birthdate is not a string
+              .as(AccountWithArrayBirthdate.class);
+          if (account != null) {
+            jongoProvider.get().getCollection("account")
+                .update("{ id: # }", account.id)
+                .with("{ $set: { birthdate: # } }", account.birthdate.toString(ISODateTimeFormat.date().withDefaultYear(0)));
+          }
+        } while (account != null);
+      }
     } finally {
       jongoService.stop();
     }
@@ -204,5 +221,10 @@ public class MigrateUserAccounts extends CommandLineTool {
   static class AuthorizedScopes {
     @JsonProperty String serviceProviderId;
     @JsonProperty Set<String> scopeIds;
+  }
+
+  static class AccountWithArrayBirthdate {
+    @JsonProperty String id;
+    @JsonProperty LocalDate birthdate;
   }
 }

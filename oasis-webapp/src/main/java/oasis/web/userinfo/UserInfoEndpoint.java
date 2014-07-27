@@ -174,7 +174,7 @@ public class UserInfoEndpoint {
 
     if (scopeIds.contains(PHONE_SCOPE) && userAccount.getPhone_number() != null) {
       userInfo.setPhone(userAccount.getPhone_number());
-      userInfo.setPhoneVerified(userAccount.getPhone_number_verified());
+      userInfo.setPhoneVerified(Boolean.TRUE.equals(userAccount.getPhone_number_verified()));
     }
 
     long updatedAt = userAccount.getUpdated_at();
