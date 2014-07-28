@@ -196,7 +196,7 @@ public class MigrateUserAccounts extends CommandLineTool {
       member.setAccountId(agent.id);
       member.setOrganizationId(agent.organizationId);
       member.setAdmin(agent.admin);
-      jongoProvider.get().getCollection("organization_members").insert(member);
+      jongoProvider.get().getCollection("organization_memberships").insert(member);
       logger().info("  Created organization member {}", member.getId());
     }
   }
