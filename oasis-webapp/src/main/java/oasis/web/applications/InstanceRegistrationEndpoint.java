@@ -56,7 +56,7 @@ public class InstanceRegistrationEndpoint {
   public Response instantiated(
       @Context UriInfo uriInfo,
       AcknowledgementRequest acknowledgementRequest) {
-    if (((ClientPrincipal) securityContext.getUserPrincipal()).getClientId().equals(instanceId)) {
+    if (!((ClientPrincipal) securityContext.getUserPrincipal()).getClientId().equals(instanceId)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
 

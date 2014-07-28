@@ -60,7 +60,7 @@ public class UserSubscriptionEndpoint {
       responseContainer = "Array"
   )
   public Response getSubscriptions() {
-    if (userId.equals(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId())) {
+    if (!userId.equals(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId())) {
       return ResponseFactory.forbidden("Cannot list subscriptions for another user");
     }
 
