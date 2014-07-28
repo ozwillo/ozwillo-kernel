@@ -7,6 +7,7 @@ import org.jongo.MongoCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.mongodb.DuplicateKeyException;
 import com.mongodb.WriteResult;
 
 import oasis.jongo.JongoBootstrapper;
@@ -31,16 +32,14 @@ public class JongoSubscriptionRepository implements SubscriptionRepository, Jong
 
     JongoSubscription jongoSubscription = new JongoSubscription(subscription);
     jongoSubscription.setInstance_id(instanceId);
-    // TODO: replace with insert() once we setup a unique index
-    WriteResult wr = getSubscriptionsCollection()
-        .update("{ instance_id: # , eventType: { $ne: # } }", instanceId, subscription.getEventType())
-        .upsert()
-        .with(jongoSubscription);
 
-    if (wr.getN() != 1) {
-      logger.warn("The application instance {} does not exist or subscription already exists for that application instance and event type.", instanceId);
+    try {
+      getSubscriptionsCollection()
+          .insert(jongoSubscription);
+    } catch (DuplicateKeyException e) {
       return null;
     }
+
     return jongoSubscription;
   }
 
@@ -73,6 +72,7 @@ public class JongoSubscriptionRepository implements SubscriptionRepository, Jong
   @Override
   public void bootstrap() {
     getSubscriptionsCollection().ensureIndex("{ id: 1 }", "{ unique: 1 }");
+    getSubscriptionsCollection().ensureIndex("{ instance_id: 1, eventType: 1 }", "{ unique: 1 }");
     getSubscriptionsCollection().ensureIndex("{ eventType: 1 }");
   }
 
