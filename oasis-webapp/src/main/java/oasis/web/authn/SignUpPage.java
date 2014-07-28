@@ -49,6 +49,10 @@ public class SignUpPage {
       @FormParam("zipcode") String zipcode,
       @FormParam("country") String country
   ) {
+    if (continueUrl == null) {
+      continueUrl = LoginPage.defaultContinueUrl(settings.landingPage, uriInfo);
+    }
+
     if (Strings.isNullOrEmpty(email) || Strings.isNullOrEmpty(password) || Strings.isNullOrEmpty(zipcode) || Strings.isNullOrEmpty(country)) {
       return LoginPage.loginForm(Response.ok(), continueUrl, settings, "Some required fields are not filled");
     }
@@ -64,9 +68,6 @@ public class SignUpPage {
     byte[] fingerprint = fingerprinter.fingerprint(headers);
 
     // XXX: As the activation email feature is not already made, automatically sign the user in
-    if (continueUrl == null) {
-      continueUrl = LoginPage.defaultContinueUrl(settings.landingPage, uriInfo);
-    }
     return LoginPage.authenticate(email, account, continueUrl, fingerprint, tokenHandler, auditLogService, securityContext);
   }
 }
