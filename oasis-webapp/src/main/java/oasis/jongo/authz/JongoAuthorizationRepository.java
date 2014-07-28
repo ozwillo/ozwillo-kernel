@@ -1,6 +1,7 @@
 package oasis.jongo.authz;
 
 import java.util.Collection;
+import java.util.UUID;
 
 import javax.inject.Inject;
 
@@ -36,7 +37,8 @@ public class JongoAuthorizationRepository implements AuthorizationRepository, Jo
     return getAuthorizedScopesCollection()
         .findAndModify("{ account_id: #, client_id: # }", accountId, clientId)
         .upsert()
-        .with("{ $addToSet: { scope_ids: { $each: # } } }", ImmutableSet.copyOf(scopeIds))
+        .with("{ $addToSet: { scope_ids: { $each: # } }, $setOnInsert: { id: # } }",
+            ImmutableSet.copyOf(scopeIds), UUID.randomUUID().toString()) // XXX: keep in sync with OasisIdHelper, or refactor
         .returnNew()
         .as(AuthorizedScopes.class);
   }
