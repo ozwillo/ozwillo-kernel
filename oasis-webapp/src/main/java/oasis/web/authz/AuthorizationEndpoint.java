@@ -280,9 +280,9 @@ public class AuthorizationEndpoint {
     }
 
     // Some scopes need explicit approval, generate approval form
-    SoyListData requiredScopes = new SoyListData();
+    SoyListData missingScopes = new SoyListData();
     SoyListData optionalScopes = new SoyListData();
-    SoyListData authorizedScopes = new SoyListData();
+    SoyListData alreadyAuthorizedScopes = new SoyListData();
     for (Scope claimedScope : globalClaimedScopes) {
       String scopeId = claimedScope.getId();
       SoyMapData scope = new SoyMapData(
@@ -292,9 +292,9 @@ public class AuthorizationEndpoint {
           AuthorizeSoyInfo.Param.DESCRIPTION, claimedScope.getDescription().get(Locale.ROOT)
       );
       if (authorizedScopeIds.contains(scopeId)) {
-        authorizedScopes.add(scope);
+        alreadyAuthorizedScopes.add(scope);
       } else if (requiredScopeIds.contains(scopeId)) {
-        requiredScopes.add(scope);
+        missingScopes.add(scope);
       } else {
         optionalScopes.add(scope);
       }
@@ -320,9 +320,10 @@ public class AuthorizationEndpoint {
                 AuthorizeSoyTemplateInfo.APP_NAME, serviceProvider.getName().get(Locale.ROOT),
                 AuthorizeSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(AuthorizationEndpoint.class).path(APPROVE_PATH).build().toString(),
                 AuthorizeSoyTemplateInfo.CANCEL_URL, redirectUri.toString(),
-                AuthorizeSoyTemplateInfo.REQUIRED_SCOPES, requiredScopes,
+                AuthorizeSoyTemplateInfo.REQUIRED_SCOPES, new SoyListData(requiredScopeIds),
+                AuthorizeSoyTemplateInfo.MISSING_SCOPES, missingScopes,
                 AuthorizeSoyTemplateInfo.OPTIONAL_SCOPES, optionalScopes,
-                AuthorizeSoyTemplateInfo.AUTHORIZED_SCOPES, authorizedScopes,
+                AuthorizeSoyTemplateInfo.ALREADY_AUTHORIZED_SCOPES, alreadyAuthorizedScopes,
                 AuthorizeSoyTemplateInfo.REDIRECT_URI, redirect_uri,
                 AuthorizeSoyTemplateInfo.STATE, state,
                 AuthorizeSoyTemplateInfo.NONCE, nonce
