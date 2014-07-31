@@ -46,12 +46,13 @@ public class JongoAccountRepository implements AccountRepository, JongoBootstrap
 
   @Override
   public UserAccount createUserAccount(UserAccount user) {
+    JongoUserAccount jongoUserAccount = new JongoUserAccount(user);
     try {
-      getAccountCollection().insert(new JongoUserAccount(user));
+      getAccountCollection().insert(jongoUserAccount);
     } catch (DuplicateKeyException e) {
       return null;
     }
-    return user;
+    return jongoUserAccount;
   }
 
   @Override
