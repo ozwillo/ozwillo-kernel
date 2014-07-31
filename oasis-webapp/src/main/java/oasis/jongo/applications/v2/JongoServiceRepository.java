@@ -9,21 +9,25 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.mongodb.CommandFailureException;
 import com.mongodb.DuplicateKeyException;
 
 import oasis.jongo.JongoBootstrapper;
 import oasis.model.InvalidVersionException;
 import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.ServiceRepository;
+import oasis.openidconnect.OpenIdConnectModule;
 
 public class JongoServiceRepository implements ServiceRepository, JongoBootstrapper {
   private static final Logger logger = LoggerFactory.getLogger(ServiceRepository.class);
 
   private final Jongo jongo;
+  private final OpenIdConnectModule.Settings settings;
 
   @Inject
-  JongoServiceRepository(Jongo jongo) {
+  JongoServiceRepository(Jongo jongo, OpenIdConnectModule.Settings settings) {
     this.jongo = jongo;
+    this.settings = settings;
   }
 
   private MongoCollection getServicesCollection() {
@@ -120,7 +124,22 @@ public class JongoServiceRepository implements ServiceRepository, JongoBootstrap
   public void bootstrap() {
     getServicesCollection().ensureIndex("{ id: 1 }", "{ unique: 1 }");
     getServicesCollection().ensureIndex("{ instance_id: 1, local_id: 1 }", "{ unique: 1, sparse: 1 }");
-    getServicesCollection().ensureIndex("{ instance_id: 1, redirect_uris: 1 }", "{ unique: 1, sparse: 1 }");
-    getServicesCollection().ensureIndex("{ instance_id: 1, post_logout_redirect_uris: 1 }", "{ unique: 1, sparse: 1 }");
+
+    if (settings.disableRedirectUriValidation) {
+      dropIndex("{ instance_id: 1, redirect_uris: 1 }");
+      dropIndex("{ instance_id: 1, post_logout_redirect_uris: 1 }");
+    } else {
+      getServicesCollection().ensureIndex("{ instance_id: 1, redirect_uris: 1 }", "{ unique: 1, sparse: 1 }");
+      getServicesCollection().ensureIndex("{ instance_id: 1, post_logout_redirect_uris: 1 }", "{ unique: 1, sparse: 1 }");
+    }
+  }
+
+  private void dropIndex(String keys) {
+    try {
+      getServicesCollection().dropIndex(keys);
+    } catch (CommandFailureException e) {
+      // XXX: info instead of warn as the error will mainly be thrown because the index will not exists?
+      logger.warn("Failure when removing index " + keys, e);
+    }
   }
 }
