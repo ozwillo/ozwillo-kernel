@@ -8,9 +8,10 @@
 {@param  appName:      string} /** application name. */
 {@param  formAction:   string} /** URL to post the form to. */
 {@param  cancelUrl:    string} /** URL to go to when cancelling. */
-{@param  requiredScopes:   list<[id: string, title: string|null, description: string|null]>} /** list of requested (and thus required) scopes. */
-{@param  optionalScopes:   list<[id: string, title: string|null, description: string|null]>} /** list of optional (pre-registered but not requested) scopes. */
-{@param  authorizedScopes: list<[id: string, title: string|null, description: string|null]>} /** list of already-granted scopes. */
+{@param  requiredScopes: list<string>} /** list of requested (and thus required) scope IDs. */
+{@param  missingScopes:           list<[id: string, title: string|null, description: string|null]>} /** list of requested (and thus required) but not yet granted scopes. */
+{@param  optionalScopes:          list<[id: string, title: string|null, description: string|null]>} /** list of optional (pre-registered but not requested) scopes. */
+{@param  alreadyAuthorizedScopes: list<[id: string, title: string|null, description: string|null]>} /** list of already-granted scopes. */
 {@param  redirect_uri: string} /** 'redirect_uri' request parameter */
 {@param? state:        string} /** 'state' request parameter */
 {@param? nonce:        string} /** 'nonce' request parameter */
@@ -25,7 +26,7 @@
     <input type="hidden" name="_utf8" value="&#9731;">
     <input type="hidden" name="client_id" value="{$appId}">
     {foreach $scope in $requiredScopes}
-      <input type="hidden" name="scope" value="{$scope.id}">
+      <input type="hidden" name="scope" value="{$scope}">
     {/foreach}
     <input type="hidden" name="redirect_uri" value="{$redirect_uri}">
     {if $state}
@@ -40,7 +41,7 @@
         {$appName} wants to:
       </h1>
       <ul>
-        {foreach $scope in $requiredScopes}
+        {foreach $scope in $missingScopes}
           {call .scopeField data="$scope"}
             {param inputType: 'hidden' /}
           {/call}
@@ -68,13 +69,13 @@
       </div>
     {/if}
 
-    {if $authorizedScopes and length($authorizedScopes)}
+    {if $alreadyAuthorizedScopes and length($alreadyAuthorizedScopes)}
       <div>
         <h1>
           You have already authorized {$appName} to:
         </h1>
         <ul>
-          {foreach $scope in $authorizedScopes}
+          {foreach $scope in $alreadyAuthorizedScopes}
             {call .scope data="$scope" /}
           {/foreach}
         </ul>
