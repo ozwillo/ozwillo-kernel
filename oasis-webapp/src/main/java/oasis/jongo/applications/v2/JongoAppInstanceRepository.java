@@ -44,6 +44,22 @@ public class JongoAppInstanceRepository implements AppInstanceRepository, JongoB
   }
 
   @Override
+  @SuppressWarnings("unchecked")
+  public Iterable<AppInstance> findByOrganizationId(String organizationId) {
+    return (Iterable<AppInstance>) (Iterable<?>) getAppInstancesCollection()
+        .find("{ provider_id: # }", organizationId)
+        .as(JongoAppInstance.class);
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public Iterable<AppInstance> findByInstantiatorId(String instantiatorId) {
+    return (Iterable<AppInstance>) (Iterable<?>) getAppInstancesCollection()
+        .find("{ instantiator_id: # }", instantiatorId)
+        .as(JongoAppInstance.class);
+  }
+
+  @Override
   public boolean instantiated(String instanceId, List<AppInstance.NeededScope> neededScopes) {
     AppInstance instance = getAppInstancesCollection()
         .findAndModify("{ id: #, status: # }", instanceId, AppInstance.InstantiationStatus.PENDING)
