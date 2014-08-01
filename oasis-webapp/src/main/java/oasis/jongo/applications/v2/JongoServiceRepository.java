@@ -58,10 +58,11 @@ public class JongoServiceRepository implements ServiceRepository, JongoBootstrap
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public Iterable<Service> getServicesOfInstance(String instanceId) {
-    return getServicesCollection()
+    return (Iterable<Service>) (Iterable<?>) getServicesCollection()
         .find("{ instance_id: # }", instanceId)
-        .as(Service.class);
+        .as(JongoService.class);
   }
 
   @Override

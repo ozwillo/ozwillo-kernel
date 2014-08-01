@@ -4,6 +4,7 @@ import javax.inject.Inject;
 
 import org.jongo.Jongo;
 import org.jongo.MongoCollection;
+import org.jongo.MongoCursor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,17 +71,19 @@ public class JongoUserSubscriptionRepository implements UserSubscriptionReposito
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public Iterable<UserSubscription> getUserSubscriptions(String userId) {
-    return getUserSubscriptionsCollection()
+    return (Iterable<UserSubscription>) (Iterable<?>) getUserSubscriptionsCollection()
         .find("{ user_id: # }", userId)
-        .as(UserSubscription.class);
+        .as(JongoUserSubscription.class);
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public Iterable<UserSubscription> getSubscriptionsForService(String serviceId) {
-    return getUserSubscriptionsCollection()
+    return (Iterable<UserSubscription>) (Iterable<?>) getUserSubscriptionsCollection()
         .find("{ service_id: 1 }")
-        .as(UserSubscription.class);
+        .as(JongoUserSubscription.class);
   }
 
   @Override

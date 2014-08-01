@@ -63,10 +63,11 @@ public class JongoSubscriptionRepository implements SubscriptionRepository, Jong
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public Iterable<Subscription> getSubscriptionsForEventType(String eventType) {
-    return getSubscriptionsCollection()
+    return (Iterable<Subscription>) (Iterable<?>) getSubscriptionsCollection()
         .find("{ eventType: # }", eventType)
-        .as(Subscription.class);
+        .as(JongoSubscription.class);
   }
 
   @Override

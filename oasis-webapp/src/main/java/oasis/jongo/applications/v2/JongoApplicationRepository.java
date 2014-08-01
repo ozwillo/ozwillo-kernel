@@ -21,8 +21,11 @@ public class JongoApplicationRepository implements ApplicationRepository, JongoB
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public Iterable<Application> getVisibleApplications() {
-    return getApplicationsCollection().find("{ visible: true }").as(Application.class);
+    return (Iterable<Application>) (Iterable<?>) getApplicationsCollection()
+        .find("{ visible: true }")
+        .as(JongoApplication.class);
   }
 
   @Override
