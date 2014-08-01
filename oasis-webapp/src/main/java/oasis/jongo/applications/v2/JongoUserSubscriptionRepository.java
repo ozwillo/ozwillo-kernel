@@ -82,7 +82,7 @@ public class JongoUserSubscriptionRepository implements UserSubscriptionReposito
   @SuppressWarnings("unchecked")
   public Iterable<UserSubscription> getSubscriptionsForService(String serviceId) {
     return (Iterable<UserSubscription>) (Iterable<?>) getUserSubscriptionsCollection()
-        .find("{ service_id: 1 }")
+        .find("{ service_id: # }", serviceId)
         .as(JongoUserSubscription.class);
   }
 
