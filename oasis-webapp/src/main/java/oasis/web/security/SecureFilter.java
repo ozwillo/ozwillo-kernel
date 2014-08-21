@@ -28,8 +28,8 @@ public class SecureFilter implements ContainerRequestFilter {
           requestContext.getUriInfo().getBaseUriBuilder().scheme("https").build(),
           requestContext.getUriInfo().getRequestUriBuilder().scheme("https").build());
 
-      // The new UriInfo after we setRequestUri
-      ResteasyProviderFactory.getContextDataMap().put(UriInfo.class, requestContext.getUriInfo());
+      // Workaround for https://issues.jboss.org/browse/RESTEASY-1098
+      ResteasyProviderFactory.pushContext(UriInfo.class, requestContext.getUriInfo());
 
       final SecurityContext oldSecurityContext = requestContext.getSecurityContext();
       requestContext.setSecurityContext(new SecurityContext() {
