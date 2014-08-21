@@ -40,6 +40,7 @@ import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
 import oasis.web.providers.JacksonJsonProvider;
+import oasis.web.resteasy.Resteasy1099;
 import oasis.web.utils.ResponseFactory;
 import oasis.web.webhooks.WebhookSignatureFilter;
 
@@ -102,7 +103,7 @@ public class MarketBuyEndpoint {
             .setClient_secret(instance.getId())
             .setUser_id(userId)
             .setOrganization(organization)
-            .setInstance_registration_uri(uriInfo.getBaseUriBuilder().path(InstanceRegistrationEndpoint.class).build(instance.getId()))));
+            .setInstance_registration_uri(Resteasy1099.getBaseUriBuilder(uriInfo).path(InstanceRegistrationEndpoint.class).build(instance.getId()))));
     Response response;
     try {
       response = future.get(1, TimeUnit.MINUTES);

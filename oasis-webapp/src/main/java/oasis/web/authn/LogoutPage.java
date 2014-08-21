@@ -37,6 +37,7 @@ import oasis.model.authn.TokenRepository;
 import oasis.openidconnect.OpenIdConnectModule;
 import oasis.openidconnect.RedirectUri;
 import oasis.services.cookies.CookieFactory;
+import oasis.web.resteasy.Resteasy1099;
 import oasis.web.security.StrictReferer;
 import oasis.web.view.SoyView;
 import oasis.web.view.soy.LogoutSoyInfo;
@@ -141,7 +142,7 @@ public class LogoutPage {
   @VisibleForTesting
   @Nullable
   private IdToken.Payload parseIdTokenHint(@Nullable String idTokenHint, SidToken sidToken) {
-    return parseIdTokenHint(jsonFactory, settings.keyPair.getPublic(), uriInfo.getBaseUri().toString(),
+    return parseIdTokenHint(jsonFactory, settings.keyPair.getPublic(), Resteasy1099.getBaseUri(uriInfo).toString(),
         idTokenHint, sidToken);
   }
 

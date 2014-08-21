@@ -57,6 +57,7 @@ import oasis.services.authn.TokenSerializer;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.Client;
 import oasis.web.authn.ClientPrincipal;
+import oasis.web.resteasy.Resteasy1099;
 
 @Path("/a/token")
 @Authenticated @Client
@@ -240,7 +241,7 @@ public class TokenEndpoint {
         jsonFactory,
         JWS_HEADER,
         new IdToken.Payload()
-            .setIssuer(uriInfo.getBaseUri().toString())
+            .setIssuer(Resteasy1099.getBaseUri(uriInfo).toString())
             .setSubject(accessToken.getAccountId())
             .setAudience(client_id)
             .setExpirationTimeSeconds(issuedAt + settings.idTokenDuration.getStandardSeconds())

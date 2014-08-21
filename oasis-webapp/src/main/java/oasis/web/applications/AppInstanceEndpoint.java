@@ -26,6 +26,7 @@ import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.ServiceRepository;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
+import oasis.web.resteasy.Resteasy1099;
 import oasis.web.utils.ResponseFactory;
 
 @Path("/apps/instance/{instance_id}")
@@ -100,7 +101,7 @@ public class AppInstanceEndpoint {
       // Must then be a duplicate key of some sort
       return Response.status(Response.Status.CONFLICT).build();
     }
-    return Response.created(uriInfo.getBaseUriBuilder().path(ServiceEndpoint.class).build(service.getId()))
+    return Response.created(Resteasy1099.getBaseUriBuilder(uriInfo).path(ServiceEndpoint.class).build(service.getId()))
         .entity(service)
         .build();
   }

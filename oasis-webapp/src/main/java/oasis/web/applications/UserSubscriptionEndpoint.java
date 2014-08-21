@@ -34,6 +34,7 @@ import oasis.services.etag.EtagService;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
+import oasis.web.resteasy.Resteasy1099;
 import oasis.web.utils.ResponseFactory;
 
 @Path("/apps/subscriptions/user/{user_id}")
@@ -72,7 +73,7 @@ public class UserSubscriptionEndpoint {
               public UserSub apply(UserSubscription input) {
                 UserSub sub = new UserSub();
                 sub.id = input.getId();
-                sub.subscription_uri = uriInfo.getBaseUriBuilder().path(SubscriptionEndpoint.class).build(input.getId()).toString();
+                sub.subscription_uri = Resteasy1099.getBaseUriBuilder(uriInfo).path(SubscriptionEndpoint.class).build(input.getId()).toString();
                 sub.subscription_etag = etagService.getEtag(input);
                 sub.service_id = input.getService_id();
                 sub.service_name = serviceRepository.getService(input.getService_id()).getName();
@@ -155,7 +156,7 @@ public class UserSubscriptionEndpoint {
     if (subscription == null) {
       return ResponseFactory.conflict("Subscription for that user and service already exists");
     }
-    return Response.created(uriInfo.getBaseUriBuilder().path(SubscriptionEndpoint.class).build(subscription.getId()))
+    return Response.created(Resteasy1099.getBaseUriBuilder(uriInfo).path(SubscriptionEndpoint.class).build(subscription.getId()))
         .tag(etagService.getEtag(subscription))
         .entity(subscription)
         .build();

@@ -12,6 +12,8 @@ import javax.ws.rs.core.UriInfo;
 
 import com.wordnik.swagger.model.ApiListing;
 
+import oasis.web.resteasy.Resteasy1099;
+
 /**
  * Hijacks Swagger's MessageBodyWriter for ApiListing so we can dynamically provide the {@code basePath} depending on the requested URI.
  */
@@ -40,9 +42,9 @@ public class ApiDeclarationProvider extends com.wordnik.swagger.jaxrs.listing.Ap
   }
 
   private String getCanonicalBaseUri() {
-    final String baseUri = uriInfo.getBaseUri().toASCIIString();
-    if(baseUri.endsWith("/")) {
-      return baseUri.substring(0, baseUri.length()-1);
+    final String baseUri = Resteasy1099.getBaseUri(uriInfo).toASCIIString();
+    if (baseUri.endsWith("/")) {
+      return baseUri.substring(0, baseUri.length() - 1);
     }
     return baseUri;
   }

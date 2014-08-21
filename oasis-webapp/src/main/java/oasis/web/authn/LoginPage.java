@@ -37,6 +37,7 @@ import oasis.services.authn.TokenSerializer;
 import oasis.services.authn.UserPasswordAuthenticator;
 import oasis.services.cookies.CookieFactory;
 import oasis.web.StaticResources;
+import oasis.web.resteasy.Resteasy1099;
 import oasis.web.security.StrictReferer;
 import oasis.web.utils.UserAgentFingerprinter;
 import oasis.web.view.SoyView;
@@ -201,7 +202,7 @@ public class LoginPage {
     if (landingPage != null) {
       return landingPage;
     }
-    return uriInfo.getBaseUriBuilder().path(StaticResources.class).path(StaticResources.class, "home").build();
+    return Resteasy1099.getBaseUriBuilder(uriInfo).path(StaticResources.class).path(StaticResources.class, "home").build();
   }
 
   private void log(String userName, LoginLogEvent.LoginResult loginResult) {

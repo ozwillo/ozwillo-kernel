@@ -59,6 +59,7 @@ import oasis.web.authn.Authenticated;
 import oasis.web.authn.User;
 import oasis.web.authn.UserAuthenticationFilter;
 import oasis.web.authn.UserSessionPrincipal;
+import oasis.web.resteasy.Resteasy1099;
 import oasis.web.view.SoyView;
 import oasis.web.view.soy.AuthorizeSoyInfo;
 import oasis.web.view.soy.AuthorizeSoyInfo.AuthorizeSoyTemplateInfo;
@@ -392,7 +393,7 @@ public class AuthorizationEndpoint {
       try {
         idTokenHint = IdToken.parse(jsonFactory, id_token_hint);
         if (!idTokenHint.verifySignature(settings.keyPair.getPublic()) ||
-            !idTokenHint.verifyIssuer(uriInfo.getBaseUri().toString())) {
+            !idTokenHint.verifyIssuer(Resteasy1099.getBaseUri(uriInfo).toString())) {
           throw invalidParam("id_token_hint");
         }
       } catch (WebApplicationException wae) {

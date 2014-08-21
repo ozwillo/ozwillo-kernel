@@ -66,7 +66,7 @@ Response response = resteasy.getClient()
             } else {
               return Response
                           .status(Response.Status.MOVED_PERMANENTLY)
-                        .location(uriInfo.getBaseUriBuilder().path("/test/").build())
+                        .location(Resteasy1099.getBaseUriBuilder(uriInfo).path("/test/").build())
                         .build();
             }
         }

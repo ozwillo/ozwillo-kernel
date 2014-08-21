@@ -14,6 +14,7 @@ import oasis.web.authz.AuthorizationEndpoint;
 import oasis.web.authz.KeysEndpoint;
 import oasis.web.authz.RevokeEndpoint;
 import oasis.web.authz.TokenEndpoint;
+import oasis.web.resteasy.Resteasy1099;
 import oasis.web.userinfo.UserInfoEndpoint;
 
 /**
@@ -33,11 +34,11 @@ public class OpenIdProviderConfigurationEndpoint {
    * See <a href="http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata">OPENId Provider Metadata</a>
    */
   public class Configuration {
-    @JsonProperty String issuer = uriInfo.getBaseUri().toString();
-    @JsonProperty String authorization_endpoint = uriInfo.getBaseUriBuilder().path(AuthorizationEndpoint.class).build().toString();
-    @JsonProperty String token_endpoint = uriInfo.getBaseUriBuilder().path(TokenEndpoint.class).build().toString();
-    @JsonProperty String userinfo_endpoint = uriInfo.getBaseUriBuilder().path(UserInfoEndpoint.class).build().toString();
-    @JsonProperty String jwks_uri = uriInfo.getBaseUriBuilder().path(KeysEndpoint.class).build().toString();
+    @JsonProperty String issuer = Resteasy1099.getBaseUri(uriInfo).toString();
+    @JsonProperty String authorization_endpoint = Resteasy1099.getBaseUriBuilder(uriInfo).path(AuthorizationEndpoint.class).build().toString();
+    @JsonProperty String token_endpoint = Resteasy1099.getBaseUriBuilder(uriInfo).path(TokenEndpoint.class).build().toString();
+    @JsonProperty String userinfo_endpoint = Resteasy1099.getBaseUriBuilder(uriInfo).path(UserInfoEndpoint.class).build().toString();
+    @JsonProperty String jwks_uri = Resteasy1099.getBaseUriBuilder(uriInfo).path(KeysEndpoint.class).build().toString();
     // registration_endpoint, scopes_supported
     /** See {@link AuthorizationEndpoint#validateResponseTypeAndMode}. */
     @JsonProperty String[] response_types_supported = { "code" };
@@ -70,9 +71,9 @@ public class OpenIdProviderConfigurationEndpoint {
 
     // See http://openid.net/specs/openid-connect-session-1_0.html#EndpointDiscovery
     // TODO: check_session_iframe
-    @JsonProperty String end_session_endpoint = uriInfo.getBaseUriBuilder().path(LogoutPage.class).build().toString();
+    @JsonProperty String end_session_endpoint = Resteasy1099.getBaseUriBuilder(uriInfo).path(LogoutPage.class).build().toString();
 
     // See http://lists.openid.net/pipermail/openid-specs-ab/Week-of-Mon-20140120/004581.html
-    @JsonProperty String revocation_endpoint = uriInfo.getBaseUriBuilder().path(RevokeEndpoint.class).build().toString();
+    @JsonProperty String revocation_endpoint = Resteasy1099.getBaseUriBuilder(uriInfo).path(RevokeEndpoint.class).build().toString();
   }
 }

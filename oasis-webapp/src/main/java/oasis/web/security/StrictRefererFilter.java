@@ -23,7 +23,7 @@ public class StrictRefererFilter implements ContainerRequestFilter {
   @Override
   public void filter(ContainerRequestContext requestContext) throws IOException {
     String origin = requestContext.getHeaderString(ORIGIN_HEADER);
-    String expectedOrigin = OriginHelper.originFromUri(requestContext.getUriInfo().getBaseUri().toString());
+    String expectedOrigin = OriginHelper.originFromUri(requestContext.getUriInfo().getRequestUri().toString());
     boolean valid = false;
     if (origin != null) {
       valid = expectedOrigin.equals(origin);

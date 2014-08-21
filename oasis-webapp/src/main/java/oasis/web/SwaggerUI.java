@@ -18,6 +18,7 @@ import com.google.common.io.Resources;
 import com.google.template.soy.data.SoyMapData;
 import com.wordnik.swagger.jaxrs.listing.ApiListingResourceJSON;
 
+import oasis.web.resteasy.Resteasy1099;
 import oasis.web.utils.ResponseFactory;
 import oasis.web.view.SoyView;
 import oasis.web.view.soy.SwaggerUISoyInfo;
@@ -30,7 +31,7 @@ public class SwaggerUI {
   public Response redirectToNewUri(@Context UriInfo uriInfo) {
     return Response
         .status(Response.Status.MOVED_PERMANENTLY)
-        .location(uriInfo.getBaseUriBuilder().path("/swagger-ui/").build())
+        .location(Resteasy1099.getBaseUriBuilder(uriInfo).path("/swagger-ui/").build())
         .build();
   }
 
@@ -49,8 +50,8 @@ public class SwaggerUI {
   @Produces(MediaType.TEXT_HTML)
   public Response get(@Context UriInfo uriInfo) {
     SoyMapData model = new SoyMapData(
-        SwaggerUISoyInfo.Param.BASE_PATH, uriInfo.getBaseUriBuilder().path("/swagger-ui/").build().toString(),
-        SwaggerUISoyInfo.Param.API_PATH, uriInfo.getBaseUriBuilder().path(ApiListingResourceJSON.class).build().toString()
+        SwaggerUISoyInfo.Param.BASE_PATH, Resteasy1099.getBaseUriBuilder(uriInfo).path("/swagger-ui/").build().toString(),
+        SwaggerUISoyInfo.Param.API_PATH, Resteasy1099.getBaseUriBuilder(uriInfo).path(ApiListingResourceJSON.class).build().toString()
     );
     return Response.ok(new SoyView(SwaggerUISoyInfo.SWAGGER_UI, model)).build();
   }

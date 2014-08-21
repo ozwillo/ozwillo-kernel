@@ -39,6 +39,7 @@ import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
 import oasis.web.authn.WithScopes;
 import oasis.web.authz.KeysEndpoint;
+import oasis.web.resteasy.Resteasy1099;
 
 @Authenticated @OAuth @WithScopes("openid")
 @Path("/a/userinfo")
@@ -74,7 +75,7 @@ public class UserInfoEndpoint {
   )
   public Response getSigned() throws GeneralSecurityException, IOException {
     UserInfo userInfo = getUserInfo();
-    userInfo.setIssuer(uriInfo.getBaseUri().toString());
+    userInfo.setIssuer(Resteasy1099.getBaseUri(uriInfo).toString());
     AccessToken accessToken = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken();
     userInfo.setAudience(accessToken.getServiceProviderId());
 
