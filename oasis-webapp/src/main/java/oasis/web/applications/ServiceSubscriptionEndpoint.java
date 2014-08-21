@@ -130,7 +130,7 @@ public class ServiceSubscriptionEndpoint {
     if (subscription == null) {
       return ResponseFactory.conflict("Subscription for that user and service already exists");
     }
-    return Response.created(uriInfo.getAbsolutePathBuilder().path(SubscriptionEndpoint.class).build(subscription.getId()))
+    return Response.created(uriInfo.getBaseUriBuilder().path(SubscriptionEndpoint.class).build(subscription.getId()))
         .tag(etagService.getEtag(subscription))
         .entity(subscription)
         .build();

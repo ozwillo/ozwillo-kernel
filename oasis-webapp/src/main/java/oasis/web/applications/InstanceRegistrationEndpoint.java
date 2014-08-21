@@ -82,7 +82,7 @@ public class InstanceRegistrationEndpoint {
       service = serviceRepository.createService(service);
       acknowledgementResponse.put(service.getLocal_id(), service.getId());
     }
-    return Response.created(uriInfo.getAbsolutePathBuilder().path(AppInstanceEndpoint.class).build(instanceId))
+    return Response.created(uriInfo.getBaseUriBuilder().path(AppInstanceEndpoint.class).build(instanceId))
         .entity(new GenericEntity<Map<String, String>>(acknowledgementResponse) {})
         .build();
   }
