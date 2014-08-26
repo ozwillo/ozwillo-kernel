@@ -26,7 +26,7 @@ import oasis.model.directory.OrganizationMembership;
 import oasis.model.directory.OrganizationMembershipRepository;
 import oasis.openidconnect.OpenIdConnectModule;
 import oasis.security.KeyPairLoader;
-import oasis.web.authn.testing.TestOAuthAuthenticationFilter;
+import oasis.web.authn.testing.TestOAuthFilter;
 
 @RunWith(JukitoRunner.class)
 public class UserInfoEndpointTest {
@@ -75,7 +75,7 @@ public class UserInfoEndpointTest {
    * the response should be JSON by default.
    */
   @Test public void testJsonByDefault() {
-    resteasy.getDeployment().getProviderFactory().register(new TestOAuthAuthenticationFilter(new AccessToken() {{
+    resteasy.getDeployment().getProviderFactory().register(new TestOAuthFilter(new AccessToken() {{
       setAccountId(citizenAccount.getId());
     }}));
 
@@ -87,7 +87,7 @@ public class UserInfoEndpointTest {
   }
 
   @Test public void testJwtIfAskedFor() {
-    resteasy.getDeployment().getProviderFactory().register(new TestOAuthAuthenticationFilter(new AccessToken() {{
+    resteasy.getDeployment().getProviderFactory().register(new TestOAuthFilter(new AccessToken() {{
       setAccountId(citizenAccount.getId());
     }}));
 

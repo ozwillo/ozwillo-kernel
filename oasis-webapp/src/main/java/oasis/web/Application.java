@@ -24,6 +24,7 @@ import oasis.web.authn.ClientAuthenticationFilter;
 import oasis.web.authn.LoginPage;
 import oasis.web.authn.LogoutPage;
 import oasis.web.authn.OAuthAuthenticationFilter;
+import oasis.web.authn.OAuthFilter;
 import oasis.web.authn.SignUpPage;
 import oasis.web.authn.UserAuthenticationFilter;
 import oasis.web.authn.UserFilter;
@@ -72,6 +73,7 @@ public class Application extends javax.ws.rs.core.Application {
         UserFilter.class,
         UserAuthenticationFilter.class,
         ClientAuthenticationFilter.class,
+        OAuthFilter.class,
         OAuthAuthenticationFilter.class,
         LoginPage.class,
         LogoutPage.class,

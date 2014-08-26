@@ -15,13 +15,12 @@ import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
 
-@Authenticated @OAuth
-@Provider
-@Priority(Priorities.AUTHENTICATION)
-public class TestOAuthAuthenticationFilter implements ContainerRequestFilter {
+@OAuth
+@Priority(Priorities.AUTHENTICATION - 1)
+public class TestOAuthFilter implements ContainerRequestFilter {
   private final AccessToken accessToken;
 
-  public TestOAuthAuthenticationFilter(AccessToken accessToken) {
+  public TestOAuthFilter(AccessToken accessToken) {
     this.accessToken = accessToken;
   }
 

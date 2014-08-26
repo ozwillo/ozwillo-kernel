@@ -39,6 +39,7 @@ public class OAuthAuthenticationFilterTest {
   public static class Module extends JukitoModule {
     @Override
     protected void configureTest() {
+      bind(OAuthFilter.class);
       bind(OAuthAuthenticationFilter.class);
 
       bindMock(TokenHandler.class).in(TestSingleton.class);
@@ -99,6 +100,7 @@ public class OAuthAuthenticationFilterTest {
   }
 
   @Before public void setUp() {
+    resteasy.getDeployment().getProviderFactory().register(OAuthFilter.class);
     resteasy.getDeployment().getProviderFactory().register(OAuthAuthenticationFilter.class);
     resteasy.getDeployment().getRegistry().addPerRequestResource(DummyResource.class);
   }
