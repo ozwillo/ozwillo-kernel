@@ -8,11 +8,12 @@ import oasis.model.annotations.Id;
 public abstract class CatalogEntry extends CommonProperties {
   @Id private String id;
   private PaymentOption payment_option;
-  private TargetAudience target_audience;
+  private List<TargetAudience> target_audience;
   private List<String> category_ids;
   private boolean visible;
 
   protected CatalogEntry() {
+    target_audience = new ArrayList<>();
     category_ids = new ArrayList<>();
   }
 
@@ -24,7 +25,7 @@ public abstract class CatalogEntry extends CommonProperties {
   protected CatalogEntry(CatalogEntry other) {
     super(other);
     payment_option = other.getPayment_option();
-    target_audience = other.getTarget_audience();
+    target_audience = new ArrayList<>(other.getTarget_audience());
     category_ids = new ArrayList<>(other.getCategory_ids());
     visible = other.isVisible();
   }
@@ -47,11 +48,11 @@ public abstract class CatalogEntry extends CommonProperties {
     this.payment_option = payment_option;
   }
 
-  public TargetAudience getTarget_audience() {
+  public List<TargetAudience> getTarget_audience() {
     return target_audience;
   }
 
-  public void setTarget_audience(TargetAudience target_audience) {
+  public void setTarget_audience(List<TargetAudience> target_audience) {
     this.target_audience = target_audience;
   }
 
