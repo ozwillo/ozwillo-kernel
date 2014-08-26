@@ -32,6 +32,7 @@ import com.google.inject.Inject;
 import oasis.http.testing.InProcessResteasy;
 import oasis.model.authn.AccessToken;
 import oasis.services.authn.TokenHandler;
+import oasis.web.authn.testing.TestOAuthFilter;
 
 @RunWith(JukitoRunner.class)
 public class OAuthAuthenticationFilterTest {
@@ -39,16 +40,9 @@ public class OAuthAuthenticationFilterTest {
   public static class Module extends JukitoModule {
     @Override
     protected void configureTest() {
-      bind(OAuthFilter.class);
       bind(OAuthAuthenticationFilter.class);
-
-      bindMock(TokenHandler.class).in(TestSingleton.class);
     }
   }
-
-  static final String SCOPE_DATA = "http://www.nsa.gov/scope/all-your-base-are-belong-to-us";
-  static final String SCOPE_MIND = "http://www.nsa.gov/scope/even-your-mind";
-  static final String SCOPE_COOKIES = "http://www.nsa.gov/scope/but-we-have-cookies";
 
   static final Instant now = Instant.now();
 
@@ -57,58 +51,19 @@ public class OAuthAuthenticationFilterTest {
     validAccessToken.setId("valid");
     validAccessToken.setCreationTime(now.minus(Duration.standardHours(1)));
     validAccessToken.setExpirationTime(now.plus(Duration.standardHours(1)));
-    validAccessToken.setScopeIds(ImmutableSet.of(SCOPE_DATA, SCOPE_MIND));
   }
-  static final AccessToken invalidAccessToken = new AccessToken();
-  static {
-    invalidAccessToken.setId("invalid");
-    invalidAccessToken.setCreationTime(now.minus(Duration.standardHours(1)));
-    invalidAccessToken.setExpirationTime(now.plus(Duration.standardHours(1)));
-  }
-  static final AccessToken accessTokenWithoutScope = new AccessToken();
-  static {
-    accessTokenWithoutScope.setId("without_scope");
-    accessTokenWithoutScope.setCreationTime(now.minus(Duration.standardHours(1)));
-    accessTokenWithoutScope.setExpirationTime(now.plus(Duration.standardHours(1)));
-    accessTokenWithoutScope.setScopeIds(Collections.<String>emptySet());
-  }
-  static final AccessToken accessTokenWithInsufficientScopes = new AccessToken();
-  static {
-    accessTokenWithInsufficientScopes.setId("insufficient_scope");
-    accessTokenWithInsufficientScopes.setCreationTime(now.minus(Duration.standardHours(1)));
-    accessTokenWithInsufficientScopes.setExpirationTime(now.plus(Duration.standardHours(1)));
-    accessTokenWithInsufficientScopes.setScopeIds(ImmutableSet.of(SCOPE_DATA));
-  }
-  static final AccessToken accessTokenWithTooMuchScopes = new AccessToken();
-  static {
-    accessTokenWithTooMuchScopes.setId("too_much_scope");
-    accessTokenWithTooMuchScopes.setCreationTime(now.minus(Duration.standardHours(1)));
-    accessTokenWithTooMuchScopes.setExpirationTime(now.plus(Duration.standardHours(1)));
-    accessTokenWithTooMuchScopes.setScopeIds(ImmutableSet.of(SCOPE_DATA, SCOPE_MIND, SCOPE_COOKIES));
-  }
-
-  static final Pattern STARTS_WITH_BEARER_PATTERN = Pattern.compile("^Bearer .*$", Pattern.CASE_INSENSITIVE);
 
   @Inject @Rule public InProcessResteasy resteasy;
 
-  @Before public void setUpMocks(TokenHandler tokenHandler) {
-    when(tokenHandler.getCheckedToken("valid", AccessToken.class)).thenReturn(validAccessToken);
-    when(tokenHandler.getCheckedToken("invalid", AccessToken.class)).thenReturn(null);
-    when(tokenHandler.getCheckedToken("without_scope", AccessToken.class)).thenReturn(accessTokenWithoutScope);
-    when(tokenHandler.getCheckedToken("insufficient_scope", AccessToken.class)).thenReturn(accessTokenWithInsufficientScopes);
-    when(tokenHandler.getCheckedToken("too_much_scope", AccessToken.class)).thenReturn(accessTokenWithTooMuchScopes);
-  }
-
   @Before public void setUp() {
-    resteasy.getDeployment().getProviderFactory().register(OAuthFilter.class);
     resteasy.getDeployment().getProviderFactory().register(OAuthAuthenticationFilter.class);
     resteasy.getDeployment().getRegistry().addPerRequestResource(DummyResource.class);
   }
 
   @Test
-  public void testWithoutAuthorizationHeader() {
+  public void testUnauthenticated() {
     Response response = resteasy.getClient()
-        .target(UriBuilder.fromResource(DummyResource.class).build())
+        .target(UriBuilder.fromResource(DummyResource.class).path(DummyResource.class, "authRequired").build())
         .request()
         .get();
 
@@ -117,106 +72,47 @@ public class OAuthAuthenticationFilterTest {
   }
 
   @Test
-  public void testWithInvalidAuthorizationHeader() {
+  public void testAuthenticated() {
+    resteasy.getDeployment().getProviderFactory().register(new TestOAuthFilter(validAccessToken));
+
     Response response = resteasy.getClient()
-        .target(UriBuilder.fromResource(DummyResource.class).build())
+        .target(UriBuilder.fromResource(DummyResource.class).path(DummyResource.class, "authRequired").build())
         .request()
-        .header(HttpHeaders.AUTHORIZATION, "wow such invalid very bug")
-        .get();
-
-    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.UNAUTHORIZED);
-    assertThat(response.getHeaderString(HttpHeaders.WWW_AUTHENTICATE)).isEqualToIgnoringCase("Bearer");
-  }
-
-  @Test
-  public void testWithAuthorizationHeaderWithoutBearerCode() {
-    Response response = resteasy.getClient()
-        .target(UriBuilder.fromResource(DummyResource.class).build())
-        .request()
-        .header(HttpHeaders.AUTHORIZATION, "Bearer")
-        .get();
-
-    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
-    assertThat(response.getHeaderString(HttpHeaders.WWW_AUTHENTICATE))
-        .matches(STARTS_WITH_BEARER_PATTERN)
-        .contains("error=\"invalid_request\"");
-  }
-
-  @Test
-  public void testWithUnknownAccessToken() {
-    Response response = resteasy.getClient()
-        .target(UriBuilder.fromResource(DummyResource.class).build())
-        .request()
-        .header(HttpHeaders.AUTHORIZATION, "Bearer invalid")
-        .get();
-
-    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.UNAUTHORIZED);
-    assertThat(response.getHeaderString(HttpHeaders.WWW_AUTHENTICATE))
-        .matches(STARTS_WITH_BEARER_PATTERN)
-        .contains("error=\"invalid_token\"");
-  }
-
-  @Test
-  public void testWithAccessTokenWithoutScope() {
-    Response response = resteasy.getClient()
-        .target(UriBuilder.fromResource(DummyResource.class).build())
-        .request()
-        .header(HttpHeaders.AUTHORIZATION, "Bearer without_scope")
-        .get();
-
-    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.FORBIDDEN);
-    assertThat(response.getHeaderString(HttpHeaders.WWW_AUTHENTICATE))
-        .matches(STARTS_WITH_BEARER_PATTERN)
-        .contains("error=\"insufficient_scope\"");
-  }
-
-  @Test
-  public void testWithAccessTokenWithInsufficientScopes() {
-    Response response = resteasy.getClient()
-        .target(UriBuilder.fromResource(DummyResource.class).build())
-        .request()
-        .header(HttpHeaders.AUTHORIZATION, "Bearer insufficient_scope")
-        .get();
-
-    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.FORBIDDEN);
-    assertThat(response.getHeaderString(HttpHeaders.WWW_AUTHENTICATE))
-        .matches(STARTS_WITH_BEARER_PATTERN)
-        .contains("error=\"insufficient_scope\"");
-  }
-
-  @Test
-  public void testWithAccessTokenWithTooMuchScopes() {
-    Response response = resteasy.getClient()
-        .target(UriBuilder.fromResource(DummyResource.class).build())
-        .request()
-        .header(HttpHeaders.AUTHORIZATION, "Bearer too_much_scope")
-        .get();
-
-    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
-    assertThat(response.readEntity(AccessToken.class)).isEqualToComparingFieldByField(accessTokenWithTooMuchScopes);
-  }
-
-  @Test
-  public void testWithValidAccessToken() {
-    Response response = resteasy.getClient()
-        .target(UriBuilder.fromResource(DummyResource.class).build())
-        .request()
-        .header(HttpHeaders.AUTHORIZATION, "Bearer valid")
         .get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
     assertThat(response.readEntity(AccessToken.class)).isEqualToComparingFieldByField(validAccessToken);
   }
 
+  @Test
+  public void testChallengeResponse() {
+    Response response = resteasy.getClient()
+        .target(UriBuilder.fromResource(DummyResource.class).path(DummyResource.class, "challenge").build())
+        .request()
+        .get();
+
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.UNAUTHORIZED);
+    assertThat(response.getHeaderString(HttpHeaders.WWW_AUTHENTICATE)).isEqualToIgnoringCase("Bearer");
+  }
+
   @Path("/")
-  @Authenticated @OAuth @WithScopes({SCOPE_DATA, SCOPE_MIND})
+  @OAuth
   public static class DummyResource {
     @Context SecurityContext securityContext;
 
     @GET
+    @Path("/foo/bar")
+    @Authenticated
     @Produces(MediaType.APPLICATION_JSON)
-    public AccessToken get() {
+    public AccessToken authRequired() {
       return ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken();
+    }
+
+    @GET
+    @Path("baz/qux")
+    public Response challenge() {
+      assertThat(securityContext.getUserPrincipal()).isNull();
+      return OAuthAuthenticationFilter.challengeResponse();
     }
   }
 }
