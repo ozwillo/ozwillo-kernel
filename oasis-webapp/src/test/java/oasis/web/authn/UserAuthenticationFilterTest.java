@@ -38,8 +38,6 @@ public class UserAuthenticationFilterTest {
     @Override
     protected void configureTest() {
       bind(UserAuthenticationFilter.class);
-
-      bindMock(TokenHandler.class).in(TestSingleton.class);
     }
   }
 
@@ -53,10 +51,6 @@ public class UserAuthenticationFilterTest {
   }
 
   @Inject @Rule public InProcessResteasy resteasy;
-
-  @Before public void setUpMocks(TokenHandler tokenHandler) {
-    when(tokenHandler.getCheckedToken("valid", SidToken.class)).thenReturn(validSidToken);
-  }
 
   @Before public void setUp() {
     resteasy.getDeployment().getProviderFactory().register(UserAuthenticationFilter.class);
