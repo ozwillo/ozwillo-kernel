@@ -5,7 +5,6 @@ import java.util.Collection;
 
 import javax.inject.Inject;
 import javax.ws.rs.DELETE;
-import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
@@ -13,7 +12,6 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
@@ -27,16 +25,11 @@ import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiParam;
 
 import oasis.model.InvalidVersionException;
-import oasis.model.accounts.AccountRepository;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Group;
 import oasis.model.directory.Organization;
-import oasis.model.directory.OrganizationMembership;
 import oasis.model.directory.OrganizationMembershipRepository;
-import oasis.services.authn.UserPasswordAuthenticator;
 import oasis.services.etag.EtagService;
-import oasis.services.userdirectory.AgentInfo;
-import oasis.services.userdirectory.UserDirectoryService;
 import oasis.web.utils.ResponseFactory;
 
 /*
@@ -48,11 +41,8 @@ import oasis.web.utils.ResponseFactory;
 public class UserDirectoryEndpoint {
 
   @Inject DirectoryRepository directory;
-  @Inject AccountRepository account;
-  @Inject UserDirectoryService userDirectoryService;
   @Inject OrganizationMembershipRepository organizationMembershipRepository;
   @Inject EtagService etagService;
-  @Inject UserPasswordAuthenticator userPasswordAuthenticator;
 
   /*
    * Organization
@@ -283,53 +273,6 @@ public class UserDirectoryEndpoint {
         .build();
   }
 
-  /*
-   * AgentAccount
-   */
-  @GET
-  @Path("/org/{organizationId}/agents")
-  @Deprecated
-  public Response getAgentInfos(@PathParam("organizationId") String organizationId,
-      @DefaultValue("0") @QueryParam("start") int start,
-      @DefaultValue("25") @QueryParam("limit") int limit) {
-    Organization organization = directory.getOrganization(organizationId);
-    if (organization == null) {
-      return ResponseFactory.notFound("The requested organization does not exist");
-    }
-
-    Iterable<AgentInfo> agents = userDirectoryService.getAgentsForOrganization(organizationId, start, limit);
-
-    return Response
-        .ok()
-        .entity(new GenericEntity<Iterable<AgentInfo>>(agents) {})
-        .build();
-  }
-
-  @POST
-  @Path("/org/{organizationId}/agents")
-  @ApiOperation(value = "DEPRECATED: Add an agent in an organization",
-      notes = "DEPRECATED: use the sign-up form then create an organization membership")
-  @Deprecated
-  public Response createAgentAccount(@PathParam("organizationId") String organizationId, AgentInfo agentInfo) {
-    Organization organization = directory.getOrganization(organizationId);
-    if (organization == null) {
-      return ResponseFactory.notFound("The requested organization does not exist");
-    }
-
-    AgentInfo agent = userDirectoryService.createAgentAccount(organizationId, agentInfo);
-
-    // FIXME: temporarily set the password to the emailAddress
-    userPasswordAuthenticator.setPassword(agent.getId(), agent.getEmail());
-
-    URI uri = UriBuilder.fromResource(UserDirectoryEndpoint.class).path(UserDirectoryEndpoint.class, "getAgentAccount").build(agent.getId());
-    return Response
-        .created(uri)
-        .tag(etagService.getEtag(agent))
-        .contentLocation(uri)
-        .entity(agent)
-        .build();
-  }
-
   @GET
   @Path("/group/{groupId}/members")
   @ApiOperation(value = "Retrieve members of a group",
@@ -388,21 +331,6 @@ public class UserDirectoryEndpoint {
     return Response
         .ok()
         .entity(new GenericEntity<Collection<Group>>(groups) {})
-        .build();
-  }
-
-  @GET
-  @Path("/agent/{agentId}")
-  @Deprecated
-  public Response getAgentAccount(@PathParam("agentId") String agentId) {
-    AgentInfo agent = userDirectoryService.getAgentInfo(agentId);
-    if (agent == null) {
-      return ResponseFactory.notFound("The requested agent does not exist");
-    }
-    return Response
-        .ok()
-        .tag(etagService.getEtag(agent))
-        .entity(agent)
         .build();
   }
 }
