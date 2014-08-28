@@ -12,14 +12,16 @@ import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.auditlog.AuditLogService;
 import oasis.auditlog.RemoteAuditLogEvent;
+import oasis.web.authn.Authenticated;
+import oasis.web.authn.Client;
 import oasis.web.utils.ResponseFactory;
 
 @Path("/l")
+@Authenticated @Client
 @Api(value = "/l", description = "Audit log API")
 public class AuditLogEndpoint {
 
-  @Inject
-  AuditLogService auditLogService;
+  @Inject AuditLogService auditLogService;
 
   @Path("/event")
   @POST

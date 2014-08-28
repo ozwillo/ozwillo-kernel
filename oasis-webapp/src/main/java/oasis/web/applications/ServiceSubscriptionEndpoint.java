@@ -60,7 +60,14 @@ public class ServiceSubscriptionEndpoint {
       responseContainer = "Array"
   )
   public Response getSubscriptions() {
-    // TODO: only admins of the organization providing the service (or app instance?) can list subscriptions
+    // TODO: support applications bought by individuals
+    Service service = serviceRepository.getService(serviceId);
+    if (service == null) {
+      return ResponseFactory.NOT_FOUND;
+    }
+    if (!isAdminOfOrganization(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId(), service.getProvider_id())) {
+      return ResponseFactory.forbidden("Current user is not an admin of the service's providing organization");
+    }
 
     Iterable<UserSubscription> subscriptions = userSubscriptionRepository.getSubscriptionsForService(serviceId);
     return Response.ok()

@@ -21,8 +21,12 @@ import com.google.common.base.Strings;
 import com.google.common.util.concurrent.SettableFuture;
 import com.google.inject.name.Named;
 
+import oasis.web.authn.Authenticated;
+import oasis.web.authn.User;
+
 // TODO: more specific path see https://github.com/elasticsearch/kibana/blob/master/sample/apache_ldap.conf
 @Path("/es{path: (/.*)?}")
+@Authenticated @User
 public class ElasticSearchProxy {
 
   @Inject

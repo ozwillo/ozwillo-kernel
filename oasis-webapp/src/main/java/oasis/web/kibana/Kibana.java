@@ -16,6 +16,8 @@ import com.google.common.io.Resources;
 import com.google.template.soy.data.SanitizedContent;
 import com.google.template.soy.data.SoyMapData;
 
+import oasis.web.authn.Authenticated;
+import oasis.web.authn.User;
 import oasis.web.utils.ResponseFactory;
 import oasis.web.view.SoyView;
 import oasis.web.view.soy.KibanaConfigSoyInfo;
@@ -26,6 +28,7 @@ public class Kibana {
   @GET
   @Path("/kibana/")
   @Produces("text/html")
+  @Authenticated @User
   public Response get() throws IOException {
     return getResource("index.html");
   }
@@ -33,6 +36,7 @@ public class Kibana {
   @GET
   @Path("/kibana/{resource: .+\\.html}")
   @Produces("text/html")
+  @Authenticated @User
   public Response html(@PathParam("resource") String resourceName) throws IOException {
     return getResource(resourceName);
   }

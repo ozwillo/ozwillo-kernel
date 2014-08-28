@@ -30,13 +30,13 @@ import oasis.model.directory.Group;
 import oasis.model.directory.Organization;
 import oasis.model.directory.OrganizationMembershipRepository;
 import oasis.services.etag.EtagService;
+import oasis.web.authn.Authenticated;
+import oasis.web.authn.OAuth;
 import oasis.web.utils.ResponseFactory;
 
-/*
- * TODO: authorization
- */
 @Path("/d")
 @Produces(MediaType.APPLICATION_JSON)
+@Authenticated @OAuth
 @Api(value = "/d", description = "User directory API")
 public class UserDirectoryEndpoint {
 
