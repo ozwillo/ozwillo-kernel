@@ -28,6 +28,7 @@ public class AppInstance extends CommonProperties {
     super(other);
     application_id = other.getApplication_id();
     status = other.getStatus();
+    instantiator_id = other.getInstantiator_id();
     needed_scopes = new LinkedHashSet<>(other.getNeeded_scopes().size());
     for (NeededScope scope : other.getNeeded_scopes()) {
       needed_scopes.add(new NeededScope(scope));
