@@ -16,6 +16,9 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Provider;
 
+import com.google.common.net.PercentEscaper;
+import com.google.common.net.UrlEscapers;
+
 import oasis.services.cookies.CookieFactory;
 
 @Authenticated @User
@@ -38,9 +41,9 @@ public class UserAuthenticationFilter implements ContainerRequestFilter {
   public static Response loginResponse(URI continueUrl, @Nullable String cancelUrl, SecurityContext securityContext) {
     final UriBuilder redirectUri = UriBuilder
         .fromResource(LoginPage.class)
-        .queryParam(LoginPage.CONTINUE_PARAM, continueUrl);
+        .queryParam(LoginPage.CONTINUE_PARAM, UrlEscapers.urlFormParameterEscaper().escape(continueUrl.toString()));
     if (cancelUrl != null) {
-      redirectUri.queryParam(LoginPage.CANCEL_PARAM, cancelUrl);
+      redirectUri.queryParam(LoginPage.CANCEL_PARAM, UrlEscapers.urlFormParameterEscaper().escape(cancelUrl));
     }
     return Response
         .seeOther(redirectUri.build())

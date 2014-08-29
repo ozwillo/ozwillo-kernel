@@ -26,6 +26,7 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.common.collect.Iterables;
 import com.google.common.html.HtmlEscapers;
+import com.google.common.net.UrlEscapers;
 import com.google.inject.Inject;
 
 import oasis.http.testing.InProcessResteasy;
@@ -138,8 +139,8 @@ public class LogoutPageTest {
     );
     Response response = resteasy.getClient().target(UriBuilder.fromResource(LogoutPage.class))
         .queryParam("id_token_hint", idToken)
-        .queryParam("post_logout_redirect_uri", Iterables.getOnlyElement(service.getPost_logout_redirect_uris()))
-        .queryParam("state", "some+state")
+        .queryParam("post_logout_redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getPost_logout_redirect_uris())))
+        .queryParam("state", "some&state")
         .request()
         .get();
 
@@ -152,7 +153,7 @@ public class LogoutPageTest {
         .contains(service.getName().get(Locale.ROOT))
         .contains(service.getService_uri())
         .matches(hiddenInput("continue", new RedirectUri(Iterables.getOnlyElement(service.getPost_logout_redirect_uris()))
-            .setState("some+state")
+            .setState("some&state")
             .toString()));
 
     verify(tokenRepository, never()).revokeToken(sidToken.getId());
@@ -239,7 +240,7 @@ public class LogoutPageTest {
     );
     Response response = resteasy.getClient().target(UriBuilder.fromResource(LogoutPage.class))
         .queryParam("id_token_hint", idToken)
-        .queryParam("post_logout_redirect_uri", Iterables.getOnlyElement(service.getPost_logout_redirect_uris()))
+        .queryParam("post_logout_redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getPost_logout_redirect_uris())))
         .request()
         .get();
 

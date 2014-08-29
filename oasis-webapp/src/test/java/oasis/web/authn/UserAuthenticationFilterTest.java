@@ -59,12 +59,12 @@ public class UserAuthenticationFilterTest {
 
   @Test public void testUnauthenticated() {
     Response response = resteasy.getClient().target(UriBuilder.fromResource(DummyResource.class).path(DummyResource.class, "authRequired").build())
-        .queryParam("qux", "quux").request().get();
+        .queryParam("baz", "baz").queryParam("qux", "qu&ux").request().get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
     UriInfo location = new ResteasyUriInfo(response.getLocation());
     assertThat(location.getAbsolutePath()).isEqualTo(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(LoginPage.class).build());
-    assertThat(location.getQueryParameters().getFirst("continue")).isEqualTo("http://localhost/foo/bar?qux=quux");
+    assertThat(location.getQueryParameters().getFirst("continue")).isEqualTo("http://localhost/foo/bar?baz=baz&qux=qu%26ux");
   }
 
   @Test public void testAuthenticated() {
@@ -81,12 +81,12 @@ public class UserAuthenticationFilterTest {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(validSidToken));
 
     Response response = resteasy.getClient().target(UriBuilder.fromResource(DummyResource.class).path(DummyResource.class, "redirectToLogin").build())
-        .queryParam("foo", "bar").request().get();
+        .queryParam("foo", "b&ar").queryParam("baz", "baz").request().get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
     UriInfo location = new ResteasyUriInfo(response.getLocation());
     assertThat(location.getAbsolutePath()).isEqualTo(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(LoginPage.class).build());
-    assertThat(location.getQueryParameters().getFirst("continue")).isEqualTo("http://localhost/qux/quux?foo=bar");
+    assertThat(location.getQueryParameters().getFirst("continue")).isEqualTo("http://localhost/qux/quux?foo=b%26ar&baz=baz");
 
     // Make sure we don't log the user out!
     assertThat(response.getCookies()).doesNotContainKey(UserFilter.COOKIE_NAME);
