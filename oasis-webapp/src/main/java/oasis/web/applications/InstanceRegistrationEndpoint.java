@@ -29,6 +29,8 @@ import oasis.model.applications.v2.Scope;
 import oasis.model.applications.v2.ScopeRepository;
 import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.ServiceRepository;
+import oasis.model.authn.ClientType;
+import oasis.model.authn.CredentialsRepository;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.Client;
 import oasis.web.authn.ClientPrincipal;
@@ -42,6 +44,7 @@ public class InstanceRegistrationEndpoint {
   @Inject AppInstanceRepository appInstanceRepository;
   @Inject ServiceRepository serviceRepository;
   @Inject ScopeRepository scopeRepository;
+  @Inject CredentialsRepository credentialsRepository;
 
   @PathParam("instance_id") String instanceId;
 
@@ -100,6 +103,7 @@ public class InstanceRegistrationEndpoint {
     if (!appInstanceRepository.deletePendingInstance(instanceId)) {
       return ResponseFactory.notFound("Pending instance not found");
     }
+    credentialsRepository.deleteCredentials(ClientType.PROVIDER, instanceId);
     return Response.ok().build();
   }
 
