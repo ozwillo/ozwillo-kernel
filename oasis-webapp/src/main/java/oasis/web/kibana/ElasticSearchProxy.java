@@ -94,7 +94,7 @@ public class ElasticSearchProxy {
       target = target.path(path);
     }
     // Handle params
-    for (Map.Entry<String, List<String>> entry : uriInfo.getQueryParameters().entrySet()) {
+    for (Map.Entry<String, List<String>> entry : uriInfo.getQueryParameters(true).entrySet()) {
       target = target.queryParam(entry.getKey(), entry.getValue().toArray());
     }
     return target;

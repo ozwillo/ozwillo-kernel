@@ -28,6 +28,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import com.google.common.html.HtmlEscapers;
+import com.google.common.net.UrlEscapers;
 import com.google.inject.Inject;
 
 import oasis.auditlog.noop.NoopAuditLogModule;
@@ -109,10 +110,10 @@ public class LoginPageTest {
   }
 
   @Test public void loginPageWithContinue() {
-    final String continueUrl = "/foo/bar?qux=quux";
+    final String continueUrl = "/foo/bar?baz&qux=qu%26ux";
 
     Response response = resteasy.getClient().target(UriBuilder.fromResource(LoginPage.class))
-        .queryParam(LoginPage.CONTINUE_PARAM, continueUrl)
+        .queryParam(LoginPage.CONTINUE_PARAM, UrlEscapers.urlFormParameterEscaper().escape(continueUrl))
         .request().get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
@@ -133,7 +134,7 @@ public class LoginPageTest {
   }
 
   @Test public void signIn() {
-    final String continueUrl = "/foo/bar?qux=quux";
+    final String continueUrl = "/foo/bar?baz&qux=qu%26ux";
 
     Response response = resteasy.getClient().target(UriBuilder.fromResource(LoginPage.class))
         .request().post(Entity.form(new Form()

@@ -30,10 +30,9 @@ public class FluentdManager extends AbstractManager {
   }
 
   public void recordEvent(String json) {
-    Client client = ClientBuilder.newClient();
-    Escaper escaper = UrlEscapers.urlPathSegmentEscaper();
-    String jsonEscaped = escaper.escape(json);
-    WebTarget target = client.target(url + "/" + tag).queryParam("json", jsonEscaped);
+    WebTarget target = ClientBuilder.newClient()
+        .target(url + "/" + tag)
+        .queryParam("json", UrlEscapers.urlFormParameterEscaper().escape(json));
     try {
       Response response = target.request().post(null);
       if (!response.getStatusInfo().getFamily().equals(Response.Status.Family.SUCCESSFUL)) {
