@@ -4,10 +4,6 @@ import javax.inject.Inject;
 
 import org.jongo.Jongo;
 import org.jongo.MongoCollection;
-import org.jongo.ResultHandler;
-
-import com.google.common.io.BaseEncoding;
-import com.mongodb.DBObject;
 
 import oasis.jongo.JongoBootstrapper;
 import oasis.model.authn.ClientType;
@@ -38,6 +34,11 @@ public class JongoCredentialsRepository implements CredentialsRepository, JongoB
   @Override
   public Credentials getCredentials(ClientType type, String id) {
     return getCredentialsCollection().findOne("{ clientType:#, id:# }", type, id).as(Credentials.class);
+  }
+
+  @Override
+  public boolean deleteCredentials(ClientType type, String id) {
+    return getCredentialsCollection().remove("{ clientType:#, id:# }", type, id).getN() > 0;
   }
 
   @Override

@@ -33,6 +33,7 @@ import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.applications.v2.Application;
 import oasis.model.applications.v2.ApplicationRepository;
 import oasis.model.authn.ClientType;
+import oasis.model.authn.CredentialsRepository;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Organization;
 import oasis.services.authn.CredentialsService;
@@ -56,6 +57,7 @@ public class MarketBuyEndpoint {
   @Inject DirectoryRepository directoryRepository;
   @Inject AppInstanceRepository appInstanceRepository;
   @Inject CredentialsService credentialsService;
+  @Inject CredentialsRepository credentialsRepository;
 
   @Context UriInfo uriInfo;
   @Context SecurityContext securityContext;
@@ -116,6 +118,7 @@ public class MarketBuyEndpoint {
     }
     if (response.getStatusInfo().getFamily() != Response.Status.Family.SUCCESSFUL) {
       appInstanceRepository.deletePendingInstance(instance.getId());
+      credentialsRepository.deleteCredentials(ClientType.PROVIDER, instance.getId());
       return ResponseFactory.build(Response.Status.BAD_GATEWAY, "Application factory failed");
     }
     // Get the possibly-updated instance
