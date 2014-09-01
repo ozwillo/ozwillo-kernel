@@ -145,7 +145,7 @@ public class AuthorizationEndpointTest {
   }};
 
   // The state contains %-encoded chars, which will need to be double-%-encoded in URLs.
-  private static final String state = "some=state&url=" + UrlEscapers.urlFormParameterEscaper().equals("/a?b=c&d=e");
+  private static final String state = "some=state&url=" + UrlEscapers.urlFormParameterEscaper().escape("/a?b=c&d=e");
   private static final String encodedState = UrlEscapers.urlFormParameterEscaper().escape(state);
 
   @Inject @Rule public InProcessResteasy resteasy;
