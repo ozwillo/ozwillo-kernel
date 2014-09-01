@@ -47,6 +47,8 @@ import com.google.inject.Inject;
 import com.google.inject.Provides;
 
 import oasis.http.testing.InProcessResteasy;
+import oasis.model.applications.v2.AccessControlEntry;
+import oasis.model.applications.v2.AccessControlRepository;
 import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.applications.v2.Scope;
@@ -57,6 +59,8 @@ import oasis.model.authn.AuthorizationCode;
 import oasis.model.authn.SidToken;
 import oasis.model.authz.AuthorizationRepository;
 import oasis.model.authz.AuthorizedScopes;
+import oasis.model.directory.OrganizationMembership;
+import oasis.model.directory.OrganizationMembershipRepository;
 import oasis.model.i18n.LocalizableString;
 import oasis.openidconnect.OpenIdConnectModule;
 import oasis.security.KeyPairLoader;
@@ -111,13 +115,25 @@ public class AuthorizationEndpointTest {
   private static final AppInstance appInstance = new AppInstance() {{
     setId("appInstance");
     setName(new LocalizableString("Test Application Instance"));
+    setProvider_id("organizationId");
   }};
 
   private static final Service service = new Service() {{
-    setId("application");
-    setName(new LocalizableString("Application"));
+    setId("public-service");
+    setName(new LocalizableString("Public Service"));
+    setInstance_id(appInstance.getId());
+    setProvider_id("organizationId");
+    setVisible(true);
     // The redirect_uri contains %-encoded chars, which will need to be double-%-encoded in URLs.
     setRedirect_uris(Collections.singleton("https://application/callback?foo=bar%26baz"));
+  }};
+  private static final Service privateService = new Service() {{
+    setId("private-service");
+    setName(new LocalizableString("Private Service"));
+    setInstance_id(appInstance.getId());
+    setProvider_id("organizationId");
+    setVisible(false);
+    setRedirect_uris(Collections.singleton("https://application/callback?private"));
   }};
 
   // NOTE: scopes are supposed to have a title and description, we're indirectly
@@ -155,6 +171,7 @@ public class AuthorizationEndpointTest {
       ScopeRepository scopeRepository, TokenHandler tokenHandler) {
     when(appInstanceRepository.getAppInstance(appInstance.getId())).thenReturn(appInstance);
     when(serviceRepository.getServiceByRedirectUri(appInstance.getId(), Iterables.getOnlyElement(service.getRedirect_uris()))).thenReturn(service);
+    when(serviceRepository.getServiceByRedirectUri(appInstance.getId(), Iterables.getOnlyElement(privateService.getRedirect_uris()))).thenReturn(privateService);
 
     when(scopeRepository.getScopes(anyCollectionOf(String.class))).thenAnswer(new Answer<Iterable<Scope>>() {
       @Override
@@ -186,6 +203,8 @@ public class AuthorizationEndpointTest {
     when(tokenHandler.generateRandom()).thenReturn("pass");
     when(tokenHandler.createAuthorizationCode(eq(sidToken), anySetOf(String.class), eq(appInstance.getId()),
         anyString(), eq(Iterables.getOnlyElement(service.getRedirect_uris())), anyString())).thenReturn(authorizationCode);
+    when(tokenHandler.createAuthorizationCode(eq(sidToken), anySetOf(String.class), eq(appInstance.getId()),
+        anyString(), eq(Iterables.getOnlyElement(privateService.getRedirect_uris())), anyString())).thenReturn(authorizationCode);
   }
 
   @Before public void setUp() {
@@ -216,7 +235,7 @@ public class AuthorizationEndpointTest {
         .queryParam("scope", openidScope.getId())
         .request().get();
 
-    assertRedirectToApplication(response);
+    assertRedirectToApplication(response, service);
 
     verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(openidScope.getId()), appInstance.getId(), null,
         Iterables.getOnlyElement(service.getRedirect_uris()), "pass");
@@ -282,7 +301,7 @@ public class AuthorizationEndpointTest {
         .queryParam("prompt", "none")
         .request().get();
 
-    assertRedirectError(response, "login_required", null);
+    assertRedirectError(response, service, "login_required", null);
   }
 
   /** Same as {@link #testPromptUser()} except with {@code prompt=none}. */
@@ -298,7 +317,7 @@ public class AuthorizationEndpointTest {
         .queryParam("prompt", "none")
         .request().get();
 
-    assertRedirectError(response, "consent_required", null);
+    assertRedirectError(response, service, "consent_required", null);
   }
 
   @Test public void testUnknownClient() {
@@ -357,7 +376,7 @@ public class AuthorizationEndpointTest {
         .queryParam("scope", openidScope.getId())
         .request().get();
 
-    assertRedirectError(response, "unsupported_response_type", null);
+    assertRedirectError(response, service, "unsupported_response_type", null);
   }
 
   @Test public void testMissingResponseType() {
@@ -368,7 +387,7 @@ public class AuthorizationEndpointTest {
         .queryParam("scope", openidScope.getId())
         .request().get();
 
-    assertRedirectError(response, "invalid_request", "response_type");
+    assertRedirectError(response, service, "invalid_request", "response_type");
   }
 
   /** Same as {@link #testTransparentRedirection} except with {@code response_mode=code}. */
@@ -384,7 +403,7 @@ public class AuthorizationEndpointTest {
         .queryParam("scope", openidScope.getId())
         .request().get();
 
-    assertRedirectToApplication(response);
+    assertRedirectToApplication(response, service);
   }
 
   /**
@@ -401,7 +420,7 @@ public class AuthorizationEndpointTest {
         .queryParam("scope", openidScope.getId())
         .request().get();
 
-    assertRedirectError(response, "invalid_request", "response_mode");
+    assertRedirectError(response, service, "invalid_request", "response_mode");
   }
 
   @Test public void testUnknownScope() {
@@ -415,7 +434,7 @@ public class AuthorizationEndpointTest {
         .queryParam("scope", openidScope.getId() + " unknown_scope")
         .request().get();
 
-    assertRedirectError(response, "invalid_scope", null);
+    assertRedirectError(response, service, "invalid_scope", null);
   }
 
   @Test public void testScopeMissingOpenid() {
@@ -429,7 +448,7 @@ public class AuthorizationEndpointTest {
         .queryParam("scope", authorizedScope.getId())
         .request().get();
 
-    assertRedirectError(response, "invalid_scope", openidScope.getId());
+    assertRedirectError(response, service, "invalid_scope", openidScope.getId());
   }
 
   @Test public void testMissingScope() {
@@ -442,7 +461,7 @@ public class AuthorizationEndpointTest {
         .queryParam("response_type", "code")
         .request().get();
 
-    assertRedirectError(response, "invalid_request", "scope");
+    assertRedirectError(response, service, "invalid_request", "scope");
   }
 
   @Test public void testPromptNoneAndValue() {
@@ -455,7 +474,7 @@ public class AuthorizationEndpointTest {
         .queryParam("prompt", "login none")
         .request().get();
 
-    assertRedirectError(response, "invalid_request", "prompt");
+    assertRedirectError(response, service, "invalid_request", "prompt");
   }
 
   @Test public void testUnknownPromptValue() {
@@ -468,7 +487,7 @@ public class AuthorizationEndpointTest {
         .queryParam("prompt", "login unknown_value")
         .request().get();
 
-    assertRedirectError(response, "invalid_request", "prompt");
+    assertRedirectError(response, service, "invalid_request", "prompt");
   }
 
   @Test public void testOfflineAccessIgnoredWithoutPromptConsent(TokenHandler tokenHandler) {
@@ -482,7 +501,7 @@ public class AuthorizationEndpointTest {
         .queryParam("scope", openidScope.getId() + " " + offlineAccessScope.getId())
         .request().get();
 
-    assertRedirectToApplication(response);
+    assertRedirectToApplication(response, service);
 
     verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(openidScope.getId()), appInstance.getId(), null,
         Iterables.getOnlyElement(service.getRedirect_uris()), "pass");
@@ -498,7 +517,7 @@ public class AuthorizationEndpointTest {
         .queryParam("request", "whatever")
         .request().get();
 
-    assertRedirectError(response, "request_not_supported", null);
+    assertRedirectError(response, service, "request_not_supported", null);
   }
 
   @Test public void testRequestUriParam() {
@@ -511,7 +530,7 @@ public class AuthorizationEndpointTest {
         .queryParam("request_uri", "whatever")
         .request().get();
 
-    assertRedirectError(response, "request_uri_not_supported", null);
+    assertRedirectError(response, service, "request_uri_not_supported", null);
   }
 
   @Test public void testIdTokenHint(OpenIdConnectModule.Settings settings, JsonFactory jsonFactory) throws Throwable {
@@ -533,7 +552,7 @@ public class AuthorizationEndpointTest {
                 .setSubject(sidToken.getAccountId())))
         .request().get();
 
-    assertRedirectToApplication(response);
+    assertRedirectToApplication(response, service);
   }
 
   @Test public void testIdTokenHint_unparseableJwt() throws Throwable {
@@ -548,7 +567,7 @@ public class AuthorizationEndpointTest {
         .queryParam("id_token_hint", "not.a.jwt")
         .request().get();
 
-    assertRedirectError(response, "invalid_request", "id_token_hint");
+    assertRedirectError(response, service, "invalid_request", "id_token_hint");
   }
 
   @Test public void testIdTokenHint_badSignature(JsonFactory jsonFactory) throws Throwable {
@@ -571,7 +590,7 @@ public class AuthorizationEndpointTest {
                 .setSubject(sidToken.getAccountId())))
         .request().get();
 
-    assertRedirectError(response, "invalid_request", "id_token_hint");
+    assertRedirectError(response, service, "invalid_request", "id_token_hint");
   }
 
   @Test public void testIdTokenHint_badIssuer(OpenIdConnectModule.Settings settings, JsonFactory jsonFactory) throws Throwable {
@@ -594,7 +613,7 @@ public class AuthorizationEndpointTest {
                 .setSubject(sidToken.getAccountId())))
         .request().get();
 
-    assertRedirectError(response, "invalid_request", "id_token_hint");
+    assertRedirectError(response, service, "invalid_request", "id_token_hint");
   }
 
   @Test public void testIdTokenHint_mismatchingSub(OpenIdConnectModule.Settings settings, JsonFactory jsonFactory) throws Throwable {
@@ -617,7 +636,7 @@ public class AuthorizationEndpointTest {
                 .setSubject("invalidSub")))
         .request().get();
 
-    assertRedirectError(response, "login_required", null);
+    assertRedirectError(response, service, "login_required", null);
   }
 
   /** Same as {@link #testTransparentRedirection} except with {@code max_age} that needs reauth. */
@@ -649,16 +668,105 @@ public class AuthorizationEndpointTest {
         .queryParam("max_age", "4000")
         .request().get();
 
-    assertRedirectToApplication(response);
+    assertRedirectToApplication(response, service);
 
     verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(openidScope.getId()), appInstance.getId(), null,
         Iterables.getOnlyElement(service.getRedirect_uris()), "pass");
   }
 
-  private void assertRedirectToApplication(Response response) {
+  /** Same as {@link #testTransparentRedirection} except with a private service and app_admin user. */
+  @Test public void testPrivateService_isAppAdmin(TokenHandler tokenHandler, OrganizationMembershipRepository organizationMembershipRepository) throws Throwable {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+    when(organizationMembershipRepository.getOrganizationMembership(sidToken.getAccountId(), privateService.getProvider_id()))
+        .thenReturn(new OrganizationMembership() {{
+          setId("membership");
+          setAccountId(sidToken.getAccountId());
+          setOrganizationId(privateService.getProvider_id());
+          setAdmin(true);
+        }});
+
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(privateService.getRedirect_uris())))
+        .queryParam("state", encodedState)
+        .queryParam("response_type", "code")
+        .queryParam("scope", openidScope.getId())
+        .request().get();
+
+    assertRedirectToApplication(response, privateService);
+
+    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(openidScope.getId()), appInstance.getId(), null,
+        Iterables.getOnlyElement(privateService.getRedirect_uris()), "pass");
+  }
+
+  /** Same as {@link #testTransparentRedirection} except with a private service and app_user user. */
+  @Test public void testPrivateService_isAppUser(TokenHandler tokenHandler, AccessControlRepository accessControlRepository) throws Throwable {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+    when(accessControlRepository.getAccessControlEntry(privateService.getInstance_id(), sidToken.getAccountId()))
+        .thenReturn(new AccessControlEntry() {{
+          setId("membership");
+          setInstance_id(privateService.getInstance_id());
+          setUser_id(sidToken.getAccountId());
+        }});
+
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(privateService.getRedirect_uris())))
+        .queryParam("state", encodedState)
+        .queryParam("response_type", "code")
+        .queryParam("scope", openidScope.getId())
+        .request().get();
+
+    assertRedirectToApplication(response, privateService);
+
+    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(openidScope.getId()), appInstance.getId(), null,
+        Iterables.getOnlyElement(privateService.getRedirect_uris()), "pass");
+  }
+
+  /** Same as {@link #testTransparentRedirection} except with a private service and a user taht's neither an app_user or app_admin. */
+  @Test public void testPrivateService_IsNeitherAppUserOrAppAdmin() throws Throwable {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(privateService.getRedirect_uris())))
+        .queryParam("state", encodedState)
+        .queryParam("response_type", "code")
+        .queryParam("scope", openidScope.getId())
+        .request().get();
+
+    assertRedirectError(response, privateService, "access_denied", "app_admin or app_user");
+  }
+
+  /** Same as {@link #testTransparentRedirection} except with a private service. */
+  @Test public void testPrivateService_orgMemberButNotAdmin(OrganizationMembershipRepository organizationMembershipRepository) throws Throwable {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+    when(organizationMembershipRepository.getOrganizationMembership(sidToken.getAccountId(), privateService.getProvider_id()))
+        .thenReturn(new OrganizationMembership() {{
+          setId("membership");
+          setAccountId(sidToken.getAccountId());
+          setOrganizationId(privateService.getProvider_id());
+          setAdmin(false);
+        }});
+
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(privateService.getRedirect_uris())))
+        .queryParam("state", encodedState)
+        .queryParam("response_type", "code")
+        .queryParam("scope", openidScope.getId())
+        .request().get();
+
+    assertRedirectError(response, privateService, "access_denied", "app_admin or app_user");
+  }
+
+  private void assertRedirectToApplication(Response response, Service service) {
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
     UriInfo location = new ResteasyUriInfo(response.getLocation());
-    assertRedirectUri(location);
+    assertRedirectUri(location, service);
     assertThat(location.getQueryParameters())
         .containsEntry("code", singletonList(TokenSerializer.serialize(authorizationCode, "pass")))
         .containsEntry("state", singletonList(state));
@@ -680,7 +788,7 @@ public class AuthorizationEndpointTest {
         .doesNotContainEntry("prompt", singletonList("login"));
 
     UriInfo cancelUrl = new ResteasyUriInfo(URI.create(location.getQueryParameters().getFirst(LoginPage.CANCEL_PARAM)));
-    assertRedirectError(cancelUrl, "login_required", null);
+    assertRedirectError(cancelUrl, service, "login_required", null);
   }
 
   private void assertConsentPage(Response response) {
@@ -695,14 +803,14 @@ public class AuthorizationEndpointTest {
         .contains(errorDescription);
   }
 
-  private void assertRedirectError(Response response, String error, @Nullable String errorDescription) {
+  private void assertRedirectError(Response response, Service service, String error, @Nullable String errorDescription) {
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
     UriInfo location = new ResteasyUriInfo(response.getLocation());
-    assertRedirectError(location, error, errorDescription);
+    assertRedirectError(location, service, error, errorDescription);
   }
 
-  private void assertRedirectError(UriInfo location, String error, @Nullable String errorDescription) {
-    assertRedirectUri(location);
+  private void assertRedirectError(UriInfo location, Service service, String error, @Nullable String errorDescription) {
+    assertRedirectUri(location, service);
     assertThat(location.getQueryParameters())
         .containsEntry("error", singletonList(error))
         .containsEntry("state", singletonList(state));
@@ -711,7 +819,7 @@ public class AuthorizationEndpointTest {
     }
   }
 
-  private void assertRedirectUri(UriInfo location) {
+  private void assertRedirectUri(UriInfo location, Service service) {
     URI redirect_uri = URI.create(Iterables.getOnlyElement(service.getRedirect_uris()));
     assertThat(location.getAbsolutePath()).isEqualTo(UriBuilder.fromUri(redirect_uri).replaceQuery(null).build());
     for (Map.Entry<String, List<String>> entry : new ResteasyUriInfo(redirect_uri).getQueryParameters().entrySet()) {

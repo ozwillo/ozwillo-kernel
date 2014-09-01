@@ -41,16 +41,21 @@ import com.google.template.soy.data.SoyMapData;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
+import oasis.model.applications.v2.AccessControlEntry;
+import oasis.model.applications.v2.AccessControlRepository;
 import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstance.NeededScope;
 import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.applications.v2.Scope;
 import oasis.model.applications.v2.ScopeRepository;
+import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.ServiceRepository;
 import oasis.model.authn.AuthorizationCode;
 import oasis.model.authn.SidToken;
 import oasis.model.authz.AuthorizationRepository;
 import oasis.model.authz.AuthorizedScopes;
+import oasis.model.directory.OrganizationMembership;
+import oasis.model.directory.OrganizationMembershipRepository;
 import oasis.openidconnect.OpenIdConnectModule;
 import oasis.openidconnect.RedirectUri;
 import oasis.services.authn.TokenHandler;
@@ -98,6 +103,8 @@ public class AuthorizationEndpoint {
   @Inject AuthorizationRepository authorizationRepository;
   @Inject AppInstanceRepository appInstanceRepository;
   @Inject ServiceRepository serviceRepository;
+  @Inject AccessControlRepository accessControlRepository;
+  @Inject OrganizationMembershipRepository organizationMembershipRepository;
   @Inject ScopeRepository scopeRepository;
   @Inject TokenHandler tokenHandler;
   @Inject JsonFactory jsonFactory;
@@ -130,7 +137,8 @@ public class AuthorizationEndpoint {
     final AppInstance appInstance = getAppInstance(client_id);
 
     final String redirect_uri = getRequiredParameter("redirect_uri");
-    if (!isRedirectUriValid(redirect_uri, appInstance.getId())) {
+    @Nullable final Service service = serviceRepository.getServiceByRedirectUri(appInstance.getId(), redirect_uri);
+    if (!isRedirectUriValid(service, redirect_uri, appInstance.getId())) {
       throw invalidParam("redirect_uri");
     }
     // From now on, we can redirect to the client application, for both success and error conditions
@@ -178,6 +186,16 @@ public class AuthorizationEndpoint {
 
     final String id_token_hint = getParameter("id_token_hint");
     validateIdTokenHint(uriInfo, sidToken, id_token_hint);
+
+    // Check ACL if the service is "private"
+    if (service != null && !service.isVisible()) {
+      boolean isAppUser = accessControlRepository.getAccessControlEntry(appInstance.getId(), sidToken.getAccountId()) != null;
+      OrganizationMembership membership = organizationMembershipRepository.getOrganizationMembership(sidToken.getAccountId(), service.getProvider_id());
+      boolean isAppAdmin = membership != null && membership.isAdmin();
+      if (!isAppUser && !isAppAdmin) {
+        throw accessDenied("Current user is neither an app_admin or app_user for the service");
+      }
+    }
 
     final String max_age = getParameter("max_age");
     if (max_age != null) {
@@ -341,8 +359,8 @@ public class AuthorizationEndpoint {
     return appInstance;
   }
 
-  private boolean isRedirectUriValid(String redirect_uri, String instanceId) {
-    return (settings.disableRedirectUriValidation || serviceRepository.getServiceByRedirectUri(instanceId, redirect_uri) != null)
+  private boolean isRedirectUriValid(Service service, String redirect_uri, String instanceId) {
+    return (settings.disableRedirectUriValidation || service != null)
         // Note: validate the URI even if it's in the whitelist, just in case. You can never be too careful.
         && RedirectUri.isValid(redirect_uri);
   }
