@@ -41,6 +41,8 @@ import com.google.common.collect.Sets;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
+import oasis.model.applications.v2.AccessControlEntry;
+import oasis.model.applications.v2.AccessControlRepository;
 import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.authn.AccessToken;
@@ -77,8 +79,9 @@ public class TokenEndpoint {
 
   @Inject TokenRepository tokenRepository;
   @Inject TokenHandler tokenHandler;
-  @Inject OrganizationMembershipRepository organizationMembershipRepository;
   @Inject AppInstanceRepository appInstanceRepository;
+  @Inject AccessControlRepository accessControlRepository;
+  @Inject OrganizationMembershipRepository organizationMembershipRepository;
 
   @Context UriInfo uriInfo;
   @Context SecurityContext securityContext;
@@ -220,17 +223,11 @@ public class TokenEndpoint {
     } // TODO: else, log error/warning
 
     // Compute whether the user is a "user of the app" and/or "admin of the app"
-    Boolean isAppUser = null;
-    Boolean isAppAdmin = null;
-    // TODO: use real data & algorithm; for now any agent of the organization is a "user of the app"
     AppInstance appInstance = appInstanceRepository.getAppInstance(accessToken.getServiceProviderId());
+    boolean isAppUser = accessControlRepository.getAccessControlEntry(appInstance.getId(), accessToken.getAccountId()) != null;
+    boolean isAppAdmin;
     OrganizationMembership membership = organizationMembershipRepository.getOrganizationMembership(accessToken.getAccountId(), appInstance.getProvider_id());
-    if (membership != null) {
-      isAppUser = true;
-      if (membership.isAdmin()) {
-        isAppAdmin = true;
-      }
-    }
+    isAppAdmin = membership != null && membership.isAdmin();
 
     response.setAccessToken(access_token);
     response.setTokenType("Bearer");
@@ -248,8 +245,8 @@ public class TokenEndpoint {
             .setIssuedAtTimeSeconds(issuedAt)
             .setNonce(authorizationCode.getNonce())
             .setAuthorizationTimeSeconds(authTime)
-            .set("app_user", isAppUser)
-            .set("app_admin", isAppAdmin)
+            .set("app_user", isAppUser ? Boolean.TRUE : null)
+            .set("app_admin", isAppAdmin ? Boolean.TRUE : null)
     ));
 
     return response(Response.Status.OK, response);

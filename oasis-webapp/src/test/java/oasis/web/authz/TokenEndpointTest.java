@@ -38,6 +38,8 @@ import com.google.inject.Provides;
 import oasis.http.testing.InProcessResteasy;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
+import oasis.model.applications.v2.AccessControlEntry;
+import oasis.model.applications.v2.AccessControlRepository;
 import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.authn.AccessToken;
@@ -307,7 +309,48 @@ public class TokenEndpointTest {
     }
   }
 
-  @Test public void testValidAuthCodeWithAgent(JsonFactory jsonFactory, OpenIdConnectModule.Settings settings, Clock clock,
+  @Test public void testValidAuthCodeWithAppUser(JsonFactory jsonFactory, OpenIdConnectModule.Settings settings, Clock clock,
+      AccessControlRepository accessControlRepository) throws Throwable {
+    // given
+    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
+    when(accessControlRepository.getAccessControlEntry(appInstance.getId(), account.getId())).thenReturn(
+        new AccessControlEntry() {{
+          setId("ace");
+          setUser_id(account.getId());
+          setInstance_id(appInstance.getId());
+        }});
+
+    // when
+    Response resp = authCode("valid", validAuthCode.getRedirectUri());
+
+    // then
+    assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.OK);
+    IdTokenResponse response = jsonFactory.fromInputStream(resp.readEntity(InputStream.class), StandardCharsets.UTF_8, IdTokenResponse.class);
+    assertThat(response.getTokenType()).isEqualTo("Bearer");
+    assertThat(response.getScope().split(" ")).containsOnly("dp1s1", "dp1s3", "dp3s1");
+    assertThat(response.getExpiresInSeconds())
+        .isEqualTo(new Duration(new Instant(clock.currentTimeMillis()), accessToken.getExpirationTime()).getStandardSeconds());
+    assertThat(response.getAccessToken()).isEqualTo(TokenSerializer.serialize(accessToken, "pass"));
+    assertThat(response.getRefreshToken()).isNullOrEmpty();
+
+    IdToken idToken = response.parseIdToken();
+    assertThat(idToken.verifySignature(settings.keyPair.getPublic())).isTrue();
+
+    IdToken.Payload payload = idToken.getPayload();
+    assertThat(payload.getIssuer()).isEqualTo(InProcessResteasy.BASE_URI.toString());
+    assertThat(payload.getSubject()).isEqualTo(account.getId());
+    assertThat(payload.getAudience()).isEqualTo(appInstance.getId());
+    assertThat(payload.getIssuedAtTimeSeconds()).isEqualTo(TimeUnit.MILLISECONDS.toSeconds(clock.currentTimeMillis()));
+    assertThat(payload.getExpirationTimeSeconds()).isEqualTo(payload.getIssuedAtTimeSeconds() + settings.idTokenDuration.getStandardSeconds());
+    assertThat(payload.getNonce()).isEqualTo("nonce");
+    assertThat(payload.getAuthorizationTimeSeconds()).isEqualTo(TimeUnit.MILLISECONDS.toSeconds(sidToken.getAuthenticationTime().getMillis()));
+    assertThat(payload.get("app_user")).isEqualTo(Boolean.TRUE);
+    if (payload.containsKey("app_admin")) {
+      assertThat(payload.get("app_admin")).isEqualTo(Boolean.FALSE);
+    }
+  }
+
+  @Test public void testValidAuthCodeWithAppAdmin(JsonFactory jsonFactory, OpenIdConnectModule.Settings settings, Clock clock,
       OrganizationMembershipRepository organizationMembershipRepository) throws Throwable {
     // given
     resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
@@ -343,7 +386,9 @@ public class TokenEndpointTest {
     assertThat(payload.getExpirationTimeSeconds()).isEqualTo(payload.getIssuedAtTimeSeconds() + settings.idTokenDuration.getStandardSeconds());
     assertThat(payload.getNonce()).isEqualTo("nonce");
     assertThat(payload.getAuthorizationTimeSeconds()).isEqualTo(TimeUnit.MILLISECONDS.toSeconds(sidToken.getAuthenticationTime().getMillis()));
-    assertThat(payload.get("app_user")).isEqualTo(Boolean.TRUE);
+    if (payload.containsKey("app_user")) {
+      assertThat(payload.get("app_user")).isEqualTo(Boolean.FALSE);
+    }
     assertThat(payload.get("app_admin")).isEqualTo(Boolean.TRUE);
   }
 

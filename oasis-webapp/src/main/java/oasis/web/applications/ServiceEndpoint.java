@@ -20,6 +20,8 @@ import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.InvalidVersionException;
+import oasis.model.applications.v2.AccessControlEntry;
+import oasis.model.applications.v2.AccessControlRepository;
 import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.ServiceRepository;
 import oasis.model.directory.OrganizationMembership;
@@ -38,6 +40,7 @@ import oasis.web.utils.ResponseFactory;
 @Api(value = "services", description = "Application services")
 public class ServiceEndpoint {
   @Inject ServiceRepository serviceRepository;
+  @Inject AccessControlRepository accessControlRepository;
   @Inject OrganizationMembershipRepository organizationMembershipRepository;
   @Inject EtagService etagService;
 
@@ -64,8 +67,10 @@ public class ServiceEndpoint {
         return OAuthAuthenticationFilter.challengeResponse();
       }
       String userId = principal.getAccessToken().getAccountId();
+      boolean isAppUser = accessControlRepository.getAccessControlEntry(service.getInstance_id(), userId) != null;
       OrganizationMembership organizationMembership = organizationMembershipRepository.getOrganizationMembership(userId, service.getProvider_id());
-      if (organizationMembership == null) {
+      boolean isAppAdmin = organizationMembership != null && organizationMembership.isAdmin();
+      if (!isAppUser && !isAppAdmin) {
         return ResponseFactory.forbidden("Current user is neither an app_admin or app_user for the service");
       }
     }
