@@ -33,6 +33,7 @@ public class JongoUserSubscriptionRepository implements UserSubscriptionReposito
   @Override
   public UserSubscription createUserSubscription(UserSubscription subscription) {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(subscription.getService_id()));
+    Preconditions.checkArgument(!Strings.isNullOrEmpty(subscription.getUser_id()));
 
     subscription = new JongoUserSubscription(subscription);
     try {

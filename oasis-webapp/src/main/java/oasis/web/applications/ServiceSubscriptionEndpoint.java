@@ -108,7 +108,7 @@ public class ServiceSubscriptionEndpoint {
     subscription.setSubscription_type(UserSubscription.SubscriptionType.ORGANIZATION);
     Service service = serviceRepository.getService(subscription.getService_id());
     if (service == null) {
-      return ResponseFactory.unprocessableEntity("Unknown service");
+      return ResponseFactory.NOT_FOUND;
     }
     if (!isMemberOfOrganization(subscription.getUser_id(), service.getProvider_id())) {
       return ResponseFactory.unprocessableEntity("Target user is not a member of the organization");

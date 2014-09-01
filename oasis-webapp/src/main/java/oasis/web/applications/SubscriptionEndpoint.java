@@ -43,7 +43,10 @@ public class SubscriptionEndpoint {
     if (subscription == null) {
       return ResponseFactory.NOT_FOUND;
     }
-    return Response.ok(subscription).build();
+    return Response.ok()
+        .tag(etagService.getEtag(subscription))
+        .entity(subscription)
+        .build();
   }
 
   @DELETE
