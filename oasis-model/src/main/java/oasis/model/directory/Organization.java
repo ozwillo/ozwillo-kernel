@@ -19,6 +19,10 @@ public class Organization {
   @ApiModelProperty(required = true)
   private String name;
 
+  @JsonProperty
+  @ApiModelProperty(required = true)
+  private Type type;
+
   public Organization() {
   }
 
@@ -47,4 +51,16 @@ public class Organization {
     this.name = name;
   }
 
+  public Type getType() {
+    return type;
+  }
+
+  public void setType(Type type) {
+    this.type = type;
+  }
+
+  public enum Type {
+    PUBLIC_BODY,
+    COMPANY
+  }
 }
