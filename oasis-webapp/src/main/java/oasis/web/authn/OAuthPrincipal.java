@@ -13,7 +13,7 @@ public class OAuthPrincipal implements Principal {
 
   @Override
   public String getName() {
-    return accessToken.getId();
+    return accessToken.getAccountId();
   }
 
   public AccessToken getAccessToken() {

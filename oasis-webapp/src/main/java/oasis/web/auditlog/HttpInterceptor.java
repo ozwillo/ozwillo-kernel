@@ -5,6 +5,7 @@ import static com.google.common.base.Predicates.*;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Priority;
 import javax.inject.Inject;
@@ -25,6 +26,9 @@ import oasis.auditlog.HttpAuditLogEvent;
 @Provider
 @Priority(Integer.MIN_VALUE)
 public class HttpInterceptor implements ContainerRequestFilter, ContainerResponseFilter {
+
+  private static final String START_TIME_PROP = HttpInterceptor.class.getName() + ".startTime";
+
   private static final ImmutableSet<String> HTTP_HEADERS_TO_LOG = ImmutableSet.of(
       HttpHeaders.ACCEPT,
       HttpHeaders.ACCEPT_CHARSET,
@@ -41,17 +45,18 @@ public class HttpInterceptor implements ContainerRequestFilter, ContainerRespons
 
   @Override
   public void filter(ContainerRequestContext requestContext) throws IOException {
-    requestContext.setProperty("startTime", System.nanoTime());
+    requestContext.setProperty(START_TIME_PROP, System.nanoTime());
   }
 
   @Override
   public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) throws IOException {
-    Long startTime = (Long) requestContext.getProperty("startTime");
-    Long endTime = null;
-    Long elapsed = null;
-    if (startTime != null) {
-      endTime = System.nanoTime();
-      elapsed = endTime - startTime;
+    Long startTimeNanos = (Long) requestContext.getProperty(START_TIME_PROP);
+    Long elapsedNanos = null;
+    Long startTimeMillis = null;
+    Long endTimeMillis = System.currentTimeMillis();
+    if (startTimeNanos != null) {
+      elapsedNanos = System.nanoTime() - startTimeNanos;
+      startTimeMillis = endTimeMillis - TimeUnit.NANOSECONDS.toMillis(elapsedNanos);
     }
 
     Map<String, List<String>> headers = Maps.filterKeys(requestContext.getHeaders(), in(HTTP_HEADERS_TO_LOG));
@@ -60,10 +65,13 @@ public class HttpInterceptor implements ContainerRequestFilter, ContainerRespons
         .setUrl(requestContext.getUriInfo().getRequestUri().toString())
         .setMethod(requestContext.getMethod())
         .setHeaders(ImmutableMap.<String, Object>copyOf(headers))
-        .setStartTime(startTime)
-        .setEndTime(endTime)
-        .setElapsedTime(elapsed)
+        .setStartTime(startTimeMillis)
+        .setEndTime(endTimeMillis)
+        .setElapsedTime(elapsedNanos)
         .setStatus(responseContext.getStatus())
+        .setAuthenticationScheme(requestContext.getSecurityContext().getAuthenticationScheme())
+        .setAuthenticatedUser(requestContext.getSecurityContext().getUserPrincipal() != null
+            ? requestContext.getSecurityContext().getUserPrincipal().getName() : null)
         .log();
   }
 }

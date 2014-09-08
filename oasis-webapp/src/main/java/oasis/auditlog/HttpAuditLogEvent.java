@@ -18,6 +18,8 @@ public class HttpAuditLogEvent extends AuditLogEvent {
   private static final String START_TIME = "start_time";
   private static final String END_TIME = "end_time";
   private static final String ELAPSED_TIME = "elapsed_time";
+  private static final String AUTHENTICATION_SCHEME = "auth_scheme";
+  private static final String AUTHENTICATED_USER = "auth_user";
 
   public HttpAuditLogEvent() {
     super(TYPE);
@@ -60,6 +62,20 @@ public class HttpAuditLogEvent extends AuditLogEvent {
   public HttpAuditLogEvent setElapsedTime(@Nullable Long duration) {
     if (duration != null) {
       this.addContextData(ELAPSED_TIME, duration);
+    }
+    return this;
+  }
+
+  public HttpAuditLogEvent setAuthenticationScheme(@Nullable String authScheme) {
+    if (authScheme != null) {
+      this.addContextData(AUTHENTICATION_SCHEME, authScheme);
+    }
+    return this;
+  }
+
+  public HttpAuditLogEvent setAuthenticatedUser(@Nullable String authUser) {
+    if (authUser != null) {
+      this.addContextData(AUTHENTICATED_USER, authUser);
     }
     return this;
   }
