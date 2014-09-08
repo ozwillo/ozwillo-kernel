@@ -24,6 +24,9 @@
   <div class="joinus">
     <h1>Join Us !</h1>
     <form method="POST" action="{$signUpFormAction}">
+      <input type="hidden" name="_utf8" value="&#9731;">
+      <input type="hidden" name="continue" value="{$continue}">
+
       <input type="email" name="email" placeholder="Email" required>
       <input type="password" name="pwd" placeholder="Password" required>
       <input type="text" name="zipcode" placeholder="Zipcode" required>
