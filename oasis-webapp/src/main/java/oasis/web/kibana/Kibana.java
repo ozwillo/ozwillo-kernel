@@ -9,9 +9,11 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
 
 import com.google.common.io.Resources;
 import com.google.template.soy.data.SanitizedContent;
@@ -19,6 +21,7 @@ import com.google.template.soy.data.SoyMapData;
 
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.User;
+import oasis.web.resteasy.Resteasy1099;
 import oasis.web.utils.ResponseFactory;
 import oasis.web.view.SoyView;
 import oasis.web.view.soy.KibanaConfigSoyInfo;
@@ -30,8 +33,15 @@ public class Kibana {
   @Path("/")
   @Produces(MediaType.TEXT_HTML)
   @Authenticated @User
-  public Response get() throws IOException {
-    return getResource("index.html");
+  public Response get(@Context UriInfo uriInfo) throws IOException {
+    if (uriInfo.getPath().endsWith("/")) {
+      return getResource("index.html");
+    } else {
+      return Response
+          .status(Response.Status.MOVED_PERMANENTLY)
+          .location(Resteasy1099.getBaseUriBuilder(uriInfo).path("/kibana/").build())
+          .build();
+    }
   }
 
   @GET
