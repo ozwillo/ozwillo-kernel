@@ -9,6 +9,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
@@ -22,27 +23,27 @@ import oasis.web.utils.ResponseFactory;
 import oasis.web.view.SoyView;
 import oasis.web.view.soy.KibanaConfigSoyInfo;
 
-@Path("/")
+@Path("/kibana/")
 public class Kibana {
 
   @GET
-  @Path("/kibana/")
-  @Produces("text/html")
+  @Path("/")
+  @Produces(MediaType.TEXT_HTML)
   @Authenticated @User
   public Response get() throws IOException {
     return getResource("index.html");
   }
 
   @GET
-  @Path("/kibana/{resource: .+\\.html}")
-  @Produces("text/html")
+  @Path("{resource: .+\\.html}")
+  @Produces(MediaType.TEXT_HTML)
   @Authenticated @User
   public Response html(@PathParam("resource") String resourceName) throws IOException {
     return getResource(resourceName);
   }
 
   @GET
-  @Path("/kibana/config.js")
+  @Path("config.js")
   @Produces("application/javascript")
   public Response config() throws IOException {
     SoyMapData model = new SoyMapData(
@@ -52,56 +53,56 @@ public class Kibana {
   }
 
   @GET
-  @Path("/kibana/{resource: .+\\.js$}")
+  @Path("{resource: .+\\.js$}")
   @Produces("application/javascript")
   public Response js(@PathParam("resource") String resourceName) throws IOException {
     return getResource(resourceName);
   }
 
   @GET
-  @Path("/kibana/{resource: .+\\.json$}")
-  @Produces("application/json")
+  @Path("{resource: .+\\.json$}")
+  @Produces(MediaType.APPLICATION_JSON)
   public Response json(@PathParam("resource") String resourceName) throws IOException {
     return getResource(resourceName);
   }
 
   @GET
-  @Path("/kibana/{resource: .+\\.css$}")
+  @Path("{resource: .+\\.css$}")
   @Produces("text/css")
   public Response css(@PathParam("resource") String resourceName) throws IOException {
     return getResource(resourceName);
   }
 
   @GET
-  @Path("/kibana/{resource: .+\\.png$}")
+  @Path("{resource: .+\\.png$}")
   @Produces("image/png")
   public Response png(@PathParam("resource") String resourceName) throws IOException {
     return getResource(resourceName);
   }
 
   @GET
-  @Path("/kibana/{resource: .+\\.gif$}")
+  @Path("{resource: .+\\.gif$}")
   @Produces("image/gif")
   public Response gif(@PathParam("resource") String resourceName) throws IOException {
     return getResource(resourceName);
   }
 
   @GET
-  @Path("/kibana/{resource: .+\\.otf}")
+  @Path("{resource: .+\\.otf}")
   @Produces("application/x-font-opentype")
   public Response otf(@PathParam("resource") String resourceName) throws IOException {
     return getResource(resourceName);
   }
 
   @GET
-  @Path("/kibana/{resource: .+\\.ttf}")
+  @Path("{resource: .+\\.ttf}")
   @Produces("application/x-font-ttf")
   public Response ttf(@PathParam("resource") String resourceName) throws IOException {
     return getResource(resourceName);
   }
 
   @GET
-  @Path("/kibana/{resource: .+\\.woff}")
+  @Path("{resource: .+\\.woff}")
   @Produces("application/font-woff")
   public Response woff(@PathParam("resource") String resourceName) throws IOException {
     return getResource(resourceName);
