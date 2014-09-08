@@ -16,7 +16,6 @@ public class UserAgentFingerprinter {
 
   private static final String[] FINGERPRINTED_HEADERS = {
       HttpHeaders.USER_AGENT,
-      HttpHeaders.ACCEPT,
       HttpHeaders.ACCEPT_CHARSET,
       HttpHeaders.ACCEPT_ENCODING,
       HttpHeaders.ACCEPT_LANGUAGE,
