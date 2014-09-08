@@ -82,9 +82,19 @@ public class JongoTokenRepository implements TokenRepository, JongoBootstrapper 
   }
 
   @Override
+  public boolean revokeTokensForAccount(String accountId) {
+    checkArgument(!Strings.isNullOrEmpty(accountId));
+
+    return this.getTokensCollection()
+        .remove("{ accountId: # }", accountId)
+        .getN() > 0;
+  }
+
+  @Override
   public void bootstrap() {
     getTokensCollection().ensureIndex("{ id: 1 }", "{ unique: 1 }");
     getTokensCollection().ensureIndex("{ ancestorIds: 1 }");
+    getTokensCollection().ensureIndex("{ accountId: 1 }");
     getTokensCollection().ensureIndex("{ expirationTime: 1 }", "{ background: 1, expireAfterSeconds: 0 }");
   }
 }

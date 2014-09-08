@@ -22,6 +22,7 @@ import oasis.web.applications.UserAppInstanceEndpoint;
 import oasis.web.applications.UserSubscriptionEndpoint;
 import oasis.web.auditlog.AuditLogEndpoint;
 import oasis.web.auditlog.HttpInterceptor;
+import oasis.web.authn.ChangePasswordPage;
 import oasis.web.authn.ClientAuthenticationFilter;
 import oasis.web.authn.LoginPage;
 import oasis.web.authn.LogoutPage;
@@ -80,6 +81,7 @@ public class Application extends javax.ws.rs.core.Application {
         LoginPage.class,
         LogoutPage.class,
         SignUpPage.class,
+        ChangePasswordPage.class,
         // Authorization
         OpenIdProviderConfigurationEndpoint.class,
         AuthorizationEndpoint.class,

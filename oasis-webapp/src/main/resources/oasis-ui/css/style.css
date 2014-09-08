@@ -67,7 +67,8 @@ img {
   width: 49%;
 }
 
-.reauth {
+.reauth,
+.changepwd {
   width: 49%;
   margin: auto;
 }

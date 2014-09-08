@@ -22,6 +22,7 @@ public class SoyGuiceModule extends AbstractModule {
         .add(getClass().getResource("/templates/Reauth.soy"))
         .add(getClass().getResource("/templates/Logout.soy"))
         .add(getClass().getResource("/templates/Authorize.soy"))
+        .add(getClass().getResource("/templates/ChangePassword.soy"))
         .add(getClass().getResource("/templates/KibanaConfig.soy"))
         .build()
         .compileToTofu();
