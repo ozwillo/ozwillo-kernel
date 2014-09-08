@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
@@ -22,6 +23,7 @@ import oasis.auditlog.AuditLogService;
 import oasis.auditlog.HttpAuditLogEvent;
 
 @Provider
+@Priority(Integer.MIN_VALUE)
 public class HttpInterceptor implements ContainerRequestFilter, ContainerResponseFilter {
   private static final ImmutableSet<String> HTTP_HEADERS_TO_LOG = ImmutableSet.of(
       HttpHeaders.ACCEPT,
