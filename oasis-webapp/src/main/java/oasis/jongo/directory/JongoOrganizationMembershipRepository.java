@@ -17,6 +17,7 @@ import com.google.common.collect.Iterables;
 import com.mongodb.DuplicateKeyException;
 
 import oasis.jongo.JongoBootstrapper;
+import oasis.jongo.applications.v2.JongoService;
 import oasis.model.InvalidVersionException;
 import oasis.model.directory.OrganizationMembership;
 import oasis.model.directory.OrganizationMembershipRepository;
@@ -73,21 +74,26 @@ public class JongoOrganizationMembershipRepository implements OrganizationMember
   @Nullable
   @Override
   public OrganizationMembership updateOrganizationMembership(OrganizationMembership membership, long[] versions) throws InvalidVersionException {
-    checkArgument(!Strings.isNullOrEmpty(membership.getId()));
+    String membershipId = membership.getId();
+    checkArgument(!Strings.isNullOrEmpty(membershipId));
     checkArgument(!Strings.isNullOrEmpty(membership.getAccountId()));
     checkArgument(!Strings.isNullOrEmpty(membership.getOrganizationId()));
 
+    // Copy to get the modified field, then reset ID (not copied over) to make sure we won't generate a new one
+    membership = new JongoOrganizationMembership(membership);
+    membership.setId(membershipId);
+
     JongoOrganizationMembership res = getOrganizationMembershipsCollection()
-        .findAndModify("{ id: #, modified: { $in: # } }", membership.getId(), versions)
+        .findAndModify("{ id: #, modified: { $in: # } }", membershipId, versions)
         .returnNew()
-        .with("{ $set: # }", new JongoOrganizationMembership(membership))
+        .with("{ $set: # }", membership)
         .as(JongoOrganizationMembership.class);
 
     if (res == null) {
-      if (getOrganizationMembershipsCollection().count("{ id, # }", membership.getId()) != 0) {
-        throw new InvalidVersionException("organizationMember", membership.getId());
+      if (getOrganizationMembershipsCollection().count("{ id, # }", membershipId) != 0) {
+        throw new InvalidVersionException("organizationMember", membershipId);
       }
-      logger.warn("Organization member {} does not exist", membership.getId());
+      logger.warn("Organization member {} does not exist", membershipId);
     }
 
     return res;

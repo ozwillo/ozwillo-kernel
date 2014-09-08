@@ -40,8 +40,8 @@ public class JongoServiceRepository implements ServiceRepository, JongoBootstrap
   }
 
   @Override
-  public Service createService(Service application) {
-    JongoService jongoService = new JongoService(application);
+  public Service createService(Service service) {
+    JongoService jongoService = new JongoService(service);
     try {
       getServicesCollection().insert(jongoService);
     } catch (DuplicateKeyException e) {
@@ -100,16 +100,18 @@ public class JongoServiceRepository implements ServiceRepository, JongoBootstrap
 
   @Override
   public Service updateService(Service service, long[] versions) throws InvalidVersionException {
-    Preconditions.checkArgument(!Strings.isNullOrEmpty(service.getId()));
     String serviceId = service.getId();
+    Preconditions.checkArgument(!Strings.isNullOrEmpty(serviceId));
+    // Copy to get the modified field, then reset ID (not copied over) to make sure we won't generate a new one
+    service = new JongoService(service);
+    service.setId(serviceId);
     // XXX: don't allow updating those properties (should we return an error if attempted?)
-    service.setId(null);
     service.setLocal_id(null);
     service.setInstance_id(null);
     // FIXME: allow unsetting properties
     service = getServicesCollection()
         .findAndModify("{ id: #, modified: { $in: # } }", serviceId, versions)
-        .with("{ $set: # }", new JongoService(service))
+        .with("{ $set: # }", service)
         .returnNew()
         .as(JongoService.class);
     if (service == null) {
