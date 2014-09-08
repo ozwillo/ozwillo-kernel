@@ -35,7 +35,7 @@ public class Kibana {
   @Authenticated @User
   public Response get(@Context UriInfo uriInfo) throws IOException {
     if (uriInfo.getPath().endsWith("/")) {
-      return getResource("index.html");
+      return getIndex();
     } else {
       return Response
           .status(Response.Status.MOVED_PERMANENTLY)
@@ -45,9 +45,16 @@ public class Kibana {
   }
 
   @GET
-  @Path("{resource: .+\\.html}")
+  @Path("index.html")
   @Produces(MediaType.TEXT_HTML)
   @Authenticated @User
+  public Response getIndex() throws IOException {
+    return getResource("index.html");
+  }
+
+  @GET
+  @Path("{resource: .+\\.html}")
+  @Produces(MediaType.TEXT_HTML)
   public Response html(@PathParam("resource") String resourceName) throws IOException {
     return getResource(resourceName);
   }
