@@ -15,16 +15,12 @@ public class SignUpService {
     this.userPasswordAuthenticator = userPasswordAuthenticator;
   }
 
-  public UserAccount signUp(String email, String password, String zipcode, String country) {
+  public UserAccount signUp(String email, String password, String nickname) {
     UserAccount userAccount = new UserAccount();
     userAccount.setEmail_address(email);
-    Address address = new Address();
-    address.setCountry(country);
-    address.setPostal_code(zipcode);
-    userAccount.setAddress(address);
-    // TODO: Set the locale with the locale selected
+    userAccount.setNickname(nickname);
+    // TODO: Set the locale with the locale selected (and use a "matching" zoneinfo)
     userAccount.setLocale("en-GB");
-    // XXX: Set the zone info from the country?
     userAccount.setZoneinfo("Europe/Paris");
     userAccount = accountRepository.createUserAccount(userAccount);
     if (userAccount != null) {

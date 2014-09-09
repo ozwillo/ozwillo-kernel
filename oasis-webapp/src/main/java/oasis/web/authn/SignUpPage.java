@@ -46,20 +46,19 @@ public class SignUpPage {
       @QueryParam(CONTINUE_PARAM) URI continueUrl,
       @FormParam("email") String email,
       @FormParam("pwd") String password,
-      @FormParam("zipcode") String zipcode,
-      @FormParam("country") String country
+      @FormParam("nickname") String nickname
   ) {
     if (continueUrl == null) {
       continueUrl = LoginPage.defaultContinueUrl(settings.landingPage, uriInfo);
     }
 
-    if (Strings.isNullOrEmpty(email) || Strings.isNullOrEmpty(password) || Strings.isNullOrEmpty(zipcode) || Strings.isNullOrEmpty(country)) {
+    if (Strings.isNullOrEmpty(email) || Strings.isNullOrEmpty(password) || Strings.isNullOrEmpty(nickname)) {
       return LoginPage.loginForm(Response.ok(), continueUrl, settings, "Some required fields are not filled");
     }
     // TODO: Verify that the password as a sufficiently strong length or even a strong entropy
 
     // TODO: Send an activation email to verify the existence of the email address
-    UserAccount account = signUpService.signUp(email, password, zipcode, country);
+    UserAccount account = signUpService.signUp(email, password, nickname);
     if (account == null) {
       // TODO: Allow the user to retrieve their password
       return LoginPage.loginForm(Response.ok(), continueUrl, settings, "The username already exists.");
