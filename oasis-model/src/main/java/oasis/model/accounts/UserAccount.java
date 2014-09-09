@@ -5,6 +5,7 @@ import javax.annotation.Nonnull;
 import org.joda.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import oasis.model.annotations.Id;
@@ -197,5 +198,14 @@ public class UserAccount {
 
   public void setUpdated_at(long updated_at) {
     this.updated_at = updated_at;
+  }
+
+  @JsonIgnore
+  public String getDisplayName() {
+    String lName = getName();
+    if (lName != null && !lName.isEmpty()) {
+      return lName;
+    }
+    return getNickname();
   }
 }

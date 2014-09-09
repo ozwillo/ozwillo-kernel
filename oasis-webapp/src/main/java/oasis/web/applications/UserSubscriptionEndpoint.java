@@ -78,9 +78,9 @@ public class UserSubscriptionEndpoint {
                 sub.service_id = input.getService_id();
                 sub.service_name = serviceRepository.getService(input.getService_id()).getName();
                 sub.subscription_type = input.getSubscription_type();
-                sub.creator_id = input.getCreator_id();
+                sub.creator_id = Objects.firstNonNull(input.getCreator_id(), input.getUser_id());
                 // TODO: check access rights to the user name
-                sub.creator_name = accountRepository.getUserAccountById(Objects.firstNonNull(input.getCreator_id(), input.getUser_id())).getName();
+                sub.creator_name = accountRepository.getUserAccountById(sub.creator_id).getDisplayName();
                 return sub;
               }
             })) {})
@@ -169,7 +169,7 @@ public class UserSubscriptionEndpoint {
     @JsonProperty String service_id;
     @JsonProperty LocalizableString service_name;
     @JsonProperty UserSubscription.SubscriptionType subscription_type;
-    @JsonProperty @Nullable String creator_id;
-    @JsonProperty @Nullable String creator_name;
+    @JsonProperty String creator_id;
+    @JsonProperty String creator_name;
   }
 }

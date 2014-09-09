@@ -81,9 +81,9 @@ public class AppInstanceAccessControlEndpoint {
                 ace.entry_etag = etagService.getEtag(input);
                 ace.instance_id = input.getInstance_id();
                 ace.user_id = input.getUser_id();
-                ace.user_name = accountRepository.getUserAccountById(input.getUser_id()).getName();
+                ace.user_name = accountRepository.getUserAccountById(input.getUser_id()).getDisplayName();
                 ace.creator_id = input.getCreator_id();
-                ace.creator_name = accountRepository.getUserAccountById(input.getCreator_id()).getName();
+                ace.creator_name = accountRepository.getUserAccountById(input.getCreator_id()).getDisplayName();
                 return ace;
               }
             })) {})

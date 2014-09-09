@@ -1,6 +1,5 @@
 package oasis.web.applications;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -80,11 +79,12 @@ public class ServiceSubscriptionEndpoint {
                 sub.subscription_uri = Resteasy1099.getBaseUriBuilder(uriInfo).path(SubscriptionEndpoint.class).build(input.getId()).toString();
                 sub.subscription_etag = etagService.getEtag(input);
                 sub.user_id = input.getUser_id();
-                sub.user_name = accountRepository.getUserAccountById(input.getUser_id()).getName();
+                sub.user_name = accountRepository.getUserAccountById(input.getUser_id()).getDisplayName();
                 sub.subscription_type = input.getSubscription_type();
-                sub.creator_id = input.getCreator_id();
+                sub.creator_id = Objects.firstNonNull(input.getCreator_id(), input.getUser_id());
                 // TODO: check access rights to the user name
-                sub.creator_name = accountRepository.getUserAccountById(Objects.firstNonNull(input.getCreator_id(), input.getUser_id())).getName();
+                // TODO: introduce some caching (it's not unlikely many subscriptions will have the same creator)
+                sub.creator_name = accountRepository.getUserAccountById(sub.creator_id).getDisplayName();
                 return sub;
               }
             })) {})
@@ -151,7 +151,7 @@ public class ServiceSubscriptionEndpoint {
     @JsonProperty String user_id;
     @JsonProperty String user_name;
     @JsonProperty UserSubscription.SubscriptionType subscription_type;
-    @JsonProperty @Nullable String creator_id;
-    @JsonProperty @Nullable String creator_name;
+    @JsonProperty String creator_id;
+    @JsonProperty String creator_name;
   }
 }
