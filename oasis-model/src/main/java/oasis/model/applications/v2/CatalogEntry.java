@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import oasis.model.annotations.Id;
+import oasis.model.i18n.LocalizableString;
 
 public abstract class CatalogEntry extends CommonProperties {
   @Id private String id;
@@ -11,10 +12,14 @@ public abstract class CatalogEntry extends CommonProperties {
   private List<TargetAudience> target_audience;
   private List<String> category_ids;
   private boolean visible;
+  private LocalizableString tos_uri;
+  private LocalizableString policy_uri;
 
   protected CatalogEntry() {
     target_audience = new ArrayList<>();
     category_ids = new ArrayList<>();
+    tos_uri = new LocalizableString();
+    policy_uri = new LocalizableString();
   }
 
   /**
@@ -28,6 +33,8 @@ public abstract class CatalogEntry extends CommonProperties {
     target_audience = new ArrayList<>(other.getTarget_audience());
     category_ids = new ArrayList<>(other.getCategory_ids());
     visible = other.isVisible();
+    tos_uri = new LocalizableString(other.getTos_uri());
+    policy_uri = new LocalizableString(other.getPolicy_uri());
   }
 
   public String getId() {
@@ -70,6 +77,22 @@ public abstract class CatalogEntry extends CommonProperties {
 
   public void setVisible(boolean visible) {
     this.visible = visible;
+  }
+
+  public LocalizableString getTos_uri() {
+    return tos_uri;
+  }
+
+  public void setTos_uri(LocalizableString tos_uri) {
+    this.tos_uri = tos_uri;
+  }
+
+  public LocalizableString getPolicy_uri() {
+    return policy_uri;
+  }
+
+  public void setPolicy_uri(LocalizableString policy_uri) {
+    this.policy_uri = policy_uri;
   }
 
   public static enum EntryType {
