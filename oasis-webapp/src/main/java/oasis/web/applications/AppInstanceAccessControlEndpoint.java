@@ -56,7 +56,7 @@ public class AppInstanceAccessControlEndpoint {
 
   @GET
   @ApiOperation(
-      value = "Retrieves users subscribed to the service",
+      value = "Retrieves app_users of the app instance",
       response = ACE.class,
       responseContainer = "Array"
   )
@@ -91,6 +91,11 @@ public class AppInstanceAccessControlEndpoint {
   }
 
   @POST
+  @ApiOperation(
+      value = "Add an app_user to the app instance",
+      response = ACE.class,
+      responseContainer = "Array"
+  )
   public Response addToList(AccessControlEntry ace) {
     if (ace.getInstance_id() != null && !instance_id.equals(ace.getInstance_id())) {
       return ResponseFactory.unprocessableEntity("instance_id doesn't match URL");
