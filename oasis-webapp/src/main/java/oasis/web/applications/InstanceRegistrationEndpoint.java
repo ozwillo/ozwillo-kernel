@@ -23,12 +23,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
+import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstance.NeededScope;
 import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.applications.v2.Scope;
 import oasis.model.applications.v2.ScopeRepository;
 import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.ServiceRepository;
+import oasis.model.applications.v2.UserSubscription;
+import oasis.model.applications.v2.UserSubscriptionRepository;
 import oasis.model.authn.ClientType;
 import oasis.model.authn.CredentialsRepository;
 import oasis.web.authn.Authenticated;
@@ -44,6 +47,7 @@ public class InstanceRegistrationEndpoint {
   @Inject AppInstanceRepository appInstanceRepository;
   @Inject ServiceRepository serviceRepository;
   @Inject ScopeRepository scopeRepository;
+  @Inject UserSubscriptionRepository userSubscriptionRepository;
   @Inject CredentialsRepository credentialsRepository;
 
   @PathParam("instance_id") String instanceId;
@@ -71,7 +75,8 @@ public class InstanceRegistrationEndpoint {
     // TODO: check that service's and scope's instance_id is exact.
     // TODO: check existence of needed scopes.
 
-    if (!appInstanceRepository.instantiated(instanceId, acknowledgementRequest.getNeeded_scopes())) {
+    AppInstance instance = appInstanceRepository.instantiated(instanceId, acknowledgementRequest.getNeeded_scopes());
+    if (instance == null) {
       return ResponseFactory.notFound("Pending instance not found");
     }
 
@@ -85,7 +90,17 @@ public class InstanceRegistrationEndpoint {
       service.setInstance_id(instanceId);
       service = serviceRepository.createService(service);
       acknowledgementResponse.put(service.getLocal_id(), service.getId());
+
+      // Automatically subscribe the "instantiator" to all services
+      UserSubscription subscription = new UserSubscription();
+      subscription.setUser_id(instance.getInstantiator_id());
+      subscription.setService_id(service.getId());
+      subscription.setCreator_id(instance.getInstantiator_id());
+      // TODO: support applications bought by individuals
+      subscription.setSubscription_type(UserSubscription.SubscriptionType.ORGANIZATION);
+      userSubscriptionRepository.createUserSubscription(subscription);
     }
+
     return Response.created(Resteasy1099.getBaseUriBuilder(uriInfo).path(AppInstanceEndpoint.class).build(instanceId))
         .entity(new GenericEntity<Map<String, String>>(acknowledgementResponse) {})
         .build();

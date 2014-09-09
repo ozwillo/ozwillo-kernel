@@ -11,7 +11,7 @@ public interface AppInstanceRepository {
 
   Iterable<AppInstance> findByInstantiatorId(String instantiatorId);
 
-  boolean instantiated(String instanceId, List<AppInstance.NeededScope> neededScopes);
+  AppInstance instantiated(String instanceId, List<AppInstance.NeededScope> neededScopes);
 
   boolean deletePendingInstance(String instanceId);
 }
