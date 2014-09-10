@@ -20,12 +20,11 @@ import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.InvalidVersionException;
-import oasis.model.applications.v2.AccessControlEntry;
 import oasis.model.applications.v2.AccessControlRepository;
+import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.ServiceRepository;
-import oasis.model.directory.OrganizationMembership;
-import oasis.model.directory.OrganizationMembershipRepository;
+import oasis.services.authz.AppAdminHelper;
 import oasis.services.etag.EtagService;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
@@ -41,7 +40,8 @@ import oasis.web.utils.ResponseFactory;
 public class ServiceEndpoint {
   @Inject ServiceRepository serviceRepository;
   @Inject AccessControlRepository accessControlRepository;
-  @Inject OrganizationMembershipRepository organizationMembershipRepository;
+  @Inject AppAdminHelper appAdminHelper;
+  @Inject AppInstanceRepository appInstanceRepository;
   @Inject EtagService etagService;
 
   @Context SecurityContext securityContext;
@@ -60,17 +60,14 @@ public class ServiceEndpoint {
     }
 
     if (!service.isVisible()) {
-      // only the admins or designed users should be able to see the service if it's "hidden"
-      // TODO: check app_users; for now app_users are all members of the organization (and app_admins ⊆ app_users)
+      // only the admins or designated users should be able to see the service if it's "hidden"
       OAuthPrincipal principal = (OAuthPrincipal) securityContext.getUserPrincipal();
       if (principal == null) {
         return OAuthAuthenticationFilter.challengeResponse();
       }
       String userId = principal.getAccessToken().getAccountId();
       boolean isAppUser = accessControlRepository.getAccessControlEntry(service.getInstance_id(), userId) != null;
-      OrganizationMembership organizationMembership = organizationMembershipRepository.getOrganizationMembership(userId, service.getProvider_id());
-      boolean isAppAdmin = organizationMembership != null && organizationMembership.isAdmin();
-      if (!isAppUser && !isAppAdmin) {
+      if (!isAppUser && !isAppAdmin(userId, service)) {
         return ResponseFactory.forbidden("Current user is neither an app_admin or app_user for the service");
       }
     }
@@ -105,9 +102,8 @@ public class ServiceEndpoint {
       return ResponseFactory.NOT_FOUND;
     }
 
-    // TODO: support applications bought by individuals
-    if (!isAdminOfOrganization(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId(), updatedService.getProvider_id())) {
-      return ResponseFactory.forbidden("Current user is not an admin of the service's providing organization");
+    if (!isAppAdmin(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId(), updatedService)) {
+      return ResponseFactory.forbidden("Current user is not an app_admin for the service");
     }
 
     try {
@@ -135,13 +131,12 @@ public class ServiceEndpoint {
       return ResponseFactory.preconditionRequiredIfMatch();
     }
 
-    // TODO: support applications bought by individuals
     Service serviceToBeDeleted = serviceRepository.getService(serviceId);
     if (serviceToBeDeleted == null) {
       return ResponseFactory.NOT_FOUND;
     }
-    if (!isAdminOfOrganization(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId(), serviceToBeDeleted.getProvider_id())) {
-      return ResponseFactory.forbidden("Current user is not an admin of the service's providing organization");
+    if (!isAppAdmin(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId(), serviceToBeDeleted)) {
+      return ResponseFactory.forbidden("Current user is not an app_admin for the service");
     }
 
     boolean deleted;
@@ -156,11 +151,7 @@ public class ServiceEndpoint {
     return ResponseFactory.NO_CONTENT;
   }
 
-  private boolean isAdminOfOrganization(String userId, String organizationId) {
-    OrganizationMembership organizationMembership = organizationMembershipRepository.getOrganizationMembership(userId, organizationId);
-    if (organizationMembership == null) {
-      return false;
-    }
-    return organizationMembership.isAdmin();
+  private boolean isAppAdmin(String userId, Service service) {
+    return appAdminHelper.isAdmin(userId, appInstanceRepository.getAppInstance(service.getInstance_id()));
   }
 }

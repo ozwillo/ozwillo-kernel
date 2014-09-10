@@ -41,7 +41,6 @@ import com.google.template.soy.data.SoyMapData;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
-import oasis.model.applications.v2.AccessControlEntry;
 import oasis.model.applications.v2.AccessControlRepository;
 import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstance.NeededScope;
@@ -54,12 +53,11 @@ import oasis.model.authn.AuthorizationCode;
 import oasis.model.authn.SidToken;
 import oasis.model.authz.AuthorizationRepository;
 import oasis.model.authz.AuthorizedScopes;
-import oasis.model.directory.OrganizationMembership;
-import oasis.model.directory.OrganizationMembershipRepository;
 import oasis.openidconnect.OpenIdConnectModule;
 import oasis.openidconnect.RedirectUri;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
+import oasis.services.authz.AppAdminHelper;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.User;
 import oasis.web.authn.UserAuthenticationFilter;
@@ -104,7 +102,7 @@ public class AuthorizationEndpoint {
   @Inject AppInstanceRepository appInstanceRepository;
   @Inject ServiceRepository serviceRepository;
   @Inject AccessControlRepository accessControlRepository;
-  @Inject OrganizationMembershipRepository organizationMembershipRepository;
+  @Inject AppAdminHelper appAdminHelper;
   @Inject ScopeRepository scopeRepository;
   @Inject TokenHandler tokenHandler;
   @Inject JsonFactory jsonFactory;
@@ -190,8 +188,7 @@ public class AuthorizationEndpoint {
     // Check ACL if the service is "private"
     if (service != null && !service.isVisible()) {
       boolean isAppUser = accessControlRepository.getAccessControlEntry(appInstance.getId(), sidToken.getAccountId()) != null;
-      OrganizationMembership membership = organizationMembershipRepository.getOrganizationMembership(sidToken.getAccountId(), service.getProvider_id());
-      boolean isAppAdmin = membership != null && membership.isAdmin();
+      boolean isAppAdmin = appAdminHelper.isAdmin(sidToken.getAccountId(), appInstance);
       if (!isAppUser && !isAppAdmin) {
         throw accessDenied("Current user is neither an app_admin or app_user for the service");
       }
