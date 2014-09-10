@@ -59,13 +59,12 @@ import oasis.model.authn.AuthorizationCode;
 import oasis.model.authn.SidToken;
 import oasis.model.authz.AuthorizationRepository;
 import oasis.model.authz.AuthorizedScopes;
-import oasis.model.directory.OrganizationMembership;
-import oasis.model.directory.OrganizationMembershipRepository;
 import oasis.model.i18n.LocalizableString;
 import oasis.openidconnect.OpenIdConnectModule;
 import oasis.security.KeyPairLoader;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
+import oasis.services.authz.AppAdminHelper;
 import oasis.web.authn.LoginPage;
 import oasis.web.authn.testing.TestUserFilter;
 import oasis.web.view.SoyGuiceModule;
@@ -85,6 +84,7 @@ public class AuthorizationEndpointTest {
       bind(Clock.class).to(FixedClock.class);
 
       bindMock(TokenHandler.class).in(TestSingleton.class);
+      bindMock(AppAdminHelper.class).in(TestSingleton.class);
 
       bindManyNamedInstances(String.class, "bad redirect_uri",
           "https://application/callback#hash",  // has #hash
@@ -675,16 +675,10 @@ public class AuthorizationEndpointTest {
   }
 
   /** Same as {@link #testTransparentRedirection} except with a private service and app_admin user. */
-  @Test public void testPrivateService_isAppAdmin(TokenHandler tokenHandler, OrganizationMembershipRepository organizationMembershipRepository) throws Throwable {
+  @Test public void testPrivateService_isAppAdmin(TokenHandler tokenHandler, AppAdminHelper appAdminHelper) throws Throwable {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
-    when(organizationMembershipRepository.getOrganizationMembership(sidToken.getAccountId(), privateService.getProvider_id()))
-        .thenReturn(new OrganizationMembership() {{
-          setId("membership");
-          setAccountId(sidToken.getAccountId());
-          setOrganizationId(privateService.getProvider_id());
-          setAdmin(true);
-        }});
+    when(appAdminHelper.isAdmin(sidToken.getAccountId(), appInstance)).thenReturn(true);
 
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())
@@ -728,29 +722,6 @@ public class AuthorizationEndpointTest {
   /** Same as {@link #testTransparentRedirection} except with a private service and a user taht's neither an app_user or app_admin. */
   @Test public void testPrivateService_IsNeitherAppUserOrAppAdmin() throws Throwable {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
-
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
-        .queryParam("client_id", appInstance.getId())
-        .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(privateService.getRedirect_uris())))
-        .queryParam("state", encodedState)
-        .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId())
-        .request().get();
-
-    assertRedirectError(response, privateService, "access_denied", "app_admin or app_user");
-  }
-
-  /** Same as {@link #testTransparentRedirection} except with a private service. */
-  @Test public void testPrivateService_orgMemberButNotAdmin(OrganizationMembershipRepository organizationMembershipRepository) throws Throwable {
-    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
-
-    when(organizationMembershipRepository.getOrganizationMembership(sidToken.getAccountId(), privateService.getProvider_id()))
-        .thenReturn(new OrganizationMembership() {{
-          setId("membership");
-          setAccountId(sidToken.getAccountId());
-          setOrganizationId(privateService.getProvider_id());
-          setAdmin(false);
-        }});
 
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())

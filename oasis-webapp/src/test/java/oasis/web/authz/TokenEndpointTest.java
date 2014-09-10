@@ -47,12 +47,11 @@ import oasis.model.authn.AuthorizationCode;
 import oasis.model.authn.RefreshToken;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
-import oasis.model.directory.OrganizationMembership;
-import oasis.model.directory.OrganizationMembershipRepository;
 import oasis.openidconnect.OpenIdConnectModule;
 import oasis.security.KeyPairLoader;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
+import oasis.services.authz.AppAdminHelper;
 import oasis.web.authn.testing.TestClientAuthenticationFilter;
 
 @RunWith(JukitoRunner.class)
@@ -64,6 +63,7 @@ public class TokenEndpointTest {
       bind(TokenEndpoint.class);
 
       bindMock(TokenHandler.class).in(TestSingleton.class);
+      bindMock(AppAdminHelper.class).in(TestSingleton.class);
 
       bind(Clock.class).to(FixedClock.class);
       bind(JsonFactory.class).to(JacksonFactory.class);
@@ -351,16 +351,10 @@ public class TokenEndpointTest {
   }
 
   @Test public void testValidAuthCodeWithAppAdmin(JsonFactory jsonFactory, OpenIdConnectModule.Settings settings, Clock clock,
-      OrganizationMembershipRepository organizationMembershipRepository) throws Throwable {
+      AppAdminHelper appAdminHelper) throws Throwable {
     // given
     resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
-    when(organizationMembershipRepository.getOrganizationMembership(account.getId(), appInstance.getProvider_id())).thenReturn(
-        new OrganizationMembership() {{
-          setId("membership");
-          setAccountId(account.getId());
-          setOrganizationId(appInstance.getProvider_id());
-          setAdmin(true);
-        }});
+    when(appAdminHelper.isAdmin(account.getId(), appInstance)).thenReturn(true);
 
     // when
     Response resp = authCode("valid", validAuthCode.getRedirectUri());
