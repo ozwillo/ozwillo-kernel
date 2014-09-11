@@ -96,8 +96,10 @@ public class InstanceRegistrationEndpoint {
       subscription.setUser_id(instance.getInstantiator_id());
       subscription.setService_id(service.getId());
       subscription.setCreator_id(instance.getInstantiator_id());
-      // TODO: support applications bought by individuals
-      subscription.setSubscription_type(UserSubscription.SubscriptionType.ORGANIZATION);
+      subscription.setSubscription_type(
+          instance.getProvider_id() == null
+              ? UserSubscription.SubscriptionType.PERSONAL
+              : UserSubscription.SubscriptionType.ORGANIZATION);
       userSubscriptionRepository.createUserSubscription(subscription);
     }
 
