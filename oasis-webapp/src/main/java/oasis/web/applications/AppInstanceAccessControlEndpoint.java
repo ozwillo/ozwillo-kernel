@@ -28,8 +28,7 @@ import oasis.model.applications.v2.AccessControlEntry;
 import oasis.model.applications.v2.AccessControlRepository;
 import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstanceRepository;
-import oasis.model.directory.OrganizationMembership;
-import oasis.model.directory.OrganizationMembershipRepository;
+import oasis.services.authz.AppAdminHelper;
 import oasis.services.etag.EtagService;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
@@ -46,7 +45,7 @@ public class AppInstanceAccessControlEndpoint {
   @Inject AccessControlRepository accessControlRepository;
   @Inject AppInstanceRepository appInstanceRepository;
   @Inject AccountRepository accountRepository;
-  @Inject OrganizationMembershipRepository organizationMembershipRepository;
+  @Inject AppAdminHelper appAdminHelper;
   @Inject EtagService etagService;
 
   @Context SecurityContext securityContext;
@@ -65,8 +64,8 @@ public class AppInstanceAccessControlEndpoint {
     if (instance == null) {
       return ResponseFactory.NOT_FOUND;
     }
-    if (!isAdminOfOrganization(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId(), instance.getProvider_id())) {
-      return ResponseFactory.forbidden("Current user is not an admin of the application instance's providing organization");
+    if (!appAdminHelper.isAdmin(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId(), instance)) {
+      return ResponseFactory.forbidden("Current user is not an app_admin for the application instance");
     }
 
     Iterable<AccessControlEntry> aces = accessControlRepository.getAccessControlListForAppInstance(instance_id);
@@ -111,8 +110,8 @@ public class AppInstanceAccessControlEndpoint {
       return ResponseFactory.NOT_FOUND;
     }
     String currentUserId = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId();
-    if (!isAdminOfOrganization(currentUserId, instance.getProvider_id())) {
-      return ResponseFactory.forbidden("Current user is not an admin of the application instance's providing organization");
+    if (!appAdminHelper.isAdmin(currentUserId, instance)) {
+      return ResponseFactory.forbidden("Current user is not an app_admin for the application instance");
     }
     ace.setCreator_id(currentUserId);
 
@@ -126,14 +125,6 @@ public class AppInstanceAccessControlEndpoint {
         .tag(etagService.getEtag(ace))
         .entity(ace)
         .build();
-  }
-
-  private boolean isAdminOfOrganization(String userId, String organizationId) {
-    OrganizationMembership membership = organizationMembershipRepository.getOrganizationMembership(userId, organizationId);
-    if (membership == null) {
-      return false;
-    }
-    return membership.isAdmin();
   }
 
   static class ACE {

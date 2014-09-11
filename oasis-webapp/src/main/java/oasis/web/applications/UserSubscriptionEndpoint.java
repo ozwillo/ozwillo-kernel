@@ -1,6 +1,5 @@
 package oasis.web.applications;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -18,18 +17,21 @@ import javax.ws.rs.core.UriInfo;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
+import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.accounts.AccountRepository;
+import oasis.model.applications.v2.AccessControlRepository;
+import oasis.model.applications.v2.AppInstance;
+import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.ServiceRepository;
 import oasis.model.applications.v2.UserSubscription;
 import oasis.model.applications.v2.UserSubscriptionRepository;
-import oasis.model.directory.OrganizationMembership;
-import oasis.model.directory.OrganizationMembershipRepository;
 import oasis.model.i18n.LocalizableString;
+import oasis.services.authz.AppAdminHelper;
 import oasis.services.etag.EtagService;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
@@ -44,8 +46,10 @@ import oasis.web.utils.ResponseFactory;
 @Api(value = "subs-user", description = "User-Service subscriptions (from the user point of view)")
 public class UserSubscriptionEndpoint {
   @Inject UserSubscriptionRepository userSubscriptionRepository;
-  @Inject OrganizationMembershipRepository organizationMembershipRepository;
   @Inject ServiceRepository serviceRepository;
+  @Inject AppInstanceRepository appInstanceRepository;
+  @Inject AppAdminHelper appAdminHelper;
+  @Inject AccessControlRepository accessControlRepository;
   @Inject AccountRepository accountRepository;
   @Inject EtagService etagService;
 
@@ -114,12 +118,20 @@ public class UserSubscriptionEndpoint {
     if (service == null) {
       return ResponseFactory.unprocessableEntity("Unknown service");
     }
-    if (!service.isVisible()) {
-      // a personal subscription can only target a public service
-      // TODO: support applications bought by individuals.
+    if (!service.isVisible() && !isAppUser(service)) {
+      // a personal subscription can only target a public service, or once for which the user is an app_user
       return ResponseFactory.forbidden("Cannot subscribe to this service");
     }
     return createSubscription(subscription);
+  }
+
+  private boolean isAppUser(Service service) {
+    AppInstance instance = appInstanceRepository.getAppInstance(service.getInstance_id());
+    if (instance == null) {
+      // XXX: that should not happen; log? return a 500?
+      return false;
+    }
+    return appAdminHelper.isAdmin(userId, instance);
   }
 
   /** Called when the subscription_type is ORGANIZATION. */
@@ -128,26 +140,20 @@ public class UserSubscriptionEndpoint {
     if (service == null) {
       return ResponseFactory.unprocessableEntity("Unknown service");
     }
-    if (!isMemberOfOrganization(userId, service.getProvider_id())) {
-      return ResponseFactory.unprocessableEntity("Target user is not a member of the organization");
+    AppInstance instance = appInstanceRepository.getAppInstance(service.getInstance_id());
+    if (instance == null) {
+      return ResponseFactory.build(Response.Status.INTERNAL_SERVER_ERROR, "Oops, service has no app instance");
     }
-    if (!isAdminOfOrganization(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId(),
-        service.getProvider_id())) {
-      return ResponseFactory.forbidden("Current user is not an administrator of target organization");
+    if (Strings.isNullOrEmpty(instance.getProvider_id())) {
+      return ResponseFactory.forbidden("Cannot create a non-personal subscription for a personal app instance");
+    }
+    if (!appAdminHelper.isAdmin(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId(), instance)) {
+      return ResponseFactory.forbidden("Current user is not an app_admin for the service");
+    }
+    if (accessControlRepository.getAccessControlEntry(instance.getId(), userId) == null) {
+      return ResponseFactory.unprocessableEntity("Target user is not an app_user for the service");
     }
     return createSubscription(subscription);
-  }
-
-  private boolean isMemberOfOrganization(String userId, String organizationId) {
-    return organizationMembershipRepository.getOrganizationMembership(userId, organizationId) != null;
-  }
-
-  private boolean isAdminOfOrganization(String userId, String organizationId) {
-    OrganizationMembership membership = organizationMembershipRepository.getOrganizationMembership(userId, organizationId);
-    if (membership == null) {
-      return false;
-    }
-    return membership.isAdmin();
   }
 
   private Response createSubscription(UserSubscription subscription) {

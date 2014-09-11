@@ -17,17 +17,24 @@ import javax.ws.rs.core.UriInfo;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
+import com.google.common.base.Predicate;
+import com.google.common.base.Strings;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.accounts.AccountRepository;
+import oasis.model.applications.v2.AccessControlEntry;
+import oasis.model.applications.v2.AccessControlRepository;
+import oasis.model.applications.v2.AppInstance;
+import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.ServiceRepository;
 import oasis.model.applications.v2.UserSubscription;
 import oasis.model.applications.v2.UserSubscriptionRepository;
-import oasis.model.directory.OrganizationMembership;
-import oasis.model.directory.OrganizationMembershipRepository;
+import oasis.services.authz.AppAdminHelper;
 import oasis.services.etag.EtagService;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
@@ -42,8 +49,10 @@ import oasis.web.utils.ResponseFactory;
 @Api(value = "subs-service", description = "User-Service subscriptions (from the service point of view)")
 public class ServiceSubscriptionEndpoint {
   @Inject UserSubscriptionRepository userSubscriptionRepository;
-  @Inject OrganizationMembershipRepository organizationMembershipRepository;
   @Inject ServiceRepository serviceRepository;
+  @Inject AccessControlRepository accessControlRepository;
+  @Inject AppAdminHelper appAdminHelper;
+  @Inject AppInstanceRepository appInstanceRepository;
   @Inject AccountRepository accountRepository;
   @Inject EtagService etagService;
 
@@ -54,21 +63,37 @@ public class ServiceSubscriptionEndpoint {
 
   @GET
   @ApiOperation(
-      value = "Retrieves users subscribed to the service",
+      value = "Retrieves users subscribed to the service (filtered to only the app_users)",
       response = ServiceSub.class,
       responseContainer = "Array"
   )
   public Response getSubscriptions() {
-    // TODO: support applications bought by individuals
-    Service service = serviceRepository.getService(serviceId);
-    if (service == null) {
+    AppInstance instance = getAppInstance();
+    if (instance == null) {
       return ResponseFactory.NOT_FOUND;
     }
-    if (!isAdminOfOrganization(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId(), service.getProvider_id())) {
-      return ResponseFactory.forbidden("Current user is not an admin of the service's providing organization");
+    if (!appAdminHelper.isAdmin(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId(), instance)) {
+      return ResponseFactory.forbidden("Current user is not an app_admin for the service");
     }
 
     Iterable<UserSubscription> subscriptions = userSubscriptionRepository.getSubscriptionsForService(serviceId);
+
+    // Filter the list to only the app_users.
+    final ImmutableSet<String> app_users = FluentIterable.from(accessControlRepository.getAccessControlListForAppInstance(instance.getId()))
+        .transform(new Function<AccessControlEntry, String>() {
+          @Override
+          public String apply(AccessControlEntry input) {
+            return input.getUser_id();
+          }
+        })
+        .toSet();
+    subscriptions = Iterables.filter(subscriptions, new Predicate<UserSubscription>() {
+      @Override
+      public boolean apply(UserSubscription input) {
+        return app_users.contains(input.getUser_id());
+      }
+    });
+
     return Response.ok()
         .entity(new GenericEntity<Iterable<ServiceSub>>(Iterables.transform(subscriptions,
             new Function<UserSubscription, ServiceSub>() {
@@ -93,7 +118,7 @@ public class ServiceSubscriptionEndpoint {
 
   @POST
   @ApiOperation(
-      value = "Subscribes a user to the service; the user must be a member of the organization providing the service",
+      value = "Subscribes a user to the service; the user must be an app_user for the app-instance",
       response = UserSubscription.class
   )
   public Response subscribe(UserSubscription subscription) {
@@ -106,30 +131,28 @@ public class ServiceSubscriptionEndpoint {
       return ResponseFactory.unprocessableEntity("This endpoint can only create non-personal subscriptions");
     }
     subscription.setSubscription_type(UserSubscription.SubscriptionType.ORGANIZATION);
-    Service service = serviceRepository.getService(subscription.getService_id());
-    if (service == null) {
+    AppInstance instance = getAppInstance();
+    if (instance == null) {
       return ResponseFactory.NOT_FOUND;
     }
-    if (!isMemberOfOrganization(subscription.getUser_id(), service.getProvider_id())) {
-      return ResponseFactory.unprocessableEntity("Target user is not a member of the organization");
+    if (Strings.isNullOrEmpty(instance.getProvider_id())) {
+      return ResponseFactory.forbidden("Cannot create a non-personal subscription for a personal app instance");
     }
-    if (!isAdminOfOrganization(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId(),
-        service.getProvider_id())) {
-      return ResponseFactory.forbidden("Current user is not an administrator of target organization");
+    if (!appAdminHelper.isAdmin(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId(), instance)) {
+      return ResponseFactory.forbidden("Current user is not an app_admin for the service");
+    }
+    if (accessControlRepository.getAccessControlEntry(instance.getId(), subscription.getUser_id()) == null) {
+      return ResponseFactory.unprocessableEntity("Target user is not an app_user for the service");
     }
     return createSubscription(subscription);
   }
 
-  private boolean isMemberOfOrganization(String userId, String organizationId) {
-    return organizationMembershipRepository.getOrganizationMembership(userId, organizationId) != null;
-  }
-
-  private boolean isAdminOfOrganization(String userId, String organizationId) {
-    OrganizationMembership membership = organizationMembershipRepository.getOrganizationMembership(userId, organizationId);
-    if (membership == null) {
-      return false;
+  private AppInstance getAppInstance() {
+    Service service = serviceRepository.getService(serviceId);
+    if (service == null) {
+      return null;
     }
-    return membership.isAdmin();
+    return appInstanceRepository.getAppInstance(service.getInstance_id());
   }
 
   private Response createSubscription(UserSubscription subscription) {
