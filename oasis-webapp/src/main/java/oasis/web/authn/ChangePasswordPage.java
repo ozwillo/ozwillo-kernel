@@ -20,11 +20,13 @@ import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.authn.ClientType;
 import oasis.model.authn.TokenRepository;
+import oasis.openidconnect.OpenIdConnectModule;
 import oasis.services.authn.CredentialsService;
 import oasis.services.cookies.CookieFactory;
 import oasis.web.view.SoyView;
 import oasis.web.view.soy.ChangePasswordSoyInfo;
 import oasis.web.view.soy.ChangePasswordSoyInfo.ChangePasswordSoyTemplateInfo;
+import oasis.web.view.soy.ChangePasswordSoyInfo.PasswordChangedSoyTemplateInfo;
 
 @Path("/a/password")
 @Authenticated @User
@@ -33,6 +35,7 @@ public class ChangePasswordPage {
   @Inject AccountRepository accountRepository;
   @Inject CredentialsService credentialsService;
   @Inject TokenRepository tokenRepository;
+  @Inject OpenIdConnectModule.Settings settings;
 
   @Context SecurityContext securityContext;
 
@@ -68,7 +71,10 @@ public class ChangePasswordPage {
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
         .cookie(CookieFactory.createExpiredCookie(UserFilter.COOKIE_NAME, securityContext.isSecure()))
-        .entity(new SoyView(ChangePasswordSoyInfo.PASSWORD_CHANGED))
+        .entity(new SoyView(ChangePasswordSoyInfo.PASSWORD_CHANGED,
+            new SoyMapData(
+                PasswordChangedSoyTemplateInfo.CONTINUE, settings.landingPage == null ? null : settings.landingPage.toString()
+            )))
         .build();
   }
 
