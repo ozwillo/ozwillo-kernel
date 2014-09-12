@@ -40,6 +40,7 @@ import oasis.model.authn.CredentialsRepository;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Organization;
 import oasis.services.authn.CredentialsService;
+import oasis.services.authn.PasswordGenerator;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
@@ -59,6 +60,7 @@ public class MarketBuyEndpoint {
   @Inject ApplicationRepository applicationRepository;
   @Inject DirectoryRepository directoryRepository;
   @Inject AppInstanceRepository appInstanceRepository;
+  @Inject PasswordGenerator passwordGenerator;
   @Inject CredentialsService credentialsService;
   @Inject CredentialsRepository credentialsRepository;
 
@@ -128,8 +130,8 @@ public class MarketBuyEndpoint {
     instance.setStatus(AppInstance.InstantiationStatus.PENDING);
 
     instance = appInstanceRepository.createAppInstance(instance);
-    // FIXME: temporarily set the password to the instance id
-    credentialsService.setPassword(ClientType.PROVIDER, instance.getId(), instance.getId());
+    String pwd = passwordGenerator.generate();
+    credentialsService.setPassword(ClientType.PROVIDER, instance.getId(), pwd);
 
     Future<Response> future = ClientBuilder.newClient()
         .target(application.getInstantiation_uri())
@@ -140,7 +142,7 @@ public class MarketBuyEndpoint {
         .post(Entity.json(new CreateInstanceRequest()
             .setInstance_id(instance.getId())
             .setClient_id(instance.getId())
-            .setClient_secret(instance.getId())
+            .setClient_secret(pwd)
             .setUser_id(userId)
             .setOrganization(organization)
             .setInstance_registration_uri(Resteasy1099.getBaseUriBuilder(uriInfo).path(InstanceRegistrationEndpoint.class).build(instance.getId()))));
