@@ -16,8 +16,8 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.api.client.repackaged.com.google.common.base.Strings;
 import com.google.common.base.Function;
+import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
@@ -32,7 +32,6 @@ import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
 import oasis.web.resteasy.Resteasy1099;
 import oasis.web.utils.ResponseFactory;
-import oasis.web.utils.UserAgentFingerprinter;
 
 @Path("/d/memberships/org/{organization_id}")
 @Consumes(MediaType.APPLICATION_JSON)
