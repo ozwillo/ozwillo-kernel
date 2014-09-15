@@ -18,10 +18,10 @@ import com.google.common.io.Resources;
 import com.google.template.soy.data.SoyMapData;
 import com.wordnik.swagger.jaxrs.listing.ApiListingResourceJSON;
 
+import oasis.soy.SoyTemplate;
+import oasis.soy.templates.SwaggerUISoyInfo;
 import oasis.web.resteasy.Resteasy1099;
 import oasis.web.utils.ResponseFactory;
-import oasis.web.view.SoyView;
-import oasis.web.view.soy.SwaggerUISoyInfo;
 
 @Path("/")
 public class SwaggerUI {
@@ -53,7 +53,7 @@ public class SwaggerUI {
         SwaggerUISoyInfo.Param.BASE_PATH, Resteasy1099.getBaseUriBuilder(uriInfo).path("/swagger-ui/").build().toString(),
         SwaggerUISoyInfo.Param.API_PATH, Resteasy1099.getBaseUriBuilder(uriInfo).path(ApiListingResourceJSON.class).build().toString()
     );
-    return Response.ok(new SoyView(SwaggerUISoyInfo.SWAGGER_UI, model)).build();
+    return Response.ok(new SoyTemplate(SwaggerUISoyInfo.SWAGGER_UI, model)).build();
   }
 
   @GET

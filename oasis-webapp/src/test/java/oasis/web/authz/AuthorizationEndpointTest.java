@@ -67,8 +67,8 @@ import oasis.services.authn.TokenSerializer;
 import oasis.services.authz.AppAdminHelper;
 import oasis.web.authn.LoginPage;
 import oasis.web.authn.testing.TestUserFilter;
-import oasis.web.view.SoyGuiceModule;
-import oasis.web.view.SoyTofuBodyWriter;
+import oasis.soy.SoyGuiceModule;
+import oasis.web.view.SoyTemplateBodyWriter;
 
 @RunWith(JukitoRunner.class)
 public class AuthorizationEndpointTest {
@@ -209,7 +209,7 @@ public class AuthorizationEndpointTest {
 
   @Before public void setUp() {
     resteasy.getDeployment().getRegistry().addPerRequestResource(AuthorizationEndpoint.class);
-    resteasy.getDeployment().getProviderFactory().register(SoyTofuBodyWriter.class);
+    resteasy.getDeployment().getProviderFactory().register(SoyTemplateBodyWriter.class);
   }
 
   @Test public void testNotLoggedIn() {

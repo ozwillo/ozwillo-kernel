@@ -23,10 +23,10 @@ import oasis.model.authn.TokenRepository;
 import oasis.openidconnect.OpenIdConnectModule;
 import oasis.services.authn.CredentialsService;
 import oasis.services.cookies.CookieFactory;
-import oasis.web.view.SoyView;
-import oasis.web.view.soy.ChangePasswordSoyInfo;
-import oasis.web.view.soy.ChangePasswordSoyInfo.ChangePasswordSoyTemplateInfo;
-import oasis.web.view.soy.ChangePasswordSoyInfo.PasswordChangedSoyTemplateInfo;
+import oasis.soy.SoyTemplate;
+import oasis.soy.templates.ChangePasswordSoyInfo;
+import oasis.soy.templates.ChangePasswordSoyInfo.ChangePasswordSoyTemplateInfo;
+import oasis.soy.templates.ChangePasswordSoyInfo.PasswordChangedSoyTemplateInfo;
 
 @Path("/a/password")
 @Authenticated @User
@@ -71,7 +71,7 @@ public class ChangePasswordPage {
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
         .cookie(CookieFactory.createExpiredCookie(UserFilter.COOKIE_NAME, securityContext.isSecure()))
-        .entity(new SoyView(ChangePasswordSoyInfo.PASSWORD_CHANGED,
+        .entity(new SoyTemplate(ChangePasswordSoyInfo.PASSWORD_CHANGED,
             new SoyMapData(
                 PasswordChangedSoyTemplateInfo.CONTINUE, settings.landingPage == null ? null : settings.landingPage.toString()
             )))
@@ -88,7 +88,7 @@ public class ChangePasswordPage {
         .header("X-Frame-Options", "DENY")
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
-        .entity(new SoyView(ChangePasswordSoyInfo.CHANGE_PASSWORD,
+        .entity(new SoyTemplate(ChangePasswordSoyInfo.CHANGE_PASSWORD,
             new SoyMapData(
                 ChangePasswordSoyTemplateInfo.EMAIL, account.getEmail_address(),
                 ChangePasswordSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(ChangePasswordPage.class).build().toString(),

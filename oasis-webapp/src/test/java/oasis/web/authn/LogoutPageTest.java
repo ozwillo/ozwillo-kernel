@@ -42,8 +42,8 @@ import oasis.openidconnect.RedirectUri;
 import oasis.security.KeyPairLoader;
 import oasis.web.authn.testing.TestUserFilter;
 import oasis.web.authz.KeysEndpoint;
-import oasis.web.view.SoyGuiceModule;
-import oasis.web.view.SoyTofuBodyWriter;
+import oasis.soy.SoyGuiceModule;
+import oasis.web.view.SoyTemplateBodyWriter;
 
 @RunWith(JukitoRunner.class)
 public class LogoutPageTest {
@@ -92,7 +92,7 @@ public class LogoutPageTest {
 
   @Before public void setUp() {
     resteasy.getDeployment().getRegistry().addPerRequestResource(LogoutPage.class);
-    resteasy.getDeployment().getProviderFactory().register(SoyTofuBodyWriter.class);
+    resteasy.getDeployment().getProviderFactory().register(SoyTemplateBodyWriter.class);
   }
   @Test public void testGet_notLoggedIn_noParam(OpenIdConnectModule.Settings settings) {
     Response response = resteasy.getClient().target(UriBuilder.fromResource(LogoutPage.class)).request().get();

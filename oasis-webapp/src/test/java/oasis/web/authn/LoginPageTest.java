@@ -40,8 +40,8 @@ import oasis.model.authn.TokenRepository;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.UserPasswordAuthenticator;
 import oasis.web.authn.testing.TestUserFilter;
-import oasis.web.view.SoyGuiceModule;
-import oasis.web.view.SoyTofuBodyWriter;
+import oasis.soy.SoyGuiceModule;
+import oasis.web.view.SoyTemplateBodyWriter;
 
 @RunWith(JukitoRunner.class)
 public class LoginPageTest {
@@ -99,7 +99,7 @@ public class LoginPageTest {
 
   @Before public void setUp() throws Exception {
     resteasy.getDeployment().getRegistry().addPerRequestResource(LoginPage.class);
-    resteasy.getDeployment().getProviderFactory().register(SoyTofuBodyWriter.class);
+    resteasy.getDeployment().getProviderFactory().register(SoyTemplateBodyWriter.class);
   }
 
   @Test public void loginPageWithDefaults() {

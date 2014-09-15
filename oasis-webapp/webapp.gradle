@@ -57,7 +57,7 @@ task generateSoyParseInfo(type: JavaExec) {
   ext.outputDir = "$buildDir/generated-sources/soy/"
   outputs.dir outputDir
 
-  def javaPackage = 'oasis.web.view.soy'
+  def javaPackage = 'oasis.soy.templates'
 
   main = 'com.google.template.soy.SoyParseInfoGenerator'
   classpath = configurations.soy

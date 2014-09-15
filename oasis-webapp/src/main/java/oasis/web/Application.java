@@ -52,7 +52,7 @@ import oasis.web.userdirectory.UserDirectoryEndpoint;
 import oasis.web.userdirectory.UserEndpoint;
 import oasis.web.userdirectory.UserMembershipEndpoint;
 import oasis.web.userinfo.UserInfoEndpoint;
-import oasis.web.view.SoyTofuBodyWriter;
+import oasis.web.view.SoyTemplateBodyWriter;
 
 public class Application extends javax.ws.rs.core.Application {
 
@@ -64,7 +64,7 @@ public class Application extends javax.ws.rs.core.Application {
         // Providers
         JacksonJsonProvider.class, // Note: this is our own implementation
         // Views
-        SoyTofuBodyWriter.class,
+        SoyTemplateBodyWriter.class,
         // Swagger
         ResourceListingProvider.class,
         ApiListingResourceJSON.class,

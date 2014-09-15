@@ -19,12 +19,12 @@ import com.google.common.io.Resources;
 import com.google.template.soy.data.SanitizedContent;
 import com.google.template.soy.data.SoyMapData;
 
+import oasis.soy.SoyTemplate;
+import oasis.soy.templates.KibanaConfigSoyInfo;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.User;
 import oasis.web.resteasy.Resteasy1099;
 import oasis.web.utils.ResponseFactory;
-import oasis.web.view.SoyView;
-import oasis.web.view.soy.KibanaConfigSoyInfo;
 
 @Path("/kibana/")
 public class Kibana {
@@ -66,7 +66,7 @@ public class Kibana {
     SoyMapData model = new SoyMapData(
         KibanaConfigSoyInfo.Param.ES_PATH, UriBuilder.fromResource(ElasticSearchProxy.class).build("").toString()
     );
-    return Response.ok(new SoyView(KibanaConfigSoyInfo.KIBANA_CONFIG, SanitizedContent.ContentKind.JS, model)).build();
+    return Response.ok(new SoyTemplate(KibanaConfigSoyInfo.KIBANA_CONFIG, SanitizedContent.ContentKind.JS, model)).build();
   }
 
   @GET

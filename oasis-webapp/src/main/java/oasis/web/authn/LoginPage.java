@@ -36,15 +36,15 @@ import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.services.authn.UserPasswordAuthenticator;
 import oasis.services.cookies.CookieFactory;
+import oasis.soy.SoyTemplate;
+import oasis.soy.templates.LoginSoyInfo;
+import oasis.soy.templates.LoginSoyInfo.LoginSoyTemplateInfo;
+import oasis.soy.templates.ReauthSoyInfo;
+import oasis.soy.templates.ReauthSoyInfo.ReauthSoyTemplateInfo;
 import oasis.web.StaticResources;
 import oasis.web.resteasy.Resteasy1099;
 import oasis.web.security.StrictReferer;
 import oasis.web.utils.UserAgentFingerprinter;
-import oasis.web.view.SoyView;
-import oasis.web.view.soy.LoginSoyInfo;
-import oasis.web.view.soy.LoginSoyInfo.LoginSoyTemplateInfo;
-import oasis.web.view.soy.ReauthSoyInfo;
-import oasis.web.view.soy.ReauthSoyInfo.ReauthSoyTemplateInfo;
 
 @User
 @Path("/a/login")
@@ -160,18 +160,18 @@ public class LoginPage {
   }
 
   static Response reauthForm(Response.ResponseBuilder builder, URI continueUrl, @Nullable String errorMessage, UserAccount userAccount) {
-    SoyView soyView = new SoyView(ReauthSoyInfo.REAUTH, new SoyMapData(
+    SoyTemplate soyTemplate = new SoyTemplate(ReauthSoyInfo.REAUTH, new SoyMapData(
         ReauthSoyTemplateInfo.REAUTH_EMAIL, userAccount.getEmail_address(),
         ReauthSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(LoginPage.class).build().toString(),
         ReauthSoyTemplateInfo.CONTINUE, continueUrl.toString(),
         ReauthSoyTemplateInfo.ERROR_MESSAGE, errorMessage
     ));
 
-    return buildResponseFromView(builder, soyView);
+    return buildResponseFromView(builder, soyTemplate);
   }
 
   static Response loginForm(Response.ResponseBuilder builder, URI continueUrl, OpenIdConnectModule.Settings settings, @Nullable String errorMessage) {
-    SoyView soyView = new SoyView(LoginSoyInfo.LOGIN, new SoyMapData(
+    SoyTemplate soyTemplate = new SoyTemplate(LoginSoyInfo.LOGIN, new SoyMapData(
         LoginSoyTemplateInfo.SIGN_UP_FORM_ACTION, UriBuilder.fromResource(SignUpPage.class).build().toString(),
         LoginSoyTemplateInfo.LOGIN_FORM_ACTION, UriBuilder.fromResource(LoginPage.class).build().toString(),
         LoginSoyTemplateInfo.CONTINUE, continueUrl.toString(),
@@ -179,10 +179,10 @@ public class LoginPage {
         LoginSoyTemplateInfo.OVERVIEW, settings.landingPage == null ? null : settings.landingPage.toString()
     ));
 
-    return buildResponseFromView(builder, soyView);
+    return buildResponseFromView(builder, soyTemplate);
   }
 
-  private static Response buildResponseFromView(Response.ResponseBuilder builder, SoyView soyView) {
+  private static Response buildResponseFromView(Response.ResponseBuilder builder, SoyTemplate soyTemplate) {
     return builder
         .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store")
         .header("Pragma", "no-cache")
@@ -190,7 +190,7 @@ public class LoginPage {
         .header("X-Frame-Options", "DENY")
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
-        .entity(soyView)
+        .entity(soyTemplate)
         .build();
   }
 

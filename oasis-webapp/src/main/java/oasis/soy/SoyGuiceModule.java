@@ -1,4 +1,4 @@
-package oasis.web.view;
+package oasis.soy;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;

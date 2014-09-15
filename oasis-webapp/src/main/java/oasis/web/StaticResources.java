@@ -14,9 +14,9 @@ import javax.ws.rs.core.Response;
 
 import com.google.common.io.Resources;
 
+import oasis.soy.SoyTemplate;
+import oasis.soy.templates.HomeSoyInfo;
 import oasis.web.utils.ResponseFactory;
-import oasis.web.view.SoyView;
-import oasis.web.view.soy.HomeSoyInfo;
 
 @Path("/")
 public class StaticResources {
@@ -25,7 +25,7 @@ public class StaticResources {
   @Path("")
   @Produces(MediaType.TEXT_HTML)
   public Response home() {
-    return Response.ok(new SoyView(HomeSoyInfo.HOME)).build();
+    return Response.ok(new SoyTemplate(HomeSoyInfo.HOME)).build();
   }
 
   @GET

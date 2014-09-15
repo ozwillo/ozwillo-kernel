@@ -58,14 +58,14 @@ import oasis.openidconnect.RedirectUri;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.services.authz.AppAdminHelper;
+import oasis.soy.SoyTemplate;
+import oasis.soy.templates.AuthorizeSoyInfo;
+import oasis.soy.templates.AuthorizeSoyInfo.AuthorizeSoyTemplateInfo;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.User;
 import oasis.web.authn.UserAuthenticationFilter;
 import oasis.web.authn.UserSessionPrincipal;
 import oasis.web.resteasy.Resteasy1099;
-import oasis.web.view.SoyView;
-import oasis.web.view.soy.AuthorizeSoyInfo;
-import oasis.web.view.soy.AuthorizeSoyInfo.AuthorizeSoyTemplateInfo;
 
 @Path("/a/auth")
 @User
@@ -329,7 +329,7 @@ public class AuthorizationEndpoint {
         .header("X-Frame-Options", "DENY")
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
-        .entity(new SoyView(AuthorizeSoyInfo.AUTHORIZE,
+        .entity(new SoyTemplate(AuthorizeSoyInfo.AUTHORIZE,
             new SoyMapData(
                 AuthorizeSoyTemplateInfo.APP_ID, serviceProvider.getId(),
                 // TODO: I18N

@@ -37,11 +37,11 @@ import oasis.model.authn.TokenRepository;
 import oasis.openidconnect.OpenIdConnectModule;
 import oasis.openidconnect.RedirectUri;
 import oasis.services.cookies.CookieFactory;
+import oasis.soy.SoyTemplate;
+import oasis.soy.templates.LogoutSoyInfo;
+import oasis.soy.templates.LogoutSoyInfo.LogoutSoyTemplateInfo;
 import oasis.web.resteasy.Resteasy1099;
 import oasis.web.security.StrictReferer;
-import oasis.web.view.SoyView;
-import oasis.web.view.soy.LogoutSoyInfo;
-import oasis.web.view.soy.LogoutSoyInfo.LogoutSoyTemplateInfo;
 
 @User
 @Path("/a/logout")
@@ -129,7 +129,7 @@ public class LogoutPage {
       viewModel.put(LogoutSoyTemplateInfo.SERVICE_NAME, service.getName().get(Locale.ROOT));
       viewModel.put(LogoutSoyTemplateInfo.SERVICE_URL, service.getService_uri());
     }
-    return Response.ok(new SoyView(LogoutSoyInfo.LOGOUT, viewModel)).build();
+    return Response.ok(new SoyTemplate(LogoutSoyInfo.LOGOUT, viewModel)).build();
   }
 
   private Response redirectTo(@Nullable URI continueUrl) {
