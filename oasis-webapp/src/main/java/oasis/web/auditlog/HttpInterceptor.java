@@ -3,6 +3,7 @@ package oasis.web.auditlog;
 import static com.google.common.base.Predicates.*;
 
 import java.io.IOException;
+import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -22,6 +23,11 @@ import com.google.common.collect.Maps;
 
 import oasis.auditlog.AuditLogService;
 import oasis.auditlog.HttpAuditLogEvent;
+import oasis.model.authn.AccessToken;
+import oasis.model.authn.SidToken;
+import oasis.web.authn.ClientPrincipal;
+import oasis.web.authn.OAuthPrincipal;
+import oasis.web.authn.UserSessionPrincipal;
 
 @Provider
 @Priority(Integer.MIN_VALUE)
@@ -50,28 +56,43 @@ public class HttpInterceptor implements ContainerRequestFilter, ContainerRespons
 
   @Override
   public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) throws IOException {
-    Long startTimeNanos = (Long) requestContext.getProperty(START_TIME_PROP);
-    Long elapsedNanos = null;
-    Long startTimeMillis = null;
-    Long endTimeMillis = System.currentTimeMillis();
-    if (startTimeNanos != null) {
-      elapsedNanos = System.nanoTime() - startTimeNanos;
-      startTimeMillis = endTimeMillis - TimeUnit.NANOSECONDS.toMillis(elapsedNanos);
-    }
+    HttpAuditLogEvent event = auditLogService.event(HttpAuditLogEvent.class)
+        .setUrl(requestContext.getUriInfo().getRequestUri().toString())
+        .setMethod(requestContext.getMethod());
 
     Map<String, List<String>> headers = Maps.filterKeys(requestContext.getHeaders(), in(HTTP_HEADERS_TO_LOG));
+    event.setHeaders(ImmutableMap.<String, Object>copyOf(headers));
 
-    auditLogService.event(HttpAuditLogEvent.class)
-        .setUrl(requestContext.getUriInfo().getRequestUri().toString())
-        .setMethod(requestContext.getMethod())
-        .setHeaders(ImmutableMap.<String, Object>copyOf(headers))
-        .setStartTime(startTimeMillis)
-        .setEndTime(endTimeMillis)
-        .setElapsedTime(elapsedNanos)
-        .setStatus(responseContext.getStatus())
-        .setAuthenticationScheme(requestContext.getSecurityContext().getAuthenticationScheme())
-        .setAuthenticatedUser(requestContext.getSecurityContext().getUserPrincipal() != null
-            ? requestContext.getSecurityContext().getUserPrincipal().getName() : null)
-        .log();
+    event.setStatus(responseContext.getStatus());
+
+    Long startTimeNanos = (Long) requestContext.getProperty(START_TIME_PROP);
+    if (startTimeNanos != null) {
+      long elapsedNanos = System.nanoTime() - startTimeNanos;
+      long endTimeMillis = System.currentTimeMillis();
+      long startTimeMillis = endTimeMillis - TimeUnit.NANOSECONDS.toMillis(elapsedNanos);
+
+      event.setStartTime(startTimeMillis)
+          .setEndTime(endTimeMillis)
+          .setElapsedTime(elapsedNanos);
+    }
+
+    event.setAuthenticationScheme(requestContext.getSecurityContext().getAuthenticationScheme());
+    Principal principal = requestContext.getSecurityContext().getUserPrincipal();
+    // TODO: make it more general; possibly let each auth filter append log data to the request
+    if (principal instanceof UserSessionPrincipal) {
+      SidToken sidToken = ((UserSessionPrincipal) principal).getSidToken();
+      event.setRemoteUser(sidToken.getAccountId());
+    } else if (principal instanceof ClientPrincipal) {
+      event.setRemoteClient(((ClientPrincipal) principal).getClientId());
+    } else if (principal instanceof OAuthPrincipal) {
+      AccessToken accessToken = ((OAuthPrincipal) principal).getAccessToken();
+      event.setRemoteUser(accessToken.getAccountId())
+          .setRemoteClient(accessToken.getServiceProviderId());
+    } else if (principal != null) {
+      event.setRemoteUser(principal.getName());
+    }
+
+
+    event.log();
   }
 }

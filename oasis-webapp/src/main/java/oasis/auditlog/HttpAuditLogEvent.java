@@ -19,7 +19,8 @@ public class HttpAuditLogEvent extends AuditLogEvent {
   private static final String END_TIME = "end_time";
   private static final String ELAPSED_TIME = "elapsed_time";
   private static final String AUTHENTICATION_SCHEME = "auth_scheme";
-  private static final String AUTHENTICATED_USER = "auth_user";
+  private static final String REMOTE_USER = "remote_user";
+  private static final String REMOTE_CLIENT = "remote_client";
 
   public HttpAuditLogEvent() {
     super(TYPE);
@@ -73,9 +74,16 @@ public class HttpAuditLogEvent extends AuditLogEvent {
     return this;
   }
 
-  public HttpAuditLogEvent setAuthenticatedUser(@Nullable String authUser) {
-    if (authUser != null) {
-      this.addContextData(AUTHENTICATED_USER, authUser);
+  public HttpAuditLogEvent setRemoteUser(@Nullable String remoteUser) {
+    if (remoteUser != null) {
+      this.addContextData(REMOTE_USER, remoteUser);
+    }
+    return this;
+  }
+
+  public HttpAuditLogEvent setRemoteClient(@Nullable String remoteClient) {
+    if (remoteClient != null) {
+      this.addContextData(REMOTE_CLIENT, remoteClient);
     }
     return this;
   }
