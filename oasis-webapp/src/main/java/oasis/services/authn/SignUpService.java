@@ -18,6 +18,8 @@ public class SignUpService {
   public UserAccount signUp(String email, String password, String nickname) {
     UserAccount userAccount = new UserAccount();
     userAccount.setEmail_address(email);
+    // FIXME: temporarily auto-verify the e-mail address
+    userAccount.setEmail_verified(true);
     userAccount.setNickname(nickname);
     // TODO: Set the locale with the locale selected (and use a "matching" zoneinfo)
     userAccount.setLocale("en-GB");

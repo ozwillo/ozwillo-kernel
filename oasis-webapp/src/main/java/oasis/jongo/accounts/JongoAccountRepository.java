@@ -32,15 +32,17 @@ public class JongoAccountRepository implements AccountRepository, JongoBootstrap
 
   @Override
   public UserAccount getUserAccountByEmail(String email) {
+    // XXX: accounts aren't activated until you verify the e-mail address
     return this.getAccountCollection()
-        .findOne("{ email_address: # }", email)
+        .findOne("{ email_address: #, email_verified: true }", email)
         .as(JongoUserAccount.class);
   }
 
   @Override
   public UserAccount getUserAccountById(String id) {
+    // XXX: accounts aren't activated until you verify the e-mail address
     return this.getAccountCollection()
-        .findOne("{ id: # }", id)
+        .findOne("{ id: #, email_verified: true }", id)
         .as(JongoUserAccount.class);
   }
 
@@ -64,6 +66,7 @@ public class JongoAccountRepository implements AccountRepository, JongoBootstrap
     account.setId(id);
     // XXX: don't allow modifying the email address or phone number verified
     account.setEmail_address(null);
+    account.setEmail_verified(null);
     account.setPhone_number_verified(null);
     account = getAccountCollection()
         .findAndModify("{ id: #, updated_at: { $in: # } }", id, versions)

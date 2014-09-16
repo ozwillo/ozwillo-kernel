@@ -160,7 +160,7 @@ public class UserInfoEndpoint {
 
     if (scopeIds.contains(EMAIL_SCOPE) && userAccount.getEmail_address() != null) {
       userInfo.setEmail(userAccount.getEmail_address());
-      userInfo.setEmailVerified(true); // A user account is created only if the email is verified
+      userInfo.setEmailVerified(userAccount.getEmail_verified());
     }
 
     if (scopeIds.contains(ADDRESS_SCOPE) && userAccount.getAddress() != null) {

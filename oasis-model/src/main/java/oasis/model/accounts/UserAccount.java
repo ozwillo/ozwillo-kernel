@@ -16,6 +16,8 @@ public class UserAccount {
 
   private String email_address;
 
+  private Boolean email_verified;
+
   private String picture;
 
   private String zoneinfo;
@@ -56,6 +58,7 @@ public class UserAccount {
    */
   public UserAccount(@Nonnull UserAccount other) {
     email_address = other.getEmail_address();
+    email_verified = other.getEmail_verified();
     picture = other.getPicture();
     zoneinfo = other.getZoneinfo();
     locale = other.getLocale();
@@ -86,6 +89,14 @@ public class UserAccount {
 
   public void setEmail_address(String email_address) {
     this.email_address = email_address;
+  }
+
+  public Boolean getEmail_verified() {
+    return email_verified;
+  }
+
+  public void setEmail_verified(Boolean email_address_verified) {
+    this.email_verified = email_address_verified;
   }
 
   public String getPicture() {
