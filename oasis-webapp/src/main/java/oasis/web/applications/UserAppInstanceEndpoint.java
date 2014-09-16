@@ -6,6 +6,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
@@ -23,7 +24,7 @@ import oasis.web.utils.ResponseFactory;
 @Authenticated @OAuth
 @Path("/apps/instance/user/{user_id}")
 @Produces(MediaType.APPLICATION_JSON)
-@Api(value = "user-instances", description = "Application instances for a user")
+@Api(value = "user-instances", description = "Application instances for a user (bought for himself)")
 public class UserAppInstanceEndpoint {
   @Inject AppInstanceRepository appInstanceRepository;
 
@@ -33,7 +34,7 @@ public class UserAppInstanceEndpoint {
 
   @GET
   @ApiOperation(
-      value = "Retrieve all app instances created by a user",
+      value = "Retrieve all app instances created by a user for himself",
       response = AppInstance.class,
       responseContainer = "Array"
   )
@@ -42,7 +43,7 @@ public class UserAppInstanceEndpoint {
     if (!oAuthUserId.equals(userId)) {
       return ResponseFactory.forbidden("Current user does not match the one in the url");
     }
-    Iterable<AppInstance> appInstances = appInstanceRepository.findByInstantiatorId(userId);
-    return Response.ok(appInstances).build();
+    Iterable<AppInstance> appInstances = appInstanceRepository.findPersonalInstancesByUserId(userId);
+    return Response.ok(new GenericEntity<Iterable<AppInstance>>(appInstances) {}).build();
   }
 }

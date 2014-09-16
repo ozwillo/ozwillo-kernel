@@ -53,9 +53,9 @@ public class JongoAppInstanceRepository implements AppInstanceRepository, JongoB
 
   @Override
   @SuppressWarnings("unchecked")
-  public Iterable<AppInstance> findByInstantiatorId(String instantiatorId) {
+  public Iterable<AppInstance> findPersonalInstancesByUserId(String userId) {
     return (Iterable<AppInstance>) (Iterable<?>) getAppInstancesCollection()
-        .find("{ instantiator_id: # }", instantiatorId)
+        .find("{ instantiator_id: #, provider_id: { $exists: 0 } }", userId)
         .as(JongoAppInstance.class);
   }
 

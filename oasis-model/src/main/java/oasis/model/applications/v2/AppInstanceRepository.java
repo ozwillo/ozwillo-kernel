@@ -9,7 +9,7 @@ public interface AppInstanceRepository {
 
   Iterable<AppInstance> findByOrganizationId(String organizationId);
 
-  Iterable<AppInstance> findByInstantiatorId(String instantiatorId);
+  Iterable<AppInstance> findPersonalInstancesByUserId(String userId);
 
   AppInstance instantiated(String instanceId, List<AppInstance.NeededScope> neededScopes);
 
