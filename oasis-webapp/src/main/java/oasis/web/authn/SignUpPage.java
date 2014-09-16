@@ -1,6 +1,7 @@
 package oasis.web.authn;
 
 import java.net.URI;
+import java.util.Locale;
 
 import javax.inject.Inject;
 import javax.ws.rs.FormParam;
@@ -58,7 +59,8 @@ public class SignUpPage {
     // TODO: Verify that the password as a sufficiently strong length or even a strong entropy
 
     // TODO: Send an activation email to verify the existence of the email address
-    UserAccount account = signUpService.signUp(email, password, nickname);
+    // TODO: Use the user-selected locale
+    UserAccount account = signUpService.signUp(email, password, nickname, Locale.UK);
     if (account == null) {
       // TODO: Allow the user to retrieve their password
       return LoginPage.loginForm(Response.ok(), continueUrl, settings, "The username already exists.");

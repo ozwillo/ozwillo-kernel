@@ -1,5 +1,7 @@
 package oasis.services.authn;
 
+import java.util.Locale;
+
 import javax.inject.Inject;
 
 import oasis.model.accounts.AccountRepository;
@@ -15,14 +17,14 @@ public class SignUpService {
     this.userPasswordAuthenticator = userPasswordAuthenticator;
   }
 
-  public UserAccount signUp(String email, String password, String nickname) {
+  public UserAccount signUp(String email, String password, String nickname, Locale locale) {
     UserAccount userAccount = new UserAccount();
     userAccount.setEmail_address(email);
     // FIXME: temporarily auto-verify the e-mail address
     userAccount.setEmail_verified(true);
     userAccount.setNickname(nickname);
-    // TODO: Set the locale with the locale selected (and use a "matching" zoneinfo)
-    userAccount.setLocale("en-GB");
+    userAccount.setLocale(locale.toLanguageTag());
+    // TODO: Use a zoneinfo "matching" the selected locale
     userAccount.setZoneinfo("Europe/Paris");
     userAccount = accountRepository.createUserAccount(userAccount);
     if (userAccount != null) {
