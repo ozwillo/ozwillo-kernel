@@ -56,7 +56,7 @@ public class OrganizationMembershipEndpoint {
   )
   public Response get(@QueryParam("start") int start, @QueryParam("limit") int limit) {
     OrganizationMembership membership = organizationMembershipRepository
-        .getOrganizationMembership(organizationId, ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId());
+        .getOrganizationMembership(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId(), organizationId);
     if (membership == null || !membership.isAdmin()) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
@@ -88,7 +88,7 @@ public class OrganizationMembershipEndpoint {
   )
   public Response post(MembershipRequest request) {
     OrganizationMembership ownerMembership = organizationMembershipRepository
-        .getOrganizationMembership(organizationId, ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId());
+        .getOrganizationMembership(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId(), organizationId);
     if (ownerMembership == null || !ownerMembership.isAdmin()) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
