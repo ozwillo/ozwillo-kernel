@@ -7,6 +7,7 @@ import org.jongo.MongoCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.primitives.Longs;
 import com.mongodb.DuplicateKeyException;
 import com.mongodb.WriteResult;
 
@@ -46,7 +47,7 @@ public class JongoSubscriptionRepository implements SubscriptionRepository, Jong
   @Override
   public boolean deleteSubscription(String subscriptionId, long[] versions) throws InvalidVersionException {
     WriteResult wr = getSubscriptionsCollection()
-        .remove("{ id: #, modified: { $in: # } }", subscriptionId, versions);
+        .remove("{ id: #, modified: { $in: # } }", subscriptionId, Longs.asList(versions));
 
     int n = wr.getN();
     if (n == 0) {

@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.common.primitives.Longs;
 import com.mongodb.CommandFailureException;
 import com.mongodb.DuplicateKeyException;
 
@@ -82,7 +83,7 @@ public class JongoServiceRepository implements ServiceRepository, JongoBootstrap
   @Override
   public boolean deleteService(String serviceId, long[] versions) throws InvalidVersionException {
     int n = getServicesCollection()
-        .remove("{ id: #, modified: { $in: # } }", serviceId, versions)
+        .remove("{ id: #, modified: { $in: # } }", serviceId, Longs.asList(versions))
         .getN();
 
     if (n == 0) {
@@ -110,7 +111,7 @@ public class JongoServiceRepository implements ServiceRepository, JongoBootstrap
     service.setInstance_id(null);
     // FIXME: allow unsetting properties
     service = getServicesCollection()
-        .findAndModify("{ id: #, modified: { $in: # } }", serviceId, versions)
+        .findAndModify("{ id: #, modified: { $in: # } }", serviceId, Longs.asList(versions))
         .with("{ $set: # }", service)
         .returnNew()
         .as(JongoService.class);

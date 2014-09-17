@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
+import com.google.common.primitives.Longs;
 import com.mongodb.DuplicateKeyException;
 import com.mongodb.WriteResult;
 
@@ -85,7 +86,7 @@ public class JongoDirectoryRepository implements DirectoryRepository, JongoBoots
     }
 
     JongoOrganization res = getOrganizationCollection()
-        .findAndModify("{ id: #, modified: { $in: # } }", organizationId, versions)
+        .findAndModify("{ id: #, modified: { $in: # } }", organizationId, Longs.asList(versions))
         .returnNew()
         .with("{ $set: {" + updateObject.toString() + " } }", updateParameters.toArray())
         .projection(ORGANIZATION_PROJECTION)
@@ -103,7 +104,7 @@ public class JongoDirectoryRepository implements DirectoryRepository, JongoBoots
 
   @Override
   public boolean deleteOrganization(String organizationId, long[] versions) throws InvalidVersionException {
-    WriteResult wr = getOrganizationCollection().remove("{id: #, modified: { $in: # } }", organizationId, versions);
+    WriteResult wr = getOrganizationCollection().remove("{id: #, modified: { $in: # } }", organizationId, Longs.asList(versions));
     int n = wr.getN();
     if (n == 0) {
       if (getOrganizationCollection().count("{ id: # }", organizationId) != 0) {
@@ -178,7 +179,7 @@ public class JongoDirectoryRepository implements DirectoryRepository, JongoBoots
     }
 
     JongoOrganization res = getOrganizationCollection()
-        .findAndModify("{ groups: { $elemMatch: { id: #, modified: { $in: # } } } }", groupId, versions)
+        .findAndModify("{ groups: { $elemMatch: { id: #, modified: { $in: # } } } }", groupId, Longs.asList(versions))
         .returnNew()
         .with("{ $set: {" + updateObject.toString() + " } }", updateParameters.toArray())
         .projection(GROUP_PROJECTION, groupId)
@@ -202,8 +203,8 @@ public class JongoDirectoryRepository implements DirectoryRepository, JongoBoots
   @Override
   public boolean deleteGroup(String groupId, long[] versions) throws InvalidVersionException {
     WriteResult wr = getOrganizationCollection()
-        .update("{ groups: { $elemMatch: { id: #, modified: { $in: # } } } }", groupId, versions)
-        .with("{ $pull: { groups: { id: #, modified: { $in: # } } } }", groupId, versions);
+        .update("{ groups: { $elemMatch: { id: #, modified: { $in: # } } } }", groupId, Longs.asList(versions))
+        .with("{ $pull: { groups: { id: #, modified: { $in: # } } } }", groupId, Longs.asList(versions));
 
     int n = wr.getN();
     if (n == 0) {

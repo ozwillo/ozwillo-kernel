@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
+import com.google.common.primitives.Longs;
 import com.mongodb.DuplicateKeyException;
 
 import oasis.jongo.JongoBootstrapper;
@@ -84,7 +85,7 @@ public class JongoOrganizationMembershipRepository implements OrganizationMember
     membership.setId(membershipId);
 
     JongoOrganizationMembership res = getOrganizationMembershipsCollection()
-        .findAndModify("{ id: #, modified: { $in: # } }", membershipId, versions)
+        .findAndModify("{ id: #, modified: { $in: # } }", membershipId, Longs.asList(versions))
         .returnNew()
         .with("{ $set: # }", membership)
         .as(JongoOrganizationMembership.class);
@@ -101,7 +102,7 @@ public class JongoOrganizationMembershipRepository implements OrganizationMember
 
   @Override
   public boolean deleteOrganizationMembership(String id, long[] versions) throws InvalidVersionException {
-    int n = getOrganizationMembershipsCollection().remove("{id: #, modified: { $in: # } }", id, versions).getN();
+    int n = getOrganizationMembershipsCollection().remove("{id: #, modified: { $in: # } }", id, Longs.asList(versions)).getN();
     if (n == 0) {
       if (getOrganizationMembershipsCollection().count("{ id: # }", id) != 0) {
         throw new InvalidVersionException("organization", id);

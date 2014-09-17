@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.common.primitives.Longs;
 import com.mongodb.DuplicateKeyException;
 
 import oasis.jongo.JongoBootstrapper;
@@ -55,7 +56,7 @@ public class JongoUserSubscriptionRepository implements UserSubscriptionReposito
   @Override
   public boolean deleteUserSubscription(String id, long[] versions) throws InvalidVersionException {
     int n = getUserSubscriptionsCollection()
-        .remove("{ id: #, modified: { $in: # } }", id, versions)
+        .remove("{ id: #, modified: { $in: # } }", id, Longs.asList(versions))
         .getN();
 
     if (n == 0) {

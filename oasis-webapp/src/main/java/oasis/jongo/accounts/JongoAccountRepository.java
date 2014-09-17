@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.common.primitives.Longs;
 import com.mongodb.DuplicateKeyException;
 
 import oasis.jongo.JongoBootstrapper;
@@ -69,7 +70,7 @@ public class JongoAccountRepository implements AccountRepository, JongoBootstrap
     account.setEmail_verified(null);
     account.setPhone_number_verified(null);
     account = getAccountCollection()
-        .findAndModify("{ id: #, updated_at: { $in: # } }", id, versions)
+        .findAndModify("{ id: #, updated_at: { $in: # } }", id, Longs.asList(versions))
         .with("{ $set: # }", account)
         .returnNew()
         .as(JongoUserAccount.class);
