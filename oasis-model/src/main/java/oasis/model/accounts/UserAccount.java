@@ -71,7 +71,7 @@ public class UserAccount {
     birthdate = other.getBirthdate();
     phone_number = other.getPhone_number();
     phone_number_verified = other.getPhone_number_verified();
-    address = new Address(other.getAddress());
+    address = other.getAddress() == null ? null : new Address(other.getAddress());
     updated_at = other.getUpdated_at();
   }
 
