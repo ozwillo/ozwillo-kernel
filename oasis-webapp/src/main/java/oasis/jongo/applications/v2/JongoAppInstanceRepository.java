@@ -84,6 +84,14 @@ public class JongoAppInstanceRepository implements AppInstanceRepository, JongoB
   }
 
   @Override
+  @SuppressWarnings("unchecked")
+  public Iterable<AppInstance> getInstancesForApplication(String applicationId) {
+    return (Iterable<AppInstance>) (Iterable<?>) getAppInstancesCollection()
+        .find("{ application_id: # }", applicationId)
+        .as(JongoAppInstance.class);
+  }
+
+  @Override
   public void bootstrap() {
     getAppInstancesCollection().ensureIndex("{ id: 1 }", "{ unique: 1 }");
   }

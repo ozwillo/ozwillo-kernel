@@ -16,4 +16,6 @@ public interface AppInstanceRepository {
   boolean deletePendingInstance(String instanceId);
 
   boolean deleteInstance(String instanceId);
+
+  Iterable<AppInstance> getInstancesForApplication(String applicationId);
 }

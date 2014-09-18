@@ -51,6 +51,10 @@ public class DeleteAppInstance extends CommandLineTool {
       usage = "Organization ID")
   private String organization_id;
 
+  @Option(name = "--application", aliases = { "--application-id", "--application_id" },
+      usage = "Application ID")
+  private String application_id;
+
   @Option(name = "-n", aliases = "--dry-run")
   private boolean dryRun;
 
@@ -100,6 +104,11 @@ public class DeleteAppInstance extends CommandLineTool {
       if (!Strings.isNullOrEmpty(organization_id)) {
         logger().info("Deleting instances bought for organization: {}", organization_id);
         int n = deleteByOrganizationId();
+        logger().info("  Deleted {} instances.", n);
+      }
+      if (!Strings.isNullOrEmpty(application_id)) {
+        logger().info("Deleting instances of application: {}", application_id);
+        int n = deleteByApplicationId();
         logger().info("  Deleted {} instances.", n);
       }
     } finally {
@@ -184,6 +193,15 @@ public class DeleteAppInstance extends CommandLineTool {
   private int deleteByOrganizationId() {
     int n = 0;
     for (AppInstance instance : appInstanceRepositoryProvider.get().findByOrganizationId(organization_id)) {
+      deleteInstance(instance.getId());
+      n++;
+    }
+    return n;
+  }
+
+  private int deleteByApplicationId() {
+    int n = 0;
+    for (AppInstance instance : appInstanceRepositoryProvider.get().getInstancesForApplication(application_id)) {
       deleteInstance(instance.getId());
       n++;
     }
