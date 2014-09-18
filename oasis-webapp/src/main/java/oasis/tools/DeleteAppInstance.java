@@ -30,6 +30,7 @@ import oasis.model.applications.v2.ScopeRepository;
 import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.ServiceRepository;
 import oasis.model.applications.v2.UserSubscriptionRepository;
+import oasis.model.authn.TokenRepository;
 import oasis.model.authz.AuthorizationRepository;
 import oasis.openidconnect.OpenIdConnectModule;
 
@@ -64,6 +65,7 @@ public class DeleteAppInstance extends CommandLineTool {
   @Inject Provider<AuthorizationRepository> authorizationRepositoryProvider;
   @Inject Provider<ServiceRepository> serviceRepositoryProvider;
   @Inject Provider<ScopeRepository> scopeRepositoryProvider;
+  @Inject Provider<TokenRepository> tokenRepositoryProvider;
   @Inject Provider<UserSubscriptionRepository> userSubscriptionRepositoryProvider;
   @Inject Provider<AccessControlRepository> accessControlRepositoryProvider;
 
@@ -112,7 +114,7 @@ public class DeleteAppInstance extends CommandLineTool {
         logger().info("  Deleted {} instances.", n);
       }
     } finally {
-      jongoService.stop();;
+      jongoService.stop();
     }
   }
 
@@ -129,6 +131,14 @@ public class DeleteAppInstance extends CommandLineTool {
       logger().warn("    No instance with ID existed; trying to delete other related data anyway.");
     }
 
+    long tokens;
+    if (dryRun) {
+      tokens = jongoProvider.get().getCollection("tokens").count("{ serviceProviderId: # }", instance_id);
+    } else {
+      tokens = tokenRepositoryProvider.get().revokeTokensForClient(instance_id);
+    }
+    logger().info("    Revoked {} tokens for the instance", tokens);
+
     long authorizations;
     if (dryRun) {
       authorizations = jongoProvider.get().getCollection("authorized_scopes").count("{ client_id: # }", instance_id);
@@ -142,6 +152,12 @@ public class DeleteAppInstance extends CommandLineTool {
       scopes.add(scope.getId());
     }
     long revokedScopes;
+    if (dryRun) {
+      revokedScopes = jongoProvider.get().getCollection("tokens").count("{ scopeIds: { $in: # } }", scopes);
+    } else {
+      revokedScopes = tokenRepositoryProvider.get().revokeTokensForScopes(scopes);
+    }
+    logger().info("    Revoked {} tokens for the instance scopes", revokedScopes);
     if (dryRun) {
       revokedScopes = jongoProvider.get().getCollection("authorized_scopes").count("{ scope_ids: { $in: # } }", scopes);
     } else {

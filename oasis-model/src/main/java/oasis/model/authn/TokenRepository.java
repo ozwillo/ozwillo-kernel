@@ -1,5 +1,7 @@
 package oasis.model.authn;
 
+import java.util.Collection;
+
 public interface TokenRepository {
   Token getToken(String tokenId);
 
@@ -11,5 +13,9 @@ public interface TokenRepository {
 
   boolean reAuthSidToken(String tokenId);
 
-  boolean revokeTokensForAccount(String accountId);
+  int revokeTokensForAccount(String accountId);
+
+  int revokeTokensForClient(String clientId);
+
+  int revokeTokensForScopes(Collection<String> scopeIds);
 }

@@ -2,6 +2,8 @@ package oasis.jongo.authn;
 
 import static com.google.common.base.Preconditions.*;
 
+import java.util.Collection;
+
 import javax.inject.Inject;
 
 import org.joda.time.Instant;
@@ -9,6 +11,7 @@ import org.jongo.Jongo;
 import org.jongo.MongoCollection;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableSet;
 import com.mongodb.DuplicateKeyException;
 import com.mongodb.WriteResult;
 
@@ -82,12 +85,30 @@ public class JongoTokenRepository implements TokenRepository, JongoBootstrapper 
   }
 
   @Override
-  public boolean revokeTokensForAccount(String accountId) {
+  public int revokeTokensForAccount(String accountId) {
     checkArgument(!Strings.isNullOrEmpty(accountId));
 
     return this.getTokensCollection()
         .remove("{ accountId: # }", accountId)
-        .getN() > 0;
+        .getN();
+  }
+
+  @Override
+  public int revokeTokensForClient(String clientId) {
+    checkArgument(!Strings.isNullOrEmpty(clientId));
+
+    return this.getTokensCollection()
+        .remove("{ serviceProviderId: # }", clientId)
+        .getN();
+  }
+
+  @Override
+  public int revokeTokensForScopes(Collection<String> scopeIds) {
+    checkArgument(scopeIds != null && !scopeIds.isEmpty());
+
+    return this.getTokensCollection()
+        .remove("{ scopeIds: { $in: # } }", ImmutableSet.copyOf(scopeIds))
+        .getN();
   }
 
   @Override
