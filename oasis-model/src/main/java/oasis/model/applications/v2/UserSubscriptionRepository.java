@@ -1,5 +1,7 @@
 package oasis.model.applications.v2;
 
+import java.util.Collection;
+
 import oasis.model.InvalidVersionException;
 
 public interface UserSubscriptionRepository {
@@ -12,4 +14,8 @@ public interface UserSubscriptionRepository {
   Iterable<UserSubscription> getUserSubscriptions(String userId);
 
   Iterable<UserSubscription> getSubscriptionsForService(String serviceId);
+
+  int deleteSubscriptionsForService(String serviceId);
+
+  int deleteSubscriptionsForServices(Collection<String> serviceIds);
 }

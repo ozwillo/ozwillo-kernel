@@ -54,6 +54,22 @@ public class JongoAuthorizationRepository implements AuthorizationRepository, Jo
     return n > 0;
   }
 
+  @Override
+  public int revokeAllForClient(String clientId) {
+    return getAuthorizedScopesCollection()
+        .remove("{ client_id: # }", clientId)
+        .getN();
+  }
+
+  @Override
+  public int revokeForAllUsers(Collection<String> scopeIds) {
+    return getAuthorizedScopesCollection()
+        .update("{ scope_ids: { $in: # } }", ImmutableSet.copyOf(scopeIds))
+        .multi()
+        .with("{ $pullAll: { scope_ids: # } }", ImmutableSet.copyOf(scopeIds))
+        .getN();
+  }
+
   private MongoCollection getAuthorizedScopesCollection() {
     return jongo.getCollection("authorized_scopes");
   }

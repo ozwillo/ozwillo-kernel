@@ -77,6 +77,13 @@ public class JongoAppInstanceRepository implements AppInstanceRepository, JongoB
   }
 
   @Override
+  public boolean deleteInstance(String instanceId) {
+    return getAppInstancesCollection()
+        .remove("{ id: # }", instanceId)
+        .getN() != 0;
+  }
+
+  @Override
   public void bootstrap() {
     getAppInstancesCollection().ensureIndex("{ id: 1 }", "{ unique: 1 }");
   }

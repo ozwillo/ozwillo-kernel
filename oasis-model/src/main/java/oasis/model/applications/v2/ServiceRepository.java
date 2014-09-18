@@ -18,4 +18,6 @@ public interface ServiceRepository {
   boolean deleteService(String serviceId, long[] versions) throws InvalidVersionException;
 
   Service updateService(Service service, long[] versions) throws InvalidVersionException;
+
+  int deleteServicesOfInstance(String instanceId);
 }

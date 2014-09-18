@@ -125,6 +125,13 @@ public class JongoServiceRepository implements ServiceRepository, JongoBootstrap
   }
 
   @Override
+  public int deleteServicesOfInstance(String instanceId) {
+    return getServicesCollection()
+        .remove("{ instance_id: # }", instanceId)
+        .getN();
+  }
+
+  @Override
   public void bootstrap() {
     getServicesCollection().ensureIndex("{ id: 1 }", "{ unique: 1 }");
     getServicesCollection().ensureIndex("{ instance_id: 1, local_id: 1 }", "{ unique: 1, sparse: 1 }");

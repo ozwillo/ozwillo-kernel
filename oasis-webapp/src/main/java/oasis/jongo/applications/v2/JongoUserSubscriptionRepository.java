@@ -1,5 +1,7 @@
 package oasis.jongo.applications.v2;
 
+import java.util.Collection;
+
 import javax.inject.Inject;
 
 import org.jongo.Jongo;
@@ -10,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.Longs;
 import com.mongodb.DuplicateKeyException;
 
@@ -86,6 +89,20 @@ public class JongoUserSubscriptionRepository implements UserSubscriptionReposito
     return (Iterable<UserSubscription>) (Iterable<?>) getUserSubscriptionsCollection()
         .find("{ service_id: # }", serviceId)
         .as(JongoUserSubscription.class);
+  }
+
+  @Override
+  public int deleteSubscriptionsForService(String serviceId) {
+    return getUserSubscriptionsCollection()
+        .remove("{ service_id: # }", serviceId)
+        .getN();
+  }
+
+  @Override
+  public int deleteSubscriptionsForServices(Collection<String> serviceIds) {
+    return getUserSubscriptionsCollection()
+        .remove("{ service_id: { $in: # } }", ImmutableSet.copyOf(serviceIds))
+        .getN();
   }
 
   @Override

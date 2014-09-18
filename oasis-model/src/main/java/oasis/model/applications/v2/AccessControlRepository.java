@@ -12,4 +12,6 @@ public interface AccessControlRepository {
   boolean deleteAccessControlEntry(String id, long[] versions) throws InvalidVersionException;
 
   Iterable<AccessControlEntry> getAccessControlListForAppInstance(String instanceId);
+
+  int deleteAccessControlListForAppInstance(String instanceId);
 }

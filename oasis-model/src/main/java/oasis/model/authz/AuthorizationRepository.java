@@ -8,4 +8,8 @@ public interface AuthorizationRepository {
   AuthorizedScopes authorize(String accountId, String clientId, Collection<String> scopeIds);
 
   boolean revoke(String accountId, String clientId);
+
+  int revokeAllForClient(String clientId);
+
+  int revokeForAllUsers(Collection<String> scopeIds);
 }

@@ -87,6 +87,13 @@ public class JongoAccessControlRepository implements AccessControlRepository, Jo
   }
 
   @Override
+  public int deleteAccessControlListForAppInstance(String instanceId) {
+    return getAccessControlEntriesCollection()
+        .remove("{ instance_id: # }", instanceId)
+        .getN();
+  }
+
+  @Override
   public void bootstrap() {
     getAccessControlEntriesCollection().ensureIndex("{ id: 1 }", "{ unique: 1 }");
     getAccessControlEntriesCollection().ensureIndex("{ instance_id: 1, user_id: 1 }", "{ unique: 1 }");
