@@ -64,7 +64,6 @@ public class JongoAppInstanceRepository implements AppInstanceRepository, JongoB
     AppInstance instance = getAppInstancesCollection()
         .findAndModify("{ id: #, status: # }", instanceId, AppInstance.InstantiationStatus.PENDING)
         .with("{ $set: { status: #, needed_scopes: # } }", AppInstance.InstantiationStatus.RUNNING, neededScopes)
-        .projection("{ id: 1 }")
         .as(AppInstance.class);
     return instance;
   }
