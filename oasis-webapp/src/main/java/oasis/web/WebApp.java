@@ -19,6 +19,7 @@ import oasis.http.HttpServer;
 import oasis.http.HttpServerModule;
 import oasis.jongo.JongoService;
 import oasis.jongo.guice.JongoModule;
+import oasis.mail.MailModule;
 import oasis.openidconnect.OpenIdConnectModule;
 import oasis.tools.CommandLineTool;
 import oasis.web.guice.OasisGuiceModule;
@@ -48,7 +49,8 @@ public class WebApp extends CommandLineTool {
         OpenIdConnectModule.create(config.withOnlyPath("oasis.openid-connect")
             .withFallback(config.withOnlyPath("oasis.oauth"))
             .withFallback(config.withOnlyPath("oasis.session"))
-            .withFallback(config.withOnlyPath("oasis.conf-dir")))
+            .withFallback(config.withOnlyPath("oasis.conf-dir"))),
+        MailModule.create(config.getConfig("oasis.mail"))
     );
 
     final HttpServer server = injector.getInstance(HttpServer.class);

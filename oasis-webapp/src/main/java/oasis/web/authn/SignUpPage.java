@@ -3,7 +3,9 @@ package oasis.web.authn;
 import java.net.URI;
 import java.util.Locale;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
+import javax.mail.MessagingException;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -16,25 +18,45 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.base.Strings;
+import com.google.template.soy.data.SoyMapData;
 
 import oasis.auditlog.AuditLogService;
+import oasis.mail.MailMessage;
+import oasis.mail.MailModule;
+import oasis.mail.MailSender;
+import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
+import oasis.model.authn.ClientType;
+import oasis.model.authn.CredentialsRepository;
 import oasis.openidconnect.OpenIdConnectModule;
-import oasis.services.authn.SignUpService;
 import oasis.services.authn.TokenHandler;
+import oasis.services.authn.UserPasswordAuthenticator;
+import oasis.soy.SoyTemplate;
+import oasis.soy.templates.LoginSoyInfo;
+import oasis.soy.templates.SignUpSoyInfo;
+import oasis.web.resteasy.Resteasy1099;
 import oasis.web.security.StrictReferer;
 import oasis.web.utils.UserAgentFingerprinter;
 
 @Path("/a/signup")
 public class SignUpPage {
+  private static Logger logger = LoggerFactory.getLogger(SignUpPage.class);
+
   public static final String CONTINUE_PARAM = "continue";
 
-  @Inject SignUpService signUpService;
+  @Inject AccountRepository accountRepository;
+  @Inject UserPasswordAuthenticator userPasswordAuthenticator;
+  @Inject CredentialsRepository credentialsRepository;
   @Inject TokenHandler tokenHandler;
   @Inject UserAgentFingerprinter fingerprinter;
   @Inject AuditLogService auditLogService;
   @Inject OpenIdConnectModule.Settings settings;
+  @Inject MailModule.Settings mailSettings;
+  @Inject @Nullable MailSender mailSender;
 
   @Context SecurityContext securityContext;
   @Context UriInfo uriInfo;
@@ -58,17 +80,53 @@ public class SignUpPage {
     }
     // TODO: Verify that the password as a sufficiently strong length or even a strong entropy
 
-    // TODO: Send an activation email to verify the existence of the email address
+    UserAccount account = new UserAccount();
+    account.setEmail_address(email);
+    // XXX: Auto-verify the email address when mail is disabled (otherwise the user couldn't sign in)
+    if (!mailSettings.enabled) {
+      account.setEmail_verified(true);
+    }
+    account.setNickname(nickname);
     // TODO: Use the user-selected locale
-    UserAccount account = signUpService.signUp(email, password, nickname, Locale.UK);
+    account.setLocale(Locale.UK.toLanguageTag());
+    // TODO: Use a zoneinfo "matching" the selected locale
+    account.setZoneinfo("Europe/Paris");
+    account = accountRepository.createUserAccount(account);
     if (account == null) {
       // TODO: Allow the user to retrieve their password
       return LoginPage.loginForm(Response.ok(), continueUrl, settings, "The username already exists.");
+    } else {
+      userPasswordAuthenticator.setPassword(account.getId(), password);
     }
 
-    byte[] fingerprint = fingerprinter.fingerprint(headers);
-
-    // XXX: As the activation email feature is not already made, automatically sign the user in
-    return LoginPage.authenticate(email, account, continueUrl, fingerprint, tokenHandler, auditLogService, securityContext);
+    if (mailSettings.enabled) {
+      // TODO: send email asynchronously
+      try {
+        // FIXME: use a true token (with expiry, etc.) rather than just the account ID
+        URI activationLink = Resteasy1099.getBaseUriBuilder(uriInfo).path(ActivateAccountPage.class).build(account.getId());
+        mailSender.send(new MailMessage()
+            .setRecipient(email, nickname)
+            .setSubject(SignUpSoyInfo.ACTIVATE_ACCOUNT_SUBJECT)
+            .setBody(SignUpSoyInfo.ACTIVATE_ACCOUNT)
+            .setPlainText()
+            .setData(new SoyMapData(
+                SignUpSoyInfo.ActivateAccountSoyTemplateInfo.NICKNAME, nickname,
+                SignUpSoyInfo.ActivateAccountSoyTemplateInfo.ACTIVATION_LINK, activationLink.toString()
+            )));
+        // TODO: redirect to a bookmarkable URI (with form to resend the activation mail)
+        return Response.ok()
+            .entity(new SoyTemplate(LoginSoyInfo.ACCOUNT_PENDING_ACTIVATION))
+            .build();
+      } catch (MessagingException e) {
+        logger.error("Error sending activation email", e);
+        accountRepository.deleteUserAccount(account.getId());
+        credentialsRepository.deleteCredentials(ClientType.USER, account.getId());
+        return LoginPage.loginForm(Response.ok(), continueUrl, settings, "An error occurred creating your account. Check your email address and try again in a few minutes.");
+      }
+    } else {
+      byte[] fingerprint = fingerprinter.fingerprint(headers);
+      // XXX: automatically sign the user in when mail is disabled
+      return LoginPage.authenticate(email, account, continueUrl, fingerprint, tokenHandler, auditLogService, securityContext);
+    }
   }
 }

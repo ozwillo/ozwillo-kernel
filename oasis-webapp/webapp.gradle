@@ -15,6 +15,7 @@ dependencies {
   compile libs.jongo
   compile libs.joda_time
   compile libs.galimatias
+  compile libs.mail
   compile libs.jackson
   compile libs.args4j
   compile libs.config

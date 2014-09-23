@@ -77,6 +77,8 @@ ext.libs = [
 
   galimatias:          'io.mola.galimatias:galimatias:0.0.4',
 
+  mail:                'com.sun.mail:javax.mail:1.5.2',
+
   // Keep version in sync with the one implemented by log4j-slf4j-impl, or it'll fail at runtime
   slf4j:               'org.slf4j:slf4j-api:1.7.5',
 

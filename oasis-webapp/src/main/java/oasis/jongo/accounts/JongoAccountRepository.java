@@ -84,6 +84,26 @@ public class JongoAccountRepository implements AccountRepository, JongoBootstrap
   }
 
   @Override
+  public UserAccount verifyEmailAddress(String id) {
+    // XXX: use a JongoUserAccount to update the updated_at field
+    JongoUserAccount userAccount = new JongoUserAccount();
+    userAccount.setId(id);
+    userAccount.setEmail_verified(true);
+    return getAccountCollection()
+        .findAndModify("{ id: # }", id)
+        .with("{ $set: # }", userAccount)
+        .returnNew()
+        .as(JongoUserAccount.class);
+  }
+
+  @Override
+  public boolean deleteUserAccount(String id) {
+    return getAccountCollection()
+        .remove("{ id: # }", id)
+        .getN() > 0;
+  }
+
+  @Override
   public void bootstrap() {
     getAccountCollection().ensureIndex("{ id : 1 }", "{ unique: 1 }");
     getAccountCollection().ensureIndex("{ email_address : 1 }", "{ unique: 1, sparse: 1 }");

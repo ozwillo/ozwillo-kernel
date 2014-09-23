@@ -10,4 +10,8 @@ public interface AccountRepository {
   UserAccount createUserAccount(UserAccount agent);
 
   UserAccount updateAccount(UserAccount account, long[] versions) throws InvalidVersionException;
+
+  UserAccount verifyEmailAddress(String id);
+
+  boolean deleteUserAccount(String id);
 }

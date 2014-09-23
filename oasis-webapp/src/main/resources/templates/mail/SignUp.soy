@@ -1,0 +1,43 @@
+{namespace oasis.mail autoescape="strict"}
+
+/**
+ * Sign-up email subject.
+ */
+{template .activateAccountSubject kind="text"}
+Activate your OASIS account
+{/template}
+
+/**
+ * Sign-up email.
+ */
+{template .activateAccount kind="text"}
+{@param nickname: string} /** User's nickname */
+{@param activationLink: string} /** Link to activate account. */
+Hello {$nickname},{\n}
+{\n}
+You are receiving this e-mail because you have registered on the OASIS portal.{\n}
+{\n}
+In order to confirm your subscription, please click on the following link:{\n}
+{$activationLink}{\n}
+{\n}
+Wishing you a nice tour on OASIS portal{\n}
+{\n}
+The OASIS team
+{/template}
+
+/**
+ * Welcome email subject.
+ */
+{template .accountActivatedSubject kind="text"}
+Welcome to OASIS
+{/template}
+
+/**
+ * Welcome email.
+ */
+{template .accountActivated kind="text"}
+{@param nickname: string} /** User's nickname */
+Congratulations {$nickname},{\n}
+{\n}
+Your subscription to the OASIS portal has been validated.
+{/template}

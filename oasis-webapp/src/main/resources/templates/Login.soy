@@ -66,3 +66,21 @@
 {/if}
 {call .footer /}
 {/template}
+
+/**
+ * Page displayed after sign-up, waiting for account activation.
+ */
+{template .accountPendingActivation}
+{call .header}
+  {param title kind="text"}Account pending activation{/param}
+{/call}
+<div class="maincontainer">
+  <h1>Account pending activation</h1>
+  <p>Your account has been created but needs to be activated by confirming your email address.
+  <p>We've sent you an email with an activation link, click on that link to activate your account.
+
+  // TODO: add button to re-send the activation mail
+
+</div>
+{call .footer /}
+{/template}
