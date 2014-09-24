@@ -93,7 +93,8 @@ ext.libs = [
   swagger_annotations: "com.wordnik:swagger-annotations:$swaggerVersion",
   swagger_jaxrs:       [
       dependencies.create("com.wordnik:swagger-jaxrs_2.10:$swaggerVersion") {
-        exclude module: 'jsr311-api' // conflicts with org.jboss.resteasy:jaxrs-api
+        exclude module: 'jsr311-api'  // conflicts with org.jboss.resteasy:jaxrs-api
+        exclude module: 'mockito-all' // conflicts with mockito-core
       },
       'javax.servlet:servlet-api:2.5'
     ],
