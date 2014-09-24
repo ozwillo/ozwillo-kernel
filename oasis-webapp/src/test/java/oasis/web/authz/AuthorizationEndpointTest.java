@@ -59,15 +59,16 @@ import oasis.model.authn.AuthorizationCode;
 import oasis.model.authn.SidToken;
 import oasis.model.authz.AuthorizationRepository;
 import oasis.model.authz.AuthorizedScopes;
+import oasis.model.bootstrap.ClientIds;
 import oasis.model.i18n.LocalizableString;
 import oasis.openidconnect.OpenIdConnectModule;
 import oasis.security.KeyPairLoader;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.services.authz.AppAdminHelper;
+import oasis.soy.SoyGuiceModule;
 import oasis.web.authn.LoginPage;
 import oasis.web.authn.testing.TestUserFilter;
-import oasis.soy.SoyGuiceModule;
 import oasis.web.view.SoyTemplateBodyWriter;
 
 @RunWith(JukitoRunner.class)
@@ -141,6 +142,9 @@ public class AuthorizationEndpointTest {
   private static final Scope openidScope = new Scope() {{
     setLocal_id("openid");
   }};
+  private static final Scope profileScope = new Scope() {{
+    setLocal_id("profile");
+  }};
   private static final Scope authorizedScope = new Scope() {{
     setInstance_id("other-app");
     setLocal_id("authorized");
@@ -158,6 +162,25 @@ public class AuthorizationEndpointTest {
     setAccountId(sidToken.getAccountId());
     setCreationTime(Instant.now());
     expiresIn(Duration.standardMinutes(10));
+  }};
+
+  private static final AppInstance portalAppInstance = new AppInstance() {{
+    setId(ClientIds.PORTAL);
+    setName(new LocalizableString("Test Application Instance"));
+    setProvider_id("organizationId");
+    for (Scope scope : new Scope[] { openidScope, profileScope }) {
+      NeededScope neededScope = new NeededScope();
+      neededScope.setScope_id(scope.getId());
+      getNeeded_scopes().add(neededScope);
+    }
+  }};
+  private static final Service portalService = new Service() {{
+    setId("portal-service");
+    setName(new LocalizableString("Portal Service"));
+    setInstance_id(portalAppInstance.getId());
+    setProvider_id("organizationId");
+    setVisible(false);
+    setRedirect_uris(Collections.singleton("https://portal/callback"));
   }};
 
   // The state contains %-encoded chars, which will need to be double-%-encoded in URLs.
@@ -178,7 +201,7 @@ public class AuthorizationEndpointTest {
       public Iterable<Scope> answer(InvocationOnMock invocation) throws Throwable {
         Collection<?> scopeIds = Sets.newHashSet((Collection<?>) invocation.getArguments()[0]);
         ArrayList<Scope> ret = new ArrayList<>(3);
-        for (Scope scope : Arrays.asList(openidScope, authorizedScope, unauthorizedScope, offlineAccessScope)) {
+        for (Scope scope : Arrays.asList(openidScope, profileScope, authorizedScope, unauthorizedScope, offlineAccessScope)) {
           if (scopeIds.remove(scope.getId())) {
             ret.add(scope);
           }
@@ -205,6 +228,12 @@ public class AuthorizationEndpointTest {
         anyString(), eq(Iterables.getOnlyElement(service.getRedirect_uris())), anyString())).thenReturn(authorizationCode);
     when(tokenHandler.createAuthorizationCode(eq(sidToken), anySetOf(String.class), eq(appInstance.getId()),
         anyString(), eq(Iterables.getOnlyElement(privateService.getRedirect_uris())), anyString())).thenReturn(authorizationCode);
+
+    // Portal special-case
+    when(appInstanceRepository.getAppInstance(portalAppInstance.getId())).thenReturn(portalAppInstance);
+    when(serviceRepository.getServiceByRedirectUri(portalAppInstance.getId(), Iterables.getOnlyElement(portalService.getRedirect_uris()))).thenReturn(portalService);
+    when(tokenHandler.createAuthorizationCode(eq(sidToken), anySetOf(String.class), eq(portalAppInstance.getId()),
+        anyString(), eq(Iterables.getOnlyElement(portalService.getRedirect_uris())), anyString())).thenReturn(authorizationCode);
   }
 
   @Before public void setUp() {
@@ -253,6 +282,63 @@ public class AuthorizationEndpointTest {
         .request().get();
 
     assertConsentPage(response);
+  }
+
+  @Test public void testAutomaticallyAuthorizePortalsNeededScopes(AuthorizationRepository authorizationRepository, TokenHandler tokenHandler) {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+        .queryParam("client_id", portalAppInstance.getId())
+        .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(portalService.getRedirect_uris())))
+        .queryParam("state", encodedState)
+        .queryParam("response_type", "code")
+        .queryParam("scope", openidScope.getId() + " " + profileScope.getId())
+        .request().get();
+
+    assertRedirectToApplication(response, portalService);
+
+    verify(authorizationRepository).authorize(sidToken.getAccountId(), portalAppInstance.getId(),
+        ImmutableSet.of(openidScope.getId(), profileScope.getId()));
+    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(openidScope.getId(), profileScope.getId()),
+        portalAppInstance.getId(), null, Iterables.getOnlyElement(portalService.getRedirect_uris()), "pass");
+  }
+
+  @Test public void testPromptForPortalForNonNeededScopes(AuthorizationRepository authorizationRepository, TokenHandler tokenHandler) {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+        .queryParam("client_id", portalAppInstance.getId())
+        .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(portalService.getRedirect_uris())))
+        .queryParam("state", encodedState)
+        .queryParam("response_type", "code")
+        .queryParam("scope", openidScope.getId() + " " + unauthorizedScope.getId())
+        .request().get();
+
+    assertConsentPage(response);
+
+    // Verify that we still automatically authorize portal's needed scopes
+    verify(authorizationRepository).authorize(sidToken.getAccountId(), portalAppInstance.getId(),
+        ImmutableSet.of(openidScope.getId(), profileScope.getId()));
+  }
+
+  /** This is the same as {@link #testAutomaticallyAuthorizePortalsNeededScopes} except with prompt=consent. */
+  @Test public void testPromptForPortalIfPromptConsent(AuthorizationRepository authorizationRepository, TokenHandler tokenHandler) {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+        .queryParam("client_id", portalAppInstance.getId())
+        .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(portalService.getRedirect_uris())))
+        .queryParam("state", encodedState)
+        .queryParam("response_type", "code")
+        .queryParam("scope", openidScope.getId() + " " + profileScope.getId())
+        .queryParam("prompt", "consent")
+        .request().get();
+
+    assertConsentPage(response);
+
+    // Verify that we still automatically authorize portal's needed scopes
+    verify(authorizationRepository).authorize(sidToken.getAccountId(), portalAppInstance.getId(),
+        ImmutableSet.of(openidScope.getId(), profileScope.getId()));
   }
 
   /**

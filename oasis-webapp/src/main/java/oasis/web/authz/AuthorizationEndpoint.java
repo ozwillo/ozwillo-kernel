@@ -3,6 +3,7 @@ package oasis.web.authz;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -35,6 +36,7 @@ import com.google.api.client.util.Clock;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Sets;
 import com.google.template.soy.data.SoyListData;
 import com.google.template.soy.data.SoyMapData;
@@ -211,6 +213,19 @@ public class AuthorizationEndpoint {
     final String nonce = getParameter("nonce");
 
     Set<String> authorizedScopeIds = getAuthorizedScopeIds(appInstance.getId(), sidToken.getAccountId());
+    if (ClientIds.PORTAL.equals(appInstance.getId()) && !authorizedScopeIds.containsAll(scopeIds)) {
+      // Automatically grant all the Portal's needed_scopes to any user, and thus skip the prompt
+      LinkedHashSet<String> portalScopeIds = new LinkedHashSet<>(appInstance.getNeeded_scopes().size());
+      for (NeededScope neededScope : appInstance.getNeeded_scopes()) {
+        portalScopeIds.add(neededScope.getScope_id());
+      }
+      if (!authorizedScopeIds.containsAll(portalScopeIds)) {
+        authorizationRepository.authorize(sidToken.getAccountId(), appInstance.getId(), portalScopeIds);
+        // Safer to make a copy
+        authorizedScopeIds = new LinkedHashSet<>(authorizedScopeIds);
+        authorizedScopeIds.addAll(portalScopeIds);
+      }
+    }
     if (authorizedScopeIds.containsAll(scopeIds) && !prompt.consent) {
       // User already authorized all claimed scopes, let it be a "transparent" redirect
       return generateAuthorizationCodeAndRedirect(sidToken, scopeIds, appInstance.getId(), nonce, redirect_uri);
