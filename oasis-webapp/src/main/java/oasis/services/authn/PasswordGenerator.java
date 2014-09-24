@@ -17,6 +17,6 @@ public class PasswordGenerator {
   public String generate() {
     byte[] bytes = new byte[32]; // 256 bits
     secureRandom.nextBytes(bytes);
-    return BaseEncoding.base64().encode(bytes);
+    return BaseEncoding.base64().omitPadding().encode(bytes);
   }
 }
