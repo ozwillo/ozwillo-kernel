@@ -53,6 +53,7 @@ import oasis.model.authn.AuthorizationCode;
 import oasis.model.authn.SidToken;
 import oasis.model.authz.AuthorizationRepository;
 import oasis.model.authz.AuthorizedScopes;
+import oasis.model.bootstrap.ClientIds;
 import oasis.openidconnect.OpenIdConnectModule;
 import oasis.openidconnect.RedirectUri;
 import oasis.services.authn.TokenHandler;
@@ -136,7 +137,7 @@ public class AuthorizationEndpoint {
 
     final String redirect_uri = getRequiredParameter("redirect_uri");
     @Nullable final Service service = serviceRepository.getServiceByRedirectUri(appInstance.getId(), redirect_uri);
-    if (!isRedirectUriValid(service, redirect_uri, appInstance.getId())) {
+    if (!isRedirectUriValid(service, redirect_uri)) {
       throw invalidParam("redirect_uri");
     }
     // From now on, we can redirect to the client application, for both success and error conditions
@@ -185,8 +186,8 @@ public class AuthorizationEndpoint {
     final String id_token_hint = getParameter("id_token_hint");
     validateIdTokenHint(uriInfo, sidToken, id_token_hint);
 
-    // Check ACL if the service is "private"
-    if (service != null && !service.isVisible()) {
+    // Check ACL if the service is "private" (unless it's the Portal)
+    if ((service != null && !service.isVisible()) && !ClientIds.PORTAL.equals(client_id)) {
       boolean isAppUser = accessControlRepository.getAccessControlEntry(appInstance.getId(), sidToken.getAccountId()) != null;
       boolean isAppAdmin = appAdminHelper.isAdmin(sidToken.getAccountId(), appInstance);
       if (!isAppUser && !isAppAdmin) {
@@ -356,7 +357,7 @@ public class AuthorizationEndpoint {
     return appInstance;
   }
 
-  private boolean isRedirectUriValid(Service service, String redirect_uri, String instanceId) {
+  private boolean isRedirectUriValid(Service service, String redirect_uri) {
     return (settings.disableRedirectUriValidation || service != null)
         // Note: validate the URI even if it's in the whitelist, just in case. You can never be too careful.
         && RedirectUri.isValid(redirect_uri);
