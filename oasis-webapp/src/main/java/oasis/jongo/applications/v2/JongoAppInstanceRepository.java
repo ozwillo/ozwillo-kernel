@@ -17,6 +17,7 @@ import oasis.model.applications.v2.AppInstanceRepository;
 
 public class JongoAppInstanceRepository implements AppInstanceRepository, JongoBootstrapper {
   private static final Logger logger = LoggerFactory.getLogger(AppInstanceRepository.class);
+  public static final String COLLECTION_NAME = "app_instances";
 
   private final Jongo jongo;
 
@@ -96,6 +97,6 @@ public class JongoAppInstanceRepository implements AppInstanceRepository, JongoB
   }
 
   private MongoCollection getAppInstancesCollection() {
-    return jongo.getCollection("app_instances");
+    return jongo.getCollection(COLLECTION_NAME);
   }
 }

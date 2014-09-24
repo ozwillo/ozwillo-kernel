@@ -7,6 +7,8 @@ import org.jongo.MongoCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.mongodb.DuplicateKeyException;
+
 import oasis.jongo.JongoBootstrapper;
 import oasis.model.applications.v2.Application;
 import oasis.model.applications.v2.ApplicationRepository;
@@ -33,6 +35,17 @@ public class JongoApplicationRepository implements ApplicationRepository, JongoB
     return getApplicationsCollection()
         .findOne("{ id: # }", applicationId)
         .as(JongoApplication.class);
+  }
+
+  @Override
+  public Application createApplication(Application application) {
+    application = new JongoApplication(application);
+    try {
+      getApplicationsCollection().insert(application);
+    } catch (DuplicateKeyException e) {
+      return null;
+    }
+    return application;
   }
 
   @Override

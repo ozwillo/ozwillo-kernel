@@ -4,4 +4,6 @@ public interface ApplicationRepository {
   Iterable<Application> getVisibleApplications(); // TODO: remove when we integrate ElasticSearch
 
   Application getApplication(String applicationId);
+
+  Application createApplication(Application application);
 }
