@@ -94,7 +94,7 @@ public class SignUpPage {
     account = accountRepository.createUserAccount(account);
     if (account == null) {
       // TODO: Allow the user to retrieve their password
-      return LoginPage.loginForm(Response.ok(), continueUrl, settings, "The username already exists.");
+      return LoginPage.loginForm(Response.ok(), continueUrl, settings, "An account with that email address already exists.");
     } else {
       userPasswordAuthenticator.setPassword(account.getId(), password);
     }
