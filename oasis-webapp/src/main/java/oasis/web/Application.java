@@ -48,6 +48,7 @@ import oasis.web.security.SecureFilter;
 import oasis.web.security.StrictRefererFilter;
 import oasis.web.status.StatusEndpoint;
 import oasis.web.userdirectory.MembershipEndpoint;
+import oasis.web.userdirectory.OrganizationEndpoint;
 import oasis.web.userdirectory.OrganizationMembershipEndpoint;
 import oasis.web.userdirectory.UserDirectoryEndpoint;
 import oasis.web.userdirectory.UserEndpoint;
@@ -106,6 +107,7 @@ public class Application extends javax.ws.rs.core.Application {
         // Resources
         StaticResources.class,
         UserDirectoryEndpoint.class,
+        OrganizationEndpoint.class,
         UserEndpoint.class,
         MembershipEndpoint.class,
         UserMembershipEndpoint.class,

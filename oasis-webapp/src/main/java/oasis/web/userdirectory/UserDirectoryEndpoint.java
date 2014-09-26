@@ -28,7 +28,6 @@ import oasis.model.InvalidVersionException;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Group;
 import oasis.model.directory.Organization;
-import oasis.model.directory.OrganizationMembershipRepository;
 import oasis.services.etag.EtagService;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
@@ -41,7 +40,6 @@ import oasis.web.utils.ResponseFactory;
 public class UserDirectoryEndpoint {
 
   @Inject DirectoryRepository directory;
-  @Inject OrganizationMembershipRepository organizationMembershipRepository;
   @Inject EtagService etagService;
 
   /*
@@ -55,93 +53,13 @@ public class UserDirectoryEndpoint {
       response = Organization.class)
   public Response createOrganization(Organization organization) {
     Organization res = directory.createOrganization(organization);
-    URI uri = UriBuilder.fromResource(UserDirectoryEndpoint.class).path(UserDirectoryEndpoint.class, "getOrganization").build(res.getId());
+    URI uri = UriBuilder.fromResource(OrganizationEndpoint.class).build(res.getId());
     return Response
         .created(uri)
         .contentLocation(uri)
         .entity(res)
         .tag(etagService.getEtag(res))
         .build();
-  }
-
-  @GET
-  @Path("/org/{organizationId}")
-  @ApiOperation(value = "Retrieve an organization",
-      response = Organization.class)
-  public Response getOrganization(@PathParam("organizationId") String organizationId) {
-    Organization organization = directory.getOrganization(organizationId);
-    if (organization == null) {
-      return ResponseFactory.notFound("The requested organization does not exist");
-    }
-    return Response
-        .ok()
-        .entity(organization)
-        .tag(etagService.getEtag(organization))
-        .build();
-  }
-
-  @PUT
-  @Path("/org/{organizationId}")
-  @ApiOperation(value = "Update an organization",
-      response = Organization.class)
-  public Response updateOrganization(
-      @Context Request request,
-      @HeaderParam("If-Match") @ApiParam(required = true) String etagStr,
-      @PathParam("organizationId") String organizationId,
-      Organization organization) {
-
-    if (Strings.isNullOrEmpty(etagStr)) {
-      return ResponseFactory.preconditionRequiredIfMatch();
-    }
-
-    Organization updatedOrganization = null;
-    try {
-      updatedOrganization = directory.updateOrganization(organizationId, organization, etagService.parseEtag(etagStr));
-    } catch (InvalidVersionException e) {
-      return ResponseFactory.preconditionFailed(e.getMessage());
-    }
-
-    if (updatedOrganization == null) {
-      return ResponseFactory.notFound("The requested organization does not exist");
-    }
-
-    URI uri = UriBuilder.fromResource(UserDirectoryEndpoint.class)
-        .path(UserDirectoryEndpoint.class, "getOrganization")
-        .build(organizationId);
-    return Response.created(uri)
-        .tag(etagService.getEtag(updatedOrganization))
-        .contentLocation(uri)
-        .entity(updatedOrganization)
-        .build();
-  }
-
-  @DELETE
-  @Path("/org/{organizationId}")
-  @ApiOperation(value = "Delete an organization")
-  public Response deleteOrganization(
-      @Context Request request,
-      @HeaderParam("If-Match") @ApiParam(required = true) String etagStr,
-      @PathParam("organizationId") String organizationId
-  ) {
-    if (Strings.isNullOrEmpty(etagStr)) {
-      return ResponseFactory.preconditionRequiredIfMatch();
-    }
-
-    boolean deleted;
-    try {
-      deleted = directory.deleteOrganization(organizationId, etagService.parseEtag(etagStr));
-    } catch (InvalidVersionException e) {
-      return ResponseFactory.preconditionFailed(e.getMessage());
-    }
-
-    if (!deleted) {
-      return ResponseFactory.notFound("The requested organization does not exist");
-    }
-
-    // XXX: refactor ?
-    organizationMembershipRepository.deleteMembershipsInOrganization(organizationId);
-
-    return ResponseFactory.NO_CONTENT;
   }
 
   /*
@@ -264,7 +182,7 @@ public class UserDirectoryEndpoint {
     if (organization == null) {
       return ResponseFactory.notFound("The requested group does not exist");
     }
-    URI uri = UriBuilder.fromResource(UserDirectoryEndpoint.class).path(UserDirectoryEndpoint.class, "getOrganization").build(organization.getId());
+    URI uri = UriBuilder.fromResource(OrganizationEndpoint.class).build(organization.getId());
     return Response
         .ok()
         .contentLocation(uri)
