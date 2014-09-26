@@ -14,12 +14,16 @@ public abstract class CatalogEntry extends CommonProperties {
   private boolean visible;
   private LocalizableString tos_uri;
   private LocalizableString policy_uri;
+  private List<String> contacts;
+  private List<String> screenshot_uris;
 
   protected CatalogEntry() {
     target_audience = new ArrayList<>();
     category_ids = new ArrayList<>();
     tos_uri = new LocalizableString();
     policy_uri = new LocalizableString();
+    contacts = new ArrayList<>();
+    screenshot_uris = new ArrayList<>();
   }
 
   /**
@@ -35,6 +39,8 @@ public abstract class CatalogEntry extends CommonProperties {
     visible = other.isVisible();
     tos_uri = new LocalizableString(other.getTos_uri());
     policy_uri = new LocalizableString(other.getPolicy_uri());
+    contacts = new ArrayList<>(other.getContacts());
+    screenshot_uris = new ArrayList<>(other.getScreenshot_uris());
   }
 
   public String getId() {
@@ -93,6 +99,22 @@ public abstract class CatalogEntry extends CommonProperties {
 
   public void setPolicy_uri(LocalizableString policy_uri) {
     this.policy_uri = policy_uri;
+  }
+
+  public List<String> getContacts() {
+    return contacts;
+  }
+
+  public void setContacts(List<String> contacts) {
+    this.contacts = contacts;
+  }
+
+  public List<String> getScreenshot_uris() {
+    return screenshot_uris;
+  }
+
+  public void setScreenshot_uris(List<String> screenshot_uris) {
+    this.screenshot_uris = screenshot_uris;
   }
 
   public static enum EntryType {
