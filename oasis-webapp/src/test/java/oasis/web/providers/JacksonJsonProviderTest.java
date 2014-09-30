@@ -57,16 +57,6 @@ public class JacksonJsonProviderTest {
     assertThat(response.readEntity(String.class)).contains("Unexpected end-of-input");
   }
 
-  @Test public void testMappingError() {
-    Response response = resteasy.getClient()
-        .target(UriBuilder.fromResource(DummyResource.class).build())
-        .request()
-        .post(Entity.json("{\"foo\": \"bar\" }"));
-
-    assertThat(response.getStatus()).isEqualTo(ResponseFactory.SC_UNPROCESSABLE_ENTITY);
-    assertThat(response.readEntity(String.class)).contains("Unrecognized field \"foo\"");
-  }
-
   @Test public void testTypeMappingError() {
     Response response = resteasy.getClient()
         .target(UriBuilder.fromResource(DummyResource.class).build())

@@ -1,5 +1,7 @@
 package oasis.web.providers;
 
+import static com.fasterxml.jackson.databind.DeserializationFeature.*;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
@@ -36,6 +38,8 @@ public class JacksonJsonProvider extends com.fasterxml.jackson.jaxrs.json.Jackso
         .registerModule(new JodaModule())
         .registerModule(new GuavaModule())
         .registerModule(new LocalizableModule())
+        .disable(FAIL_ON_UNKNOWN_PROPERTIES)
+        .enable(FAIL_ON_NUMBERS_FOR_ENUMS)
         .setSerializationInclusion(JsonInclude.Include.NON_EMPTY));
   }
 
