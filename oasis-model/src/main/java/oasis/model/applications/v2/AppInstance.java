@@ -13,6 +13,8 @@ public class AppInstance extends CommonProperties {
   /** ID of the user who created the instance. */
   private String instantiator_id;
   private Set<NeededScope> needed_scopes;
+  private String destruction_uri;
+  private String destruction_secret;
 
   public AppInstance() {
     status = InstantiationStatus.PENDING;
@@ -33,6 +35,8 @@ public class AppInstance extends CommonProperties {
     for (NeededScope scope : other.getNeeded_scopes()) {
       needed_scopes.add(new NeededScope(scope));
     }
+    destruction_uri = other.getDestruction_uri();
+    destruction_secret = other.getDestruction_secret();
   }
 
   public String getId() {
@@ -67,13 +71,28 @@ public class AppInstance extends CommonProperties {
     this.instantiator_id = instantiator_id;
   }
 
-
   public Set<NeededScope> getNeeded_scopes() {
     return needed_scopes;
   }
 
   public void setNeeded_scopes(Set<NeededScope> needed_scopes) {
     this.needed_scopes = needed_scopes;
+  }
+
+  public String getDestruction_uri() {
+    return destruction_uri;
+  }
+
+  public void setDestruction_uri(String destruction_uri) {
+    this.destruction_uri = destruction_uri;
+  }
+
+  public String getDestruction_secret() {
+    return destruction_secret;
+  }
+
+  public void setDestruction_secret(String destruction_secret) {
+    this.destruction_secret = destruction_secret;
   }
 
   public static class NeededScope {

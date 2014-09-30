@@ -1,5 +1,6 @@
 package oasis.web.applications;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -11,6 +12,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
@@ -44,6 +47,17 @@ public class UserAppInstanceEndpoint {
       return ResponseFactory.forbidden("Current user does not match the one in the url");
     }
     Iterable<AppInstance> appInstances = appInstanceRepository.findPersonalInstancesByUserId(userId);
-    return Response.ok(new GenericEntity<Iterable<AppInstance>>(appInstances) {}).build();
+    return Response.ok()
+        .entity(new GenericEntity<Iterable<AppInstance>>(
+            Iterables.transform(appInstances,
+                new Function<AppInstance, AppInstance>() {
+                  @Override
+                  public AppInstance apply(AppInstance instance) {
+                    // XXX: Don't send secrets over the wire
+                    instance.setDestruction_secret(null);
+                    return instance;
+                  }
+                })) {})
+        .build();
   }
 }

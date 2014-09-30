@@ -6,10 +6,13 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
@@ -51,6 +54,17 @@ public class OrganizationAppInstanceEndpoint {
     }
 
     Iterable<AppInstance> appInstances = appInstanceRepository.findByOrganizationId(organizationId);
-    return Response.ok(appInstances).build();
+    return Response.ok()
+        .entity(new GenericEntity<Iterable<AppInstance>>(
+            Iterables.transform(appInstances,
+                new Function<AppInstance, AppInstance>() {
+                  @Override
+                  public AppInstance apply(AppInstance instance) {
+                    // XXX: Don't send secrets over the wire
+                    instance.setDestruction_secret(null);
+                    return instance;
+                  }
+                })) {})
+        .build();
   }
 }

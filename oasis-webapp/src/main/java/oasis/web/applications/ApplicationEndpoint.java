@@ -64,6 +64,7 @@ public class ApplicationEndpoint {
 
     // XXX: don't send the secrets over the wire
     application.setInstantiation_secret(null);
+    application.setCancellation_secret(null);
 
     // TODO: send back the link to the MarketBuyEndpoint
     return Response.ok(application).build();

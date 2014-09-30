@@ -1,7 +1,5 @@
 package oasis.web.applications;
 
-import java.util.List;
-
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -13,10 +11,11 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
 import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Iterables;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
@@ -52,6 +51,10 @@ public class AppInstanceEndpoint {
     if (instance == null) {
       return ResponseFactory.notFound("Application instance not found");
     }
+
+    // XXX: Don't send the secrets over the wire
+    instance.setDestruction_secret(null);
+
     return Response.ok(instance).build();
   }
 
@@ -66,18 +69,16 @@ public class AppInstanceEndpoint {
     // TODO: only the instance admins should be able to call that API
     Iterable<Service> services = serviceRepository.getServicesOfInstance(instanceId);
     // TODO: check that the instance exists and return a 404 otherwise
-    return Response.ok(new GenericEntity<List<Service>>(
-        FluentIterable.from(services)
-            .transform(new Function<Service, Service>() {
+    return Response.ok()
+        .entity(new GenericEntity<Iterable<Service>>(Iterables.transform(services,
+            new Function<Service, Service>() {
               @Override
               public Service apply(Service input) {
                 // XXX: don't send secrets over the wire
                 input.setSubscription_secret(null);
                 return input;
               }
-            })
-            .toList()
-    ) {})
+            })) {})
         .build();
   }
 
