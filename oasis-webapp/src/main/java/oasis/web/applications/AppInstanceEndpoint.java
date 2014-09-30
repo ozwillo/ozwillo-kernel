@@ -23,8 +23,10 @@ import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.ServiceRepository;
+import oasis.services.authz.AppAdminHelper;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
+import oasis.web.authn.OAuthPrincipal;
 import oasis.web.resteasy.Resteasy1099;
 import oasis.web.utils.ResponseFactory;
 
@@ -35,7 +37,10 @@ import oasis.web.utils.ResponseFactory;
 @Api(value = "app-instances", description = "Application instances")
 public class AppInstanceEndpoint {
   @Inject AppInstanceRepository appInstanceRepository;
+  @Inject AppAdminHelper appAdminHelper;
   @Inject ServiceRepository serviceRepository;
+
+  @Context SecurityContext securityContext;
 
   @PathParam("instance_id")
   String instanceId;
@@ -46,10 +51,14 @@ public class AppInstanceEndpoint {
       response = AppInstance.class
   )
   public Response getAppInstance() {
-    // TODO: only the instance admins should be able to call that API
     AppInstance instance = appInstanceRepository.getAppInstance(instanceId);
     if (instance == null) {
       return ResponseFactory.notFound("Application instance not found");
+    }
+
+    String userId = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId();
+    if (!appAdminHelper.isAdmin(userId, instance)) {
+      return ResponseFactory.forbidden("Current user is not an app_admin for the instance");
     }
 
     // XXX: Don't send the secrets over the wire
@@ -66,7 +75,15 @@ public class AppInstanceEndpoint {
       responseContainer = "Array"
   )
   public Response getServices() {
-    // TODO: only the instance admins should be able to call that API
+    AppInstance instance = appInstanceRepository.getAppInstance(instanceId);
+    if (instance == null) {
+      return ResponseFactory.NOT_FOUND;
+    }
+    String userId = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId();
+    if (!appAdminHelper.isAdmin(userId, instance)) {
+      return ResponseFactory.forbidden("Current user is not an app_admin for the instance");
+    }
+
     Iterable<Service> services = serviceRepository.getServicesOfInstance(instanceId);
     // TODO: check that the instance exists and return a 404 otherwise
     return Response.ok()
@@ -89,7 +106,15 @@ public class AppInstanceEndpoint {
       response = Service.class
   )
   public Response addService(@Context UriInfo uriInfo, Service service) {
-    // TODO: only the instance admins should be able to call that API
+    AppInstance instance = appInstanceRepository.getAppInstance(instanceId);
+    if (instance == null) {
+      return ResponseFactory.NOT_FOUND;
+    }
+    String userId = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId();
+    if (!appAdminHelper.isAdmin(userId, instance)) {
+      return ResponseFactory.forbidden("Current user is not an app_admin for the instance");
+    }
+
     if (service.getInstance_id() != null && !service.getInstance_id().equals(instanceId)) {
       return ResponseFactory.unprocessableEntity("instance_id doesn't match URL");
     }
