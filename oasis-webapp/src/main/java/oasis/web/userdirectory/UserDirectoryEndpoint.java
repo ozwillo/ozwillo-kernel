@@ -17,6 +17,7 @@ import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 
 import com.google.common.base.Strings;
@@ -28,9 +29,12 @@ import oasis.model.InvalidVersionException;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Group;
 import oasis.model.directory.Organization;
+import oasis.model.directory.OrganizationMembership;
+import oasis.model.directory.OrganizationMembershipRepository;
 import oasis.services.etag.EtagService;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
+import oasis.web.authn.OAuthPrincipal;
 import oasis.web.utils.ResponseFactory;
 
 @Path("/d")
@@ -40,6 +44,7 @@ import oasis.web.utils.ResponseFactory;
 public class UserDirectoryEndpoint {
 
   @Inject DirectoryRepository directory;
+  @Inject OrganizationMembershipRepository organizationMembershipRepository;
   @Inject EtagService etagService;
 
   /*
@@ -51,14 +56,23 @@ public class UserDirectoryEndpoint {
   @ApiOperation(value = "Create an organization",
       notes = "The returned location URL get access to the organization (retrieve, update, delete this organization)",
       response = Organization.class)
-  public Response createOrganization(Organization organization) {
-    Organization res = directory.createOrganization(organization);
-    URI uri = UriBuilder.fromResource(OrganizationEndpoint.class).build(res.getId());
+  public Response createOrganization(@Context SecurityContext securityContext, Organization organization) {
+    organization = directory.createOrganization(organization);
+
+    // Automatically add the current user as an admin for the organization
+    OrganizationMembership membership = new OrganizationMembership();
+    membership.setOrganizationId(organization.getId());
+    membership.setAccountId(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId());
+    membership.setAdmin(true);
+    organizationMembershipRepository.createOrganizationMembership(membership);
+
+    // XXX: add link to org membership that we just created?
+    URI uri = UriBuilder.fromResource(OrganizationEndpoint.class).build(organization.getId());
     return Response
         .created(uri)
         .contentLocation(uri)
-        .entity(res)
-        .tag(etagService.getEtag(res))
+        .entity(organization)
+        .tag(etagService.getEtag(organization))
         .build();
   }
 
