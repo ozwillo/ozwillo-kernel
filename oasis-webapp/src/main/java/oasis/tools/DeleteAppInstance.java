@@ -1,38 +1,25 @@
 package oasis.tools;
 
-import java.util.ArrayList;
-
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Provider;
 
-import org.jongo.Jongo;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Function;
+import com.google.common.base.Optional;
 import com.google.common.base.Strings;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.typesafe.config.Config;
 
 import oasis.jongo.JongoService;
 import oasis.jongo.guice.JongoModule;
-import oasis.model.applications.v2.AccessControlRepository;
 import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstanceRepository;
-import oasis.model.applications.v2.Scope;
-import oasis.model.applications.v2.ScopeRepository;
-import oasis.model.applications.v2.Service;
-import oasis.model.applications.v2.ServiceRepository;
-import oasis.model.applications.v2.UserSubscriptionRepository;
-import oasis.model.authn.TokenRepository;
-import oasis.model.authz.AuthorizationRepository;
 import oasis.openidconnect.OpenIdConnectModule;
+import oasis.usecases.DeleteAppInstance.Request;
+import oasis.usecases.DeleteAppInstance.Stats;
 
 public class DeleteAppInstance extends CommandLineTool {
 
@@ -60,14 +47,8 @@ public class DeleteAppInstance extends CommandLineTool {
   private boolean dryRun;
 
   @Inject JongoService jongoService;
-  @Inject Provider<Jongo> jongoProvider;
+  @Inject Provider<oasis.usecases.DeleteAppInstance> usecaseProvider;
   @Inject Provider<AppInstanceRepository> appInstanceRepositoryProvider;
-  @Inject Provider<AuthorizationRepository> authorizationRepositoryProvider;
-  @Inject Provider<ServiceRepository> serviceRepositoryProvider;
-  @Inject Provider<ScopeRepository> scopeRepositoryProvider;
-  @Inject Provider<TokenRepository> tokenRepositoryProvider;
-  @Inject Provider<UserSubscriptionRepository> userSubscriptionRepositoryProvider;
-  @Inject Provider<AccessControlRepository> accessControlRepositoryProvider;
 
   @Override
   protected Logger logger() {
@@ -119,80 +100,45 @@ public class DeleteAppInstance extends CommandLineTool {
   }
 
   private void deleteInstance(String instance_id) {
-    // XXX: we first delete the instance, then all the orphan data: ACL, services, scopes, etc.
     logger().info("  Deleting instance {}...", instance_id);
-    boolean silent = false;
-    if (dryRun) {
-      silent = appInstanceRepositoryProvider.get().getAppInstance(instance_id) == null;
-    } else {
-      silent = !appInstanceRepositoryProvider.get().deleteInstance(instance_id);
+    Stats stats = new oasis.usecases.DeleteAppInstance.Stats();
+    try {
+      if (dryRun) {
+        // TODO: reintroduce full dry-run with "dry-run repositories" injected into the use-case class
+        // For now, just check whether the instance exists
+        stats.appInstanceDeleted = appInstanceRepositoryProvider.get().getAppInstance(instance_id) == null;
+      } else {
+        Request request = new Request(instance_id);
+        request.callProvider = false;
+        request.checkStatus = Optional.absent();
+        usecaseProvider.get().deleteInstance(request, stats);
+      }
+      displayStats(instance_id, stats);
+    } catch (Exception e) {
+      // display "partial" stats then re-throw
+      displayStats(instance_id, stats);
+      throw e;
     }
-    if (silent) {
+  }
+
+  private void displayStats(String instance_id, Stats stats) {
+    if (!stats.appInstanceDeleted) {
       logger().warn("    No instance with ID existed; trying to delete other related data anyway.");
     }
 
-    long tokens;
-    if (dryRun) {
-      tokens = jongoProvider.get().getCollection("tokens").count("{ serviceProviderId: # }", instance_id);
-    } else {
-      tokens = tokenRepositoryProvider.get().revokeTokensForClient(instance_id);
-    }
-    logger().info("    Revoked {} tokens for the instance", tokens);
-
-    long authorizations;
-    if (dryRun) {
-      authorizations = jongoProvider.get().getCollection("authorized_scopes").count("{ client_id: # }", instance_id);
-    } else {
-      authorizations = authorizationRepositoryProvider.get().revokeAllForClient(instance_id);
-    }
-    logger().info("    Deleted {} authorizations from users for the instance", authorizations);
-
-    ArrayList<String> scopes = new ArrayList<>();
-    for (Scope scope : scopeRepositoryProvider.get().getScopesOfAppInstance(instance_id)) {
-      scopes.add(scope.getId());
-    }
-    long revokedScopes;
-    if (dryRun) {
-      revokedScopes = jongoProvider.get().getCollection("tokens").count("{ scopeIds: { $in: # } }", scopes);
-    } else {
-      revokedScopes = tokenRepositoryProvider.get().revokeTokensForScopes(scopes);
-    }
-    logger().info("    Revoked {} tokens for the instance scopes", revokedScopes);
-    if (dryRun) {
-      revokedScopes = jongoProvider.get().getCollection("authorized_scopes").count("{ scope_ids: { $in: # } }", scopes);
-    } else {
-      revokedScopes = authorizationRepositoryProvider.get().revokeForAllUsers(scopes);
-    }
-    logger().info("    Revoked {} authorizations from users to the instance scopes (for other instances)", revokedScopes);
+    // TODO: reintroduce full dry-run with "dry-run repositories" injected into the use-case class
     if (!dryRun) {
-      scopeRepositoryProvider.get().deleteScopesOfAppInstance(instance_id);
+      logger().info("    Deleted {}credentials for the instance", stats.credentialsDeleted ? "" : "NO ");
+      logger().info("    Revoked {} tokens for the instance", stats.tokensRevokedForInstance);
+      logger().info("    Deleted {} authorizations from users for the instance", stats.authorizationsDeletedForInstance);
+      logger().info("    Revoked {} tokens for the instance scopes", stats.tokensRevokedForScopes);
+      logger().info("    Revoked {} authorizations from users to the instance scopes (for other instances)", stats.authorizationsDeletedForScopes);
+      logger().info("    Deleted {} scopes", stats.scopesDeleted);
+      logger().info("    Deleted {} app_users", stats.appUsersDeleted);
+      logger().info("    Deleted {} subscriptions for all services", stats.subscriptionsDeleted);
+      logger().info("    Deleted {} services", stats.servicesDeleted);
+      logger().info("    Deleted {} eventbus hooks", stats.eventBusHooksDeleted);
     }
-    logger().info("    Deleted {} scopes", scopes.size());
-
-    int aces;
-    if (dryRun) {
-      aces = Iterables.size(accessControlRepositoryProvider.get().getAccessControlListForAppInstance(instance_id));
-    } else {
-      aces = accessControlRepositoryProvider.get().deleteAccessControlListForAppInstance(instance_id);
-    }
-    logger().info("    Deleted {} app_users", aces);
-
-    ArrayList<String> serviceIds = new ArrayList<>();
-    for (Service service : serviceRepositoryProvider.get().getServicesOfInstance(instance_id)) {
-      serviceIds.add(service.getId());
-    }
-    long subscriptions;
-    if (dryRun) {
-      subscriptions = jongoProvider.get().getCollection("user_subscriptions").count("{ service_id: { $in: # } }", serviceIds);
-    } else {
-      subscriptions = userSubscriptionRepositoryProvider.get().deleteSubscriptionsForServices(serviceIds);
-    }
-    logger().info("    Deleted {} subscriptions for all services", subscriptions);
-
-    if (!dryRun) {
-      serviceRepositoryProvider.get().deleteServicesOfInstance(instance_id);
-    }
-    logger().info("    Deleted {} services", serviceIds.size());
 
     logger().info("    Instance {} deleted.", instance_id);
   }

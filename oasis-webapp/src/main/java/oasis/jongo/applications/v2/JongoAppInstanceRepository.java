@@ -70,13 +70,6 @@ public class JongoAppInstanceRepository implements AppInstanceRepository, JongoB
   }
 
   @Override
-  public boolean deletePendingInstance(String instanceId) {
-    return getAppInstancesCollection()
-        .remove("{ id: #, status: # }", instanceId, AppInstance.InstantiationStatus.PENDING)
-        .getN() != 0;
-  }
-
-  @Override
   public boolean deleteInstance(String instanceId) {
     return getAppInstancesCollection()
         .remove("{ id: # }", instanceId)

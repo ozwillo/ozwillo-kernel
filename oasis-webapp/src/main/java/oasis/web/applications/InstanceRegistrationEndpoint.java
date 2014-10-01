@@ -20,6 +20,7 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.Optional;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
@@ -32,8 +33,7 @@ import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.ServiceRepository;
 import oasis.model.applications.v2.UserSubscription;
 import oasis.model.applications.v2.UserSubscriptionRepository;
-import oasis.model.authn.ClientType;
-import oasis.model.authn.CredentialsRepository;
+import oasis.usecases.DeleteAppInstance;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.Client;
 import oasis.web.authn.ClientPrincipal;
@@ -48,7 +48,7 @@ public class InstanceRegistrationEndpoint {
   @Inject ServiceRepository serviceRepository;
   @Inject ScopeRepository scopeRepository;
   @Inject UserSubscriptionRepository userSubscriptionRepository;
-  @Inject CredentialsRepository credentialsRepository;
+  @Inject DeleteAppInstance deleteAppInstance;
 
   @PathParam("instance_id") String instanceId;
 
@@ -117,11 +117,24 @@ public class InstanceRegistrationEndpoint {
     if (((ClientPrincipal) securityContext.getUserPrincipal()).getClientId().equals(instanceId)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
-    if (!appInstanceRepository.deletePendingInstance(instanceId)) {
-      return ResponseFactory.notFound("Pending instance not found");
+
+    DeleteAppInstance.Request request = new DeleteAppInstance.Request(instanceId);
+    request.callProvider = false;
+    request.checkStatus = Optional.of(AppInstance.InstantiationStatus.PENDING);
+    DeleteAppInstance.Status status = deleteAppInstance.deleteInstance(request, new DeleteAppInstance.Stats());
+
+    switch (status) {
+      case BAD_INSTANCE_STATUS:
+        // Instance has already been provisioned
+        return ResponseFactory.NOT_FOUND;
+      case DELETED_INSTANCE:
+      // below are race-condition: we couldn't have authenticated the client otherwise
+      case DELETED_LEFTOVERS:
+      case NOTHING_TO_DELETE:
+        return Response.ok().build();
+      default:
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
     }
-    credentialsRepository.deleteCredentials(ClientType.PROVIDER, instanceId);
-    return Response.ok().build();
   }
 
   public static class AcknowledgementRequest {

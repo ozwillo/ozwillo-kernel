@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.wordnik.swagger.annotations.Api;
@@ -36,11 +37,11 @@ import oasis.model.applications.v2.Application;
 import oasis.model.applications.v2.ApplicationRepository;
 import oasis.model.applications.v2.CatalogEntry;
 import oasis.model.authn.ClientType;
-import oasis.model.authn.CredentialsRepository;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Organization;
 import oasis.services.authn.CredentialsService;
 import oasis.services.authn.PasswordGenerator;
+import oasis.usecases.DeleteAppInstance;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
@@ -62,7 +63,7 @@ public class MarketBuyEndpoint {
   @Inject AppInstanceRepository appInstanceRepository;
   @Inject PasswordGenerator passwordGenerator;
   @Inject CredentialsService credentialsService;
-  @Inject CredentialsRepository credentialsRepository;
+  @Inject DeleteAppInstance deleteAppInstance;
 
   @Context UriInfo uriInfo;
   @Context SecurityContext securityContext;
@@ -157,9 +158,14 @@ public class MarketBuyEndpoint {
       return ResponseFactory.build(Response.Status.GATEWAY_TIMEOUT, "Application factory timed-out");
     }
     if (response.getStatusInfo().getFamily() != Response.Status.Family.SUCCESSFUL) {
-      appInstanceRepository.deletePendingInstance(instance.getId());
-      credentialsRepository.deleteCredentials(ClientType.PROVIDER, instance.getId());
-      return ResponseFactory.build(Response.Status.BAD_GATEWAY, "Application factory failed");
+      DeleteAppInstance.Request request = new DeleteAppInstance.Request(instance.getId());
+      request.callProvider = false;
+      request.checkStatus = Optional.of(AppInstance.InstantiationStatus.PENDING);
+      DeleteAppInstance.Status status = deleteAppInstance.deleteInstance(request, new DeleteAppInstance.Stats());
+      if (status != DeleteAppInstance.Status.BAD_INSTANCE_STATUS) {
+        return ResponseFactory.build(Response.Status.BAD_GATEWAY, "Application factory failed");
+      }
+      // instance has been provisioned despite unsuccessful response from the App Factory; fall through.
     }
     // Get the possibly-updated instance
     instance = appInstanceRepository.getAppInstance(instance.getId());

@@ -72,6 +72,13 @@ public class JongoSubscriptionRepository implements SubscriptionRepository, Jong
   }
 
   @Override
+  public int deleteSubscriptionsForAppInstance(String instance_id) {
+    return getSubscriptionsCollection()
+        .remove("{ instance_id: # }", instance_id)
+        .getN();
+  }
+
+  @Override
   public void bootstrap() {
     getSubscriptionsCollection().ensureIndex("{ id: 1 }", "{ unique: 1 }");
     getSubscriptionsCollection().ensureIndex("{ instance_id: 1, eventType: 1 }", "{ unique: 1 }");

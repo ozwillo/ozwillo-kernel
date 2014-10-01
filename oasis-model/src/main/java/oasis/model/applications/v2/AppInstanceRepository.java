@@ -13,8 +13,6 @@ public interface AppInstanceRepository {
 
   AppInstance instantiated(String instanceId, List<AppInstance.NeededScope> neededScopes);
 
-  boolean deletePendingInstance(String instanceId);
-
   boolean deleteInstance(String instanceId);
 
   Iterable<AppInstance> getInstancesForApplication(String applicationId);

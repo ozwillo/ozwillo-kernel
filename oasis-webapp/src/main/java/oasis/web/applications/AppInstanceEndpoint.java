@@ -2,6 +2,7 @@ package oasis.web.applications;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -15,6 +16,7 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
 import com.google.common.base.Function;
+import com.google.common.base.Optional;
 import com.google.common.collect.Iterables;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
@@ -24,6 +26,7 @@ import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.ServiceRepository;
 import oasis.services.authz.AppAdminHelper;
+import oasis.usecases.DeleteAppInstance;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
@@ -39,6 +42,7 @@ public class AppInstanceEndpoint {
   @Inject AppInstanceRepository appInstanceRepository;
   @Inject AppAdminHelper appAdminHelper;
   @Inject ServiceRepository serviceRepository;
+  @Inject DeleteAppInstance deleteAppInstance;
 
   @Context SecurityContext securityContext;
 
@@ -130,5 +134,37 @@ public class AppInstanceEndpoint {
     return Response.created(Resteasy1099.getBaseUriBuilder(uriInfo).path(ServiceEndpoint.class).build(service.getId()))
         .entity(service)
         .build();
+  }
+
+  @DELETE
+  @ApiOperation("Detroys the application instance")
+  public Response destroy() {
+    AppInstance instance = appInstanceRepository.getAppInstance(instanceId);
+    if (instance == null) {
+      return ResponseFactory.NOT_FOUND;
+    }
+    String userId = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId();
+    if (!appAdminHelper.isAdmin(userId, instance)) {
+      return ResponseFactory.forbidden("Current user is not an app_admin for the instance");
+    }
+
+    DeleteAppInstance.Request request = new DeleteAppInstance.Request(instanceId);
+    request.callProvider = true;
+    request.checkStatus = Optional.absent();
+    DeleteAppInstance.Status status = deleteAppInstance.deleteInstance(request, new DeleteAppInstance.Stats());
+
+    switch (status) {
+      case PROVIDER_CALL_ERROR:
+      case PROVIDER_STATUS_ERROR:
+        return Response.status(Response.Status.BAD_GATEWAY).build();
+      case DELETED_LEFTOVERS:
+      case NOTHING_TO_DELETE:
+        // race condition?
+        return ResponseFactory.NOT_FOUND;
+      case DELETED_INSTANCE:
+        return Response.ok().build();
+      default:
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+    }
   }
 }
