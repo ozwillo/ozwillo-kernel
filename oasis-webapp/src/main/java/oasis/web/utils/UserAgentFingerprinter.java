@@ -38,21 +38,21 @@ public class UserAgentFingerprinter {
   }
 
   private void putHeader(Hasher hasher, String name, String value) {
-    // willfully use == rather than equals() because we know we're using the interned constant here
-    //noinspection StringEquality
-    if (name == HttpHeaders.ACCEPT_ENCODING) {
-      // special-case for Chrome, which sends an "sdch" accept-encoding randomly [1],
-      // but never sends it on POST requests [2] (e.g. when submitting the login form
-      // and creating a SidToken). The Accept-Encoding value is hard-coded [3] so we
-      // simply strip ",sdch" before hashing the value (no need for complicated
-      // algorithms like splitting on commas before reassembling the header value).
-      //
-      // [1] https://chromium.googlesource.com/chromium/src/+/37.0.2062.94/net/url_request/url_request_http_job.cc#487
-      // [2] https://chromium.googlesource.com/chromium/src/+/37.0.2062.94/net/url_request/url_request_http_job.cc#470
-      // [3] https://chromium.googlesource.com/chromium/src/+/37.0.2062.94/net/url_request/url_request_http_job.cc#512
-      value = value.replace(",sdch", "");
-    }
     if (value != null) {
+      // willfully use == rather than equals() because we know we're using the interned constant here
+      //noinspection StringEquality
+      if (name == HttpHeaders.ACCEPT_ENCODING) {
+        // special-case for Chrome, which sends an "sdch" accept-encoding randomly [1],
+        // but never sends it on POST requests [2] (e.g. when submitting the login form
+        // and creating a SidToken). The Accept-Encoding value is hard-coded [3] so we
+        // simply strip ",sdch" before hashing the value (no need for complicated
+        // algorithms like splitting on commas before reassembling the header value).
+        //
+        // [1] https://chromium.googlesource.com/chromium/src/+/37.0.2062.94/net/url_request/url_request_http_job.cc#487
+        // [2] https://chromium.googlesource.com/chromium/src/+/37.0.2062.94/net/url_request/url_request_http_job.cc#470
+        // [3] https://chromium.googlesource.com/chromium/src/+/37.0.2062.94/net/url_request/url_request_http_job.cc#512
+        value = value.replace(",sdch", "");
+      }
       hasher.putString(value, StandardCharsets.UTF_8);
     }
   }
