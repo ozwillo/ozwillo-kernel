@@ -248,7 +248,9 @@ public class Bootstrap extends CommandLineTool {
     // FIXME: we need dc-specific scopes
     Scope scope = new Scope();
     scope.setLocal_id("datacore");
+    // Note: computeId must be called BEFORE setInstance_id fo the scope ID to be "datacore" (and not "dc:datacore")
     scope.computeId();
+    scope.setInstance_id(instance.getId());
     scope.getName().set(Locale.ROOT, "Datacore");
     scopeRepositoryProvider.get().createOrUpdateScope(scope);
 
