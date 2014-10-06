@@ -31,7 +31,7 @@ import oasis.web.authn.OAuth;
 import oasis.web.resteasy.Resteasy1099;
 import oasis.web.utils.ResponseFactory;
 
-@Path("/org/{organizationId}")
+@Path("/d/org/{organizationId}")
 @Produces(MediaType.APPLICATION_JSON)
 @Api(value = "organization", description = "Organization")
 public class OrganizationEndpoint {
