@@ -18,4 +18,6 @@ public interface TokenRepository {
   int revokeTokensForClient(String clientId);
 
   int revokeTokensForScopes(Collection<String> scopeIds);
+
+  Collection<String> getAllClientsForSession(String sidTokenId);
 }

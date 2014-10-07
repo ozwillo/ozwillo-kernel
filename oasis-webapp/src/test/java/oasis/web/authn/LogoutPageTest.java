@@ -86,6 +86,7 @@ public class LogoutPageTest {
 
   @Before public void setUpMocks(AppInstanceRepository appInstanceRepository, ServiceRepository serviceRepository) {
     when(appInstanceRepository.getAppInstance(appInstance.getId())).thenReturn(appInstance);
+    when(appInstanceRepository.getAppInstances(anyCollectionOf(String.class))).thenReturn(Collections.<AppInstance>emptyList());
     when(serviceRepository.getServiceByPostLogoutRedirectUri(appInstance.getId(), Iterables.getOnlyElement(service.getPost_logout_redirect_uris())))
         .thenReturn(service);
   }
@@ -149,8 +150,7 @@ public class LogoutPageTest {
       assertThat(response.getCookies().get(UserFilter.COOKIE_NAME).getExpiry()).isInTheFuture();
     }
     assertLogoutPage(response)
-        .contains(service.getName().get(Locale.ROOT))
-        .contains(service.getName().get(Locale.ROOT))
+        .contains(appInstance.getName().get(Locale.ROOT))
         .contains(service.getService_uri())
         .matches(hiddenInput("continue", new RedirectUri(Iterables.getOnlyElement(service.getPost_logout_redirect_uris()))
             .setState("some&state")
@@ -205,8 +205,7 @@ public class LogoutPageTest {
       assertThat(response.getCookies().get(UserFilter.COOKIE_NAME).getExpiry()).isInTheFuture();
     }
     assertLogoutPage(response)
-        .doesNotContain(service.getName().get(Locale.ROOT))
-        .doesNotContain(service.getName().get(Locale.ROOT))
+        .doesNotContain(appInstance.getName().get(Locale.ROOT))
         .doesNotContain(service.getService_uri())
         .doesNotMatch(hiddenInput("continue", "http://example.com"));
 

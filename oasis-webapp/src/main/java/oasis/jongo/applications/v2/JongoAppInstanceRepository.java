@@ -1,5 +1,7 @@
 package oasis.jongo.applications.v2;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -9,6 +11,7 @@ import org.jongo.MongoCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableSet;
 import com.mongodb.DuplicateKeyException;
 
 import oasis.jongo.JongoBootstrapper;
@@ -41,6 +44,17 @@ public class JongoAppInstanceRepository implements AppInstanceRepository, JongoB
   public AppInstance getAppInstance(String instanceId) {
     return getAppInstancesCollection()
         .findOne("{ id: #}", instanceId)
+        .as(JongoAppInstance.class);
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public Iterable<AppInstance> getAppInstances(Collection<String> instanceIds) {
+    if (instanceIds.isEmpty()) {
+      return Collections.emptyList();
+    }
+    return (Iterable<AppInstance>) (Iterable<?>) getAppInstancesCollection()
+        .find("{ id: { $in: # } }", ImmutableSet.copyOf(instanceIds))
         .as(JongoAppInstance.class);
   }
 

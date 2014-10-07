@@ -112,6 +112,15 @@ public class JongoTokenRepository implements TokenRepository, JongoBootstrapper 
   }
 
   @Override
+  public Collection<String> getAllClientsForSession(String sidTokenId) {
+    checkArgument(!Strings.isNullOrEmpty(sidTokenId));
+    return getTokensCollection()
+        .distinct("serviceProviderId")
+        .query("{ ancestorIds: # }", sidTokenId)
+        .as(String.class);
+  }
+
+  @Override
   public void bootstrap() {
     getTokensCollection().ensureIndex("{ id: 1 }", "{ unique: 1 }");
     getTokensCollection().ensureIndex("{ ancestorIds: 1 }");

@@ -2,6 +2,9 @@ package oasis.web.authn;
 
 import java.net.URI;
 import java.security.PublicKey;
+import java.text.Collator;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Locale;
 
 import javax.annotation.Nullable;
@@ -26,6 +29,7 @@ import com.google.api.client.auth.openidconnect.IdToken;
 import com.google.api.client.json.JsonFactory;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
+import com.google.template.soy.data.SoyListData;
 import com.google.template.soy.data.SoyMapData;
 
 import oasis.model.applications.v2.AppInstance;
@@ -34,6 +38,7 @@ import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.ServiceRepository;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
+import oasis.model.bootstrap.ClientIds;
 import oasis.openidconnect.OpenIdConnectModule;
 import oasis.openidconnect.RedirectUri;
 import oasis.services.cookies.CookieFactory;
@@ -126,9 +131,23 @@ public class LogoutPage {
     }
     // FIXME: services don't all have a service_uri for now so we need to workaround it.
     if (service != null && !Strings.isNullOrEmpty(service.getService_uri())) {
-      viewModel.put(LogoutSoyTemplateInfo.SERVICE_NAME, service.getName().get(Locale.ROOT));
       viewModel.put(LogoutSoyTemplateInfo.SERVICE_URL, service.getService_uri());
     }
+    ArrayList<String> otherApps = new ArrayList<>();
+    for (AppInstance otherAppInstance : appInstanceRepository.getAppInstances(tokenRepository.getAllClientsForSession(sidToken.getId()))) {
+      if (otherAppInstance == null) {
+        // that shouldn't happen, but we don't want to break if that's the case
+        continue;
+      }
+      // TODO: I18N
+      otherApps.add(otherAppInstance.getName().get(Locale.ROOT));
+    }
+    // TODO: I18N: we should sort according to the user's locale
+    Collections.sort(otherApps, Collator.getInstance(Locale.ROOT));
+    viewModel.put(LogoutSoyTemplateInfo.OTHER_APPS, new SoyListData(otherApps));
+    viewModel.put(LogoutSoyTemplateInfo.IS_PORTAL, appInstance != null && appInstance.getId().equals(ClientIds.PORTAL));
+    // FIXME: this should probably be a different URL, make it configurable
+    viewModel.put(LogoutSoyTemplateInfo.PORTAL_URL, settings.landingPage == null ? "" : settings.landingPage.toString());
     return Response.ok(new SoyTemplate(LogoutSoyInfo.LOGOUT, viewModel)).build();
   }
 
@@ -141,7 +160,7 @@ public class LogoutPage {
 
   @VisibleForTesting
   @Nullable
-  private IdToken.Payload parseIdTokenHint(@Nullable String idTokenHint, SidToken sidToken) {
+  private IdToken.Payload parseIdTokenHint(@Nullable String idTokenHint, @Nullable SidToken sidToken) {
     return parseIdTokenHint(jsonFactory, settings.keyPair.getPublic(), Resteasy1099.getBaseUri(uriInfo).toString(),
         idTokenHint, sidToken);
   }
@@ -149,7 +168,7 @@ public class LogoutPage {
   @VisibleForTesting
   @Nullable
   static IdToken.Payload parseIdTokenHint(JsonFactory jsonFactory, PublicKey publicKey, String issuer,
-      @Nullable String idTokenHint, SidToken sidToken) {
+      @Nullable String idTokenHint, @Nullable SidToken sidToken) {
     if (idTokenHint == null) {
       return null;
     }

@@ -1,11 +1,14 @@
 package oasis.model.applications.v2;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface AppInstanceRepository {
   AppInstance createAppInstance(AppInstance appInstance);
 
   AppInstance getAppInstance(String instanceId);
+
+  Iterable<AppInstance> getAppInstances(Collection<String> instanceIds);
 
   Iterable<AppInstance> findByOrganizationId(String organizationId);
 
