@@ -50,6 +50,7 @@ public class JongoAccountRepository implements AccountRepository, JongoBootstrap
   @Override
   public UserAccount createUserAccount(UserAccount user) {
     JongoUserAccount jongoUserAccount = new JongoUserAccount(user);
+    jongoUserAccount.initCreated_at();
     try {
       getAccountCollection().insert(jongoUserAccount);
     } catch (DuplicateKeyException e) {
@@ -65,10 +66,11 @@ public class JongoAccountRepository implements AccountRepository, JongoBootstrap
     // Copy to get the updated_at field, and restore ID (not copied over)
     account = new JongoUserAccount(account);
     account.setId(id);
-    // XXX: don't allow modifying the email address or phone number verified
+    // XXX: don't allow modifying the email address, phone number verified, or created_at
     account.setEmail_address(null);
     account.setEmail_verified(null);
     account.setPhone_number_verified(null);
+    account.setCreated_at(null);
     account = getAccountCollection()
         .findAndModify("{ id: #, updated_at: { $in: # } }", id, Longs.asList(versions))
         .with("{ $set: # }", account)

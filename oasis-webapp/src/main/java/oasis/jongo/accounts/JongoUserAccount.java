@@ -22,4 +22,8 @@ public class JongoUserAccount extends UserAccount implements HasModified {
   public long getModified() {
     return getUpdated_at();
   }
+
+  public void initCreated_at() {
+    setCreated_at(System.currentTimeMillis());
+  }
 }

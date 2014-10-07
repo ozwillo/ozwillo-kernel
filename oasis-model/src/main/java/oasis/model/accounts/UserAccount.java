@@ -48,6 +48,8 @@ public class UserAccount {
 
   private long updated_at;
 
+  private Long created_at;
+
   public UserAccount() {
   }
 
@@ -73,6 +75,7 @@ public class UserAccount {
     phone_number_verified = other.getPhone_number_verified();
     address = other.getAddress() == null ? null : new Address(other.getAddress());
     updated_at = other.getUpdated_at();
+    created_at = other.getCreated_at();
   }
 
   public String getId() {
@@ -209,6 +212,14 @@ public class UserAccount {
 
   public void setUpdated_at(long updated_at) {
     this.updated_at = updated_at;
+  }
+
+  public Long getCreated_at() {
+    return created_at;
+  }
+
+  public void setCreated_at(Long created_at) {
+    this.created_at = created_at;
   }
 
   @JsonIgnore
