@@ -14,6 +14,7 @@ import org.jongo.marshall.jackson.configuration.MapperModifier;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
@@ -61,6 +62,7 @@ public class JongoService implements Provider<Jongo> {
             mapper.setSerializationInclusion(Include.NON_EMPTY); // instead of NON_NULL
           }
         })
+        .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
         .build());
 
     for (JongoBootstrapper bootstrapper : bootstrappers.get()) {
