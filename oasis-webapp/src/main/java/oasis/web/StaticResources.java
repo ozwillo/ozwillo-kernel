@@ -30,9 +30,9 @@ public class StaticResources {
 
   @GET
   @Path("/favicon.ico")
-  public Response favicon() {
-    // TODO: we need a favicon!
-    return ResponseFactory.NOT_FOUND;
+  @Produces("image/vnd.microsoft.icon")
+  public Response favicon() throws IOException {
+    return getResource("favicon.ico");
   }
 
   @GET
