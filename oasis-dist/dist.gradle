@@ -9,9 +9,9 @@ ext.oasis = [
   user:         'oasis',
   group:        'oasis',
 ]
-// Turns 1.2.3-45-g789abcd (snapshot version) into 1.2.3~45.g789abcd, but leaves 1.2.3 and 1.2.3-4 (release versions) as-is.
+// Turns 1.2.3-45-g789abcd into 1.2.3~45.g789abcd; but use 0.0.0 when versionlessOutputs==true.
 // Note: this is similar to the versions produced by git-buildpackage, except for the "gbp" marker replaced with git-describe's "g"
-ext.debianVersion = project.version.replaceAll('^([^-]+)-([^-]+)-([^-]+)$', '$1~$2.$3')
+ext.debianVersion = versionlessOutputs ? '0.0.0' : project.version.replaceAll('^([^-]+)-([^-]+)-([^-]+)$', '$1~$2.$3')
 
 configurations {
   distLib

@@ -1,7 +1,7 @@
 apply from: './libraries.gradle'
 
 group = 'fr.pole-numerique.oasis'
-version = 'git describe'.execute(null, rootDir).text.trim() - ~'^v'
+version = 'git describe --long'.execute(null, rootDir).text.trim() - ~'^v'
 
 ext.versionlessOutputs = project.hasProperty("versionlessOutputs") ? Boolean.parseBoolean(project.property("versionlessOutputs")) : false;
 
