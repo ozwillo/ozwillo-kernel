@@ -61,10 +61,11 @@ public class JongoAppInstanceRepository implements AppInstanceRepository, JongoB
   }
 
   @Override
-  public AppInstance instantiated(String instanceId, List<AppInstance.NeededScope> neededScopes) {
+  public AppInstance instantiated(String instanceId, List<AppInstance.NeededScope> neededScopes, String destruction_uri, String destruction_secret) {
     AppInstance instance = getAppInstancesCollection()
         .findAndModify("{ id: #, status: # }", instanceId, AppInstance.InstantiationStatus.PENDING)
-        .with("{ $set: { status: #, needed_scopes: # } }", AppInstance.InstantiationStatus.RUNNING, neededScopes)
+        .with("{ $set: { status: #, needed_scopes: #, destruction_uri: #, destruction_secret: # } }",
+            AppInstance.InstantiationStatus.RUNNING, neededScopes, destruction_uri, destruction_secret)
         .as(AppInstance.class);
     return instance;
   }
