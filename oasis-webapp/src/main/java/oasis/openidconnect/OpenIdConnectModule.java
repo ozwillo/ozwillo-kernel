@@ -38,6 +38,11 @@ public class OpenIdConnectModule extends AbstractModule {
         landingPage = URI.create(config.getString("oasis.openid-connect.landing-page"));
       }
 
+      URI canonicalBaseUri = null;
+      if (config.hasPath("oasis.openid-connect.canonical-base-uri")) {
+        canonicalBaseUri = URI.create(config.getString("oasis.openid-connect.canonical-base-uri"));
+      }
+
       return Settings.builder()
           .setKeyPair(KeyPairLoader.loadOrGenerateKeyPair(privateKeyPath, publicKeyPath))
           .setAuthorizationCodeDuration(Duration.millis(config.getDuration("oasis.oauth.authorization-code-duration", TimeUnit.MILLISECONDS)))
@@ -47,6 +52,7 @@ public class OpenIdConnectModule extends AbstractModule {
           .setSidTokenDuration(Duration.millis(config.getDuration("oasis.session.max-idle-timeout", TimeUnit.MILLISECONDS)))
           .setDisableRedirectUriValidation(config.getBoolean("oasis.openid-connect.disable-redirect-uri-validation"))
           .setLandingPage(landingPage)
+          .setCanonicalBaseUri(canonicalBaseUri)
           .build();
     }
 
@@ -60,6 +66,7 @@ public class OpenIdConnectModule extends AbstractModule {
       private Duration sidTokenDuration;
       private boolean disableRedirectUriValidation;
       private @Nullable URI landingPage;
+      private @Nullable URI canonicalBaseUri;
 
       public Settings build() {
         return new Settings(this);
@@ -104,6 +111,11 @@ public class OpenIdConnectModule extends AbstractModule {
         this.landingPage = landingPage;
         return this;
       }
+
+      public Builder setCanonicalBaseUri(@Nullable URI canonicalBaseUri) {
+        this.canonicalBaseUri = canonicalBaseUri;
+        return this;
+      }
     }
 
     public final KeyPair keyPair;
@@ -114,6 +126,7 @@ public class OpenIdConnectModule extends AbstractModule {
     public final Duration sidTokenDuration;
     public final boolean disableRedirectUriValidation;
     public final @Nullable URI landingPage;
+    public final @Nullable URI canonicalBaseUri;
 
     private Settings(Builder builder) {
       this.keyPair = builder.keyPair;
@@ -124,6 +137,7 @@ public class OpenIdConnectModule extends AbstractModule {
       this.sidTokenDuration = builder.sidTokenDuration;
       this.disableRedirectUriValidation = builder.disableRedirectUriValidation;
       this.landingPage = builder.landingPage;
+      this.canonicalBaseUri = builder.canonicalBaseUri;
     }
   }
 

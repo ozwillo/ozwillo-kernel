@@ -1,14 +1,19 @@
 package oasis.web.openidconnect;
 
+import java.net.URI;
+
+import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import oasis.openidconnect.OpenIdConnectModule;
 import oasis.web.authn.LogoutPage;
 import oasis.web.authz.AuthorizationEndpoint;
 import oasis.web.authz.KeysEndpoint;
@@ -22,6 +27,8 @@ import oasis.web.userinfo.UserInfoEndpoint;
  */
 @Path("/.well-known/openid-configuration")
 public class OpenIdProviderConfigurationEndpoint {
+  @Inject OpenIdConnectModule.Settings settings;
+
   @Context UriInfo uriInfo;
 
   @GET
@@ -30,15 +37,29 @@ public class OpenIdProviderConfigurationEndpoint {
     return new Configuration();
   }
 
+  private URI getBaseUri() {
+    if (settings.canonicalBaseUri != null) {
+      return settings.canonicalBaseUri;
+    }
+    return Resteasy1099.getBaseUri(uriInfo);
+  }
+
+  private UriBuilder getBaseUriBuilder() {
+    if (settings.canonicalBaseUri != null) {
+      return UriBuilder.fromUri(settings.canonicalBaseUri);
+    }
+    return Resteasy1099.getBaseUriBuilder(uriInfo);
+  }
+
   /**
-   * See <a href="http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata">OPENId Provider Metadata</a>
+   * See <a href="http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata">OpenId Provider Metadata</a>
    */
   public class Configuration {
-    @JsonProperty String issuer = Resteasy1099.getBaseUri(uriInfo).toString();
-    @JsonProperty String authorization_endpoint = Resteasy1099.getBaseUriBuilder(uriInfo).path(AuthorizationEndpoint.class).build().toString();
-    @JsonProperty String token_endpoint = Resteasy1099.getBaseUriBuilder(uriInfo).path(TokenEndpoint.class).build().toString();
-    @JsonProperty String userinfo_endpoint = Resteasy1099.getBaseUriBuilder(uriInfo).path(UserInfoEndpoint.class).build().toString();
-    @JsonProperty String jwks_uri = Resteasy1099.getBaseUriBuilder(uriInfo).path(KeysEndpoint.class).build().toString();
+    @JsonProperty String issuer = getBaseUri().toString();
+    @JsonProperty String authorization_endpoint = getBaseUriBuilder().path(AuthorizationEndpoint.class).build().toString();
+    @JsonProperty String token_endpoint = getBaseUriBuilder().path(TokenEndpoint.class).build().toString();
+    @JsonProperty String userinfo_endpoint = getBaseUriBuilder().path(UserInfoEndpoint.class).build().toString();
+    @JsonProperty String jwks_uri = getBaseUriBuilder().path(KeysEndpoint.class).build().toString();
     // registration_endpoint, scopes_supported
     /** See {@link AuthorizationEndpoint#validateResponseTypeAndMode}. */
     @JsonProperty String[] response_types_supported = { "code" };
@@ -71,9 +92,9 @@ public class OpenIdProviderConfigurationEndpoint {
 
     // See http://openid.net/specs/openid-connect-session-1_0.html#EndpointDiscovery
     // TODO: check_session_iframe
-    @JsonProperty String end_session_endpoint = Resteasy1099.getBaseUriBuilder(uriInfo).path(LogoutPage.class).build().toString();
+    @JsonProperty String end_session_endpoint = getBaseUriBuilder().path(LogoutPage.class).build().toString();
 
     // See http://lists.openid.net/pipermail/openid-specs-ab/Week-of-Mon-20140120/004581.html
-    @JsonProperty String revocation_endpoint = Resteasy1099.getBaseUriBuilder(uriInfo).path(RevokeEndpoint.class).build().toString();
+    @JsonProperty String revocation_endpoint = getBaseUriBuilder().path(RevokeEndpoint.class).build().toString();
   }
 }
