@@ -51,7 +51,7 @@ public class StatusEndpoint {
       status.elasticSearch = false;
     }
 
-    if (status.mongodb && status.elasticSearch) {
+    if (status.mongodb) {
       return Response.ok(status).build();
     } else {
       return Response.status(Response.Status.SERVICE_UNAVAILABLE).entity(status).build();
