@@ -14,7 +14,7 @@ public interface AppInstanceRepository {
 
   Iterable<AppInstance> findPersonalInstancesByUserId(String userId);
 
-  AppInstance instantiated(String instanceId, List<AppInstance.NeededScope> neededScopes);
+  AppInstance instantiated(String instanceId, List<AppInstance.NeededScope> neededScopes, String destruction_uri, String destruction_secret);
 
   boolean deleteInstance(String instanceId);
 

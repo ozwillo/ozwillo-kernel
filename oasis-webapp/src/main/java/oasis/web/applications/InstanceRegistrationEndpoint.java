@@ -75,7 +75,8 @@ public class InstanceRegistrationEndpoint {
     // TODO: check that service's and scope's instance_id is exact.
     // TODO: check existence of needed scopes.
 
-    AppInstance instance = appInstanceRepository.instantiated(instanceId, acknowledgementRequest.getNeeded_scopes());
+    AppInstance instance = appInstanceRepository.instantiated(instanceId, acknowledgementRequest.getNeeded_scopes(),
+        acknowledgementRequest.destruction_uri, acknowledgementRequest.destruction_secret);
     if (instance == null) {
       return ResponseFactory.notFound("Pending instance not found");
     }
@@ -142,6 +143,8 @@ public class InstanceRegistrationEndpoint {
     @JsonProperty List<Service> services;
     @JsonProperty List<Scope> scopes;
     @JsonProperty List<NeededScope> needed_scopes;
+    @JsonProperty String destruction_uri;
+    @JsonProperty String destruction_secret;
 
     public String getInstance_id() {
       return instance_id;
