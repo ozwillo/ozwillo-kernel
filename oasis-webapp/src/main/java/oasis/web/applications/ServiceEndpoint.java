@@ -26,6 +26,7 @@ import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.ServiceRepository;
 import oasis.services.authz.AppAdminHelper;
 import oasis.services.etag.EtagService;
+import oasis.usecases.DeleteService;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthAuthenticationFilter;
@@ -43,6 +44,7 @@ public class ServiceEndpoint {
   @Inject AppAdminHelper appAdminHelper;
   @Inject AppInstanceRepository appInstanceRepository;
   @Inject EtagService etagService;
+  @Inject DeleteService deleteService;
 
   @Context SecurityContext securityContext;
 
@@ -139,16 +141,18 @@ public class ServiceEndpoint {
       return ResponseFactory.forbidden("Current user is not an app_admin for the service");
     }
 
-    boolean deleted;
-    try {
-      deleted = serviceRepository.deleteService(serviceId, etagService.parseEtag(ifMatch));
-    } catch (InvalidVersionException e) {
-      return ResponseFactory.preconditionFailed(e.getMessage());
+    DeleteService.Status status = deleteService.deleteService(serviceId, etagService.parseEtag(ifMatch));
+    switch (status) {
+      case BAD_SERVICE_VERSION:
+        return Response.status(Response.Status.PRECONDITION_FAILED).build();
+      case DELETED_LEFTOVERS:
+      case NOTHING_TO_DELETE:
+        return ResponseFactory.NOT_FOUND;
+      case DELETED_SERVICE:
+        return ResponseFactory.NO_CONTENT;
+      default:
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
     }
-    if (!deleted) {
-      return ResponseFactory.NOT_FOUND;
-    }
-    return ResponseFactory.NO_CONTENT;
   }
 
   private boolean isAppAdmin(String userId, Service service) {
