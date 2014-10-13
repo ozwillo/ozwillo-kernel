@@ -97,7 +97,7 @@ public class DeleteAppInstance {
     stats.eventBusHooksDeleted = subscriptionRepository.deleteSubscriptionsForAppInstance(request.instance_id);
 
     if (stats.appInstanceDeleted) {
-      return Status.DELETED_LEFTOVERS;
+      return Status.DELETED_INSTANCE;
     } else if (stats.isEmpty()) {
       return Status.NOTHING_TO_DELETE;
     }
