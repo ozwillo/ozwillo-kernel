@@ -24,6 +24,7 @@ import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.directory.DirectoryRepository;
+import oasis.model.directory.Organization;
 import oasis.model.directory.OrganizationMembership;
 import oasis.model.directory.OrganizationMembershipRepository;
 import oasis.services.etag.EtagService;
@@ -68,7 +69,8 @@ public class UserMembershipEndpoint {
                 membership.membership_uri = Resteasy1099.getBaseUriBuilder(uriInfo).path(MembershipEndpoint.class).build(input.getId()).toString();
                 membership.membership_etag = etagService.getEtag(input);
                 membership.organization_id = input.getOrganizationId();
-                membership.organization_name = directoryRepository.getOrganization(input.getOrganizationId()).getName();
+                final Organization organization = directoryRepository.getOrganization(input.getOrganizationId());
+                membership.organization_name = organization == null ? null : organization.getName();
                 membership.admin = input.isAdmin();
                 return membership;
               }

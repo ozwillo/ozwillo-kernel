@@ -23,6 +23,7 @@ import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.accounts.AccountRepository;
+import oasis.model.accounts.UserAccount;
 import oasis.model.applications.v2.AccessControlRepository;
 import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstanceRepository;
@@ -80,11 +81,13 @@ public class UserSubscriptionEndpoint {
                 sub.subscription_uri = Resteasy1099.getBaseUriBuilder(uriInfo).path(SubscriptionEndpoint.class).build(input.getId()).toString();
                 sub.subscription_etag = etagService.getEtag(input);
                 sub.service_id = input.getService_id();
-                sub.service_name = serviceRepository.getService(input.getService_id()).getName();
+                final Service service = serviceRepository.getService(input.getService_id());
+                sub.service_name = service == null ? null : service.getName();
                 sub.subscription_type = input.getSubscription_type();
                 sub.creator_id = Objects.firstNonNull(input.getCreator_id(), input.getUser_id());
                 // TODO: check access rights to the user name
-                sub.creator_name = accountRepository.getUserAccountById(sub.creator_id).getDisplayName();
+                final UserAccount creator = accountRepository.getUserAccountById(sub.creator_id);
+                sub.creator_name = creator == null ? null : creator.getDisplayName();
                 return sub;
               }
             })) {})

@@ -24,6 +24,7 @@ import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.accounts.AccountRepository;
+import oasis.model.accounts.UserAccount;
 import oasis.model.applications.v2.AccessControlEntry;
 import oasis.model.applications.v2.AccessControlRepository;
 import oasis.model.applications.v2.AppInstance;
@@ -80,9 +81,11 @@ public class AppInstanceAccessControlEndpoint {
                 ace.entry_etag = etagService.getEtag(input);
                 ace.instance_id = input.getInstance_id();
                 ace.user_id = input.getUser_id();
-                ace.user_name = accountRepository.getUserAccountById(input.getUser_id()).getDisplayName();
+                final UserAccount user = accountRepository.getUserAccountById(input.getUser_id());
+                ace.user_name = user == null ? null : user.getDisplayName();
                 ace.creator_id = input.getCreator_id();
-                ace.creator_name = accountRepository.getUserAccountById(input.getCreator_id()).getDisplayName();
+                final UserAccount creator = accountRepository.getUserAccountById(input.getCreator_id());
+                ace.creator_name = creator == null ? null : creator.getDisplayName();
                 return ace;
               }
             })) {})

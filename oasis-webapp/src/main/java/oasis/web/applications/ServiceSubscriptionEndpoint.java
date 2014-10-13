@@ -26,6 +26,7 @@ import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.accounts.AccountRepository;
+import oasis.model.accounts.UserAccount;
 import oasis.model.applications.v2.AccessControlEntry;
 import oasis.model.applications.v2.AccessControlRepository;
 import oasis.model.applications.v2.AppInstance;
@@ -104,12 +105,14 @@ public class ServiceSubscriptionEndpoint {
                 sub.subscription_uri = Resteasy1099.getBaseUriBuilder(uriInfo).path(SubscriptionEndpoint.class).build(input.getId()).toString();
                 sub.subscription_etag = etagService.getEtag(input);
                 sub.user_id = input.getUser_id();
-                sub.user_name = accountRepository.getUserAccountById(input.getUser_id()).getDisplayName();
+                final UserAccount user = accountRepository.getUserAccountById(input.getUser_id());
+                sub.user_name = user == null ? null : user.getDisplayName();
                 sub.subscription_type = input.getSubscription_type();
                 sub.creator_id = Objects.firstNonNull(input.getCreator_id(), input.getUser_id());
                 // TODO: check access rights to the user name
                 // TODO: introduce some caching (it's not unlikely many subscriptions will have the same creator)
-                sub.creator_name = accountRepository.getUserAccountById(sub.creator_id).getDisplayName();
+                final UserAccount creator = accountRepository.getUserAccountById(sub.creator_id);
+                sub.creator_name = creator == null ? null : creator.getDisplayName();
                 return sub;
               }
             })) {})
