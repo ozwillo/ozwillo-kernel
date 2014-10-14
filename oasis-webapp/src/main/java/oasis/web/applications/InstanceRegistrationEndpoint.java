@@ -115,7 +115,7 @@ public class InstanceRegistrationEndpoint {
       notes = "See the <a href='https://docs.google.com/document/d/1V0lmEPTVl_UH7Dl-6AsiedALviJvjHW7RGw5jYg0Ah8/edit?usp=sharing'>Application Provisioning Protocol</a>"
   )
   public Response errorInstantiating() {
-    if (((ClientPrincipal) securityContext.getUserPrincipal()).getClientId().equals(instanceId)) {
+    if (!((ClientPrincipal) securityContext.getUserPrincipal()).getClientId().equals(instanceId)) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
 
