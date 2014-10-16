@@ -62,6 +62,8 @@ public class OrganizationAppInstanceEndpoint {
                   public AppInstance apply(AppInstance instance) {
                     // XXX: Don't send secrets over the wire
                     instance.setDestruction_secret(null);
+                    // XXX: keep the redirect_uri_validation_disabled "secret"
+                    instance.unsetRedirect_uri_validation_disabled();
                     return instance;
                   }
                 })) {})

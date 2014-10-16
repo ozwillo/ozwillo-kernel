@@ -136,21 +136,10 @@ public class JongoServiceRepository implements ServiceRepository, JongoBootstrap
     getServicesCollection().ensureIndex("{ id: 1 }", "{ unique: 1 }");
     getServicesCollection().ensureIndex("{ instance_id: 1, local_id: 1 }", "{ unique: 1, sparse: 1 }");
 
-    if (settings.disableRedirectUriValidation) {
-      dropIndex("{ instance_id: 1, redirect_uris: 1 }");
-      dropIndex("{ instance_id: 1, post_logout_redirect_uris: 1 }");
-    } else {
-      getServicesCollection().ensureIndex("{ instance_id: 1, redirect_uris: 1 }", "{ unique: 1, sparse: 1 }");
-      getServicesCollection().ensureIndex("{ instance_id: 1, post_logout_redirect_uris: 1 }", "{ sparse: 1 }");
-    }
-  }
-
-  private void dropIndex(String keys) {
-    try {
-      getServicesCollection().dropIndex(keys);
-    } catch (CommandFailureException e) {
-      // XXX: info instead of warn as the error will mainly be thrown because the index will not exists?
-      logger.warn("Failure when removing index " + keys, e);
-    }
+    getServicesCollection().ensureIndex("{ instance_id: 1, redirect_uris: 1 }", "{ unique: 1, sparse: 1 }");
+    // We cannot make this index unique as that would rule out having several services,
+    // for the same instance, without post_logout_redirect_uri at all.
+    // XXX: we should probably move post_logout_redirect_uris to app_instances eventually.
+    getServicesCollection().ensureIndex("{ instance_id: 1, post_logout_redirect_uris: 1 }", "{ sparse: 1 }");
   }
 }

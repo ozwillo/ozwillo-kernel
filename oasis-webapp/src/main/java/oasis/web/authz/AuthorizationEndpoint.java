@@ -36,7 +36,6 @@ import com.google.api.client.util.Clock;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Sets;
 import com.google.template.soy.data.SoyListData;
 import com.google.template.soy.data.SoyMapData;
@@ -139,7 +138,7 @@ public class AuthorizationEndpoint {
 
     final String redirect_uri = getRequiredParameter("redirect_uri");
     @Nullable final Service service = serviceRepository.getServiceByRedirectUri(appInstance.getId(), redirect_uri);
-    if (!isRedirectUriValid(service, redirect_uri)) {
+    if (!isRedirectUriValid(appInstance, service, redirect_uri)) {
       throw invalidParam("redirect_uri");
     }
     // From now on, we can redirect to the client application, for both success and error conditions
@@ -372,8 +371,8 @@ public class AuthorizationEndpoint {
     return appInstance;
   }
 
-  private boolean isRedirectUriValid(Service service, String redirect_uri) {
-    return (settings.disableRedirectUriValidation || service != null)
+  private boolean isRedirectUriValid(AppInstance appInstance, Service service, String redirect_uri) {
+    return (appInstance.isRedirect_uri_validation_disabled() || service != null)
         // Note: validate the URI even if it's in the whitelist, just in case. You can never be too careful.
         && RedirectUri.isValid(redirect_uri);
   }

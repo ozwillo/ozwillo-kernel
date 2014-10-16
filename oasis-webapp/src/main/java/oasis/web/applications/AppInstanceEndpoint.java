@@ -67,6 +67,8 @@ public class AppInstanceEndpoint {
 
     // XXX: Don't send the secrets over the wire
     instance.setDestruction_secret(null);
+    // XXX: keep the redirect_uri_validation_disabled "secret"
+    instance.unsetRedirect_uri_validation_disabled();
 
     return Response.ok(instance).build();
   }

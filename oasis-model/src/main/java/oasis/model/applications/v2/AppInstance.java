@@ -3,6 +3,9 @@ package oasis.model.applications.v2;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import oasis.model.annotations.Id;
 import oasis.model.i18n.LocalizableString;
 
@@ -15,6 +18,7 @@ public class AppInstance extends CommonProperties {
   private Set<NeededScope> needed_scopes;
   private String destruction_uri;
   private String destruction_secret;
+  @JsonProperty private Boolean redirect_uri_validation_disabled;
 
   public AppInstance() {
     status = InstantiationStatus.PENDING;
@@ -37,6 +41,7 @@ public class AppInstance extends CommonProperties {
     }
     destruction_uri = other.getDestruction_uri();
     destruction_secret = other.getDestruction_secret();
+    redirect_uri_validation_disabled = other.isRedirect_uri_validation_disabled();
   }
 
   public String getId() {
@@ -93,6 +98,15 @@ public class AppInstance extends CommonProperties {
 
   public void setDestruction_secret(String destruction_secret) {
     this.destruction_secret = destruction_secret;
+  }
+
+  @JsonIgnore
+  public boolean isRedirect_uri_validation_disabled() {
+    return Boolean.TRUE.equals(redirect_uri_validation_disabled);
+  }
+
+  public void unsetRedirect_uri_validation_disabled() {
+    this.redirect_uri_validation_disabled = null;
   }
 
   public static class NeededScope {

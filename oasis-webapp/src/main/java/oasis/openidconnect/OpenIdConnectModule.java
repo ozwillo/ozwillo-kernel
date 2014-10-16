@@ -50,7 +50,6 @@ public class OpenIdConnectModule extends AbstractModule {
           .setRefreshTokenDuration(Duration.millis(config.getDuration("oasis.oauth.refresh-token-duration", TimeUnit.MILLISECONDS)))
           .setIdTokenDuration(Duration.millis(config.getDuration("oasis.openid-connect.id-token-duration", TimeUnit.MILLISECONDS)))
           .setSidTokenDuration(Duration.millis(config.getDuration("oasis.session.max-idle-timeout", TimeUnit.MILLISECONDS)))
-          .setDisableRedirectUriValidation(config.getBoolean("oasis.openid-connect.disable-redirect-uri-validation"))
           .setLandingPage(landingPage)
           .setCanonicalBaseUri(canonicalBaseUri)
           .build();
@@ -64,7 +63,6 @@ public class OpenIdConnectModule extends AbstractModule {
       private Duration refreshTokenDuration;
       private Duration idTokenDuration;
       private Duration sidTokenDuration;
-      private boolean disableRedirectUriValidation;
       private @Nullable URI landingPage;
       private @Nullable URI canonicalBaseUri;
 
@@ -102,11 +100,6 @@ public class OpenIdConnectModule extends AbstractModule {
         return this;
       }
 
-      public Builder setDisableRedirectUriValidation(boolean disableRedirectUriValidation) {
-        this.disableRedirectUriValidation = disableRedirectUriValidation;
-        return this;
-      }
-
       public Builder setLandingPage(@Nullable URI landingPage) {
         this.landingPage = landingPage;
         return this;
@@ -124,7 +117,6 @@ public class OpenIdConnectModule extends AbstractModule {
     public final Duration refreshTokenDuration;
     public final Duration idTokenDuration;
     public final Duration sidTokenDuration;
-    public final boolean disableRedirectUriValidation;
     public final @Nullable URI landingPage;
     public final @Nullable URI canonicalBaseUri;
 
@@ -135,7 +127,6 @@ public class OpenIdConnectModule extends AbstractModule {
       this.refreshTokenDuration = builder.refreshTokenDuration;
       this.idTokenDuration = builder.idTokenDuration;
       this.sidTokenDuration = builder.sidTokenDuration;
-      this.disableRedirectUriValidation = builder.disableRedirectUriValidation;
       this.landingPage = builder.landingPage;
       this.canonicalBaseUri = builder.canonicalBaseUri;
     }

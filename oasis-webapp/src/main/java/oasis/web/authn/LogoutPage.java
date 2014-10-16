@@ -93,7 +93,7 @@ public class LogoutPage {
         logger.debug("No service found for id_token_hint audience {} and post_logout_redirect_uri {}",
             appInstance.getId(), post_logout_redirect_uri);
       }
-      if (service == null && !settings.disableRedirectUriValidation) {
+      if (service == null && !appInstance.isRedirect_uri_validation_disabled()) {
         // don't act as an open redirector!
         post_logout_redirect_uri = null;
       }
