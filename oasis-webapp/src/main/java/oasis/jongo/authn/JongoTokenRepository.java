@@ -104,8 +104,9 @@ public class JongoTokenRepository implements TokenRepository, JongoBootstrapper 
 
   @Override
   public int revokeTokensForScopes(Collection<String> scopeIds) {
-    checkArgument(scopeIds != null && !scopeIds.isEmpty());
-
+    if (scopeIds.isEmpty()) {
+      return 0;
+    }
     return this.getTokensCollection()
         .remove("{ scopeIds: { $in: # } }", ImmutableSet.copyOf(scopeIds))
         .getN();

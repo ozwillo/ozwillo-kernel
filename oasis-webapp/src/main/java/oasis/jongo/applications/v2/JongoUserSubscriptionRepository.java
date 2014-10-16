@@ -100,6 +100,9 @@ public class JongoUserSubscriptionRepository implements UserSubscriptionReposito
 
   @Override
   public int deleteSubscriptionsForServices(Collection<String> serviceIds) {
+    if (serviceIds.isEmpty()) {
+      return 0;
+    }
     return getUserSubscriptionsCollection()
         .remove("{ service_id: { $in: # } }", ImmutableSet.copyOf(serviceIds))
         .getN();

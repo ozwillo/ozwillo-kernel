@@ -38,7 +38,7 @@ public class JongoAuthorizationRepository implements AuthorizationRepository, Jo
         .findAndModify("{ account_id: #, client_id: # }", accountId, clientId)
         .upsert()
         .with("{ $addToSet: { scope_ids: { $each: # } }, $setOnInsert: { id: # } }",
-            ImmutableSet.copyOf(scopeIds), UUID.randomUUID().toString()) // XXX: keep in sync with OasisIdHelper, or refactor
+            ImmutableSet.copyOf(scopeIds), UUID.randomUUID().toString()) // FIXME: keep in sync with OasisIdHelper, or refactor
         .returnNew()
         .as(AuthorizedScopes.class);
   }
@@ -63,10 +63,14 @@ public class JongoAuthorizationRepository implements AuthorizationRepository, Jo
 
   @Override
   public int revokeForAllUsers(Collection<String> scopeIds) {
+    if (scopeIds.isEmpty()) {
+      return 0;
+    }
+    scopeIds = ImmutableSet.copyOf(scopeIds);
     return getAuthorizedScopesCollection()
-        .update("{ scope_ids: { $in: # } }", ImmutableSet.copyOf(scopeIds))
+        .update("{ scope_ids: { $in: # } }", scopeIds)
         .multi()
-        .with("{ $pullAll: { scope_ids: # } }", ImmutableSet.copyOf(scopeIds))
+        .with("{ $pullAll: { scope_ids: # } }", scopeIds)
         .getN();
   }
 
