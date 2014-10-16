@@ -122,6 +122,7 @@ public class InstanceRegistrationEndpoint {
     DeleteAppInstance.Request request = new DeleteAppInstance.Request(instanceId);
     request.callProvider = false;
     request.checkStatus = Optional.of(AppInstance.InstantiationStatus.PENDING);
+    request.checkVersions = Optional.absent();
     DeleteAppInstance.Status status = deleteAppInstance.deleteInstance(request, new DeleteAppInstance.Stats());
 
     switch (status) {

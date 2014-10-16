@@ -111,6 +111,7 @@ public class DeleteAppInstance extends CommandLineTool {
         Request request = new Request(instance_id);
         request.callProvider = false;
         request.checkStatus = Optional.absent();
+        request.checkVersions = Optional.absent();
         usecaseProvider.get().deleteInstance(request, stats);
       }
       displayStats(instance_id, stats);

@@ -18,7 +18,9 @@ import javax.ws.rs.core.Response;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
+import com.google.common.primitives.Longs;
 
+import oasis.model.InvalidVersionException;
 import oasis.model.applications.v2.AccessControlRepository;
 import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstanceRepository;
@@ -34,6 +36,7 @@ import oasis.model.authn.CredentialsRepository;
 import oasis.model.authn.TokenRepository;
 import oasis.model.authz.AuthorizationRepository;
 import oasis.model.eventbus.SubscriptionRepository;
+import oasis.services.etag.EtagService;
 import oasis.web.providers.JacksonJsonProvider;
 import oasis.web.webhooks.WebhookSignatureFilter;
 
@@ -49,6 +52,7 @@ public class DeleteAppInstance {
   @Inject ServiceRepository serviceRepository;
   @Inject UserSubscriptionRepository userSubscriptionRepository;
   @Inject SubscriptionRepository subscriptionRepository;
+  @Inject EtagService etagService;
 
   public Status deleteInstance(Request request, Stats stats) {
     requireNonNull(request);
@@ -56,6 +60,9 @@ public class DeleteAppInstance {
     if (request.callProvider || request.checkStatus.isPresent()) {
       AppInstance appInstance = appInstanceRepository.getAppInstance(request.instance_id);
       if (appInstance != null) {
+        if (request.checkVersions.isPresent() && !etagService.hasEtag(appInstance, request.checkVersions.get())) {
+          return Status.BAD_INSTANCE_VERSION;
+        }
         if (request.checkStatus.isPresent()) {
           @Nullable Status status = checkStatus(appInstance, request.checkStatus.get());
           if (status != null) {
@@ -72,7 +79,17 @@ public class DeleteAppInstance {
     }
 
     // XXX: we first delete the instance, then all the orphan data: ACL, services, scopes, etc.
-    stats.appInstanceDeleted = appInstanceRepository.deleteInstance(request.instance_id);
+    // Only use checkVersions if we haven't issued a request to the provider yet!
+    if (request.checkVersions.isPresent() && !request.callProvider && !request.checkStatus.isPresent()) {
+      try {
+        stats.appInstanceDeleted = appInstanceRepository.deleteInstance(request.instance_id, request.checkVersions.get());
+      } catch (InvalidVersionException e) {
+        stats.appInstanceDeleted = false;
+        return Status.BAD_INSTANCE_VERSION;
+      }
+    } else {
+      stats.appInstanceDeleted = appInstanceRepository.deleteInstance(request.instance_id);
+    }
     stats.credentialsDeleted = credentialsRepository.deleteCredentials(ClientType.PROVIDER, request.instance_id);
     stats.tokensRevokedForInstance = tokenRepository.revokeTokensForClient(request.instance_id);
     stats.authorizationsDeletedForInstance = authorizationRepository.revokeAllForClient(request.instance_id);
@@ -161,6 +178,7 @@ public class DeleteAppInstance {
     public final String instance_id;
     public boolean callProvider = false;
     public Optional<AppInstance.InstantiationStatus> checkStatus = Optional.absent();
+    public Optional<long[]> checkVersions = Optional.absent();
 
     public Request(String instance_id) {
       this.instance_id = instance_id;
@@ -197,6 +215,8 @@ public class DeleteAppInstance {
   }
 
   public enum Status {
+    /** Returned if {@link Request#checkVersions} is present and hte current instance version doesn't match. */
+    BAD_INSTANCE_VERSION,
     /** Returned if {@link Request#checkStatus} is present and the current instance status doesn't match. */
     BAD_INSTANCE_STATUS,
     /** Returned if {@link Request#callProvider} is {@code true} and we couldn't call the provider. */

@@ -17,6 +17,12 @@ public class JongoEtagService implements EtagService {
   private static final Logger logger = LoggerFactory.getLogger(JongoEtagService.class);
 
   @Override
+  public boolean hasEtag(Object o, long[] versions) {
+    Preconditions.checkArgument(o instanceof HasModified);
+    return Longs.contains(versions, ((HasModified) o).getModified());
+  }
+
+  @Override
   public String getEtag(Object o) {
     Preconditions.checkArgument(o instanceof HasModified);
     return Long.toString(((HasModified) o).getModified());

@@ -1,15 +1,19 @@
 package oasis.web.applications;
 
+import java.net.URI;
+
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.GenericEntity;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
@@ -17,6 +21,7 @@ import javax.ws.rs.core.UriInfo;
 
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
+import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
@@ -26,6 +31,7 @@ import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.ServiceRepository;
 import oasis.services.authz.AppAdminHelper;
+import oasis.services.etag.EtagService;
 import oasis.usecases.DeleteAppInstance;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
@@ -42,6 +48,7 @@ public class AppInstanceEndpoint {
   @Inject AppInstanceRepository appInstanceRepository;
   @Inject AppAdminHelper appAdminHelper;
   @Inject ServiceRepository serviceRepository;
+  @Inject EtagService etagService;
   @Inject DeleteAppInstance deleteAppInstance;
 
   @Context SecurityContext securityContext;
@@ -70,7 +77,10 @@ public class AppInstanceEndpoint {
     // XXX: keep the redirect_uri_validation_disabled "secret"
     instance.unsetRedirect_uri_validation_disabled();
 
-    return Response.ok(instance).build();
+    return Response.ok()
+        .tag(etagService.getEtag(instance))
+        .entity(instance)
+        .build();
   }
 
   @GET
@@ -133,14 +143,23 @@ public class AppInstanceEndpoint {
       // Must then be a duplicate key of some sort
       return Response.status(Response.Status.CONFLICT).build();
     }
-    return Response.created(Resteasy1099.getBaseUriBuilder(uriInfo).path(ServiceEndpoint.class).build(service.getId()))
+    URI created = Resteasy1099.getBaseUriBuilder(uriInfo).path(ServiceEndpoint.class).build(service.getId());
+    return Response.created(created)
+        .contentLocation(created)
+        .tag(etagService.getEtag(service))
         .entity(service)
         .build();
   }
 
   @DELETE
   @ApiOperation("Detroys the application instance")
-  public Response destroy() {
+  public Response destroy(
+      @HeaderParam(HttpHeaders.IF_MATCH) String ifMatch
+  ) {
+    if (Strings.isNullOrEmpty(ifMatch)) {
+      return ResponseFactory.preconditionRequiredIfMatch();
+    }
+
     AppInstance instance = appInstanceRepository.getAppInstance(instanceId);
     if (instance == null) {
       return ResponseFactory.NOT_FOUND;
@@ -153,6 +172,7 @@ public class AppInstanceEndpoint {
     DeleteAppInstance.Request request = new DeleteAppInstance.Request(instanceId);
     request.callProvider = true;
     request.checkStatus = Optional.absent();
+    request.checkVersions = Optional.of(etagService.parseEtag(ifMatch));
     DeleteAppInstance.Status status = deleteAppInstance.deleteInstance(request, new DeleteAppInstance.Stats());
 
     switch (status) {

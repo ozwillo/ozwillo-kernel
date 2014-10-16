@@ -12,9 +12,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.primitives.Longs;
 import com.mongodb.DuplicateKeyException;
 
 import oasis.jongo.JongoBootstrapper;
+import oasis.model.InvalidVersionException;
 import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstanceRepository;
 
@@ -89,6 +91,25 @@ public class JongoAppInstanceRepository implements AppInstanceRepository, JongoB
     return getAppInstancesCollection()
         .remove("{ id: # }", instanceId)
         .getN() != 0;
+  }
+
+  @Override
+  public boolean deleteInstance(String instanceId, long[] versions) throws InvalidVersionException {
+    int n = getAppInstancesCollection()
+        .remove("{ id: #, modified: { $in: # } }", instanceId, Longs.asList(versions))
+        .getN();
+
+    if (n == 0) {
+      if (getAppInstancesCollection().count("{ id: # }", instanceId) != 0) {
+        throw new InvalidVersionException("app-instance", instanceId);
+      }
+      return false;
+    }
+
+    if (n > 1) {
+      logger.error("Deleted {} app instances with ID {}, that shouldn't have happened", n, instanceId);
+    }
+    return true;
   }
 
   @Override
