@@ -141,7 +141,7 @@ public class JongoServiceRepository implements ServiceRepository, JongoBootstrap
       dropIndex("{ instance_id: 1, post_logout_redirect_uris: 1 }");
     } else {
       getServicesCollection().ensureIndex("{ instance_id: 1, redirect_uris: 1 }", "{ unique: 1, sparse: 1 }");
-      getServicesCollection().ensureIndex("{ instance_id: 1, post_logout_redirect_uris: 1 }", "{ unique: 1, sparse: 1 }");
+      getServicesCollection().ensureIndex("{ instance_id: 1, post_logout_redirect_uris: 1 }", "{ sparse: 1 }");
     }
   }
 
