@@ -33,3 +33,98 @@
 </body>
 </html>
 {/template}
+
+/**
+ * New common header for OASIS
+ */
+{template .newheader private="true"}
+{@param? title: string} /** title for this page. */
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset=utf-8>
+  <title>Oasis{if $title} – {$title}{/if}</title>
+  <meta name=viewport content="width=device-width, initial-scale=1">
+<style>{literal}
+@font-face {
+  font-family: FF DIN;
+  src: url('/fonts/din-webfont.woff') format('woff'),
+       url('/fonts/din-webfont.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: FF DIN;
+  src: url('/fonts/din_lightalternate-webfont.woff') format('woff'),
+       url('/fonts/din_lightalternate-webfont.ttf') format('truetype');
+  font-weight: lighter;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: FF DIN;
+  src: url('/fonts/din_bold-webfont.woff') format('woff'),
+       url('/fonts/din_bold-webfont.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+}
+
+* { box-sizing: border-box; }
+/*
+ * We use three layers:
+ *  - the bottom-most one is only visible through the footer
+ *  - then the .page-wrap takes up all the vertical space except the footer
+ *  - and finally the header appears at the top
+ * This gives the illusion of a sticky-footer that works even though it doesn't have a fixed height.
+ */
+html,body { height: 100%; margin: 0; }
+.page-wrap { min-height: calc(100% - 70px); } /* 70px is 50px of EU logo + 2 * 10px of padding */
+main { max-width: 700px; margin: 0 auto; border-width: 50px 15px 15px; border-style: solid }
+footer { max-width: 500px; margin: 0 auto; }
+
+html,body { background: #6e418e; color: white; }
+.page-wrap { background: #626580; }
+header,main { background: white; color: #636884; }
+main { border-color: #626580; }
+
+main { padding: 25px 10px; }
+footer { padding: 10px; }
+footer::after { display: block; content: " "; clear: both; }
+
+* { font-family: FF DIN, Arial, sans-serif; font-size: 100%; }
+
+input { border: 1px solid #626580; border-radius: 3px; padding: 7px 10px; }
+input:focus { border-color: #6e418e; color: #6e418e }
+
+input:not([type=checkbox]) { font-weight: normal; width: 100% }
+label { font-weight: lighter; }
+{/literal}</style>
+</head>
+<body>
+
+<div class=page-wrap>
+<header>
+  // TODO: add link!
+  <a href="" title="Go to the Oasis portal" style="padding:4px;display:inline-block;"><img src="/images/logo_oasis.png" alt="Oasis" width=90 height=30></a>
+
+   // TODO: Add a dropdown for modifying the locale of a page
+</header>
+
+<main>
+{/template}
+
+/**
+ * New common footer for OASIS.
+ */
+{template .newfooter private="true"}
+</main>
+</div>
+<footer>
+  <img src="/images/eu.png" alt="" width=78 height=49 style="float:left; padding-right:10px">
+  OASIS is a project by the EU under the Program for Competitiveness and Innovation CIP ICT PSP - N°297210
+</footer>
+
+</body>
+</html>
+{/template}

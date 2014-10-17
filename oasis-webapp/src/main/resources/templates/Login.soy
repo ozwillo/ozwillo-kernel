@@ -9,62 +9,106 @@
 {@param  continue:         string} /** URL to continue to after successful login/re-auth. */
 {@param? errorMessage:     string} /** message in case of error. */
 {@param? overview:         string} /** URL to the overview page. */
-{call .header}
+{call .newheader}
   {param title kind="text"}Login{/param}
 {/call}
+<style>{literal}
+h1, h2 { text-align: center; font-weight: lighter; }
+h2 { font-size: 1.8em; }
 
-<div class="maincontainer">
+h1 { margin: 0; }
 
+h2 img { vertical-align: bottom; }
+
+label { display: block; }
+
+main>div { line-height: 1.5em; }
+
+.two-cols { display: flex;flex-direction:row-reverse;  flex-wrap: wrap; justify-content: space-around; }
+.two-cols>* { display: block; flex: auto; max-width: 200px; }
+
+.btn-row { margin-top: 1.8em; text-align: center; }
+.btn-row button {
+  border: none;
+  background: transparent; color: #6e418e;
+  font-weight: bold;
+  cursor: pointer;
+}
+.btn-row button img { vertical-align: middle; margin-right: 10px; }
+{/literal}
+{if $overview}{literal}
+/* Setup the aside so that it covers the bottom of the main and appears as if it was outside it. */
+aside { margin: 30px -10px -25px; } /* 30px at the top to get some space from the buttons, other margins reset main's padding. */
+aside { background: #626580; } /* Same background as the page-wrap */
+
+aside>* { text-align: center; }
+aside a { display: inline-block; padding: 5px 15px; font-weight: lighter; text-decoration: none; background: #6e418e; color: white; }
+{/literal}{/if}
+</style>
+  <h1><img src="/images/logo_myoasis.png" alt="my Oasis" width=146 height=50></h1>
   {if $errorMessage}
-    <p>
-      {$errorMessage}
-    </p>
+    <p>{$errorMessage}</p>
   {/if}
-
-  <div class="joinus">
-    <h1>Join Us !</h1>
-    <form method="POST" action="{$signUpFormAction}">
-      <input type="hidden" name="_utf8" value="&#9731;">
-      <input type="hidden" name="continue" value="{$continue}">
-
-      <input type="text" name="nickname" placeholder="Nickname" required>
-      <input type="email" name="email" placeholder="Email" required>
-      <input type="password" name="pwd" placeholder="Password" required>
-
-      <div class="clear"></div>
-      <!-- /clearfix -->
-
-      <button class="submit submit-sm" type="submit">Go !</button>
-    </form>
+  <div class=two-cols style="align-items: baseline">
+    <section>
+      <h2><img alt="" src="/images/picto_user.png" width=30 height=30> Login</h2>
+      <form method=post action="{$loginFormAction}">
+        <input type="hidden" name="_utf8" value="&#9731;">
+        <input type="hidden" name="continue" value="{$continue}">
+        <div>
+          <label for=email>Email</label>
+          <input id=email type=email name=u required autofocus>
+        </div>
+        <div>
+          <label for=nickname>Password</label>
+          <input id=pwd type=password  name=pwd required>
+        </div>
+        <div class=btn-row>
+          <button>
+            <img alt="" src="/images/go.png" width=50 height=50>
+            Go!
+          </button>
+        </div>
+      </form>
+    </section>
+    <section>
+      <h2 style="text-align:center"><img alt="" src="/images/picto_pen.png" width=26 height=30> Join Us!</h2>
+      <form method=post action="{$signUpFormAction}">
+        <input type="hidden" name="_utf8" value="&#9731;">
+        <input type="hidden" name="continue" value="{$continue}">
+        <div>
+          <label for=nickname>Nickname</label>
+          <input id=nickname name=nickname required>
+        </div>
+        <div>
+          <label for=email>Email</label>
+          <input id=email type=email name=email required>
+        </div>
+        <div>
+          <label for=nickname>Password</label>
+          <input id=pwd type=password name=pwd rqeuired>
+        </div>
+        <div class=btn-row>
+          <button>
+            <img alt="" src="/images/go.png" width=50 height=50>
+            Go!
+          </button>
+        </div>
+      </form>
+    </section>
   </div>
-
-  <div class="login">
-    <h1>Login</h1>
-
-    <form method="POST" action="{$loginFormAction}">
-      <input type="hidden" name="_utf8" value="&#9731;">
-      <input type="hidden" name="continue" value="{$continue}">
-
-      <input type="email" name="u" placeholder="Email" required>
-      <input type="password" name="pwd" placeholder="Password" required>
-
-      <div class="clear"></div>
-      <!-- /clearfix -->
-
-      // TODO: Add a remember me button
-
-      <button class="submit submit-sm" type="submit">Go !</button>
-    </form>
-  </div>
-</div>
 {if $overview}
-<div class="overviewcontainer">
-  <a class="overview" href="{$overview}">
-    Overview <img src="/images/plus.png">
-  </a>
-</div>
+  <aside class=two-cols>
+    <span style="height: 0px;"></span>
+    <span>
+      <a href="{$overview}">
+        Overview
+        <img alt="" src="/images/plus.png" width=35 height=36 style="vertical-align: middle; margin-left: 10px;">
+      </a>
+    </span>
+  </aside>
 {/if}
-{call .footer /}
+{call .newfooter /}
 {/template}
 
 /**
