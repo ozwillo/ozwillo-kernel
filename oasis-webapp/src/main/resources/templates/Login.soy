@@ -92,7 +92,7 @@ aside a { display: inline-block; padding: 5px 15px; font-weight: lighter; text-d
         </div>
         <div>
           <label for=nickname>Password</label>
-          <input id=pwd type=password name=pwd rqeuired>
+          <input id=pwd type=password name=pwd required>
         </div>
         <div class=btn-row>
           <button>
@@ -114,6 +114,61 @@ aside a { display: inline-block; padding: 5px 15px; font-weight: lighter; text-d
     </span>
   </aside>
 {/if}
+{call .newfooter /}
+{/template}
+
+/**
+ * Asks user to re-enter his password.
+ */
+{template .reauth}
+{@param  reauthEmail:  string} /** email of the logged-in user when asking for password. */
+{@param  formAction:   string} /** URL to post the form to. */
+{@param  continue:     string} /** URL to continue to after successful login/re-auth. */
+{@param? errorMessage: string} /** message in case of error. */
+{call .newheader}
+  {param title kind="text"}Login{/param}
+{/call}
+<style>{literal}
+main { text-align: center; }
+
+h1, h2 { font-weight: lighter; }
+h2 { font-size: 1.8em; }
+
+h1 { margin: 0; }
+h2 { margin-bottom: 2.5em; }
+
+.btn-row { margin-top: 1.8em; text-align: center; }
+.btn-row button {
+  border: none;
+  background: transparent; color: #6e418e;
+  font-weight: bold;
+  cursor: pointer;
+}
+.btn-row button img { vertical-align: middle; margin-right: 10px; }
+{/literal}</style>
+  <h1><img src="/images/logo_myoasis.png" alt="my Oasis" width=146 height=50></h1>
+  {if $errorMessage}
+    <p style="color: white; background: #d9534f; font-weight: bold; padding: 10px; text-align: center;">{$errorMessage}</p>
+  {/if}
+    <h2>Please re-enter your password</h2>
+
+    <form method=POST action="{$formAction}">
+      <div>
+      <input type=hidden name=_utf8"value="&#9731;">
+      <input type=hidden name=continue value="{$continue}">
+      <input type=hidden name=u value="{$reauthEmail}">
+      <p>{$reauthEmail}</p>
+      <input type=password name=pwd required>
+
+      <div class=btn-row>
+        <button>
+          <img alt="" src="/images/go.png" width=50 height=50>
+          Go!
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
 {call .newfooter /}
 {/template}
 

@@ -39,8 +39,7 @@ import oasis.services.cookies.CookieFactory;
 import oasis.soy.SoyTemplate;
 import oasis.soy.templates.LoginSoyInfo;
 import oasis.soy.templates.LoginSoyInfo.LoginSoyTemplateInfo;
-import oasis.soy.templates.ReauthSoyInfo;
-import oasis.soy.templates.ReauthSoyInfo.ReauthSoyTemplateInfo;
+import oasis.soy.templates.LoginSoyInfo.ReauthSoyTemplateInfo;
 import oasis.web.StaticResources;
 import oasis.web.resteasy.Resteasy1099;
 import oasis.web.security.StrictReferer;
@@ -160,7 +159,7 @@ public class LoginPage {
   }
 
   static Response reauthForm(Response.ResponseBuilder builder, URI continueUrl, @Nullable String errorMessage, UserAccount userAccount) {
-    SoyTemplate soyTemplate = new SoyTemplate(ReauthSoyInfo.REAUTH, new SoyMapData(
+    SoyTemplate soyTemplate = new SoyTemplate(LoginSoyInfo.REAUTH, new SoyMapData(
         ReauthSoyTemplateInfo.REAUTH_EMAIL, userAccount.getEmail_address(),
         ReauthSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(LoginPage.class).build().toString(),
         ReauthSoyTemplateInfo.CONTINUE, continueUrl.toString(),
