@@ -26,6 +26,10 @@ main>div { line-height: 1.5em; }
 
 .two-cols { display: flex;flex-direction:row-reverse;  flex-wrap: wrap; justify-content: space-around; }
 .two-cols>* { display: block; flex: auto; max-width: 200px; }
+/* IE10 compat: */
+.two-cols { display: -ms-flexbox; -ms-flex-direction: row-reverse; -ms-flex-wrap: wrap; -ms-flex-pack: distribute; }
+/** IE compat: -ms-flex for IE10, margin-left and margin-right for better IE9 display */
+.two-cols>* { -ms-flex: auto; margin-left: auto; margin-right: auto; }
 
 .btn-row { margin-top: 1.8em; text-align: center; }
 .btn-row button {
@@ -37,6 +41,8 @@ main>div { line-height: 1.5em; }
 .btn-row button img { vertical-align: middle; margin-right: 10px; }
 {/literal}
 {if $overview}{literal}
+/* IE compat: */
+aside { display: block; }
 /* Setup the aside so that it covers the bottom of the main and appears as if it was outside it. */
 aside { margin: 30px -10px -25px; } /* 30px at the top to get some space from the buttons, other margins reset main's padding. */
 aside { background: #626580; } /* Same background as the page-wrap */
