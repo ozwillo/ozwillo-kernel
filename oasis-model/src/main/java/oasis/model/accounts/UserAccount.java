@@ -1,5 +1,7 @@
 package oasis.model.accounts;
 
+import java.util.Locale;
+
 import javax.annotation.Nonnull;
 
 import org.joda.time.LocalDate;
@@ -22,7 +24,7 @@ public class UserAccount {
 
   private String zoneinfo;
 
-  private String locale;
+  private Locale locale;
 
   private String name;
 
@@ -118,11 +120,11 @@ public class UserAccount {
     this.zoneinfo = zoneinfo;
   }
 
-  public String getLocale() {
-    return locale;
+  public Locale getLocale() {
+    return locale == null ? Locale.ROOT : locale;
   }
 
-  public void setLocale(String locale) {
+  public void setLocale(Locale locale) {
     this.locale = locale;
   }
 

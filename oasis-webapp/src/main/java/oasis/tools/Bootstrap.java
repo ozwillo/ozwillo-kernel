@@ -170,7 +170,7 @@ public class Bootstrap extends CommandLineTool {
     admin.setEmail_address(adminEmail);
     admin.setEmail_verified(true);
     admin.setNickname("Administrator");
-    admin.setLocale(Locale.getDefault().toLanguageTag());
+    admin.setLocale(Locale.getDefault());
     admin.setZoneinfo(TimeZone.getDefault().getID());
     admin = accountRepositoryProvider.get().createUserAccount(admin);
     credentialsServiceProvider.get().setPassword(ClientType.USER, admin.getId(), adminPassword);

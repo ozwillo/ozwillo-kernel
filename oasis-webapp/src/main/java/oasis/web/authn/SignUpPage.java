@@ -88,7 +88,7 @@ public class SignUpPage {
     }
     account.setNickname(nickname);
     // TODO: Use the user-selected locale
-    account.setLocale(Locale.UK.toLanguageTag());
+    account.setLocale(Locale.UK);
     // TODO: Use a zoneinfo "matching" the selected locale
     account.setZoneinfo("Europe/Paris");
     account = accountRepository.createUserAccount(account);

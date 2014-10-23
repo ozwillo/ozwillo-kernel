@@ -2,6 +2,7 @@ package oasis.web.userinfo;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -211,7 +212,7 @@ public class UserInfoEndpoint {
     @Key private String gender;
     @Key private String birthdate;
     @Key private String zoneinfo;
-    @Key private String locale;
+    @Key private Locale locale;
     @Key private Long updated_at;
     // Email
     @Key private String email;
@@ -307,11 +308,11 @@ public class UserInfoEndpoint {
       return this;
     }
 
-    public String getLocale() {
+    public Locale getLocale() {
       return locale;
     }
 
-    public UserInfo setLocale(String locale) {
+    public UserInfo setLocale(Locale locale) {
       this.locale = locale;
       return this;
     }
