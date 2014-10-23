@@ -11,27 +11,54 @@
 {@param  isPortal:    bool}         /** Whether we're logging out of the Portal. */
 {@param  formAction:  string}       /** URL to post the form to. */
 {@param? continue:    string}       /** URL where to continue to after successful logout. */
-{call .header}
+{call .newheader}
   {param title kind="text"}Logout{/param}
 {/call}
-<div class="maincontainer">
+<style>{literal}
+main { text-align: center; }
+h1 { font-weight: lighter; font-size: 1.8em; }
+button, a.portal {
+  margin: 5px 1em;
+  padding: .5em 2em;
+  border: 1px solid #6e418e;
+  border-radius: 10px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+button {
+  background: #6e418e; color: white;
+}
+a.portal {
+  background: white; color: #6e418e;
+}
+a { color: #6e418e; }
+p { margin: 0; }
+{/literal}
+</style>
   {if $appName and not $isPortal}
-    <p>You've signed out of <b>{$appName}</b></p>
-    {if $serviceUrl}
-      <p><a href="{$serviceUrl}">Cancel and log me back in</a></p>
-    {/if}
+    <div style="color: #5cb85c; margin-bottom: 2.5em;">
+      <p>You've signed out of <b>{$appName}</b></p>
+      {if $serviceUrl}
+        <p style="text-align: right; max-width: 400px; margin: 0 auto;">
+          <a href="{$serviceUrl}">Cancel and log me back in</a>
+        </p>
+      {/if}
+    </div>
   {/if}
 
   <h1>Sign-out from Oasis</h1>
 
   {if $otherApps and length($otherApps)}
-    <p>You are also logged in to these OASIS services:</p>
-    <ul>
-      {foreach $otherApp in $otherApps}
-        <li>{$otherApp}</li>
-      {/foreach}
-    </ul>
-    <p>Signing out of OASIS will sign you out of these.</p>
+    <div style="background: #f0ad4e; color: white; border-radius: 10px; padding: .5em; margin: 2.5em auto; max-width: 500px">
+      <p>You are also logged in to these OASIS services:</p>
+      <ul style="list-style-position: inside; padding: 0; margin: 1em 0;">
+        {foreach $otherApp in $otherApps}
+          <li>{$otherApp}</li>
+        {/foreach}
+      </ul>
+      <p>Signing out of OASIS will sign you out of these.</p>
+    </div>
   {/if}
 
   <form method="POST" action="{$formAction}">
@@ -39,10 +66,10 @@
     {if $continue}
       <input type="hidden" name="continue" value="{$continue}">
     {/if}
-    <button class="submit submit-md" type="submit" name="submit" id="submit">Sign out</button>
+    <button type="submit">Sign out</button>
 
     {if $portalUrl}
-      <a href="{$portalUrl}">
+      <a href="{$portalUrl}" class=portal>
         {if $isPortal}
           Go back to Oasis
         {else}
@@ -51,6 +78,5 @@
       </a>
     {/if}
   </form>
-</div>
-{call .footer /}
+{call .newfooter /}
 {/template}
