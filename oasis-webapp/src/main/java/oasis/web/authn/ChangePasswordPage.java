@@ -51,7 +51,7 @@ public class ChangePasswordPage {
   ) {
     String userId = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken().getAccountId();
     if (!credentialsService.checkPassword(ClientType.USER, userId, oldpwd)) {
-      return form(Response.status(Response.Status.BAD_REQUEST), userId, "Bad password");
+      return form(Response.status(Response.Status.BAD_REQUEST), userId, PasswordChangeError.BAD_PASSWORD);
     }
 
     credentialsService.setPassword(ClientType.USER, userId, newpwd);
@@ -74,7 +74,7 @@ public class ChangePasswordPage {
         .build();
   }
 
-  private Response form(Response.ResponseBuilder builder, String userId, @Nullable String errorMessage) {
+  private Response form(Response.ResponseBuilder builder, String userId, @Nullable PasswordChangeError error) {
     UserAccount account = accountRepository.getUserAccountById(userId);
 
     return builder
@@ -88,9 +88,13 @@ public class ChangePasswordPage {
             new SoyMapData(
                 ChangePasswordSoyTemplateInfo.EMAIL, account.getEmail_address(),
                 ChangePasswordSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(ChangePasswordPage.class).build().toString(),
-                ChangePasswordSoyTemplateInfo.ERROR_MESSAGE, errorMessage
+                ChangePasswordSoyTemplateInfo.ERROR, error == null ? null : error.name()
             )
         ))
         .build();
+  }
+
+  enum PasswordChangeError {
+    BAD_PASSWORD
   }
 }

@@ -91,7 +91,7 @@ public class LoginPage {
       account = userPasswordAuthenticator.authenticate(userName, password);
     } catch (LoginException e) {
       log(userName, LoginLogEvent.LoginResult.AUTHENTICATION_FAILED);
-      return loginOrReauthForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, "Incorrect username or password");
+      return loginOrReauthForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, LoginError.INCORRECT_USERNAME_OR_PASSWORD);
     }
 
     if (securityContext.getUserPrincipal() != null) {
@@ -144,7 +144,7 @@ public class LoginPage {
     return Response.seeOther(continueUrl).build();
   }
 
-  private Response loginOrReauthForm(Response.ResponseBuilder builder, @Nullable URI continueUrl, @Nullable String errorMessage) {
+  private Response loginOrReauthForm(Response.ResponseBuilder builder, @Nullable URI continueUrl, @Nullable LoginError error) {
     if (continueUrl == null) {
       continueUrl = defaultContinueUrl();
     }
@@ -153,28 +153,36 @@ public class LoginPage {
       SidToken sidToken = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken();
       UserAccount account = accountRepository.getUserAccountById(sidToken.getAccountId());
       // XXX: what if account is null?
-      return reauthForm(builder, continueUrl, errorMessage, account);
+      return reauthForm(builder, continueUrl, error, account);
     }
-    return loginForm(builder, continueUrl, settings, errorMessage);
+    return loginForm(builder, continueUrl, settings, error);
   }
 
-  static Response reauthForm(Response.ResponseBuilder builder, URI continueUrl, @Nullable String errorMessage, UserAccount userAccount) {
+  private static Response reauthForm(Response.ResponseBuilder builder, URI continueUrl, @Nullable LoginError error, UserAccount userAccount) {
     SoyTemplate soyTemplate = new SoyTemplate(LoginSoyInfo.REAUTH, new SoyMapData(
         ReauthSoyTemplateInfo.REAUTH_EMAIL, userAccount.getEmail_address(),
         ReauthSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(LoginPage.class).build().toString(),
         ReauthSoyTemplateInfo.CONTINUE, continueUrl.toString(),
-        ReauthSoyTemplateInfo.ERROR_MESSAGE, errorMessage
+        ReauthSoyTemplateInfo.ERROR, error == null ? null : error.name()
     ));
 
     return buildResponseFromView(builder, soyTemplate);
   }
 
-  static Response loginForm(Response.ResponseBuilder builder, URI continueUrl, OpenIdConnectModule.Settings settings, @Nullable String errorMessage) {
+  private static Response loginForm(Response.ResponseBuilder builder, URI continueUrl, OpenIdConnectModule.Settings settings, @Nullable LoginError error) {
+    return loginAndSignupForm(builder, continueUrl, settings, error);
+  }
+
+  static Response signupForm(Response.ResponseBuilder builder, URI continueUrl, OpenIdConnectModule.Settings settings, @Nullable SignupError error) {
+    return loginAndSignupForm(builder, continueUrl, settings, error);
+  }
+
+  private static Response loginAndSignupForm(Response.ResponseBuilder builder, URI continueUrl, OpenIdConnectModule.Settings settings, @Nullable Enum<?> error) {
     SoyTemplate soyTemplate = new SoyTemplate(LoginSoyInfo.LOGIN, new SoyMapData(
         LoginSoyTemplateInfo.SIGN_UP_FORM_ACTION, UriBuilder.fromResource(SignUpPage.class).build().toString(),
         LoginSoyTemplateInfo.LOGIN_FORM_ACTION, UriBuilder.fromResource(LoginPage.class).build().toString(),
         LoginSoyTemplateInfo.CONTINUE, continueUrl.toString(),
-        LoginSoyTemplateInfo.ERROR_MESSAGE, errorMessage,
+        LoginSoyTemplateInfo.ERROR, error == null ? null : error.name(),
         LoginSoyTemplateInfo.OVERVIEW, settings.landingPage == null ? null : settings.landingPage.toString()
     ));
 
@@ -235,5 +243,15 @@ public class LoginPage {
       AUTHENTICATION_FAILED,
       RE_ENTER_PASSWORD_SUCCEEDED,
     }
+  }
+
+  enum LoginError {
+    INCORRECT_USERNAME_OR_PASSWORD
+  }
+
+  enum SignupError {
+    MISSING_REQUIRED_FIELD,
+    ACCOUNT_ALREADY_EXISTS,
+    MESSAGING_ERROR
   }
 }
