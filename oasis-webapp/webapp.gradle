@@ -87,3 +87,33 @@ task run(type: JavaExec, dependsOn: classes) {
   classpath = sourceSets.main.runtimeClasspath
   systemProperties = System.getProperties()
 }
+
+task extractMessagesFromTemplates(type: JavaExec) {
+  def srcs = sourceSets.main.resources.matching {
+    include '**/*.soy'
+  }
+  inputs.source srcs
+
+  main = 'com.google.template.soy.SoyMsgExtractor'
+  classpath = configurations.soy
+  args = [
+      '--allowExternalCalls',   'false',
+      '--srcs',                 srcs.files.join(',')
+    ]
+  if (project.hasProperty("outputFile")) {
+    args += ['--outputFile', project.outputFile]
+  }
+  if (project.hasProperty("targetLocaleString")) {
+    args += ['--targetLocaleString', project.targetLocaleString]
+  }
+
+  // Provide Gradle-specific error reporting in addition to the SoyMsgExtractor usage
+  doFirst {
+    if (!project.hasProperty("outputFile")) {
+      logger.error("property 'outputFile' is mandatory for $name;\ninvoke as ./gradlew -PoutputFile=...")
+    }
+    if (!project.hasProperty("targetLocaleString")) {
+      logger.info("You should provide property 'targetLocaleString' for $name;\ninvoke as ./gradlew -PtargetLocaleString=...")
+    }
+  }
+}
