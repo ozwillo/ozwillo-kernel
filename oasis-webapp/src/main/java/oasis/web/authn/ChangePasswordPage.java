@@ -47,15 +47,11 @@ public class ChangePasswordPage {
   @POST
   public Response post(
       @FormParam("oldpwd") String oldpwd,
-      @FormParam("newpwd") String newpwd,
-      @FormParam("confirmpwd") String confirmpwd
+      @FormParam("newpwd") String newpwd
   ) {
     String userId = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken().getAccountId();
     if (!credentialsService.checkPassword(ClientType.USER, userId, oldpwd)) {
       return form(Response.status(Response.Status.BAD_REQUEST), userId, "Bad password");
-    }
-    if (!newpwd.equals(confirmpwd)) {
-      return form(Response.status(Response.Status.BAD_REQUEST), userId, "Confirmation password does not match new password");
     }
 
     credentialsService.setPassword(ClientType.USER, userId, newpwd);
