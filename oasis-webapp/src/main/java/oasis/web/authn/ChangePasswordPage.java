@@ -88,6 +88,8 @@ public class ChangePasswordPage {
             new SoyMapData(
                 ChangePasswordSoyTemplateInfo.EMAIL, account.getEmail_address(),
                 ChangePasswordSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(ChangePasswordPage.class).build().toString(),
+                // FIXME: get the URL to the profile page
+                ChangePasswordSoyTemplateInfo.PORTAL_URL, settings.landingPage == null ? null : settings.landingPage.toString(),
                 ChangePasswordSoyTemplateInfo.ERROR, error == null ? null : error.name()
             )
         ))
