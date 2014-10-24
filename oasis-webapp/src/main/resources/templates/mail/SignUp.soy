@@ -4,7 +4,9 @@
  * Sign-up email subject.
  */
 {template .activateAccountSubject kind="text"}
+{msg desc="Sign-up email subject"}
 Activate your OASIS account
+{/msg}
 {/template}
 
 /**
@@ -13,6 +15,7 @@ Activate your OASIS account
 {template .activateAccount kind="text"}
 {@param nickname: string} /** User's nickname */
 {@param activationLink: string} /** Link to activate account. */
+{msg desc="Sign-up email body"}
 Hello {$nickname},{\n}
 {\n}
 You are receiving this e-mail because you have registered on the OASIS portal.{\n}
@@ -23,13 +26,16 @@ In order to confirm your subscription, please click on the following link:{\n}
 Wishing you a nice tour on OASIS portal{\n}
 {\n}
 The OASIS team
+{/msg}
 {/template}
 
 /**
  * Welcome email subject.
  */
 {template .accountActivatedSubject kind="text"}
+{msg desc="Welcome email subject"}
 Welcome to OASIS
+{/msg}
 {/template}
 
 /**
@@ -37,7 +43,9 @@ Welcome to OASIS
  */
 {template .accountActivated kind="text"}
 {@param nickname: string} /** User's nickname */
+{msg desc="Welcome email body"}
 Congratulations {$nickname},{\n}
 {\n}
 Your subscription to the OASIS portal has been validated.
+{/msg}
 {/template}

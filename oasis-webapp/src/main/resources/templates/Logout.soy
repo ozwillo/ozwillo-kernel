@@ -12,7 +12,7 @@
 {@param  formAction:  string}       /** URL to post the form to. */
 {@param? continue:    string}       /** URL where to continue to after successful logout. */
 {call .newheader}
-  {param title kind="text"}Logout{/param}
+  {param title kind="text"}{msg desc="logout page title"}Logout{/msg}{/param}
 {/call}
 <style>{literal}
 main { text-align: center; }
@@ -38,26 +38,26 @@ p { margin: 0; }
 </style>
   {if $appName and not $isPortal}
     <div style="color: #5cb85c; margin-bottom: 2.5em;">
-      <p>You've signed out of <b>{$appName}</b></p>
+      <p>{msg desc="successful sign-out from specific app"}You've signed out of <b>{$appName}</b>{/msg}</p>
       {if $serviceUrl}
         <p style="text-align: right; max-width: 400px; margin: 0 auto;">
-          <a href="{$serviceUrl}">Cancel and log me back in</a>
+          <a href="{$serviceUrl}">{msg desc="Link to go back to app after erroneous sign-out"}Cancel and log me back in{/msg}</a>
         </p>
       {/if}
     </div>
   {/if}
 
-  <h1>Sign-out from Oasis</h1>
+  <h1>{msg desc="logout page heading"}Sign-out from Oasis{/msg}</h1>
 
   {if $otherApps and length($otherApps)}
     <div style="background: #f0ad4e; color: white; border-radius: 10px; padding: .5em; margin: 2.5em auto; max-width: 500px">
-      <p>You are also logged in to these OASIS services:</p>
+      <p>{msg desc="Before list of other apps you're signed in to"}You are also logged in to these OASIS services:{/msg}</p>
       <ul style="list-style-position: inside; padding: 0; margin: 1em 0;">
         {foreach $otherApp in $otherApps}
           <li>{$otherApp}</li>
         {/foreach}
       </ul>
-      <p>Signing out of OASIS will sign you out of these.</p>
+      <p>{msg desc="After list of other apps you're signed in to"}Signing out of OASIS will sign you out of these.{/msg}</p>
     </div>
   {/if}
 
@@ -66,14 +66,14 @@ p { margin: 0; }
     {if $continue}
       <input type="hidden" name="continue" value="{$continue}">
     {/if}
-    <button type="submit">Sign out</button>
+    <button type="submit">{msg desc="Form submit button; global sign-out"}Sign out{/msg}</button>
 
     {if $portalUrl}
       <a href="{$portalUrl}" class=portal>
         {if $isPortal}
-          Go back to Oasis
+          {msg desc="Cancel erroneous sign-out from the Portal"}Go back to Oasis{/msg}
         {else}
-          Go to My Oasis
+          {msg desc="Continue to Oasis after sign-out from some app"}Go to My Oasis{/msg}
         {/if}
       </a>
     {/if}
