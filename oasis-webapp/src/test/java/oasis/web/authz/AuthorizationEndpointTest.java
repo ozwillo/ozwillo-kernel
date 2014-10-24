@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import javax.annotation.Nullable;
@@ -47,6 +48,8 @@ import com.google.inject.Inject;
 import com.google.inject.Provides;
 
 import oasis.http.testing.InProcessResteasy;
+import oasis.model.accounts.AccountRepository;
+import oasis.model.accounts.UserAccount;
 import oasis.model.applications.v2.AccessControlEntry;
 import oasis.model.applications.v2.AccessControlRepository;
 import oasis.model.applications.v2.AppInstance;
@@ -107,9 +110,15 @@ public class AuthorizationEndpointTest {
 
   static final Instant now = new DateTime(2014, 7, 17, 14, 30).toInstant();
 
+  private static final UserAccount account = new UserAccount() {{
+    setId("accountId");
+    setNickname("Nickname");
+    setLocale(Locale.ROOT);
+  }};
+
   private static final SidToken sidToken = new SidToken() {{
     setId("sidToken");
-    setAccountId("accountId");
+    setAccountId(account.getId());
     setAuthenticationTime(now.minus(Duration.standardHours(1)));
   }};
 
@@ -189,9 +198,11 @@ public class AuthorizationEndpointTest {
 
   @Inject @Rule public InProcessResteasy resteasy;
 
-  @Before public void setUpMocks(AuthorizationRepository authorizationRepository,
+  @Before public void setUpMocks(AccountRepository accountRepository, AuthorizationRepository authorizationRepository,
       AppInstanceRepository appInstanceRepository, ServiceRepository serviceRepository,
       ScopeRepository scopeRepository, TokenHandler tokenHandler) {
+    when(accountRepository.getUserAccountById(account.getId())).thenReturn(account);
+
     when(appInstanceRepository.getAppInstance(appInstance.getId())).thenReturn(appInstance);
     when(serviceRepository.getServiceByRedirectUri(appInstance.getId(), Iterables.getOnlyElement(service.getRedirect_uris()))).thenReturn(service);
     when(serviceRepository.getServiceByRedirectUri(appInstance.getId(), Iterables.getOnlyElement(privateService.getRedirect_uris()))).thenReturn(privateService);

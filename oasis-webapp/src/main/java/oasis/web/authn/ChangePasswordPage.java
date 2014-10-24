@@ -41,17 +41,21 @@ public class ChangePasswordPage {
 
   @GET
   public Response get() {
-    return form(Response.ok(), ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken().getAccountId(), null);
+    String userId = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken().getAccountId();
+    UserAccount account = accountRepository.getUserAccountById(userId);
+    return form(Response.ok(), account, null);
   }
 
   @POST
   public Response post(
       @FormParam("oldpwd") String oldpwd,
-      @FormParam("newpwd") String newpwd
+      @FormParam("newpwd") String newpwd,
+      @FormParam("confirmpwd") String confirmpwd
   ) {
     String userId = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken().getAccountId();
+    UserAccount account = accountRepository.getUserAccountById(userId);
     if (!credentialsService.checkPassword(ClientType.USER, userId, oldpwd)) {
-      return form(Response.status(Response.Status.BAD_REQUEST), userId, PasswordChangeError.BAD_PASSWORD);
+      return form(Response.status(Response.Status.BAD_REQUEST), account, PasswordChangeError.BAD_PASSWORD);
     }
 
     credentialsService.setPassword(ClientType.USER, userId, newpwd);
@@ -68,15 +72,14 @@ public class ChangePasswordPage {
         .header("X-XSS-Protection", "1; mode=block")
         .cookie(CookieFactory.createExpiredCookie(UserFilter.COOKIE_NAME, securityContext.isSecure()))
         .entity(new SoyTemplate(ChangePasswordSoyInfo.PASSWORD_CHANGED,
+            account.getLocale(),
             new SoyMapData(
                 PasswordChangedSoyTemplateInfo.CONTINUE, settings.landingPage == null ? null : settings.landingPage.toString()
             )))
         .build();
   }
 
-  private Response form(Response.ResponseBuilder builder, String userId, @Nullable PasswordChangeError error) {
-    UserAccount account = accountRepository.getUserAccountById(userId);
-
+  private Response form(Response.ResponseBuilder builder, UserAccount account, @Nullable PasswordChangeError error) {
     return builder
         .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store")
         .header("Pragma", "no-cache")
@@ -85,6 +88,7 @@ public class ChangePasswordPage {
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
         .entity(new SoyTemplate(ChangePasswordSoyInfo.CHANGE_PASSWORD,
+            account.getLocale(),
             new SoyMapData(
                 ChangePasswordSoyTemplateInfo.EMAIL, account.getEmail_address(),
                 ChangePasswordSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(ChangePasswordPage.class).build().toString(),

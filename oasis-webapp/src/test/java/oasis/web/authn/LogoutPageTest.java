@@ -30,6 +30,8 @@ import com.google.common.net.UrlEscapers;
 import com.google.inject.Inject;
 
 import oasis.http.testing.InProcessResteasy;
+import oasis.model.accounts.AccountRepository;
+import oasis.model.accounts.UserAccount;
 import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.applications.v2.Service;
@@ -64,9 +66,15 @@ public class LogoutPageTest {
     }
   }
 
+  private static final UserAccount account = new UserAccount() {{
+    setId("accountId");
+    setNickname("Nickname");
+    setLocale(Locale.ROOT);
+  }};
+
   private static final SidToken sidToken = new SidToken() {{
     setId("sessionId");
-    setAccountId("accountId");
+    setAccountId(account.getId());
   }};
 
   private static final AppInstance appInstance = new AppInstance() {{
@@ -84,9 +92,12 @@ public class LogoutPageTest {
 
   @Inject @Rule public InProcessResteasy resteasy;
 
-  @Before public void setUpMocks(AppInstanceRepository appInstanceRepository, ServiceRepository serviceRepository) {
+  @Before public void setUpMocks(AccountRepository accountRepository, AppInstanceRepository appInstanceRepository, ServiceRepository serviceRepository) {
+    when(accountRepository.getUserAccountById(account.getId())).thenReturn(account);
+
     when(appInstanceRepository.getAppInstance(appInstance.getId())).thenReturn(appInstance);
     when(appInstanceRepository.getAppInstances(anyCollectionOf(String.class))).thenReturn(Collections.<AppInstance>emptyList());
+
     when(serviceRepository.getServiceByPostLogoutRedirectUri(appInstance.getId(), Iterables.getOnlyElement(service.getPost_logout_redirect_uris())))
         .thenReturn(service);
   }

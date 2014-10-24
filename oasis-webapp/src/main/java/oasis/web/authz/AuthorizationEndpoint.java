@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -42,6 +41,8 @@ import com.google.template.soy.data.SoyMapData;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
+import oasis.model.accounts.AccountRepository;
+import oasis.model.accounts.UserAccount;
 import oasis.model.applications.v2.AccessControlRepository;
 import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstance.NeededScope;
@@ -104,6 +105,7 @@ public class AuthorizationEndpoint {
   @Inject AppInstanceRepository appInstanceRepository;
   @Inject ServiceRepository serviceRepository;
   @Inject AccessControlRepository accessControlRepository;
+  @Inject AccountRepository accountRepository;
   @Inject AppAdminHelper appAdminHelper;
   @Inject ScopeRepository scopeRepository;
   @Inject TokenHandler tokenHandler;
@@ -233,7 +235,7 @@ public class AuthorizationEndpoint {
     if (!prompt.interactive) {
       throw error("consent_required", null);
     }
-    return promptUser(appInstance, scopeIds, authorizedScopeIds, redirect_uri, state, nonce);
+    return promptUser(sidToken.getAccountId(), appInstance, scopeIds, authorizedScopeIds, redirect_uri, state, nonce);
   }
 
   @POST
@@ -290,7 +292,7 @@ public class AuthorizationEndpoint {
     return Response.seeOther(URI.create(redirectUri.toString())).build();
   }
 
-  private Response promptUser(AppInstance serviceProvider, Set<String> requiredScopeIds, Set<String> authorizedScopeIds,
+  private Response promptUser(String accountId, AppInstance serviceProvider, Set<String> requiredScopeIds, Set<String> authorizedScopeIds,
       String redirect_uri, @Nullable String state, @Nullable String nonce) {
     Set<String> globalClaimedScopeIds = Sets.newHashSet();
     Set<NeededScope> neededScopes = serviceProvider.getNeeded_scopes();
@@ -310,6 +312,8 @@ public class AuthorizationEndpoint {
       throw error("invalid_scope", e.getMessage());
     }
 
+    UserAccount account = accountRepository.getUserAccountById(accountId);
+
     // Some scopes need explicit approval, generate approval form
     SoyListData missingScopes = new SoyListData();
     SoyListData optionalScopes = new SoyListData();
@@ -318,9 +322,8 @@ public class AuthorizationEndpoint {
       String scopeId = claimedScope.getId();
       SoyMapData scope = new SoyMapData(
           AuthorizeSoyInfo.Param.ID, scopeId,
-          // TODO: I18N
-          AuthorizeSoyInfo.Param.TITLE, claimedScope.getName().get(Locale.ROOT),
-          AuthorizeSoyInfo.Param.DESCRIPTION, claimedScope.getDescription().get(Locale.ROOT)
+          AuthorizeSoyInfo.Param.TITLE, claimedScope.getName().get(account.getLocale()),
+          AuthorizeSoyInfo.Param.DESCRIPTION, claimedScope.getDescription().get(account.getLocale())
       );
       if (authorizedScopeIds.contains(scopeId)) {
         alreadyAuthorizedScopes.add(scope);
@@ -345,10 +348,10 @@ public class AuthorizationEndpoint {
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
         .entity(new SoyTemplate(AuthorizeSoyInfo.AUTHORIZE,
+            account.getLocale(),
             new SoyMapData(
                 AuthorizeSoyTemplateInfo.APP_ID, serviceProvider.getId(),
-                // TODO: I18N
-                AuthorizeSoyTemplateInfo.APP_NAME, serviceProvider.getName().get(Locale.ROOT),
+                AuthorizeSoyTemplateInfo.APP_NAME, serviceProvider.getName().get(account.getLocale()),
                 AuthorizeSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(AuthorizationEndpoint.class).path(APPROVE_PATH).build().toString(),
                 AuthorizeSoyTemplateInfo.CANCEL_URL, redirectUri.toString(),
                 AuthorizeSoyTemplateInfo.REQUIRED_SCOPES, new SoyListData(requiredScopeIds),

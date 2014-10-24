@@ -3,14 +3,11 @@ package oasis.mail;
 import java.nio.charset.StandardCharsets;
 
 import javax.inject.Inject;
-import javax.inject.Provider;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeUtility;
 
 import com.google.common.base.CharMatcher;
 import com.google.template.soy.data.SanitizedContent;
@@ -31,10 +28,11 @@ public class MailSender {
 
   public void send(MailMessage message) throws MessagingException {
     StringBuilder subject = new StringBuilder();
-    templateRenderer.render(new SoyTemplate(message.getSubject(), SanitizedContent.ContentKind.TEXT, message.getData()), subject);
+    templateRenderer.render(new SoyTemplate(message.getSubject(), message.getLocale(), SanitizedContent.ContentKind.TEXT, message.getData()), subject);
 
     StringBuilder body = new StringBuilder();
-    templateRenderer.render(new SoyTemplate(message.getBody(), message.isHtml() ? SanitizedContent.ContentKind.HTML : SanitizedContent.ContentKind.TEXT, message.getData()), body);
+    templateRenderer.render(new SoyTemplate(message.getBody(), message.getLocale(), message.isHtml() ? SanitizedContent.ContentKind.HTML : SanitizedContent.ContentKind.TEXT,
+        message.getData()), body);
 
     MimeMessage msg = new MimeMessage(session);
     msg.setFrom(settings.from);

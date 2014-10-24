@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Date;
+import java.util.Locale;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -25,7 +26,7 @@ public class StaticResources {
   @Path("")
   @Produces(MediaType.TEXT_HTML)
   public Response home() {
-    return Response.ok(new SoyTemplate(HomeSoyInfo.HOME)).build();
+    return Response.ok(new SoyTemplate(HomeSoyInfo.HOME, Locale.ROOT)).build();
   }
 
   @GET

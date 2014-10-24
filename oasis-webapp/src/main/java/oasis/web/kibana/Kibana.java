@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Date;
+import java.util.Locale;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -66,7 +67,7 @@ public class Kibana {
     SoyMapData model = new SoyMapData(
         KibanaConfigSoyInfo.Param.ES_PATH, UriBuilder.fromResource(ElasticSearchProxy.class).build("").toString()
     );
-    return Response.ok(new SoyTemplate(KibanaConfigSoyInfo.KIBANA_CONFIG, SanitizedContent.ContentKind.JS, model)).build();
+    return Response.ok(new SoyTemplate(KibanaConfigSoyInfo.KIBANA_CONFIG, Locale.ROOT, SanitizedContent.ContentKind.JS, model)).build();
   }
 
   @GET

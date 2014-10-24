@@ -32,6 +32,8 @@ import com.google.common.base.Strings;
 import com.google.template.soy.data.SoyListData;
 import com.google.template.soy.data.SoyMapData;
 
+import oasis.model.accounts.AccountRepository;
+import oasis.model.accounts.UserAccount;
 import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.applications.v2.Service;
@@ -61,6 +63,7 @@ public class LogoutPage {
   @Inject JsonFactory jsonFactory;
   @Inject AppInstanceRepository appInstanceRepository;
   @Inject ServiceRepository serviceRepository;
+  @Inject AccountRepository accountRepository;
 
   @GET
   @Produces(MediaType.TEXT_HTML)
@@ -120,14 +123,15 @@ public class LogoutPage {
       return redirectTo(post_logout_redirect_uri != null ? URI.create(post_logout_redirect_uri) : null);
     }
 
+    UserAccount account = accountRepository.getUserAccountById(sidToken.getAccountId());
+
     SoyMapData viewModel = new SoyMapData();
     viewModel.put(LogoutSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(LogoutPage.class).build().toString());
     if (post_logout_redirect_uri != null) {
       viewModel.put(LogoutSoyTemplateInfo.CONTINUE, post_logout_redirect_uri);
     }
     if (appInstance != null) {
-      // TODO: I18N
-      viewModel.put(LogoutSoyTemplateInfo.APP_NAME, appInstance.getName().get(Locale.ROOT));
+      viewModel.put(LogoutSoyTemplateInfo.APP_NAME, appInstance.getName().get(account.getLocale()));
     }
     // FIXME: services don't all have a service_uri for now so we need to workaround it.
     if (service != null && !Strings.isNullOrEmpty(service.getService_uri())) {
@@ -139,16 +143,15 @@ public class LogoutPage {
         // that shouldn't happen, but we don't want to break if that's the case
         continue;
       }
-      // TODO: I18N
-      otherApps.add(otherAppInstance.getName().get(Locale.ROOT));
+      otherApps.add(otherAppInstance.getName().get(account.getLocale()));
     }
-    // TODO: I18N: we should sort according to the user's locale
-    Collections.sort(otherApps, Collator.getInstance(Locale.ROOT));
+    Collections.sort(otherApps, Collator.getInstance(account.getLocale()));
     viewModel.put(LogoutSoyTemplateInfo.OTHER_APPS, new SoyListData(otherApps));
     viewModel.put(LogoutSoyTemplateInfo.IS_PORTAL, appInstance != null && appInstance.getId().equals(ClientIds.PORTAL));
     // FIXME: this should probably be a different URL, make it configurable
     viewModel.put(LogoutSoyTemplateInfo.PORTAL_URL, settings.landingPage == null ? "" : settings.landingPage.toString());
-    return Response.ok(new SoyTemplate(LogoutSoyInfo.LOGOUT, viewModel)).build();
+
+    return Response.ok(new SoyTemplate(LogoutSoyInfo.LOGOUT, account.getLocale(), viewModel)).build();
   }
 
   private Response redirectTo(@Nullable URI continueUrl) {

@@ -106,6 +106,7 @@ public class SignUpPage {
         URI activationLink = Resteasy1099.getBaseUriBuilder(uriInfo).path(ActivateAccountPage.class).build(account.getId());
         mailSender.send(new MailMessage()
             .setRecipient(email, nickname)
+            .setLocale(account.getLocale())
             .setSubject(SignUpSoyInfo.ACTIVATE_ACCOUNT_SUBJECT)
             .setBody(SignUpSoyInfo.ACTIVATE_ACCOUNT)
             .setPlainText()
@@ -115,7 +116,7 @@ public class SignUpPage {
             )));
         // TODO: redirect to a bookmarkable URI (with form to resend the activation mail)
         return Response.ok()
-            .entity(new SoyTemplate(LoginSoyInfo.ACCOUNT_PENDING_ACTIVATION))
+            .entity(new SoyTemplate(LoginSoyInfo.ACCOUNT_PENDING_ACTIVATION, account.getLocale()))
             .build();
       } catch (MessagingException e) {
         logger.error("Error sending activation email", e);

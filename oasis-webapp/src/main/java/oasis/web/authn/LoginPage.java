@@ -1,6 +1,7 @@
 package oasis.web.authn;
 
 import java.net.URI;
+import java.util.Locale;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -159,7 +160,7 @@ public class LoginPage {
   }
 
   private static Response reauthForm(Response.ResponseBuilder builder, URI continueUrl, @Nullable LoginError error, UserAccount userAccount) {
-    SoyTemplate soyTemplate = new SoyTemplate(LoginSoyInfo.REAUTH, new SoyMapData(
+    SoyTemplate soyTemplate = new SoyTemplate(LoginSoyInfo.REAUTH, userAccount.getLocale(), new SoyMapData(
         ReauthSoyTemplateInfo.REAUTH_EMAIL, userAccount.getEmail_address(),
         ReauthSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(LoginPage.class).build().toString(),
         ReauthSoyTemplateInfo.CONTINUE, continueUrl.toString(),
@@ -178,7 +179,8 @@ public class LoginPage {
   }
 
   private static Response loginAndSignupForm(Response.ResponseBuilder builder, URI continueUrl, OpenIdConnectModule.Settings settings, @Nullable Enum<?> error) {
-    SoyTemplate soyTemplate = new SoyTemplate(LoginSoyInfo.LOGIN, new SoyMapData(
+    // TODO: I18N
+    SoyTemplate soyTemplate = new SoyTemplate(LoginSoyInfo.LOGIN, Locale.ROOT, new SoyMapData(
         LoginSoyTemplateInfo.SIGN_UP_FORM_ACTION, UriBuilder.fromResource(SignUpPage.class).build().toString(),
         LoginSoyTemplateInfo.LOGIN_FORM_ACTION, UriBuilder.fromResource(LoginPage.class).build().toString(),
         LoginSoyTemplateInfo.CONTINUE, continueUrl.toString(),
