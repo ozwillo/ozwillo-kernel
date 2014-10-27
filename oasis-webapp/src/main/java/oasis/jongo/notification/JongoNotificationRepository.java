@@ -76,6 +76,7 @@ public class JongoNotificationRepository implements NotificationRepository, Jong
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public Iterable<Notification> getNotifications(String userId) {
     return (Iterable<Notification>) (Iterable<?>) getNotificationCollection()
         .find("{ user_id: # }", userId)
@@ -83,6 +84,7 @@ public class JongoNotificationRepository implements NotificationRepository, Jong
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public Iterable<Notification> getNotifications(String userId, String instanceId) {
     return (Iterable<Notification>) (Iterable<?>) getNotificationCollection()
         .find("{ user_id: #, instance_id: # }", userId, instanceId)
@@ -90,16 +92,18 @@ public class JongoNotificationRepository implements NotificationRepository, Jong
   }
 
   @Override
-  public Iterable<Notification> getUnreadNotifications(String userId) {
+  @SuppressWarnings("unchecked")
+  public Iterable<Notification> getNotifications(String userId, Notification.Status status) {
     return (Iterable<Notification>) (Iterable<?>) getNotificationCollection()
-        .find("{ user_id: #, status: # }", userId, Notification.Status.UNREAD)
+        .find("{ user_id: #, status: # }", userId, status)
         .as(JongoNotification.class);
   }
 
   @Override
-  public Iterable<Notification> getUnreadNotifications(String userId, String instanceId) {
+  @SuppressWarnings("unchecked")
+  public Iterable<Notification> getNotifications(String userId, String instanceId, Notification.Status status) {
     return (Iterable<Notification>) (Iterable<?>) getNotificationCollection()
-        .find("{ user_id: #, instance_id: #, status: # }", userId, instanceId, Notification.Status.UNREAD)
+        .find("{ user_id: #, instance_id: #, status: # }", userId, instanceId, status)
         .as(JongoNotification.class);
   }
 

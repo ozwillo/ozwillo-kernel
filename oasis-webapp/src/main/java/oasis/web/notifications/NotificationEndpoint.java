@@ -25,6 +25,8 @@ import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.ServiceRepository;
+import oasis.model.authn.AccessToken;
+import oasis.model.bootstrap.ClientIds;
 import oasis.model.notification.Notification;
 import oasis.model.notification.NotificationRepository;
 import oasis.web.authn.Authenticated;
@@ -89,20 +91,37 @@ public class NotificationEndpoint {
       responseContainer = "Array")
   public Response get(
       @PathParam("userId") String userId,
-      @QueryParam("appId") String appId
+      @QueryParam("instance") String instanceId,
+      @QueryParam("status") Notification.Status status
   ) {
-    String oAuthUserId = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId();
-    if (!oAuthUserId.equals(userId)) {
+    AccessToken accessToken = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken();
+    if (!accessToken.getAccountId().equals(userId)) {
       return ResponseFactory.forbidden("Cannot read notifications for another user");
     }
 
-    if (appId == null) {
+    // TODO: rework NetworkRepository API wrt filtering
+    if (instanceId == null) {
+      if (!ClientIds.PORTAL.equals(accessToken.getServiceProviderId())) {
+        return ResponseFactory.forbidden("Cannot read all notifications for user");
+      }
       return Response.ok()
-          .entity(new GenericEntity<Iterable<Notification>>(notificationRepository.getNotifications(userId)) {})
+          .entity(new GenericEntity<Iterable<Notification>>(
+              status == null
+                  ? notificationRepository.getNotifications(userId)
+                  : notificationRepository.getNotifications(userId, status)
+          ) {})
           .build();
     }
+
+    if (!instanceId.equals(accessToken.getServiceProviderId()) && !ClientIds.PORTAL.equals(accessToken.getServiceProviderId())) {
+      return ResponseFactory.forbidden("Cannot read notifications for another app-instance");
+    }
     return Response.ok()
-        .entity(new GenericEntity<Iterable<Notification>>(notificationRepository.getNotifications(userId, appId)) {})
+        .entity(new GenericEntity<Iterable<Notification>>(
+            status == null
+                ? notificationRepository.getNotifications(userId, instanceId)
+                : notificationRepository.getNotifications(userId, instanceId, status)
+        ) {})
         .build();
   }
 

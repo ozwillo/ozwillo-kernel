@@ -17,11 +17,11 @@ public interface NotificationRepository {
 
   Iterable<Notification> getNotifications(String userId);
 
-  Iterable<Notification> getNotifications(String userId, String appId);
+  Iterable<Notification> getNotifications(String userId, String instanceId);
 
-  Iterable<Notification> getUnreadNotifications(String userId);
+  Iterable<Notification> getNotifications(String userId, Notification.Status status);
 
-  Iterable<Notification> getUnreadNotifications(String userId, String appId);
+  Iterable<Notification> getNotifications(String userId, String instanceId, Notification.Status status);
 
   void markNotifications(String userId, List<String> notificationIds, Notification.Status status);
 
