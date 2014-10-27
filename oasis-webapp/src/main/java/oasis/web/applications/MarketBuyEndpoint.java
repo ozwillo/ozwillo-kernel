@@ -31,6 +31,8 @@ import com.google.common.collect.ImmutableList;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
+import oasis.model.accounts.AccountRepository;
+import oasis.model.accounts.UserAccount;
 import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.applications.v2.Application;
@@ -61,6 +63,7 @@ public class MarketBuyEndpoint {
   @Inject ApplicationRepository applicationRepository;
   @Inject DirectoryRepository directoryRepository;
   @Inject AppInstanceRepository appInstanceRepository;
+  @Inject AccountRepository accountRepository;
   @Inject PasswordGenerator passwordGenerator;
   @Inject CredentialsService credentialsService;
   @Inject DeleteAppInstance deleteAppInstance;
@@ -144,7 +147,7 @@ public class MarketBuyEndpoint {
             .setInstance_id(instance.getId())
             .setClient_id(instance.getId())
             .setClient_secret(pwd)
-            .setUser_id(userId)
+            .setUser(accountRepository.getUserAccountById(userId))
             .setOrganization(organization)
             .setInstance_registration_uri(Resteasy1099.getBaseUriBuilder(uriInfo).path(InstanceRegistrationEndpoint.class).build(instance.getId()))));
     Response response;
@@ -177,8 +180,10 @@ public class MarketBuyEndpoint {
     @JsonProperty String client_id;
     @JsonProperty String client_secret;
     @JsonProperty String user_id;
+    @JsonProperty User user;
     @JsonProperty String organization_id;
     @JsonProperty String organization_name;
+    @JsonProperty Organization organization;
     @JsonProperty URI instance_registration_uri;
 
     public CreateInstanceRequest setInstance_id(String instance_id) {
@@ -196,12 +201,14 @@ public class MarketBuyEndpoint {
       return this;
     }
 
-    public CreateInstanceRequest setUser_id(String user_id) {
-      this.user_id = user_id;
+    public CreateInstanceRequest setUser(UserAccount user) {
+      this.user = new User(user.getId(), user.getDisplayName(), user.getEmail_address());
+      this.user_id = user.getId();
       return this;
     }
 
     public CreateInstanceRequest setOrganization(Organization organization) {
+      this.organization = organization;
       if (organization != null) {
         organization_id = organization.getId();
         organization_name = organization.getName();
@@ -214,6 +221,18 @@ public class MarketBuyEndpoint {
     public CreateInstanceRequest setInstance_registration_uri(URI instance_registration_uri) {
       this.instance_registration_uri = instance_registration_uri;
       return this;
+    }
+  }
+
+  public static class User {
+    @JsonProperty String id;
+    @JsonProperty String name;
+    @JsonProperty String email_address;
+
+    public User(String id, String name, String email_address) {
+      this.id = id;
+      this.name = name;
+      this.email_address = email_address;
     }
   }
 }
