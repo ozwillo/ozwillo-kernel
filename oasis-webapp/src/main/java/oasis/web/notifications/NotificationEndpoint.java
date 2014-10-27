@@ -1,5 +1,8 @@
 package oasis.web.notifications;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -14,6 +17,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
+import org.joda.time.Instant;
+
 import com.google.common.collect.Lists;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
@@ -22,7 +27,6 @@ import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.ServiceRepository;
 import oasis.model.notification.Notification;
 import oasis.model.notification.NotificationRepository;
-import oasis.services.notification.NotificationService;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.Client;
 import oasis.web.authn.ClientPrincipal;
@@ -36,7 +40,6 @@ import oasis.web.utils.ResponseFactory;
 public class NotificationEndpoint {
 
   @Inject NotificationRepository notificationRepository;
-  @Inject NotificationService notificationService;
   @Inject ServiceRepository serviceRepository;
 
   @Context SecurityContext securityContext;
@@ -45,20 +48,34 @@ public class NotificationEndpoint {
   @Path("/publish")
   @Consumes(MediaType.APPLICATION_JSON)
   @Client
-  @ApiOperation(value = "Publish a notification targeted to some users and/or groups")
+  @ApiOperation(value = "Publish a notification targeted to some users")
   public Response publish(IncomingNotification incomingNotification) {
     String clientId = ((ClientPrincipal) securityContext.getUserPrincipal()).getClientId();
 
-    // TODO: check that the applicationId references a service for the given app-instance.
-    Service service = serviceRepository.getService(incomingNotification.applicationId);
+    Service service = serviceRepository.getService(incomingNotification.service_id);
     if (service == null || !clientId.equals(service.getInstance_id())) {
       return ResponseFactory.unprocessableEntity("Unknown service for the authenticated app-instance");
     }
 
-    // XXX: check existence of users and groups?
+    // TODO: check existence of users?
 
-    notificationService.createNotifications(incomingNotification.groupIds, incomingNotification.userIds, incomingNotification.data,
-        incomingNotification.message, incomingNotification.applicationId);
+    Notification template = new Notification();
+    template.setInstance_id(clientId);
+    template.setService_id(incomingNotification.service_id);
+    template.setMessage(incomingNotification.message);
+    template.setAction_uri(incomingNotification.action_uri);
+    template.setAction_label(incomingNotification.action_label);
+    template.setTime(Instant.now());
+    template.setStatus(Notification.Status.UNREAD);
+
+    List<Notification> notifications = new ArrayList<>(incomingNotification.user_ids.length);
+    for (String user_id : incomingNotification.user_ids) {
+      Notification notification = new Notification(template);
+      notification.setUser_id(user_id);
+      notifications.add(notification);
+    }
+
+    notificationRepository.createNotifications(notifications);
 
     return ResponseFactory.NO_CONTENT;
   }

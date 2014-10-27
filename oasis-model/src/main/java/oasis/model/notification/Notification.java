@@ -4,13 +4,8 @@ import javax.annotation.Nonnull;
 
 import org.joda.time.Instant;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonRootName;
-import com.wordnik.swagger.annotations.ApiModelProperty;
-
 import oasis.model.annotations.Id;
 
-@JsonRootName("notification")
 public class Notification {
   public enum Status {
     READ,
@@ -18,31 +13,14 @@ public class Notification {
   }
 
   @Id
-  @ApiModelProperty(required = true)
   private String id;
-
-  @JsonProperty
-  @ApiModelProperty
-  private String userId;
-
-  @JsonProperty
-  @ApiModelProperty
-  private String applicationId;
-
-  @JsonProperty
-  @ApiModelProperty
-  private String data;
-
-  @JsonProperty
-  @ApiModelProperty
+  private String user_id;
+  private String instance_id;
+  private String service_id;
   private String message;
-
-  @JsonProperty
-  @ApiModelProperty
+  private String action_uri;
+  private String action_label;
   private Instant time;
-
-  @JsonProperty
-  @ApiModelProperty(dataType = "String", allowableValues = "READ,UNREAD")
   private Status status = Status.UNREAD;
 
   public Notification() {
@@ -54,12 +32,14 @@ public class Notification {
    * Does not copy {@link #id} field.
    */
   public Notification(@Nonnull Notification other) {
-    this.applicationId = other.getApplicationId();
-    this.data = other.getData();
+    this.user_id = other.getUser_id();
+    this.instance_id = other.getInstance_id();
+    this.service_id = other.getService_id();
     this.message = other.getMessage();
-    this.status = other.getStatus();
+    this.action_uri = other.getAction_uri();
+    this.action_label = other.getAction_label();
     this.time = other.getTime();
-    this.userId = other.getUserId();
+    this.status = other.getStatus();
   }
 
   public String getId() {
@@ -70,28 +50,44 @@ public class Notification {
     this.id = id;
   }
 
-  public String getUserId() {
-    return userId;
+  public String getUser_id() {
+    return user_id;
   }
 
-  public void setUserId(String userId) {
-    this.userId = userId;
+  public void setUser_id(String user_id) {
+    this.user_id = user_id;
   }
 
-  public String getApplicationId() {
-    return applicationId;
+  public String getInstance_id() {
+    return instance_id;
   }
 
-  public void setApplicationId(String applicationId) {
-    this.applicationId = applicationId;
+  public void setInstance_id(String instance_id) {
+    this.instance_id = instance_id;
   }
 
-  public String getData() {
-    return data;
+  public String getService_id() {
+    return service_id;
   }
 
-  public void setData(String data) {
-    this.data = data;
+  public void setService_id(String service_id) {
+    this.service_id = service_id;
+  }
+
+  public String getAction_uri() {
+    return action_uri;
+  }
+
+  public void setAction_uri(String action_uri) {
+    this.action_uri = action_uri;
+  }
+
+  public String getAction_label() {
+    return action_label;
+  }
+
+  public void setAction_label(String action_label) {
+    this.action_label = action_label;
   }
 
   public String getMessage() {

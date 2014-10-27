@@ -1,58 +1,17 @@
 package oasis.web.notifications;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.wordnik.swagger.annotations.ApiModel;
-import com.wordnik.swagger.annotations.ApiModelProperty;
 
-/*
- * Extracted from {@link NotificationEndpoint} for swagger.
- */
-@ApiModel
 class IncomingNotification {
 
-  @JsonProperty
-  @ApiModelProperty
-  String[] userIds;
+  @JsonProperty String[] user_ids;
 
-  @JsonProperty
-  @ApiModelProperty
-  String[] groupIds;
+  @JsonProperty String service_id;
 
-  @JsonProperty
-  @ApiModelProperty
-  String applicationId;
+  @JsonProperty String message;
 
-  @JsonProperty
-  @ApiModelProperty
-  String data;
+  @JsonProperty String action_uri;
 
-  @JsonProperty
-  @ApiModelProperty
-  String message;
-
-  // For swagger
-  public String[] getUserIds() {
-    return userIds;
-  }
-
-  // For swagger
-  public String[] getGroupIds() {
-    return groupIds;
-  }
-
-  // For swagger
-  public String getApplicationId() {
-    return applicationId;
-  }
-
-  // For swagger
-  public String getData() {
-    return data;
-  }
-
-  // For swagger
-  public String getMessage() {
-    return message;
-  }
+  @JsonProperty String action_label;
 }
 

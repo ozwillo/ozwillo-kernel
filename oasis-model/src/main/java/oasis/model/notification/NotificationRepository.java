@@ -9,6 +9,8 @@ public interface NotificationRepository {
    */
   Notification createNotification(Notification notification);
 
+  List<Notification> createNotifications(List<Notification> notifications);
+
   boolean deleteNotification(String notificationId);
 
   Notification getNotification(String notificationId);
