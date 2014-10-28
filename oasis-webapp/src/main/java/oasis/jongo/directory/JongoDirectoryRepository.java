@@ -84,6 +84,10 @@ public class JongoDirectoryRepository implements DirectoryRepository, JongoBoots
       updateObject.append(",name:#");
       updateParameters.add(organization.getName());
     }
+    if (organization.getType() != null) {
+      updateObject.append(",type:#");
+      updateParameters.add(organization.getType());
+    }
 
     JongoOrganization res = getOrganizationCollection()
         .findAndModify("{ id: #, modified: { $in: # } }", organizationId, Longs.asList(versions))
