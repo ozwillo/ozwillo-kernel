@@ -3,11 +3,14 @@ package oasis.model.applications.v2;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import oasis.model.annotations.Id;
 
 public class Service extends CatalogEntry {
   private String local_id;
   private String instance_id;
+  private Boolean restricted;
   private String service_uri;
   private String notification_uri;
   private Set<String> redirect_uris;
@@ -30,6 +33,7 @@ public class Service extends CatalogEntry {
     super(other);
     local_id = other.getLocal_id();
     instance_id = other.getInstance_id();
+    restricted = other.getRestricted();
     service_uri = other.getService_uri();
     notification_uri = other.getNotification_uri();
     redirect_uris = new LinkedHashSet<>(other.getRedirect_uris());
@@ -50,6 +54,25 @@ public class Service extends CatalogEntry {
   @Override
   public EntryType getType() {
     return EntryType.SERVICE;
+  }
+
+  @JsonIgnore
+  public boolean isRestricted() {
+    return Boolean.TRUE.equals(restricted);
+  }
+
+  public Boolean getRestricted() {
+    return restricted;
+  }
+
+  public void setRestricted(Boolean restricted) {
+    this.restricted = restricted;
+  }
+
+  @Override
+  public boolean isVisible() {
+    // a restricted service cannot be visible.
+    return super.isVisible() && !isRestricted();
   }
 
   public String getService_uri() {
