@@ -175,8 +175,8 @@ public class UserInfoEndpoint {
     }
 
     if (scopeIds.contains(PHONE_SCOPE) && userAccount.getPhone_number() != null) {
-      userInfo.setPhone(userAccount.getPhone_number());
-      userInfo.setPhoneVerified(Boolean.TRUE.equals(userAccount.getPhone_number_verified()));
+      userInfo.setPhone_number(userAccount.getPhone_number());
+      userInfo.setPhone_number_verified(Boolean.TRUE.equals(userAccount.getPhone_number_verified()));
     }
 
     long updatedAt = userAccount.getUpdated_at();
@@ -220,8 +220,8 @@ public class UserInfoEndpoint {
     // Address
     @Key private Address address;
     // Phone
-    @Key private String phone;
-    @Key private Boolean phone_verified;
+    @Key private String phone_number;
+    @Key private Boolean phone_number_verified;
 
     // Agent information
     @Key private Boolean organization_admin;
@@ -353,21 +353,21 @@ public class UserInfoEndpoint {
       return this;
     }
 
-    public String getPhone() {
-      return phone;
+    public String getPhone_number() {
+      return phone_number;
     }
 
-    public UserInfo setPhone(String phone) {
-      this.phone = phone;
+    public UserInfo setPhone_number(String phone_number) {
+      this.phone_number = phone_number;
       return this;
     }
 
-    public Boolean isPhoneVerified() {
-      return phone_verified;
+    public Boolean isPhone_number_verified() {
+      return phone_number_verified;
     }
 
-    public UserInfo setPhoneVerified(Boolean phone_verified) {
-      this.phone_verified = phone_verified;
+    public UserInfo setPhone_number_verified(Boolean phone_verified) {
+      this.phone_number_verified = phone_verified;
       return this;
     }
 
