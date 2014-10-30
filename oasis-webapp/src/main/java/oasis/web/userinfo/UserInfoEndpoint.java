@@ -156,7 +156,7 @@ public class UserInfoEndpoint {
           .setGender(userAccount.getGender())
           .setBirthdate(birthDate)
           .setZoneinfo(userAccount.getZoneinfo())
-          .setLocale(userAccount.getLocale());
+          .setLocale(userAccount.getLocale() == null ? null : userAccount.getLocale().toLanguageTag());
     }
 
     if (scopeIds.contains(EMAIL_SCOPE) && userAccount.getEmail_address() != null) {
@@ -212,7 +212,7 @@ public class UserInfoEndpoint {
     @Key private String gender;
     @Key private String birthdate;
     @Key private String zoneinfo;
-    @Key private Locale locale;
+    @Key private String locale;
     @Key private Long updated_at;
     // Email
     @Key private String email;
@@ -308,11 +308,11 @@ public class UserInfoEndpoint {
       return this;
     }
 
-    public Locale getLocale() {
+    public String getLocale() {
       return locale;
     }
 
-    public UserInfo setLocale(Locale locale) {
+    public UserInfo setLocale(String locale) {
       this.locale = locale;
       return this;
     }

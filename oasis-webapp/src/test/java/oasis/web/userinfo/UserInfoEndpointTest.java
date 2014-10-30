@@ -3,6 +3,8 @@ package oasis.web.userinfo;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import java.util.Locale;
+
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
@@ -16,6 +18,7 @@ import org.junit.runner.RunWith;
 
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
 import oasis.http.testing.InProcessResteasy;
@@ -45,25 +48,13 @@ public class UserInfoEndpointTest {
 
   private static final UserAccount citizenAccount = new UserAccount() {{
     setId("citizen");
-  }};
-  private static final UserAccount agentAccount = new UserAccount() {{
-    setId("agent");
-  }};
-  private static final OrganizationMembership agentMembership = new OrganizationMembership() {{
-    setId("membership");
-    setAccountId(agentAccount.getId());
-    setOrganizationId("organization");
-    setAdmin(true);
+    setLocale(Locale.ITALY);
   }};
 
   @Inject @Rule public InProcessResteasy resteasy;
 
-  @Before public void setUpMocks(AccountRepository accountRepository,
-      OrganizationMembershipRepository organizationMembershipRepository) {
+  @Before public void setUpMocks(AccountRepository accountRepository) {
     when(accountRepository.getUserAccountById(citizenAccount.getId())).thenReturn(citizenAccount);
-    when(accountRepository.getUserAccountById(agentAccount.getId())).thenReturn(agentAccount);
-
-    when(organizationMembershipRepository.getOrganizationForUserIfUnique(agentAccount.getId())).thenReturn(agentMembership);
   }
 
   @Before public void setUp() {
@@ -77,6 +68,7 @@ public class UserInfoEndpointTest {
   @Test public void testJsonByDefault() {
     resteasy.getDeployment().getProviderFactory().register(new TestOAuthFilter(new AccessToken() {{
       setAccountId(citizenAccount.getId());
+      setScopeIds(Sets.newHashSet("openid", "profile"));
     }}));
 
     Response response = resteasy.getClient().target(UriBuilder.fromResource(UserInfoEndpoint.class)).request().get();
@@ -84,6 +76,7 @@ public class UserInfoEndpointTest {
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
     assertThat(response.getMediaType()).isEqualTo(MediaType.APPLICATION_JSON_TYPE);
     // TODO: check content
+    assertThat(response.readEntity(String.class)).contains(citizenAccount.getLocale().toLanguageTag());
   }
 
   @Test public void testJwtIfAskedFor() {
