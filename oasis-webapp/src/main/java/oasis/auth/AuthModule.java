@@ -1,4 +1,4 @@
-package oasis.openidconnect;
+package oasis.auth;
 
 import java.net.URI;
 import java.nio.file.Path;
@@ -15,7 +15,7 @@ import com.typesafe.config.Config;
 
 import oasis.security.KeyPairLoader;
 
-public class OpenIdConnectModule extends AbstractModule {
+public class AuthModule extends AbstractModule {
   public static class Settings {
 
     public static Builder builder() {
@@ -23,33 +23,33 @@ public class OpenIdConnectModule extends AbstractModule {
     }
 
     public static Settings fromConfig(Config config) {
-      // TODO: refactor to use a single subtree of the config
+      // TODO: store PKIs in DB to use a single subtree of the config
       Path privateKeyPath = null;
       Path publicKeyPath = null;
 
       if (config.hasPath("oasis.conf-dir")) {
         Path confDir = Paths.get(config.getString("oasis.conf-dir"));
-        privateKeyPath = confDir.resolve(config.getString("oasis.openid-connect.private-key-path"));
-        publicKeyPath = confDir.resolve(config.getString("oasis.openid-connect.public-key-path"));
+        privateKeyPath = confDir.resolve(config.getString("oasis.auth.private-key-path"));
+        publicKeyPath = confDir.resolve(config.getString("oasis.auth.public-key-path"));
       }
 
       URI landingPage = null;
-      if (config.hasPath("oasis.openid-connect.landing-page")) {
-        landingPage = URI.create(config.getString("oasis.openid-connect.landing-page"));
+      if (config.hasPath("oasis.auth.landing-page")) {
+        landingPage = URI.create(config.getString("oasis.auth.landing-page"));
       }
 
       URI canonicalBaseUri = null;
-      if (config.hasPath("oasis.openid-connect.canonical-base-uri")) {
-        canonicalBaseUri = URI.create(config.getString("oasis.openid-connect.canonical-base-uri"));
+      if (config.hasPath("oasis.auth.canonical-base-uri")) {
+        canonicalBaseUri = URI.create(config.getString("oasis.auth.canonical-base-uri"));
       }
 
       return Settings.builder()
           .setKeyPair(KeyPairLoader.loadOrGenerateKeyPair(privateKeyPath, publicKeyPath))
-          .setAuthorizationCodeDuration(Duration.millis(config.getDuration("oasis.oauth.authorization-code-duration", TimeUnit.MILLISECONDS)))
-          .setAccessTokenDuration(Duration.millis(config.getDuration("oasis.oauth.access-token-duration", TimeUnit.MILLISECONDS)))
-          .setRefreshTokenDuration(Duration.millis(config.getDuration("oasis.oauth.refresh-token-duration", TimeUnit.MILLISECONDS)))
-          .setIdTokenDuration(Duration.millis(config.getDuration("oasis.openid-connect.id-token-duration", TimeUnit.MILLISECONDS)))
-          .setSidTokenDuration(Duration.millis(config.getDuration("oasis.session.max-idle-timeout", TimeUnit.MILLISECONDS)))
+          .setAuthorizationCodeDuration(Duration.millis(config.getDuration("oasis.auth.authorization-code-duration", TimeUnit.MILLISECONDS)))
+          .setAccessTokenDuration(Duration.millis(config.getDuration("oasis.auth.access-token-duration", TimeUnit.MILLISECONDS)))
+          .setRefreshTokenDuration(Duration.millis(config.getDuration("oasis.auth.refresh-token-duration", TimeUnit.MILLISECONDS)))
+          .setIdTokenDuration(Duration.millis(config.getDuration("oasis.auth.id-token-duration", TimeUnit.MILLISECONDS)))
+          .setSidTokenDuration(Duration.millis(config.getDuration("oasis.auth.sid-token-duration", TimeUnit.MILLISECONDS)))
           .setLandingPage(landingPage)
           .setCanonicalBaseUri(canonicalBaseUri)
           .build();
@@ -132,13 +132,13 @@ public class OpenIdConnectModule extends AbstractModule {
     }
   }
 
-  public static OpenIdConnectModule create(Config config) {
-    return new OpenIdConnectModule(Settings.fromConfig(config));
+  public static AuthModule create(Config config) {
+    return new AuthModule(Settings.fromConfig(config));
   }
 
   private final Settings settings;
 
-  public OpenIdConnectModule(Settings settings) {
+  public AuthModule(Settings settings) {
     this.settings = settings;
   }
 

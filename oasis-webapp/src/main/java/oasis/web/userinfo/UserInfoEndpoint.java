@@ -2,7 +2,6 @@ package oasis.web.userinfo;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -34,7 +33,7 @@ import oasis.model.accounts.UserAccount;
 import oasis.model.authn.AccessToken;
 import oasis.model.directory.OrganizationMembership;
 import oasis.model.directory.OrganizationMembershipRepository;
-import oasis.openidconnect.OpenIdConnectModule;
+import oasis.auth.AuthModule;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
@@ -61,7 +60,7 @@ public class UserInfoEndpoint {
   @Context UriInfo uriInfo;
   @Context SecurityContext securityContext;
 
-  @Inject OpenIdConnectModule.Settings settings;
+  @Inject AuthModule.Settings settings;
   @Inject JsonFactory jsonFactory;
   @Inject AccountRepository accountRepository;
   @Inject OrganizationMembershipRepository organizationMembershipRepository;

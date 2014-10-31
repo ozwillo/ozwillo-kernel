@@ -20,7 +20,7 @@ import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.authn.ClientType;
 import oasis.model.authn.TokenRepository;
-import oasis.openidconnect.OpenIdConnectModule;
+import oasis.auth.AuthModule;
 import oasis.services.authn.CredentialsService;
 import oasis.services.cookies.CookieFactory;
 import oasis.soy.SoyTemplate;
@@ -35,7 +35,7 @@ public class ChangePasswordPage {
   @Inject AccountRepository accountRepository;
   @Inject CredentialsService credentialsService;
   @Inject TokenRepository tokenRepository;
-  @Inject OpenIdConnectModule.Settings settings;
+  @Inject AuthModule.Settings settings;
 
   @Context SecurityContext securityContext;
 

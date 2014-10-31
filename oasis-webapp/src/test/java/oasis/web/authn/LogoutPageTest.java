@@ -39,8 +39,8 @@ import oasis.model.applications.v2.ServiceRepository;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
 import oasis.model.i18n.LocalizableString;
-import oasis.openidconnect.OpenIdConnectModule;
-import oasis.openidconnect.RedirectUri;
+import oasis.auth.AuthModule;
+import oasis.auth.RedirectUri;
 import oasis.security.KeyPairLoader;
 import oasis.web.authn.testing.TestUserFilter;
 import oasis.web.authz.KeysEndpoint;
@@ -59,7 +59,7 @@ public class LogoutPageTest {
 
       bind(JsonFactory.class).to(JacksonFactory.class);
 
-      bind(OpenIdConnectModule.Settings.class).toInstance(OpenIdConnectModule.Settings.builder()
+      bind(AuthModule.Settings.class).toInstance(AuthModule.Settings.builder()
           .setKeyPair(KeyPairLoader.generateRandomKeyPair())
           .setLandingPage(URI.create("https://oasis/landing-page"))
           .build());
@@ -106,7 +106,7 @@ public class LogoutPageTest {
     resteasy.getDeployment().getRegistry().addPerRequestResource(LogoutPage.class);
     resteasy.getDeployment().getProviderFactory().register(SoyTemplateBodyWriter.class);
   }
-  @Test public void testGet_notLoggedIn_noParam(OpenIdConnectModule.Settings settings) {
+  @Test public void testGet_notLoggedIn_noParam(AuthModule.Settings settings) {
     Response response = resteasy.getClient().target(UriBuilder.fromResource(LogoutPage.class)).request().get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
@@ -136,7 +136,7 @@ public class LogoutPageTest {
   }
 
   @Test public void testGet_loggedIn_withIdTokenHint(TokenRepository tokenRepository,
-      OpenIdConnectModule.Settings settings, JsonFactory jsonFactory) throws Throwable {
+      AuthModule.Settings settings, JsonFactory jsonFactory) throws Throwable {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
     String idToken = IdToken.signUsingRsaSha256(settings.keyPair.getPrivate(), jsonFactory,
@@ -171,7 +171,7 @@ public class LogoutPageTest {
   }
 
   @Test public void testGet_loggedIn_withIdTokenHintAndBadPostLogoutRedirectUri(TokenRepository tokenRepository,
-      OpenIdConnectModule.Settings settings, JsonFactory jsonFactory) throws Throwable {
+      AuthModule.Settings settings, JsonFactory jsonFactory) throws Throwable {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
     String idToken = IdToken.signUsingRsaSha256(settings.keyPair.getPrivate(), jsonFactory,
@@ -223,7 +223,7 @@ public class LogoutPageTest {
     verify(tokenRepository, never()).revokeToken(sidToken.getId());
   }
 
-  @Test public void testGet_notLoggedIn_noIdTokenHint(OpenIdConnectModule.Settings settings) {
+  @Test public void testGet_notLoggedIn_noIdTokenHint(AuthModule.Settings settings) {
     Response response = resteasy.getClient().target(UriBuilder.fromResource(LogoutPage.class))
         .queryParam("post_logout_redirect_uri", "http://www.google.com")
         .request()
@@ -237,7 +237,7 @@ public class LogoutPageTest {
     }
   }
 
-  @Test public void testGet_notLoggedIn_withIdTokenHint(OpenIdConnectModule.Settings settings, JsonFactory jsonFactory) throws Throwable {
+  @Test public void testGet_notLoggedIn_withIdTokenHint(AuthModule.Settings settings, JsonFactory jsonFactory) throws Throwable {
     String idToken = IdToken.signUsingRsaSha256(settings.keyPair.getPrivate(), jsonFactory,
         new IdToken.Header()
             .setType("JWS")
@@ -262,7 +262,7 @@ public class LogoutPageTest {
   }
 
   @Test public void testGet_notLoggedIn_withIdTokenHintAndBadPostLogoutRedirectUri(
-      OpenIdConnectModule.Settings settings, JsonFactory jsonFactory) throws Throwable {
+      AuthModule.Settings settings, JsonFactory jsonFactory) throws Throwable {
     String idToken = IdToken.signUsingRsaSha256(settings.keyPair.getPrivate(), jsonFactory,
         new IdToken.Header()
             .setType("JWS")

@@ -17,7 +17,7 @@ import oasis.jongo.JongoService;
 import oasis.jongo.guice.JongoModule;
 import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstanceRepository;
-import oasis.openidconnect.OpenIdConnectModule;
+import oasis.auth.AuthModule;
 import oasis.usecases.DeleteAppInstance.Request;
 import oasis.usecases.DeleteAppInstance.Stats;
 
@@ -64,10 +64,8 @@ public class DeleteAppInstance extends CommandLineTool {
 
     final Injector injector = Guice.createInjector(
         JongoModule.create(config.getConfig("oasis.mongo")),
-        // TODO: refactor to use a single subtree of the config
-        OpenIdConnectModule.create(config.withOnlyPath("oasis.openid-connect")
-            .withFallback(config.withOnlyPath("oasis.oauth"))
-            .withFallback(config.withOnlyPath("oasis.session"))
+        // TODO: store PKIs in DB to use a single subtree of the config
+        AuthModule.create(config.withOnlyPath("oasis.auth")
             .withFallback(config.withOnlyPath("oasis.conf-dir")))
     );
 

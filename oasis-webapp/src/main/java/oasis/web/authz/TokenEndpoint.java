@@ -50,7 +50,7 @@ import oasis.model.authn.RefreshToken;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.Token;
 import oasis.model.authn.TokenRepository;
-import oasis.openidconnect.OpenIdConnectModule;
+import oasis.auth.AuthModule;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.services.authz.AppAdminHelper;
@@ -71,7 +71,7 @@ public class TokenEndpoint {
       .setAlgorithm("RS256")
       .setKeyId(KeysEndpoint.JSONWEBKEY_PK_ID);
 
-  @Inject OpenIdConnectModule.Settings settings;
+  @Inject AuthModule.Settings settings;
   @Inject JsonFactory jsonFactory;
   @Inject Clock clock;
 

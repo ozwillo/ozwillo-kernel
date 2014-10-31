@@ -12,7 +12,7 @@ import com.google.common.io.BaseEncoding;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
-import oasis.openidconnect.OpenIdConnectModule;
+import oasis.auth.AuthModule;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.Client;
 
@@ -23,7 +23,7 @@ public class KeysEndpoint {
   private static final BaseEncoding BASE64_ENCODING = BaseEncoding.base64Url().omitPadding();
   public static final String JSONWEBKEY_PK_ID = "oasis.openid-connect.public-key";
 
-  @Inject OpenIdConnectModule.Settings settings;
+  @Inject AuthModule.Settings settings;
 
   @GET
   @Produces("application/jwk-set+json")

@@ -64,7 +64,7 @@ import oasis.model.authz.AuthorizationRepository;
 import oasis.model.authz.AuthorizedScopes;
 import oasis.model.bootstrap.ClientIds;
 import oasis.model.i18n.LocalizableString;
-import oasis.openidconnect.OpenIdConnectModule;
+import oasis.auth.AuthModule;
 import oasis.security.KeyPairLoader;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
@@ -98,7 +98,7 @@ public class AuthorizationEndpointTest {
           "https://attacker/callback"           // non-whitelisted
       );
 
-      bind(OpenIdConnectModule.Settings.class).toInstance(OpenIdConnectModule.Settings.builder()
+      bind(AuthModule.Settings.class).toInstance(AuthModule.Settings.builder()
           .setKeyPair(KeyPairLoader.generateRandomKeyPair())
           .build());
     }
@@ -630,7 +630,7 @@ public class AuthorizationEndpointTest {
     assertRedirectError(response, service, "request_uri_not_supported", null);
   }
 
-  @Test public void testIdTokenHint(OpenIdConnectModule.Settings settings, JsonFactory jsonFactory) throws Throwable {
+  @Test public void testIdTokenHint(AuthModule.Settings settings, JsonFactory jsonFactory) throws Throwable {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
@@ -690,7 +690,7 @@ public class AuthorizationEndpointTest {
     assertRedirectError(response, service, "invalid_request", "id_token_hint");
   }
 
-  @Test public void testIdTokenHint_badIssuer(OpenIdConnectModule.Settings settings, JsonFactory jsonFactory) throws Throwable {
+  @Test public void testIdTokenHint_badIssuer(AuthModule.Settings settings, JsonFactory jsonFactory) throws Throwable {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
@@ -713,7 +713,7 @@ public class AuthorizationEndpointTest {
     assertRedirectError(response, service, "invalid_request", "id_token_hint");
   }
 
-  @Test public void testIdTokenHint_mismatchingSub(OpenIdConnectModule.Settings settings, JsonFactory jsonFactory) throws Throwable {
+  @Test public void testIdTokenHint_mismatchingSub(AuthModule.Settings settings, JsonFactory jsonFactory) throws Throwable {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))

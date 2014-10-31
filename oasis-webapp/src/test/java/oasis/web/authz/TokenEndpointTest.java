@@ -47,7 +47,7 @@ import oasis.model.authn.AuthorizationCode;
 import oasis.model.authn.RefreshToken;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
-import oasis.openidconnect.OpenIdConnectModule;
+import oasis.auth.AuthModule;
 import oasis.security.KeyPairLoader;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
@@ -68,7 +68,7 @@ public class TokenEndpointTest {
       bind(Clock.class).to(FixedClock.class);
       bind(JsonFactory.class).to(JacksonFactory.class);
 
-      bind(OpenIdConnectModule.Settings.class).toInstance(OpenIdConnectModule.Settings.builder()
+      bind(AuthModule.Settings.class).toInstance(AuthModule.Settings.builder()
           .setIdTokenDuration(Duration.standardMinutes(1))
           .setKeyPair(KeyPairLoader.generateRandomKeyPair())
           .build());
@@ -273,7 +273,7 @@ public class TokenEndpointTest {
     assertThat(response.getError()).isEqualTo("invalid_grant");
   }
 
-  @Test public void testValidAuthCode(JsonFactory jsonFactory, OpenIdConnectModule.Settings settings, Clock clock) throws Throwable {
+  @Test public void testValidAuthCode(JsonFactory jsonFactory, AuthModule.Settings settings, Clock clock) throws Throwable {
     // given
     resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
 
@@ -309,7 +309,7 @@ public class TokenEndpointTest {
     }
   }
 
-  @Test public void testValidAuthCodeWithAppUser(JsonFactory jsonFactory, OpenIdConnectModule.Settings settings, Clock clock,
+  @Test public void testValidAuthCodeWithAppUser(JsonFactory jsonFactory, AuthModule.Settings settings, Clock clock,
       AccessControlRepository accessControlRepository) throws Throwable {
     // given
     resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
@@ -350,7 +350,7 @@ public class TokenEndpointTest {
     }
   }
 
-  @Test public void testValidAuthCodeWithAppAdmin(JsonFactory jsonFactory, OpenIdConnectModule.Settings settings, Clock clock,
+  @Test public void testValidAuthCodeWithAppAdmin(JsonFactory jsonFactory, AuthModule.Settings settings, Clock clock,
       AppAdminHelper appAdminHelper) throws Throwable {
     // given
     resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
@@ -386,7 +386,7 @@ public class TokenEndpointTest {
     assertThat(payload.get("app_admin")).isEqualTo(Boolean.TRUE);
   }
 
-  @Test public void testValidAuthCodeWithOfflineAccess(JsonFactory jsonFactory, OpenIdConnectModule.Settings settings, Clock clock) throws Throwable {
+  @Test public void testValidAuthCodeWithOfflineAccess(JsonFactory jsonFactory, AuthModule.Settings settings, Clock clock) throws Throwable {
     // given
     resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
 

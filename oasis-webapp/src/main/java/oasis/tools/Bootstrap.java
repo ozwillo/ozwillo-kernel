@@ -35,7 +35,7 @@ import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Organization;
 import oasis.model.directory.OrganizationMembership;
 import oasis.model.directory.OrganizationMembershipRepository;
-import oasis.openidconnect.OpenIdConnectModule;
+import oasis.auth.AuthModule;
 import oasis.services.authn.CredentialsService;
 import oasis.services.authn.PasswordGenerator;
 
@@ -89,10 +89,8 @@ public class Bootstrap extends CommandLineTool {
 
     final Injector injector = Guice.createInjector(
         JongoModule.create(config.getConfig("oasis.mongo")),
-        // TODO: refactor to use a single subtree of the config
-        OpenIdConnectModule.create(config.withOnlyPath("oasis.openid-connect")
-            .withFallback(config.withOnlyPath("oasis.oauth"))
-            .withFallback(config.withOnlyPath("oasis.session"))
+        // TODO: store PKIs in DB to use a single subtree of the config
+        AuthModule.create(config.withOnlyPath("oasis.auth")
             .withFallback(config.withOnlyPath("oasis.conf-dir")))
     );
 

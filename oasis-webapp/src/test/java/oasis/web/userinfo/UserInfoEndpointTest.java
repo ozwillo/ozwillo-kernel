@@ -25,9 +25,7 @@ import oasis.http.testing.InProcessResteasy;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.authn.AccessToken;
-import oasis.model.directory.OrganizationMembership;
-import oasis.model.directory.OrganizationMembershipRepository;
-import oasis.openidconnect.OpenIdConnectModule;
+import oasis.auth.AuthModule;
 import oasis.security.KeyPairLoader;
 import oasis.web.authn.testing.TestOAuthFilter;
 
@@ -40,7 +38,7 @@ public class UserInfoEndpointTest {
 
       bind(JsonFactory.class).to(JacksonFactory.class);
 
-      bind(OpenIdConnectModule.Settings.class).toInstance(OpenIdConnectModule.Settings.builder()
+      bind(AuthModule.Settings.class).toInstance(AuthModule.Settings.builder()
           .setKeyPair(KeyPairLoader.generateRandomKeyPair())
           .build());
     }

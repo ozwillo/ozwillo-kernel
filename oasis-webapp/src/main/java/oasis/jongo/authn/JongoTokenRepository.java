@@ -18,13 +18,13 @@ import com.mongodb.WriteResult;
 import oasis.jongo.JongoBootstrapper;
 import oasis.model.authn.Token;
 import oasis.model.authn.TokenRepository;
-import oasis.openidconnect.OpenIdConnectModule;
+import oasis.auth.AuthModule;
 
 public class JongoTokenRepository implements TokenRepository, JongoBootstrapper {
   private final Jongo jongo;
-  private final OpenIdConnectModule.Settings settings;
+  private final AuthModule.Settings settings;
 
-  @Inject JongoTokenRepository(Jongo jongo, OpenIdConnectModule.Settings settings) {
+  @Inject JongoTokenRepository(Jongo jongo, AuthModule.Settings settings) {
     this.jongo = jongo;
     this.settings = settings;
   }

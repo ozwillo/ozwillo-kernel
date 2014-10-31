@@ -32,7 +32,7 @@ import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.authn.ClientType;
 import oasis.model.authn.CredentialsRepository;
-import oasis.openidconnect.OpenIdConnectModule;
+import oasis.auth.AuthModule;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.UserPasswordAuthenticator;
 import oasis.soy.SoyTemplate;
@@ -54,7 +54,7 @@ public class SignUpPage {
   @Inject TokenHandler tokenHandler;
   @Inject UserAgentFingerprinter fingerprinter;
   @Inject AuditLogService auditLogService;
-  @Inject OpenIdConnectModule.Settings settings;
+  @Inject AuthModule.Settings settings;
   @Inject MailModule.Settings mailSettings;
   @Inject @Nullable MailSender mailSender;
 

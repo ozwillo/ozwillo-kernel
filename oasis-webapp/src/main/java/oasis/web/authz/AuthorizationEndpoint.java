@@ -56,8 +56,8 @@ import oasis.model.authn.SidToken;
 import oasis.model.authz.AuthorizationRepository;
 import oasis.model.authz.AuthorizedScopes;
 import oasis.model.bootstrap.ClientIds;
-import oasis.openidconnect.OpenIdConnectModule;
-import oasis.openidconnect.RedirectUri;
+import oasis.auth.AuthModule;
+import oasis.auth.RedirectUri;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.services.authz.AppAdminHelper;
@@ -100,7 +100,7 @@ public class AuthorizationEndpoint {
 
   @Context SecurityContext securityContext;
 
-  @Inject OpenIdConnectModule.Settings settings;
+  @Inject AuthModule.Settings settings;
   @Inject AuthorizationRepository authorizationRepository;
   @Inject AppInstanceRepository appInstanceRepository;
   @Inject ServiceRepository serviceRepository;

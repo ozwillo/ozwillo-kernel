@@ -10,23 +10,22 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.primitives.Longs;
-import com.mongodb.CommandFailureException;
 import com.mongodb.DuplicateKeyException;
 
 import oasis.jongo.JongoBootstrapper;
 import oasis.model.InvalidVersionException;
 import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.ServiceRepository;
-import oasis.openidconnect.OpenIdConnectModule;
+import oasis.auth.AuthModule;
 
 public class JongoServiceRepository implements ServiceRepository, JongoBootstrapper {
   private static final Logger logger = LoggerFactory.getLogger(ServiceRepository.class);
 
   private final Jongo jongo;
-  private final OpenIdConnectModule.Settings settings;
+  private final AuthModule.Settings settings;
 
   @Inject
-  JongoServiceRepository(Jongo jongo, OpenIdConnectModule.Settings settings) {
+  JongoServiceRepository(Jongo jongo, AuthModule.Settings settings) {
     this.jongo = jongo;
     this.settings = settings;
   }

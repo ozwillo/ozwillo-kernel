@@ -10,11 +10,11 @@ import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.Provider;
 
-import oasis.openidconnect.OpenIdConnectModule;
+import oasis.auth.AuthModule;
 import oasis.web.resteasy.Resteasy1099;
 
 /**
- * Enforce the use of the {@link OpenIdConnectModule.Settings#canonicalBaseUri canonical base URI}
+ * Enforce the use of the {@link oasis.auth.AuthModule.Settings#canonicalBaseUri canonical base URI}
  * for cookie-based authentication.
  */
 @User
@@ -22,7 +22,7 @@ import oasis.web.resteasy.Resteasy1099;
 @Priority(0)
 public class UserCanonicalBaseUriFilter implements ContainerRequestFilter {
 
-  @Inject OpenIdConnectModule.Settings settings;
+  @Inject AuthModule.Settings settings;
 
   @Override
   public void filter(ContainerRequestContext requestContext) throws IOException {

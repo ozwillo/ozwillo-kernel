@@ -20,7 +20,7 @@ import oasis.http.HttpServerModule;
 import oasis.jongo.JongoService;
 import oasis.jongo.guice.JongoModule;
 import oasis.mail.MailModule;
-import oasis.openidconnect.OpenIdConnectModule;
+import oasis.auth.AuthModule;
 import oasis.tools.CommandLineTool;
 import oasis.web.guice.OasisGuiceModule;
 import oasis.web.kibana.KibanaModule;
@@ -45,10 +45,8 @@ public class WebApp extends CommandLineTool {
         auditModule,
         HttpServerModule.create(config.getConfig("oasis.http")),
         KibanaModule.create(config.getConfig("oasis.kibana")),
-        // TODO: refactor to use a single subtree of the config
-        OpenIdConnectModule.create(config.withOnlyPath("oasis.openid-connect")
-            .withFallback(config.withOnlyPath("oasis.oauth"))
-            .withFallback(config.withOnlyPath("oasis.session"))
+        // TODO: store PKIs in DB to use a single subtree of the config
+        AuthModule.create(config.withOnlyPath("oasis.auth")
             .withFallback(config.withOnlyPath("oasis.conf-dir"))),
         MailModule.create(config.getConfig("oasis.mail"))
     );

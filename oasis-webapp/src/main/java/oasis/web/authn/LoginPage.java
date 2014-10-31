@@ -32,7 +32,7 @@ import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
-import oasis.openidconnect.OpenIdConnectModule;
+import oasis.auth.AuthModule;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.services.authn.UserPasswordAuthenticator;
@@ -60,7 +60,7 @@ public class LoginPage {
   @Inject AccountRepository accountRepository;
   @Inject AuditLogService auditLogService;
   @Inject UserAgentFingerprinter fingerprinter;
-  @Inject OpenIdConnectModule.Settings settings;
+  @Inject AuthModule.Settings settings;
 
   @Context SecurityContext securityContext;
   @Context UriInfo uriInfo;
@@ -170,15 +170,15 @@ public class LoginPage {
     return buildResponseFromView(builder, soyTemplate);
   }
 
-  private static Response loginForm(Response.ResponseBuilder builder, URI continueUrl, OpenIdConnectModule.Settings settings, @Nullable LoginError error) {
+  private static Response loginForm(Response.ResponseBuilder builder, URI continueUrl, AuthModule.Settings settings, @Nullable LoginError error) {
     return loginAndSignupForm(builder, continueUrl, settings, error);
   }
 
-  static Response signupForm(Response.ResponseBuilder builder, URI continueUrl, OpenIdConnectModule.Settings settings, @Nullable SignupError error) {
+  static Response signupForm(Response.ResponseBuilder builder, URI continueUrl, AuthModule.Settings settings, @Nullable SignupError error) {
     return loginAndSignupForm(builder, continueUrl, settings, error);
   }
 
-  private static Response loginAndSignupForm(Response.ResponseBuilder builder, URI continueUrl, OpenIdConnectModule.Settings settings, @Nullable Enum<?> error) {
+  private static Response loginAndSignupForm(Response.ResponseBuilder builder, URI continueUrl, AuthModule.Settings settings, @Nullable Enum<?> error) {
     // TODO: I18N
     SoyTemplate soyTemplate = new SoyTemplate(LoginSoyInfo.LOGIN, Locale.ROOT, new SoyMapData(
         LoginSoyTemplateInfo.SIGN_UP_FORM_ACTION, UriBuilder.fromResource(SignUpPage.class).build().toString(),

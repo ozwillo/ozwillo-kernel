@@ -13,7 +13,7 @@ import javax.ws.rs.core.UriInfo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import oasis.openidconnect.OpenIdConnectModule;
+import oasis.auth.AuthModule;
 import oasis.web.authn.LogoutPage;
 import oasis.web.authz.AuthorizationEndpoint;
 import oasis.web.authz.KeysEndpoint;
@@ -27,7 +27,7 @@ import oasis.web.userinfo.UserInfoEndpoint;
  */
 @Path("/.well-known/openid-configuration")
 public class OpenIdProviderConfigurationEndpoint {
-  @Inject OpenIdConnectModule.Settings settings;
+  @Inject AuthModule.Settings settings;
 
   @Context UriInfo uriInfo;
 

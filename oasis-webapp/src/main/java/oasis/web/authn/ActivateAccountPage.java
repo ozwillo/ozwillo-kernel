@@ -20,7 +20,7 @@ import oasis.mail.MailMessage;
 import oasis.mail.MailSender;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
-import oasis.openidconnect.OpenIdConnectModule;
+import oasis.auth.AuthModule;
 import oasis.soy.templates.SignUpSoyInfo;
 import oasis.web.utils.ResponseFactory;
 
@@ -30,7 +30,7 @@ public class ActivateAccountPage {
   private static Logger logger = LoggerFactory.getLogger(ActivateAccountPage.class);
 
   @Inject AccountRepository accountRepository;
-  @Inject OpenIdConnectModule.Settings settings;
+  @Inject AuthModule.Settings settings;
   @Inject MailSender mailSender;
 
   @Context UriInfo uriInfo;

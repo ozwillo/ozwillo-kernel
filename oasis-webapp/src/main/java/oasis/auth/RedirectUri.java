@@ -1,4 +1,4 @@
-package oasis.openidconnect;
+package oasis.auth;
 
 import static com.google.common.base.Preconditions.*;
 

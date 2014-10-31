@@ -8,8 +8,6 @@ import java.util.Set;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
-import org.joda.time.Duration;
-
 import com.google.api.client.util.Clock;
 import com.google.common.base.Strings;
 import com.google.common.io.BaseEncoding;
@@ -20,7 +18,7 @@ import oasis.model.authn.RefreshToken;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.Token;
 import oasis.model.authn.TokenRepository;
-import oasis.openidconnect.OpenIdConnectModule;
+import oasis.auth.AuthModule;
 import oasis.services.authn.login.PasswordHasher;
 
 public class TokenHandler {
@@ -29,12 +27,12 @@ public class TokenHandler {
   private static final String SEPARATOR = "/";
 
   private final TokenRepository tokenRepository;
-  private final OpenIdConnectModule.Settings oidcSettings;
+  private final AuthModule.Settings oidcSettings;
   private final PasswordHasher passwordHasher;
   private final SecureRandom secureRandom;
   private final Clock clock;
 
-  @Inject TokenHandler(TokenRepository tokenRepository, OpenIdConnectModule.Settings oidcSettings,
+  @Inject TokenHandler(TokenRepository tokenRepository, AuthModule.Settings oidcSettings,
       PasswordHasher passwordHasher, SecureRandom secureRandom, Clock clock) {
     this.tokenRepository = tokenRepository;
     this.oidcSettings = oidcSettings;

@@ -5,7 +5,6 @@ import java.security.PublicKey;
 import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Locale;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -41,8 +40,8 @@ import oasis.model.applications.v2.ServiceRepository;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
 import oasis.model.bootstrap.ClientIds;
-import oasis.openidconnect.OpenIdConnectModule;
-import oasis.openidconnect.RedirectUri;
+import oasis.auth.AuthModule;
+import oasis.auth.RedirectUri;
 import oasis.services.cookies.CookieFactory;
 import oasis.soy.SoyTemplate;
 import oasis.soy.templates.LogoutSoyInfo;
@@ -59,7 +58,7 @@ public class LogoutPage {
   @Context UriInfo uriInfo;
 
   @Inject TokenRepository tokenRepository;
-  @Inject OpenIdConnectModule.Settings settings;
+  @Inject AuthModule.Settings settings;
   @Inject JsonFactory jsonFactory;
   @Inject AppInstanceRepository appInstanceRepository;
   @Inject ServiceRepository serviceRepository;

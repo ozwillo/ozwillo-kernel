@@ -1,7 +1,6 @@
 package oasis.web.authn;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 import java.net.URI;
 
@@ -9,16 +8,11 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriBuilder;
 
 import org.jukito.JukitoModule;
 import org.jukito.JukitoRunner;
-import org.jukito.TestSingleton;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -27,10 +21,7 @@ import org.junit.runner.RunWith;
 import com.google.inject.Inject;
 
 import oasis.http.testing.InProcessResteasy;
-import oasis.model.authn.SidToken;
-import oasis.openidconnect.OpenIdConnectModule;
-import oasis.services.authn.TokenHandler;
-import oasis.web.utils.UserAgentFingerprinter;
+import oasis.auth.AuthModule;
 
 @RunWith(JukitoRunner.class)
 public class UserCanonicalBaseUriFilterTest {
@@ -40,7 +31,7 @@ public class UserCanonicalBaseUriFilterTest {
     protected void configureTest() {
       bind(UserCanonicalBaseUriFilter.class);
 
-      bind(OpenIdConnectModule.Settings.class).toInstance(OpenIdConnectModule.Settings.builder()
+      bind(AuthModule.Settings.class).toInstance(AuthModule.Settings.builder()
           .setCanonicalBaseUri(URI.create("http://example.com/somepath/"))
           .build());
     }
