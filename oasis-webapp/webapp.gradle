@@ -58,6 +58,10 @@ task generateSoyParseInfo(type: JavaExec) {
   ext.outputDir = "$buildDir/generated-sources/soy/"
   outputs.dir outputDir
 
+  doFirst {
+    project.delete(outputDir)
+  }
+
   def javaPackage = 'oasis.soy.templates'
 
   main = 'com.google.template.soy.SoyParseInfoGenerator'
