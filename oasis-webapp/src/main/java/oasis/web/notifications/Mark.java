@@ -9,24 +9,9 @@ import oasis.model.notification.Notification;
 /*
  * Extracted from {@link NotificationEndpoint} for swagger.
  */
-@ApiModel
 class Mark {
 
-  @JsonProperty
-  @ApiModelProperty
-  String[] messageIds;
+  @JsonProperty String[] message_ids;
 
-  @JsonProperty
-  @ApiModelProperty(dataType = "String", allowableValues = "READ,UNREAD")
-  Notification.Status status;
-
-  // For swagger
-  public String[] getMessageIds() {
-    return messageIds;
-  }
-
-  // For swagger
-  public Notification.Status getStatus() {
-    return status;
-  }
+  @JsonProperty Notification.Status status;
 }

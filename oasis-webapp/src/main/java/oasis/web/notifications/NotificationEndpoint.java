@@ -139,7 +139,7 @@ public class NotificationEndpoint {
       return ResponseFactory.forbidden("Cannot change read status for another user's notifications");
     }
 
-    notificationRepository.markNotifications(userId, Lists.newArrayList(mark.messageIds), mark.status);
+    notificationRepository.markNotifications(userId, Lists.newArrayList(mark.message_ids), mark.status);
     return ResponseFactory.NO_CONTENT;
   }
 }
