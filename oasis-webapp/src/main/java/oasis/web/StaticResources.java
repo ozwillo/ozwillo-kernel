@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Date;
-import java.util.Locale;
 
+import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -15,18 +15,22 @@ import javax.ws.rs.core.Response;
 
 import com.google.common.io.Resources;
 
-import oasis.soy.SoyTemplate;
-import oasis.soy.templates.HomeSoyInfo;
+import oasis.urls.Urls;
 import oasis.web.utils.ResponseFactory;
 
 @Path("/")
 public class StaticResources {
 
+  @Inject Urls urls;
+
   @GET
   @Path("")
   @Produces(MediaType.TEXT_HTML)
   public Response home() {
-    return Response.ok(new SoyTemplate(HomeSoyInfo.HOME, Locale.ROOT)).build();
+    if (urls.landingPage().isPresent()) {
+      return Response.seeOther(urls.landingPage().get()).build();
+    }
+    return ResponseFactory.NOT_FOUND;
   }
 
   @GET
