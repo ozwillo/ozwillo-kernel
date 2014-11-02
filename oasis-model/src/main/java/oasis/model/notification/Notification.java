@@ -5,6 +5,7 @@ import javax.annotation.Nonnull;
 import org.joda.time.Instant;
 
 import oasis.model.annotations.Id;
+import oasis.model.i18n.LocalizableString;
 
 public class Notification {
   public enum Status {
@@ -17,13 +18,16 @@ public class Notification {
   private String user_id;
   private String instance_id;
   private String service_id;
-  private String message;
-  private String action_uri;
-  private String action_label;
+  private LocalizableString message;
+  private LocalizableString action_uri;
+  private LocalizableString action_label;
   private Instant time;
   private Status status = Status.UNREAD;
 
   public Notification() {
+    message = new LocalizableString();
+    action_uri = new LocalizableString();
+    action_label = new LocalizableString();
   }
 
   /**
@@ -35,9 +39,9 @@ public class Notification {
     this.user_id = other.getUser_id();
     this.instance_id = other.getInstance_id();
     this.service_id = other.getService_id();
-    this.message = other.getMessage();
-    this.action_uri = other.getAction_uri();
-    this.action_label = other.getAction_label();
+    this.message = new LocalizableString(other.getMessage());
+    this.action_uri = new LocalizableString(other.getAction_uri());
+    this.action_label = new LocalizableString(other.getAction_label());
     this.time = other.getTime();
     this.status = other.getStatus();
   }
@@ -74,27 +78,27 @@ public class Notification {
     this.service_id = service_id;
   }
 
-  public String getAction_uri() {
+  public LocalizableString getAction_uri() {
     return action_uri;
   }
 
-  public void setAction_uri(String action_uri) {
+  public void setAction_uri(LocalizableString action_uri) {
     this.action_uri = action_uri;
   }
 
-  public String getAction_label() {
+  public LocalizableString getAction_label() {
     return action_label;
   }
 
-  public void setAction_label(String action_label) {
+  public void setAction_label(LocalizableString action_label) {
     this.action_label = action_label;
   }
 
-  public String getMessage() {
+  public LocalizableString getMessage() {
     return message;
   }
 
-  public void setMessage(String message) {
+  public void setMessage(LocalizableString message) {
     this.message = message;
   }
 
