@@ -22,6 +22,8 @@ import com.google.inject.Inject;
 
 import oasis.http.testing.InProcessResteasy;
 import oasis.auth.AuthModule;
+import oasis.urls.ImmutableUrls;
+import oasis.urls.Urls;
 
 @RunWith(JukitoRunner.class)
 public class UserCanonicalBaseUriFilterTest {
@@ -31,8 +33,8 @@ public class UserCanonicalBaseUriFilterTest {
     protected void configureTest() {
       bind(UserCanonicalBaseUriFilter.class);
 
-      bind(AuthModule.Settings.class).toInstance(AuthModule.Settings.builder()
-          .setCanonicalBaseUri(URI.create("http://example.com/somepath/"))
+      bind(Urls.class).toInstance(ImmutableUrls.builder()
+          .canonicalBaseUri(URI.create("http://example.com/somepath/"))
           .build());
     }
   }

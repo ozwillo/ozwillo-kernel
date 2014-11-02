@@ -33,16 +33,6 @@ public class AuthModule extends AbstractModule {
         publicKeyPath = confDir.resolve(config.getString("oasis.auth.public-key-path"));
       }
 
-      URI landingPage = null;
-      if (config.hasPath("oasis.auth.landing-page")) {
-        landingPage = URI.create(config.getString("oasis.auth.landing-page"));
-      }
-
-      URI canonicalBaseUri = null;
-      if (config.hasPath("oasis.auth.canonical-base-uri")) {
-        canonicalBaseUri = URI.create(config.getString("oasis.auth.canonical-base-uri"));
-      }
-
       return Settings.builder()
           .setKeyPair(KeyPairLoader.loadOrGenerateKeyPair(privateKeyPath, publicKeyPath))
           .setAuthorizationCodeDuration(Duration.millis(config.getDuration("oasis.auth.authorization-code-duration", TimeUnit.MILLISECONDS)))
@@ -50,8 +40,6 @@ public class AuthModule extends AbstractModule {
           .setRefreshTokenDuration(Duration.millis(config.getDuration("oasis.auth.refresh-token-duration", TimeUnit.MILLISECONDS)))
           .setIdTokenDuration(Duration.millis(config.getDuration("oasis.auth.id-token-duration", TimeUnit.MILLISECONDS)))
           .setSidTokenDuration(Duration.millis(config.getDuration("oasis.auth.sid-token-duration", TimeUnit.MILLISECONDS)))
-          .setLandingPage(landingPage)
-          .setCanonicalBaseUri(canonicalBaseUri)
           .build();
     }
 
@@ -63,8 +51,6 @@ public class AuthModule extends AbstractModule {
       private Duration refreshTokenDuration;
       private Duration idTokenDuration;
       private Duration sidTokenDuration;
-      private @Nullable URI landingPage;
-      private @Nullable URI canonicalBaseUri;
 
       public Settings build() {
         return new Settings(this);
@@ -99,16 +85,6 @@ public class AuthModule extends AbstractModule {
         this.sidTokenDuration = sidTokenDuration;
         return this;
       }
-
-      public Builder setLandingPage(@Nullable URI landingPage) {
-        this.landingPage = landingPage;
-        return this;
-      }
-
-      public Builder setCanonicalBaseUri(@Nullable URI canonicalBaseUri) {
-        this.canonicalBaseUri = canonicalBaseUri;
-        return this;
-      }
     }
 
     public final KeyPair keyPair;
@@ -117,8 +93,6 @@ public class AuthModule extends AbstractModule {
     public final Duration refreshTokenDuration;
     public final Duration idTokenDuration;
     public final Duration sidTokenDuration;
-    public final @Nullable URI landingPage;
-    public final @Nullable URI canonicalBaseUri;
 
     private Settings(Builder builder) {
       this.keyPair = builder.keyPair;
@@ -127,8 +101,6 @@ public class AuthModule extends AbstractModule {
       this.refreshTokenDuration = builder.refreshTokenDuration;
       this.idTokenDuration = builder.idTokenDuration;
       this.sidTokenDuration = builder.sidTokenDuration;
-      this.landingPage = builder.landingPage;
-      this.canonicalBaseUri = builder.canonicalBaseUri;
     }
   }
 

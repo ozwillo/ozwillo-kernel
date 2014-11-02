@@ -1,5 +1,4 @@
 apply plugin: 'java'
-apply plugin: 'idea' // IDEA needs extra configuration for generated sources *sigh*
 
 dependencies {
   compile project(':oasis-model')
@@ -22,6 +21,9 @@ dependencies {
   compile libs.resteasy_netty
   compile libs.closure_templates
   compile libs.swagger_jaxrs
+
+  compile libs.immutables
+  apt libs.immutables_compiler
 
   compile libs.slf4j
   runtime libs.log4j_runtime
@@ -78,13 +80,6 @@ sourceSets.main.java {
   srcDir generateSoyParseInfo.outputDir
 }
 compileJava.dependsOn generateSoyParseInfo
-idea {
-  module {
-    // un-exclude $buildDir, then exclude all non-'generated-sources' subdir of $buildDir
-    excludeDirs -= file(buildDir)
-    buildDir.listFiles({ d , f -> f != 'generated-sources' } as FilenameFilter).each { excludeDirs += it }
-  }
-}
 
 task run(type: JavaExec, dependsOn: classes) {
   main = 'oasis.web.WebApp'

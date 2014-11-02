@@ -42,6 +42,8 @@ import oasis.model.i18n.LocalizableString;
 import oasis.auth.AuthModule;
 import oasis.auth.RedirectUri;
 import oasis.security.KeyPairLoader;
+import oasis.urls.ImmutableUrls;
+import oasis.urls.Urls;
 import oasis.web.authn.testing.TestUserFilter;
 import oasis.web.authz.KeysEndpoint;
 import oasis.soy.SoyGuiceModule;
@@ -61,8 +63,10 @@ public class LogoutPageTest {
 
       bind(AuthModule.Settings.class).toInstance(AuthModule.Settings.builder()
           .setKeyPair(KeyPairLoader.generateRandomKeyPair())
-          .setLandingPage(URI.create("https://oasis/landing-page"))
           .build());
+      bind(Urls.class).toInstance(ImmutableUrls.builder()
+        .landingPage(URI.create("https://oasis/landing-page"))
+        .build());
     }
   }
 
@@ -106,11 +110,11 @@ public class LogoutPageTest {
     resteasy.getDeployment().getRegistry().addPerRequestResource(LogoutPage.class);
     resteasy.getDeployment().getProviderFactory().register(SoyTemplateBodyWriter.class);
   }
-  @Test public void testGet_notLoggedIn_noParam(AuthModule.Settings settings) {
+  @Test public void testGet_notLoggedIn_noParam(Urls urls) {
     Response response = resteasy.getClient().target(UriBuilder.fromResource(LogoutPage.class)).request().get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
-    assertThat(response.getLocation()).isEqualTo(settings.landingPage);
+    assertThat(response.getLocation()).isEqualTo(urls.landingPage().get());
     if (response.getCookies().containsKey(UserFilter.COOKIE_NAME)) {
       assertThat(response.getCookies().get(UserFilter.COOKIE_NAME).getExpiry()).isInThePast();
     }
@@ -223,7 +227,7 @@ public class LogoutPageTest {
     verify(tokenRepository, never()).revokeToken(sidToken.getId());
   }
 
-  @Test public void testGet_notLoggedIn_noIdTokenHint(AuthModule.Settings settings) {
+  @Test public void testGet_notLoggedIn_noIdTokenHint(Urls urls) {
     Response response = resteasy.getClient().target(UriBuilder.fromResource(LogoutPage.class))
         .queryParam("post_logout_redirect_uri", "http://www.google.com")
         .request()
@@ -231,7 +235,7 @@ public class LogoutPageTest {
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
     // post_logout_redirect_url should not be used
-    assertThat(response.getLocation()).isEqualTo(settings.landingPage);
+    assertThat(response.getLocation()).isEqualTo(urls.landingPage().get());
     if (response.getCookies().containsKey(UserFilter.COOKIE_NAME)) {
       assertThat(response.getCookies().get(UserFilter.COOKIE_NAME).getExpiry()).isInTheFuture();
     }

@@ -39,6 +39,9 @@ import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.UserPasswordAuthenticator;
+import oasis.urls.ImmutableUrls;
+import oasis.urls.Urls;
+import oasis.urls.UrlsModule;
 import oasis.web.authn.testing.TestUserFilter;
 import oasis.soy.SoyGuiceModule;
 import oasis.web.view.SoyTemplateBodyWriter;
@@ -53,6 +56,8 @@ public class LoginPageTest {
 
       install(new NoopAuditLogModule());
       install(new SoyGuiceModule());
+
+      bind(Urls.class).toInstance(ImmutableUrls.builder().build());
 
       bindMock(UserPasswordAuthenticator.class).in(TestSingleton.class);
       bindMock(TokenHandler.class).in(TestSingleton.class);

@@ -1,5 +1,7 @@
 package oasis.web.authn;
 
+import java.util.Objects;
+
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.ws.rs.FormParam;
@@ -20,13 +22,13 @@ import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.authn.ClientType;
 import oasis.model.authn.TokenRepository;
-import oasis.auth.AuthModule;
 import oasis.services.authn.CredentialsService;
 import oasis.services.cookies.CookieFactory;
 import oasis.soy.SoyTemplate;
 import oasis.soy.templates.ChangePasswordSoyInfo;
 import oasis.soy.templates.ChangePasswordSoyInfo.ChangePasswordSoyTemplateInfo;
 import oasis.soy.templates.ChangePasswordSoyInfo.PasswordChangedSoyTemplateInfo;
+import oasis.urls.Urls;
 
 @Path("/a/password")
 @Authenticated @User
@@ -35,7 +37,7 @@ public class ChangePasswordPage {
   @Inject AccountRepository accountRepository;
   @Inject CredentialsService credentialsService;
   @Inject TokenRepository tokenRepository;
-  @Inject AuthModule.Settings settings;
+  @Inject Urls urls;
 
   @Context SecurityContext securityContext;
 
@@ -74,7 +76,7 @@ public class ChangePasswordPage {
         .entity(new SoyTemplate(ChangePasswordSoyInfo.PASSWORD_CHANGED,
             account.getLocale(),
             new SoyMapData(
-                PasswordChangedSoyTemplateInfo.CONTINUE, settings.landingPage == null ? null : settings.landingPage.toString()
+                PasswordChangedSoyTemplateInfo.CONTINUE, Objects.toString(urls.landingPage().orNull(), null)
             )))
         .build();
   }
@@ -93,7 +95,7 @@ public class ChangePasswordPage {
                 ChangePasswordSoyTemplateInfo.EMAIL, account.getEmail_address(),
                 ChangePasswordSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(ChangePasswordPage.class).build().toString(),
                 // FIXME: get the URL to the profile page
-                ChangePasswordSoyTemplateInfo.PORTAL_URL, settings.landingPage == null ? null : settings.landingPage.toString(),
+                ChangePasswordSoyTemplateInfo.PORTAL_URL, Objects.toString(urls.landingPage().orNull(), null),
                 ChangePasswordSoyTemplateInfo.ERROR, error == null ? null : error.name()
             )
         ))

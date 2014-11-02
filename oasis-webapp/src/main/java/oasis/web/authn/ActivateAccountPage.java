@@ -20,8 +20,8 @@ import oasis.mail.MailMessage;
 import oasis.mail.MailSender;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
-import oasis.auth.AuthModule;
 import oasis.soy.templates.SignUpSoyInfo;
+import oasis.urls.Urls;
 import oasis.web.utils.ResponseFactory;
 
 @Path("/a/activate/{token}")
@@ -30,7 +30,7 @@ public class ActivateAccountPage {
   private static Logger logger = LoggerFactory.getLogger(ActivateAccountPage.class);
 
   @Inject AccountRepository accountRepository;
-  @Inject AuthModule.Settings settings;
+  @Inject Urls urls;
   @Inject MailSender mailSender;
 
   @Context UriInfo uriInfo;
@@ -59,6 +59,6 @@ public class ActivateAccountPage {
       logger.error("Error sending welcome email", e);
       // fall through: it's unfortunate but not critical.
     }
-    return Response.seeOther(LoginPage.defaultContinueUrl(settings.landingPage, uriInfo)).build();
+    return Response.seeOther(LoginPage.defaultContinueUrl(urls.landingPage(), uriInfo)).build();
   }
 }

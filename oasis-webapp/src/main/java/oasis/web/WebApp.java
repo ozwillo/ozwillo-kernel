@@ -22,6 +22,7 @@ import oasis.jongo.guice.JongoModule;
 import oasis.mail.MailModule;
 import oasis.auth.AuthModule;
 import oasis.tools.CommandLineTool;
+import oasis.urls.UrlsModule;
 import oasis.web.guice.OasisGuiceModule;
 import oasis.web.kibana.KibanaModule;
 
@@ -48,6 +49,7 @@ public class WebApp extends CommandLineTool {
         // TODO: store PKIs in DB to use a single subtree of the config
         AuthModule.create(config.withOnlyPath("oasis.auth")
             .withFallback(config.withOnlyPath("oasis.conf-dir"))),
+        UrlsModule.create(config.getConfig("oasis.urls")),
         MailModule.create(config.getConfig("oasis.mail"))
     );
 

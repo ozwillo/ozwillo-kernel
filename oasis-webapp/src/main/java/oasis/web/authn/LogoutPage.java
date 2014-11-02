@@ -5,6 +5,7 @@ import java.security.PublicKey;
 import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Objects;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -46,6 +47,7 @@ import oasis.services.cookies.CookieFactory;
 import oasis.soy.SoyTemplate;
 import oasis.soy.templates.LogoutSoyInfo;
 import oasis.soy.templates.LogoutSoyInfo.LogoutSoyTemplateInfo;
+import oasis.urls.Urls;
 import oasis.web.resteasy.Resteasy1099;
 import oasis.web.security.StrictReferer;
 
@@ -59,6 +61,7 @@ public class LogoutPage {
 
   @Inject TokenRepository tokenRepository;
   @Inject AuthModule.Settings settings;
+  @Inject Urls urls;
   @Inject JsonFactory jsonFactory;
   @Inject AppInstanceRepository appInstanceRepository;
   @Inject ServiceRepository serviceRepository;
@@ -148,14 +151,14 @@ public class LogoutPage {
     viewModel.put(LogoutSoyTemplateInfo.OTHER_APPS, new SoyListData(otherApps));
     viewModel.put(LogoutSoyTemplateInfo.IS_PORTAL, appInstance != null && appInstance.getId().equals(ClientIds.PORTAL));
     // FIXME: this should probably be a different URL, make it configurable
-    viewModel.put(LogoutSoyTemplateInfo.PORTAL_URL, settings.landingPage == null ? "" : settings.landingPage.toString());
+    viewModel.put(LogoutSoyTemplateInfo.PORTAL_URL, Objects.toString(urls.landingPage().orNull(), null));
 
     return Response.ok(new SoyTemplate(LogoutSoyInfo.LOGOUT, account.getLocale(), viewModel)).build();
   }
 
   private Response redirectTo(@Nullable URI continueUrl) {
     if (continueUrl == null) {
-      continueUrl = LoginPage.defaultContinueUrl(settings.landingPage, uriInfo);
+      continueUrl = LoginPage.defaultContinueUrl(urls.landingPage(), uriInfo);
     }
     return Response.seeOther(continueUrl).build();
   }
@@ -210,7 +213,7 @@ public class LogoutPage {
   @StrictReferer
   public Response post(@FormParam("continue") URI continueUrl) {
     if (continueUrl == null) {
-      continueUrl = LoginPage.defaultContinueUrl(settings.landingPage, uriInfo);
+      continueUrl = LoginPage.defaultContinueUrl(urls.landingPage(), uriInfo);
     }
 
     final SidToken sidToken = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken();

@@ -13,7 +13,7 @@ import javax.ws.rs.core.UriInfo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import oasis.auth.AuthModule;
+import oasis.urls.Urls;
 import oasis.web.authn.LogoutPage;
 import oasis.web.authz.AuthorizationEndpoint;
 import oasis.web.authz.KeysEndpoint;
@@ -27,7 +27,7 @@ import oasis.web.userinfo.UserInfoEndpoint;
  */
 @Path("/.well-known/openid-configuration")
 public class OpenIdProviderConfigurationEndpoint {
-  @Inject AuthModule.Settings settings;
+  @Inject Urls urls;
 
   @Context UriInfo uriInfo;
 
@@ -38,15 +38,15 @@ public class OpenIdProviderConfigurationEndpoint {
   }
 
   private URI getBaseUri() {
-    if (settings.canonicalBaseUri != null) {
-      return settings.canonicalBaseUri;
+    if (urls.canonicalBaseUri().isPresent()) {
+      return urls.canonicalBaseUri().get();
     }
     return Resteasy1099.getBaseUri(uriInfo);
   }
 
   private UriBuilder getBaseUriBuilder() {
-    if (settings.canonicalBaseUri != null) {
-      return UriBuilder.fromUri(settings.canonicalBaseUri);
+    if (urls.canonicalBaseUri().isPresent()) {
+      return UriBuilder.fromUri(urls.canonicalBaseUri().get());
     }
     return Resteasy1099.getBaseUriBuilder(uriInfo);
   }

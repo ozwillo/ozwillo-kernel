@@ -32,12 +32,12 @@ import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.authn.ClientType;
 import oasis.model.authn.CredentialsRepository;
-import oasis.auth.AuthModule;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.UserPasswordAuthenticator;
 import oasis.soy.SoyTemplate;
 import oasis.soy.templates.LoginSoyInfo;
 import oasis.soy.templates.SignUpSoyInfo;
+import oasis.urls.Urls;
 import oasis.web.resteasy.Resteasy1099;
 import oasis.web.security.StrictReferer;
 import oasis.web.utils.UserAgentFingerprinter;
@@ -54,7 +54,7 @@ public class SignUpPage {
   @Inject TokenHandler tokenHandler;
   @Inject UserAgentFingerprinter fingerprinter;
   @Inject AuditLogService auditLogService;
-  @Inject AuthModule.Settings settings;
+  @Inject Urls urls;
   @Inject MailModule.Settings mailSettings;
   @Inject @Nullable MailSender mailSender;
 
@@ -72,11 +72,11 @@ public class SignUpPage {
       @FormParam("nickname") String nickname
   ) {
     if (continueUrl == null) {
-      continueUrl = LoginPage.defaultContinueUrl(settings.landingPage, uriInfo);
+      continueUrl = LoginPage.defaultContinueUrl(urls.landingPage(), uriInfo);
     }
 
     if (Strings.isNullOrEmpty(email) || Strings.isNullOrEmpty(password) || Strings.isNullOrEmpty(nickname)) {
-      return LoginPage.signupForm(Response.ok(), continueUrl, settings, LoginPage.SignupError.MISSING_REQUIRED_FIELD);
+      return LoginPage.signupForm(Response.ok(), continueUrl, urls, LoginPage.SignupError.MISSING_REQUIRED_FIELD);
     }
     // TODO: Verify that the password as a sufficiently strong length or even a strong entropy
 
@@ -94,7 +94,7 @@ public class SignUpPage {
     account = accountRepository.createUserAccount(account);
     if (account == null) {
       // TODO: Allow the user to retrieve their password
-      return LoginPage.signupForm(Response.ok(), continueUrl, settings, LoginPage.SignupError.ACCOUNT_ALREADY_EXISTS);
+      return LoginPage.signupForm(Response.ok(), continueUrl, urls, LoginPage.SignupError.ACCOUNT_ALREADY_EXISTS);
     } else {
       userPasswordAuthenticator.setPassword(account.getId(), password);
     }
@@ -122,7 +122,7 @@ public class SignUpPage {
         logger.error("Error sending activation email", e);
         accountRepository.deleteUserAccount(account.getId());
         credentialsRepository.deleteCredentials(ClientType.USER, account.getId());
-        return LoginPage.signupForm(Response.ok(), continueUrl, settings, LoginPage.SignupError.MESSAGING_ERROR);
+        return LoginPage.signupForm(Response.ok(), continueUrl, urls, LoginPage.SignupError.MESSAGING_ERROR);
       }
     } else {
       byte[] fingerprint = fingerprinter.fingerprint(headers);

@@ -2,6 +2,7 @@ package oasis.web.authn;
 
 import java.net.URI;
 import java.util.Locale;
+import java.util.Objects;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -24,6 +25,7 @@ import javax.ws.rs.core.UriInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Optional;
 import com.google.template.soy.data.SoyMapData;
 
 import oasis.auditlog.AuditLogEvent;
@@ -32,7 +34,6 @@ import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
-import oasis.auth.AuthModule;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.services.authn.UserPasswordAuthenticator;
@@ -41,6 +42,7 @@ import oasis.soy.SoyTemplate;
 import oasis.soy.templates.LoginSoyInfo;
 import oasis.soy.templates.LoginSoyInfo.LoginSoyTemplateInfo;
 import oasis.soy.templates.LoginSoyInfo.ReauthSoyTemplateInfo;
+import oasis.urls.Urls;
 import oasis.web.StaticResources;
 import oasis.web.resteasy.Resteasy1099;
 import oasis.web.security.StrictReferer;
@@ -60,7 +62,7 @@ public class LoginPage {
   @Inject AccountRepository accountRepository;
   @Inject AuditLogService auditLogService;
   @Inject UserAgentFingerprinter fingerprinter;
-  @Inject AuthModule.Settings settings;
+  @Inject Urls urls;
 
   @Context SecurityContext securityContext;
   @Context UriInfo uriInfo;
@@ -156,7 +158,7 @@ public class LoginPage {
       // XXX: what if account is null?
       return reauthForm(builder, continueUrl, error, account);
     }
-    return loginForm(builder, continueUrl, settings, error);
+    return loginForm(builder, continueUrl, urls, error);
   }
 
   private static Response reauthForm(Response.ResponseBuilder builder, URI continueUrl, @Nullable LoginError error, UserAccount userAccount) {
@@ -170,22 +172,22 @@ public class LoginPage {
     return buildResponseFromView(builder, soyTemplate);
   }
 
-  private static Response loginForm(Response.ResponseBuilder builder, URI continueUrl, AuthModule.Settings settings, @Nullable LoginError error) {
-    return loginAndSignupForm(builder, continueUrl, settings, error);
+  private static Response loginForm(Response.ResponseBuilder builder, URI continueUrl, Urls urls, @Nullable LoginError error) {
+    return loginAndSignupForm(builder, continueUrl, urls, error);
   }
 
-  static Response signupForm(Response.ResponseBuilder builder, URI continueUrl, AuthModule.Settings settings, @Nullable SignupError error) {
-    return loginAndSignupForm(builder, continueUrl, settings, error);
+  static Response signupForm(Response.ResponseBuilder builder, URI continueUrl, Urls urls, @Nullable SignupError error) {
+    return loginAndSignupForm(builder, continueUrl, urls, error);
   }
 
-  private static Response loginAndSignupForm(Response.ResponseBuilder builder, URI continueUrl, AuthModule.Settings settings, @Nullable Enum<?> error) {
+  private static Response loginAndSignupForm(Response.ResponseBuilder builder, URI continueUrl, Urls urls, @Nullable Enum<?> error) {
     // TODO: I18N
     SoyTemplate soyTemplate = new SoyTemplate(LoginSoyInfo.LOGIN, Locale.ROOT, new SoyMapData(
         LoginSoyTemplateInfo.SIGN_UP_FORM_ACTION, UriBuilder.fromResource(SignUpPage.class).build().toString(),
         LoginSoyTemplateInfo.LOGIN_FORM_ACTION, UriBuilder.fromResource(LoginPage.class).build().toString(),
         LoginSoyTemplateInfo.CONTINUE, continueUrl.toString(),
         LoginSoyTemplateInfo.ERROR, error == null ? null : error.name(),
-        LoginSoyTemplateInfo.OVERVIEW, settings.landingPage == null ? null : settings.landingPage.toString()
+        LoginSoyTemplateInfo.OVERVIEW, Objects.toString(urls.landingPage().orNull(), null)
     ));
 
     return buildResponseFromView(builder, soyTemplate);
@@ -204,12 +206,12 @@ public class LoginPage {
   }
 
   private URI defaultContinueUrl() {
-    return defaultContinueUrl(settings.landingPage, uriInfo);
+    return defaultContinueUrl(urls.landingPage(), uriInfo);
   }
 
-  static URI defaultContinueUrl(URI landingPage, UriInfo uriInfo) {
-    if (landingPage != null) {
-      return landingPage;
+  static URI defaultContinueUrl(Optional<URI> landingPage, UriInfo uriInfo) {
+    if (landingPage.isPresent()) {
+      return landingPage.get();
     }
     return Resteasy1099.getBaseUriBuilder(uriInfo).path(StaticResources.class).path(StaticResources.class, "home").build();
   }

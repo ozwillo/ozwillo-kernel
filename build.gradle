@@ -8,8 +8,24 @@ ext.versionlessOutputs = project.hasProperty("versionlessOutputs") ? Boolean.par
 subprojects {
   apply plugin: 'errorprone'
 
+  apply plugin: 'idea' // IDEA needs extra configuration for generated sources *sigh*
+  idea {
+    module {
+      // un-exclude $buildDir, then exclude all non-'generated-sources' subdir of $buildDir
+      excludeDirs -= file(buildDir)
+      buildDir.listFiles({ d , f -> f != 'generated-sources' } as FilenameFilter).each { excludeDirs += it }
+    }
+  }
+
   group = rootProject.group
   version = rootProject.version
+
+  configurations {
+    apt
+    testApt {
+      extendsFrom apt
+    }
+  }
 
   plugins.withType(JavaPlugin).whenPluginAdded {
     sourceCompatibility = 1.7
@@ -17,6 +33,29 @@ subprojects {
 
     tasks.withType(JavaCompile) {
       options.encoding = 'UTF-8'
+    }
+
+    afterEvaluate {
+      if (!configurations.apt.empty) {
+        def aptOutput = new File(project.buildDir, "generated-sources/apt")
+        project.compileJava.options.compilerArgs += [
+            '-processorpath', configurations.apt.asPath,
+            '-s', aptOutput
+        ]
+        project.compileJava.doFirst {
+          aptOutput.mkdirs()
+        }
+      }
+      if (!configurations.apt.empty) {
+        def testAptOutput = new File(project.buildDir, "generated-sources/testApt")
+        project.compileTestJava.options.compilerArgs += [
+            '-processorpath', configurations.testApt.asPath,
+            '-s', testAptOutput
+        ]
+        project.compileTestJava.doFirst {
+            testAptOutput.mkdirs()
+        }
+      }
     }
 
     if (versionlessOutputs) {
