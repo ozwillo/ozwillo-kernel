@@ -16,7 +16,7 @@
 {@param? state:        string} /** 'state' request parameter */
 {@param? nonce:        string} /** 'nonce' request parameter */
 
-{call .newheader}
+{call .header}
   {param title kind="text"}Authorize {$appName}{/param}
 {/call}
 <style>{literal}
@@ -99,7 +99,7 @@ a { color: #6e418e; }
       </div>
     {/if}
   </form>
-{call .newfooter /}
+{call .footer /}
 {/template}
 
 /**

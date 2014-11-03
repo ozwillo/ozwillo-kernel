@@ -1,43 +1,9 @@
 {namespace oasis autoescape="strict"}
 
 /**
- * Common header for Oasis
+ * Common header for OASIS
  */
 {template .header private="true"}
-{@param? title: string} /** title for this page. */
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Oasis{if $title} – {$title}{/if}</title>
-  <meta name="viewport" content="width=device-width">
-  <link rel="stylesheet" href="/css/style.css">
-</head>
-<body>
-<div class="header">
-  <div class="logo">
-    <img src="/images/logo_oasis.png" alt="Oasis">
-  </div>
-  // TODO: Add a dropdown for modifying the locale of a page
-</div>
-{/template}
-
-/**
- * Common footer for Oasis
- */
-{template .footer private="true"}
-<div class="footer">
-  <p><img src="/images/logo_europe.jpg" style="padding: 5px; vertical-align:middle">
-     {msg desc="page footer"}Oasis is a project by the EU under the Program for Competitiveness and Innovation CIP ICT PSP+N°297210{/msg}
-</div>
-</body>
-</html>
-{/template}
-
-/**
- * New common header for OASIS
- */
-{template .newheader private="true"}
 {@param? title: string} /** title for this page. */
 <!DOCTYPE html>
 <html>
@@ -118,9 +84,9 @@ label { font-weight: lighter; }
 {/template}
 
 /**
- * New common footer for OASIS.
+ * Common footer for OASIS.
  */
-{template .newfooter private="true"}
+{template .footer private="true"}
 </main>
 </div>
 <footer>

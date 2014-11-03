@@ -9,7 +9,7 @@
 {@param  continue:         string} /** URL to continue to after successful login/re-auth. */
 {@param? error:            string} /** error; can be one of INCORRECT_USERNAME_OR_PASSWORD, MISSING_REQUIRED_FIELD, ACCOUNT_ALREADY_EXISTS, or MESSAGING_ERROR */
 {@param? overview:         string} /** URL to the overview page. */
-{call .newheader}
+{call .header}
   {param title kind="text"}{msg desc="Login page title"}Login{/msg}{/param}
 {/call}
 <style>{literal}
@@ -127,7 +127,7 @@ aside a { display: inline-block; padding: 5px 15px; font-weight: lighter; text-d
     </span>
   </aside>
 {/if}
-{call .newfooter /}
+{call .footer /}
 {/template}
 
 /**
@@ -138,7 +138,7 @@ aside a { display: inline-block; padding: 5px 15px; font-weight: lighter; text-d
 {@param  formAction:   string} /** URL to post the form to. */
 {@param  continue:     string} /** URL to continue to after successful login/re-auth. */
 {@param? error:        string} /** error; can be one of INCORRECT_USERNAME_OR_PASSWORD */
-{call .newheader}
+{call .header}
   {param title kind="text"}{msg desc="Login page title"}Login{/msg}{/param}
 {/call}
 <style>{literal}
@@ -189,14 +189,14 @@ h2 { margin-bottom: 2.5em; }
     </form>
   </div>
 </div>
-{call .newfooter /}
+{call .footer /}
 {/template}
 
 /**
  * Page displayed after sign-up, waiting for account activation.
  */
 {template .accountPendingActivation}
-{call .newheader}
+{call .header}
   {param title kind="text"}{msg desc="activation pending title"}Account pending activation{/msg}{/param}
 {/call}
 <style>{literal}
@@ -208,5 +208,5 @@ h1 { text-align: center; font-weight: lighter; font-size: 1.8em; }
 
   // TODO: add button to re-send the activation mail
 
-{call .newfooter /}
+{call .footer /}
 {/template}
