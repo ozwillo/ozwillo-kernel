@@ -2,8 +2,6 @@ apply plugin: 'java'
 
 dependencies {
   compile project(':oasis-model')
-  compile project(':log4j2-cube')
-  compile project(':log4j2-fluentd')
   compile project(':log4j2-logstash')
   compile libs.jsr305
   compile libs.guava

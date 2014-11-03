@@ -1,7 +1,5 @@
 rootProject.name = 'oasis'
 
-include 'log4j2-cube'
-include 'log4j2-fluentd'
 include 'log4j2-logstash'
 
 include 'oasis-model'
