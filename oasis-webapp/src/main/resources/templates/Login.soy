@@ -196,16 +196,17 @@ h2 { margin-bottom: 2.5em; }
  * Page displayed after sign-up, waiting for account activation.
  */
 {template .accountPendingActivation}
-{call .header}
+{call .newheader}
   {param title kind="text"}{msg desc="activation pending title"}Account pending activation{/msg}{/param}
 {/call}
-<div class="maincontainer">
+<style>{literal}
+h1 { text-align: center; font-weight: lighter; font-size: 1.8em; }
+{/literal}</style>
   <h1>{msg desc="activation pending title"}Account pending activation{/msg}</h1>
   <p>{msg desc="activation pending: what is it"}Your account has been created but needs to be activated by confirming your email address.{/msg}
   <p>{msg desc="activation pending: next steps"}We've sent you an email with an activation link, click on that link to activate your account.{/msg}
 
   // TODO: add button to re-send the activation mail
 
-</div>
-{call .footer /}
+{call .newfooter /}
 {/template}

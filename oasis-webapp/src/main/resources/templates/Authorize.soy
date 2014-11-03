@@ -16,12 +16,30 @@
 {@param? state:        string} /** 'state' request parameter */
 {@param? nonce:        string} /** 'nonce' request parameter */
 
-{call .header}
+{call .newheader}
   {param title kind="text"}Authorize {$appName}{/param}
 {/call}
-<h1>{$appName} needs some authorizations</h1>
+<style>{literal}
+h1 { font-weight: lighter; font-size: 1.8em; text-align: center; }
+button, a.cancel {
+  margin: 5px 1em;
+  padding: .5em 2em;
+  border: 1px solid #6e418e;
+  border-radius: 10px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+button {
+  background: #6e418e; color: white;
+}
+a.cancel {
+  background: white; color: #6e418e;
+}
+a { color: #6e418e; }
+{/literal}</style>
+  <h1>{$appName} needs some authorizations</h1>
 
-<div class="maincontainer">
   <form method="POST" action="{$formAction}">
     <input type="hidden" name="_utf8" value="&#9731;">
     <input type="hidden" name="client_id" value="{$appId}">
@@ -37,9 +55,9 @@
     {/if}
 
     <div>
-      <h1>
+      <p>
         {$appName} wants to:
-      </h1>
+      </p>
       <ul>
         {foreach $scope in $missingScopes}
           {call .scopeField data="$scope"}
@@ -47,18 +65,17 @@
           {/call}
         {/foreach}
       </ul>
-      <div>
-        <a href="{$cancelUrl}">Cancel</a>
-        {sp}
-        <button type="submit" class="submit submit-md">Grant it</button>
+      <div style="text-align: center">
+        <button type="submit">Grant it</button>
+        <a href="{$cancelUrl}" class=cancel>Cancel</a>
       </div>
     </div>
 
     {if $optionalScopes and length($optionalScopes)}
       <div>
-        <h1>
+        <p>
           {$appName} may later need to do the following; you can authorize it in advance by checking the boxes:
-        </h1>
+        </p>
         <ul>
           {foreach $scope in $optionalScopes}
             {call .scopeField data="$scope"}
@@ -71,9 +88,9 @@
 
     {if $alreadyAuthorizedScopes and length($alreadyAuthorizedScopes)}
       <div>
-        <h1>
+        <p>
           You have already authorized {$appName} to:
-        </h1>
+        </p>
         <ul>
           {foreach $scope in $alreadyAuthorizedScopes}
             {call .scope data="$scope" /}
@@ -82,8 +99,7 @@
       </div>
     {/if}
   </form>
-</div>
-{call .footer /}
+{call .newfooter /}
 {/template}
 
 /**
