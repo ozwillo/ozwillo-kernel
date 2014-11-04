@@ -22,9 +22,6 @@ subprojects {
 
   configurations {
     apt
-    testApt {
-      extendsFrom apt
-    }
   }
 
   plugins.withType(JavaPlugin).whenPluginAdded {
@@ -45,16 +42,7 @@ subprojects {
         project.compileJava.doFirst {
           aptOutput.mkdirs()
         }
-      }
-      if (!configurations.apt.empty) {
-        def testAptOutput = new File(project.buildDir, "generated-sources/testApt")
-        project.compileTestJava.options.compilerArgs += [
-            '-processorpath', configurations.testApt.asPath,
-            '-s', testAptOutput
-        ]
-        project.compileTestJava.doFirst {
-            testAptOutput.mkdirs()
-        }
+        idea.module.sourceDirs += aptOutput
       }
     }
 
