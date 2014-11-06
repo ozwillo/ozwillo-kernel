@@ -19,10 +19,7 @@ configurations {
 }
 
 dependencies {
-  distLib(project(':oasis-webapp')) {
-    exclude module: 'log4j2-cube'
-    exclude module: 'log4j2-fluentd'
-  }
+  distLib project(path: ':oasis-webapp', configuration: 'runtime')
 
   jdeb libs.jdeb
 }
