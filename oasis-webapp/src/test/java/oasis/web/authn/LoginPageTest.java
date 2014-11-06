@@ -3,6 +3,7 @@ package oasis.web.authn;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.*;
 
 import java.util.regex.Pattern;
@@ -39,11 +40,10 @@ import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.UserPasswordAuthenticator;
+import oasis.soy.TestingSoyGuiceModule;
 import oasis.urls.ImmutableUrls;
 import oasis.urls.Urls;
-import oasis.urls.UrlsModule;
 import oasis.web.authn.testing.TestUserFilter;
-import oasis.soy.SoyGuiceModule;
 import oasis.web.view.SoyTemplateBodyWriter;
 
 @RunWith(JukitoRunner.class)
@@ -55,7 +55,7 @@ public class LoginPageTest {
       bind(LoginPage.class);
 
       install(new NoopAuditLogModule());
-      install(new SoyGuiceModule());
+      install(new TestingSoyGuiceModule());
 
       bind(Urls.class).toInstance(ImmutableUrls.builder().build());
 

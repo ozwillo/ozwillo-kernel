@@ -29,6 +29,8 @@ import com.google.common.html.HtmlEscapers;
 import com.google.common.net.UrlEscapers;
 import com.google.inject.Inject;
 
+import oasis.auth.AuthModule;
+import oasis.auth.RedirectUri;
 import oasis.http.testing.InProcessResteasy;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
@@ -39,14 +41,12 @@ import oasis.model.applications.v2.ServiceRepository;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
 import oasis.model.i18n.LocalizableString;
-import oasis.auth.AuthModule;
-import oasis.auth.RedirectUri;
 import oasis.security.KeyPairLoader;
+import oasis.soy.TestingSoyGuiceModule;
 import oasis.urls.ImmutableUrls;
 import oasis.urls.Urls;
 import oasis.web.authn.testing.TestUserFilter;
 import oasis.web.authz.KeysEndpoint;
-import oasis.soy.SoyGuiceModule;
 import oasis.web.view.SoyTemplateBodyWriter;
 
 @RunWith(JukitoRunner.class)
@@ -57,7 +57,7 @@ public class LogoutPageTest {
     protected void configureTest() {
       bind(LogoutPage.class);
 
-      install(new SoyGuiceModule());
+      install(new TestingSoyGuiceModule());
 
       bind(JsonFactory.class).to(JacksonFactory.class);
 

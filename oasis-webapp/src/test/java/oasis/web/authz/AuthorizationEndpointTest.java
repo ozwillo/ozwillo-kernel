@@ -47,6 +47,7 @@ import com.google.common.net.UrlEscapers;
 import com.google.inject.Inject;
 import com.google.inject.Provides;
 
+import oasis.auth.AuthModule;
 import oasis.http.testing.InProcessResteasy;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
@@ -64,12 +65,11 @@ import oasis.model.authz.AuthorizationRepository;
 import oasis.model.authz.AuthorizedScopes;
 import oasis.model.bootstrap.ClientIds;
 import oasis.model.i18n.LocalizableString;
-import oasis.auth.AuthModule;
 import oasis.security.KeyPairLoader;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.services.authz.AppAdminHelper;
-import oasis.soy.SoyGuiceModule;
+import oasis.soy.TestingSoyGuiceModule;
 import oasis.web.authn.LoginPage;
 import oasis.web.authn.testing.TestUserFilter;
 import oasis.web.view.SoyTemplateBodyWriter;
@@ -82,7 +82,7 @@ public class AuthorizationEndpointTest {
     protected void configureTest() {
       bind(AuthorizationEndpoint.class);
 
-      install(new SoyGuiceModule());
+      install(new TestingSoyGuiceModule());
 
       bind(JsonFactory.class).to(JacksonFactory.class);
       bind(Clock.class).to(FixedClock.class);
