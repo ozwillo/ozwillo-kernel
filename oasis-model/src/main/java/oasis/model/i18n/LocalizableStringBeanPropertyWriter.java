@@ -47,7 +47,7 @@ public class LocalizableStringBeanPropertyWriter extends BeanPropertyWriter {
     }
     // For non-nulls: simple check for direct cycles
     if (value == bean) {
-      _handleSelfReference(bean, ser);
+      _handleSelfReference(bean, jgen, prov, ser);
     }
 
     for (Map.Entry<Locale, String> entry : value.values.entrySet()) {
