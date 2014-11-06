@@ -151,7 +151,9 @@ public class LogoutPage {
     viewModel.put(LogoutSoyTemplateInfo.OTHER_APPS, new SoyListData(otherApps));
     viewModel.put(LogoutSoyTemplateInfo.IS_PORTAL, appInstance != null && appInstance.getId().equals(ClientIds.PORTAL));
     // FIXME: this should probably be a different URL, make it configurable
-    viewModel.put(LogoutSoyTemplateInfo.PORTAL_URL, Objects.toString(urls.landingPage().orNull(), null));
+    if (urls.landingPage().isPresent()) {
+      viewModel.put(LogoutSoyTemplateInfo.PORTAL_URL, urls.landingPage().get().toString());
+    }
 
     return Response.ok(new SoyTemplate(LogoutSoyInfo.LOGOUT, account.getLocale(), viewModel)).build();
   }
