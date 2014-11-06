@@ -108,6 +108,7 @@ public class JongoServiceRepository implements ServiceRepository, JongoBootstrap
     // XXX: don't allow updating those properties (should we return an error if attempted?)
     service.setLocal_id(null);
     service.setInstance_id(null);
+    service.setProvider_id(null);
     // FIXME: allow unsetting properties
     service = getServicesCollection()
         .findAndModify("{ id: #, modified: { $in: # } }", serviceId, Longs.asList(versions))

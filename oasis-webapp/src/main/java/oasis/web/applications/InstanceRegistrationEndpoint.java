@@ -89,6 +89,7 @@ public class InstanceRegistrationEndpoint {
     Map<String, String> acknowledgementResponse = new LinkedHashMap<>(acknowledgementRequest.getServices().size());
     for (Service service : acknowledgementRequest.getServices()) {
       service.setInstance_id(instanceId);
+      service.setProvider_id(instance.getProvider_id());
       service = serviceRepository.createService(service);
       acknowledgementResponse.put(service.getLocal_id(), service.getId());
 

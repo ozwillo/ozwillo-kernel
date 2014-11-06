@@ -135,6 +135,7 @@ public class AppInstanceEndpoint {
       return ResponseFactory.unprocessableEntity("instance_id doesn't match URL");
     }
     service.setInstance_id(instanceId);
+    service.setProvider_id(instance.getProvider_id());
     service = serviceRepository.createService(service);
     if (service == null) {
       if (appInstanceRepository.getAppInstance(instanceId) == null) {
