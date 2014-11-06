@@ -33,6 +33,7 @@ public class Organization {
    */
   public Organization(@Nonnull Organization other) {
     this.name = other.getName();
+    this.type = other.getType();
   }
 
   public String getId() {
