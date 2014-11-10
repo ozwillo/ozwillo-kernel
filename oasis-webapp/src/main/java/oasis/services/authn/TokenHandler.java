@@ -27,7 +27,7 @@ public class TokenHandler {
   private static final String SEPARATOR = "/";
 
   private final TokenRepository tokenRepository;
-  private final AuthModule.Settings oidcSettings;
+  private final AuthModule.Settings authSettings;
   private final PasswordHasher passwordHasher;
   private final SecureRandom secureRandom;
   private final Clock clock;
@@ -35,7 +35,7 @@ public class TokenHandler {
   @Inject TokenHandler(TokenRepository tokenRepository, AuthModule.Settings oidcSettings,
       PasswordHasher passwordHasher, SecureRandom secureRandom, Clock clock) {
     this.tokenRepository = tokenRepository;
-    this.oidcSettings = oidcSettings;
+    this.authSettings = oidcSettings;
     this.passwordHasher = passwordHasher;
     this.secureRandom = secureRandom;
     this.clock = clock;
@@ -53,7 +53,7 @@ public class TokenHandler {
     }
     AccessToken accessToken = new AccessToken();
     accessToken.setAccountId(authorizationCode.getAccountId());
-    accessToken.expiresIn(oidcSettings.accessTokenDuration);
+    accessToken.expiresIn(authSettings.accessTokenDuration);
     accessToken.setScopeIds(authorizationCode.getScopeIds());
     accessToken.setServiceProviderId(authorizationCode.getServiceProviderId());
     // Note: store the authorizationCode ID although it's been revoked to be able to
@@ -74,7 +74,7 @@ public class TokenHandler {
 
     AccessToken accessToken = new AccessToken();
     accessToken.setAccountId(refreshToken.getAccountId());
-    accessToken.expiresIn(oidcSettings.accessTokenDuration);
+    accessToken.expiresIn(authSettings.accessTokenDuration);
     accessToken.setScopeIds(scopeIds);
     accessToken.setServiceProviderId(refreshToken.getServiceProviderId());
     accessToken.setParent(refreshToken);
@@ -93,7 +93,7 @@ public class TokenHandler {
       @Nullable String nonce, String redirectUri, String pass) {
     AuthorizationCode authorizationCode = new AuthorizationCode();
     authorizationCode.setAccountId(sidToken.getAccountId());
-    authorizationCode.expiresIn(oidcSettings.authorizationCodeDuration);
+    authorizationCode.expiresIn(authSettings.authorizationCodeDuration);
     authorizationCode.setScopeIds(scopeIds);
     authorizationCode.setServiceProviderId(serviceProviderId);
     authorizationCode.setNonce(nonce);
@@ -120,7 +120,7 @@ public class TokenHandler {
 
     RefreshToken refreshToken = new RefreshToken();
     refreshToken.setAccountId(authorizationCode.getAccountId());
-    refreshToken.expiresIn(oidcSettings.refreshTokenDuration);
+    refreshToken.expiresIn(authSettings.refreshTokenDuration);
     refreshToken.setScopeIds(authorizationCode.getScopeIds());
     refreshToken.setServiceProviderId(authorizationCode.getServiceProviderId());
     // Note: store the authorizationCode ID although it's been revoked to be able to
@@ -143,7 +143,7 @@ public class TokenHandler {
 
     SidToken sidToken = new SidToken();
     sidToken.setAccountId(accountId);
-    sidToken.expiresIn(oidcSettings.sidTokenDuration);
+    sidToken.expiresIn(authSettings.sidTokenDuration);
     // TODO: remember me
     sidToken.setAuthenticationTime(sidToken.getCreationTime());
     sidToken.setUserAgentFingerprint(userAgentFingerprint);
