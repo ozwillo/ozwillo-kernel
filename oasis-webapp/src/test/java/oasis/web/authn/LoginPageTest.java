@@ -165,7 +165,7 @@ public class LoginPageTest {
         .matches(hiddenInput("continue", continueUrl))
         .doesNotMatch(hiddenInput("cancel", null))
         .doesNotContain(">Cancel<")
-        .contains("Incorrect username or password");
+        .contains("Incorrect email address or password");
   }
 
   @Test public void trySignInWithUnknownAccount() {
@@ -182,7 +182,7 @@ public class LoginPageTest {
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
     assertLoginForm(response)
         .matches(hiddenInput("continue", continueUrl))
-        .contains("Incorrect username or password");
+        .contains("Incorrect email address or password");
   }
 
   @Test public void signInWhileLoggedIn(TokenRepository tokenRepository) {

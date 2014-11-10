@@ -56,7 +56,7 @@ aside a { display: inline-block; padding: 5px 15px; font-weight: lighter; text-d
     <p style="color: white; background: #d9534f; font-weight: bold; padding: 10px; text-align: center;">
     {switch $error}
     {case 'INCORRECT_USERNAME_OR_PASSWORD'}
-      {msg desc="Error message during login"}Incorrect username or password.{/msg}
+      {msg desc="Error message during login"}Incorrect email address or password.{/msg}
     {case 'MISSING_REQUIRED_FIELD'}
       {msg desc="Error message during sign-up"}Some required fields are not filled.{/msg}
     {case 'ACCOUNT_ALREADY_EXISTS'}
@@ -75,11 +75,11 @@ aside a { display: inline-block; padding: 5px 15px; font-weight: lighter; text-d
         <input type="hidden" name="_utf8" value="&#9731;">
         <input type="hidden" name="continue" value="{$continue}">
         <div>
-          <label for=email>{msg desc="Email field label"}Email{/msg}</label>
-          <input id=email type=email name=u required autofocus>
+          <label for=u>{msg desc="Email field label"}Email{/msg}</label>
+          <input id=u type=email name=u required autofocus>
         </div>
         <div>
-          <label for=nickname>{msg desc="Password field label"}Password{/msg}</label>
+          <label for=pwd>{msg desc="Password field label"}Password{/msg}</label>
           <input id=pwd type=password  name=pwd required>
         </div>
         <div class=btn-row>
@@ -170,25 +170,23 @@ h2 { margin-bottom: 2.5em; }
     {/switch}
     </p>
   {/if}
-    <h2>{msg desc="re-auth page heading"}Please re-enter your password{/msg}</h2>
+  <h2>{msg desc="re-auth page heading"}Please re-enter your password{/msg}</h2>
 
-    <form method=POST action="{$formAction}">
-      <div>
-      <input type=hidden name=_utf8"value="&#9731;">
-      <input type=hidden name=continue value="{$continue}">
-      <input type=hidden name=u value="{$reauthEmail}">
-      <p>{$reauthEmail}</p>
-      <input type=password name=pwd required>
+  <form method=POST action="{$formAction}">
+    <input type=hidden name=_utf8 value="&#9731;">
+    <input type=hidden name=continue value="{$continue}">
+    <input type=hidden name=u value="{$reauthEmail}">
+    <p>{$reauthEmail}</p>
+    <input type=password name=pwd required>
 
-      <div class=btn-row>
-        <button>
-          <img alt="" src="/images/go.png" width=50 height=50>
-          {msg desc="Form submit button"}Go!{/msg}
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
+    <div class=btn-row>
+      <button>
+        <img alt="" src="/images/go.png" width=50 height=50>
+        {msg desc="Form submit button"}Go!{/msg}
+      </button>
+    </div>
+  </form>
+
 {call .footer /}
 {/template}
 
