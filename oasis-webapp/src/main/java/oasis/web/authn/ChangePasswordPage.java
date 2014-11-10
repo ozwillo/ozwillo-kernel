@@ -51,8 +51,7 @@ public class ChangePasswordPage {
   @POST
   public Response post(
       @FormParam("oldpwd") String oldpwd,
-      @FormParam("newpwd") String newpwd,
-      @FormParam("confirmpwd") String confirmpwd
+      @FormParam("newpwd") String newpwd
   ) {
     String userId = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken().getAccountId();
     UserAccount account = accountRepository.getUserAccountById(userId);
