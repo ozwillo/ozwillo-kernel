@@ -90,7 +90,7 @@ public class Bootstrap extends CommandLineTool {
     final Injector injector = Guice.createInjector(
         JongoModule.create(config.getConfig("oasis.mongo")),
         // TODO: store PKIs in DB to use a single subtree of the config
-        AuthModule.create(config.withOnlyPath("oasis.auth")
+        AuthModule.create(config.getConfig("oasis.auth")
             .withFallback(config.withOnlyPath("oasis.conf-dir")))
     );
 

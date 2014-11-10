@@ -47,7 +47,7 @@ public class WebApp extends CommandLineTool {
         HttpServerModule.create(config.getConfig("oasis.http")),
         KibanaModule.create(config.getConfig("oasis.kibana")),
         // TODO: store PKIs in DB to use a single subtree of the config
-        AuthModule.create(config.withOnlyPath("oasis.auth")
+        AuthModule.create(config.getConfig("oasis.auth")
             .withFallback(config.withOnlyPath("oasis.conf-dir"))),
         UrlsModule.create(config.getConfig("oasis.urls")),
         MailModule.create(config.getConfig("oasis.mail"))

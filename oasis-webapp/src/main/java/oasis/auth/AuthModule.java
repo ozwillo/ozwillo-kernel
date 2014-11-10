@@ -1,12 +1,9 @@
 package oasis.auth;
 
-import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyPair;
 import java.util.concurrent.TimeUnit;
-
-import javax.annotation.Nullable;
 
 import org.joda.time.Duration;
 
@@ -29,17 +26,17 @@ public class AuthModule extends AbstractModule {
 
       if (config.hasPath("oasis.conf-dir")) {
         Path confDir = Paths.get(config.getString("oasis.conf-dir"));
-        privateKeyPath = confDir.resolve(config.getString("oasis.auth.private-key-path"));
-        publicKeyPath = confDir.resolve(config.getString("oasis.auth.public-key-path"));
+        privateKeyPath = confDir.resolve(config.getString("private-key-path"));
+        publicKeyPath = confDir.resolve(config.getString("public-key-path"));
       }
 
       return Settings.builder()
           .setKeyPair(KeyPairLoader.loadOrGenerateKeyPair(privateKeyPath, publicKeyPath))
-          .setAuthorizationCodeDuration(Duration.millis(config.getDuration("oasis.auth.authorization-code-duration", TimeUnit.MILLISECONDS)))
-          .setAccessTokenDuration(Duration.millis(config.getDuration("oasis.auth.access-token-duration", TimeUnit.MILLISECONDS)))
-          .setRefreshTokenDuration(Duration.millis(config.getDuration("oasis.auth.refresh-token-duration", TimeUnit.MILLISECONDS)))
-          .setIdTokenDuration(Duration.millis(config.getDuration("oasis.auth.id-token-duration", TimeUnit.MILLISECONDS)))
-          .setSidTokenDuration(Duration.millis(config.getDuration("oasis.auth.sid-token-duration", TimeUnit.MILLISECONDS)))
+          .setAuthorizationCodeDuration(Duration.millis(config.getDuration("authorization-code-duration", TimeUnit.MILLISECONDS)))
+          .setAccessTokenDuration(Duration.millis(config.getDuration("access-token-duration", TimeUnit.MILLISECONDS)))
+          .setRefreshTokenDuration(Duration.millis(config.getDuration("refresh-token-duration", TimeUnit.MILLISECONDS)))
+          .setIdTokenDuration(Duration.millis(config.getDuration("id-token-duration", TimeUnit.MILLISECONDS)))
+          .setSidTokenDuration(Duration.millis(config.getDuration("sid-token-duration", TimeUnit.MILLISECONDS)))
           .build();
     }
 
