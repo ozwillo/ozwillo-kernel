@@ -13,6 +13,7 @@ import com.google.common.base.Strings;
 import com.google.common.io.BaseEncoding;
 
 import oasis.model.authn.AccessToken;
+import oasis.model.authn.AccountActivationToken;
 import oasis.model.authn.AuthorizationCode;
 import oasis.model.authn.RefreshToken;
 import oasis.model.authn.SidToken;
@@ -45,6 +46,21 @@ public class TokenHandler {
     byte[] bytes = new byte[16]; // 128bits
     secureRandom.nextBytes(bytes);
     return BASE_ENCODING.encode(bytes);
+  }
+
+  public AccountActivationToken createAccountActivationToken(String accountId, String pass) {
+    AccountActivationToken accountActivationToken = new AccountActivationToken();
+    accountActivationToken.setAccountId(accountId);
+    accountActivationToken.expiresIn(authSettings.accountActivationTokenDuration);
+
+    secureToken(accountActivationToken, pass);
+
+    tokenRepository.revokeTokensForAccountAndTokenType(accountId, AccountActivationToken.class);
+
+    if (!tokenRepository.registerToken(accountActivationToken)) {
+      return null;
+    }
+    return accountActivationToken;
   }
 
   public AccessToken createAccessToken(AuthorizationCode authorizationCode, String pass) {

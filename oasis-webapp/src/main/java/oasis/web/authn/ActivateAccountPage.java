@@ -20,6 +20,9 @@ import oasis.mail.MailMessage;
 import oasis.mail.MailSender;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
+import oasis.model.authn.AccountActivationToken;
+import oasis.model.authn.TokenRepository;
+import oasis.services.authn.TokenHandler;
 import oasis.soy.templates.SignUpSoyInfo;
 import oasis.urls.Urls;
 import oasis.web.utils.ResponseFactory;
@@ -30,6 +33,8 @@ public class ActivateAccountPage {
   private static Logger logger = LoggerFactory.getLogger(ActivateAccountPage.class);
 
   @Inject AccountRepository accountRepository;
+  @Inject TokenHandler tokenHandler;
+  @Inject TokenRepository tokenRepository;
   @Inject Urls urls;
   @Inject MailSender mailSender;
 
@@ -39,12 +44,19 @@ public class ActivateAccountPage {
 
   @GET
   public Response activate() {
-    // FIXME: use a true token (with expiry, etc.) rather than just the account ID
-    UserAccount userAccount = accountRepository.verifyEmailAddress(token);
+    AccountActivationToken accountActivationToken = tokenHandler.getCheckedToken(token, AccountActivationToken.class);
+    if (accountActivationToken == null) {
+      // XXX: return error message rather than blank page
+      return ResponseFactory.NOT_FOUND;
+    }
+    UserAccount userAccount = accountRepository.verifyEmailAddress(accountActivationToken.getAccountId());
     if (userAccount == null) {
       // XXX: return error message rather than blank page
       return ResponseFactory.NOT_FOUND;
     }
+
+    tokenRepository.revokeTokensForAccount(accountActivationToken.getAccountId());
+
     try {
       mailSender.send(new MailMessage()
           .setRecipient(userAccount.getEmail_address(), userAccount.getDisplayName())

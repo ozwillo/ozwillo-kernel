@@ -30,9 +30,11 @@ import oasis.mail.MailModule;
 import oasis.mail.MailSender;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
+import oasis.model.authn.AccountActivationToken;
 import oasis.model.authn.ClientType;
 import oasis.model.authn.CredentialsRepository;
 import oasis.services.authn.TokenHandler;
+import oasis.services.authn.TokenSerializer;
 import oasis.services.authn.UserPasswordAuthenticator;
 import oasis.soy.SoyTemplate;
 import oasis.soy.templates.LoginSoyInfo;
@@ -102,8 +104,10 @@ public class SignUpPage {
     if (mailSettings.enabled) {
       // TODO: send email asynchronously
       try {
-        // FIXME: use a true token (with expiry, etc.) rather than just the account ID
-        URI activationLink = Resteasy1099.getBaseUriBuilder(uriInfo).path(ActivateAccountPage.class).build(account.getId());
+        String pass = tokenHandler.generateRandom();
+        AccountActivationToken accountActivationToken = tokenHandler.createAccountActivationToken(account.getId(), pass);
+        URI activationLink = Resteasy1099.getBaseUriBuilder(uriInfo).path(ActivateAccountPage.class).build(TokenSerializer.serialize(accountActivationToken, pass));
+
         mailSender.send(new MailMessage()
             .setRecipient(email, nickname)
             .setLocale(account.getLocale())

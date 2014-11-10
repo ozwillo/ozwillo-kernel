@@ -37,6 +37,7 @@ public class AuthModule extends AbstractModule {
           .setRefreshTokenDuration(Duration.millis(config.getDuration("refresh-token-duration", TimeUnit.MILLISECONDS)))
           .setIdTokenDuration(Duration.millis(config.getDuration("id-token-duration", TimeUnit.MILLISECONDS)))
           .setSidTokenDuration(Duration.millis(config.getDuration("sid-token-duration", TimeUnit.MILLISECONDS)))
+          .setAccountActivationTokenDuration(Duration.millis(config.getDuration("account-activation-token-duration", TimeUnit.MILLISECONDS)))
           .build();
     }
 
@@ -48,6 +49,7 @@ public class AuthModule extends AbstractModule {
       private Duration refreshTokenDuration;
       private Duration idTokenDuration;
       private Duration sidTokenDuration;
+      private Duration accountActivationTokenDuration;
 
       public Settings build() {
         return new Settings(this);
@@ -82,6 +84,11 @@ public class AuthModule extends AbstractModule {
         this.sidTokenDuration = sidTokenDuration;
         return this;
       }
+
+      public Builder setAccountActivationTokenDuration(Duration accountActivationTokenDuration) {
+        this.accountActivationTokenDuration = accountActivationTokenDuration;
+        return this;
+      }
     }
 
     public final KeyPair keyPair;
@@ -90,6 +97,7 @@ public class AuthModule extends AbstractModule {
     public final Duration refreshTokenDuration;
     public final Duration idTokenDuration;
     public final Duration sidTokenDuration;
+    public final Duration accountActivationTokenDuration;
 
     private Settings(Builder builder) {
       this.keyPair = builder.keyPair;
@@ -98,6 +106,7 @@ public class AuthModule extends AbstractModule {
       this.refreshTokenDuration = builder.refreshTokenDuration;
       this.idTokenDuration = builder.idTokenDuration;
       this.sidTokenDuration = builder.sidTokenDuration;
+      this.accountActivationTokenDuration = builder.accountActivationTokenDuration;
     }
   }
 
