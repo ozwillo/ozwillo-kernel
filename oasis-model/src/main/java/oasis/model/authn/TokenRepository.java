@@ -15,6 +15,8 @@ public interface TokenRepository {
 
   int revokeTokensForAccount(String accountId);
 
+  int revokeTokensForAccountAndTokenType(String accountId, Class<? extends Token> tokenType);
+
   int revokeTokensForClient(String clientId);
 
   int revokeTokensForScopes(Collection<String> scopeIds);

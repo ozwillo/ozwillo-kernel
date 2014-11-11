@@ -4,6 +4,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 
+import javax.annotation.Nullable;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 
@@ -42,7 +43,7 @@ public class MailMessage {
     return this;
   }
 
-  public MailMessage setRecipient(String address, String personal) {
+  public MailMessage setRecipient(String address, @Nullable String personal) {
     try {
       this.recipient = new InternetAddress(address, personal, StandardCharsets.UTF_8.name());
     } catch (UnsupportedEncodingException e) {

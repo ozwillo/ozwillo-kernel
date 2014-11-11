@@ -1,0 +1,139 @@
+{namespace oasis autoescape="strict"}
+
+/**
+ * "I forgot my password" page.
+ */
+{template .forgotPassword}
+{@param  formAction:   string} /** URL to post the form to. */
+{@param? error:        string} /** error; can be one of MISSING_REQUIRED_FIELD, MESSAGING_ERROR, or EXPIRED_LINK */
+{call .header}
+  {param title kind="text"}{msg desc="Forgot password page title"}Forgot password{/msg}{/param}
+{/call}
+<style>{literal}
+main { text-align: center; }
+
+h1, h2 { font-weight: lighter; }
+h2 { font-size: 1.8em; }
+
+h1 { margin: 0; }
+h2 { margin-bottom: 2.5em; }
+
+.btn-row { margin-top: 1.8em; text-align: center; }
+.btn-row button {
+  border: none;
+  background: transparent; color: #6e418e;
+  font-weight: bold;
+  cursor: pointer;
+}
+.btn-row button img { vertical-align: middle; margin-right: 10px; }
+{/literal}</style>
+  <h1><img src="/images/logo_myoasis.png" alt="my Oasis" width=146 height=50></h1>
+  {if $error}
+    <p style="color: white; background: #d9534f; font-weight: bold; padding: 10px; text-align: center;">
+    {switch $error}
+    {case 'MISSING_REQUIRED_FIELD'}
+      {msg desc="Error message during account recovery"}Some required fields are not filled.{/msg}
+    {case 'MESSAGING_ERROR'}
+      {msg desc="Error message during account recovery"}An error occurred sending you an email. Check your email address and try again in a few minutes.{/msg}
+    {case 'EXPIRED_LINK'}
+      {msg desc="Error message during account recovery"}This link has expired. Try again below.{/msg}
+    {default}
+      {msg desc="Generic error message"}An error occurred. That's all we know.{/msg}
+    {/switch}
+    </p>
+  {/if}
+  <h2>{msg desc="forgot password page heading"}Forgot your password?{/msg}</h2>
+
+  <form method=POST action="{$formAction}">
+    <input type=hidden name=_utf8 value="&#9731;">
+    <div>
+      <label for=u>{msg desc="Email field label for account recovery"}Your email address:{/msg}</label>
+      <input id=u type=email name=u required autofocus>
+    </div>
+
+    <div class=btn-row>
+      <button>
+        <img alt="" src="/images/go.png" width=50 height=50>
+        {msg desc="Form submit button"}Go!{/msg}
+      </button>
+    </div>
+  </form>
+{call .footer /}
+{/template}
+
+/**
+ * Confirmation page after email sent with reset-password link.
+ */
+{template .emailSent}
+{@param emailAddress: string} /** email address the message has been sent to */
+{call .header}
+  {param title kind="text"}{msg desc="Password reset requested (title)"}Password reset requested{/msg}{/param}
+{/call}
+<style>{literal}
+h1 { text-align: center; font-weight: lighter; font-size: 1.8em; }
+{/literal}</style>
+  <h1>{msg desc="Password reset requested (heading)"}Password reset requested{/msg}</h1>
+
+  {msg desc="Password successfully changed: immediate consequences"}
+    <p>We have sent an email to {$emailAddress} with further instructions.
+    <p>The email contains a link allowing you to choose a new password. The email link must be clicked within a limited time.
+  {/msg}
+{call .footer /}
+{/template}
+
+/**
+ * Reset password page.
+ */
+{template .resetPassword}
+{@param  formAction:   string} /** URL to post the form to. */
+{@param  emailAddress: string} /** email address for the account to recover */
+{@param? error:        string} /** error; can be one of MISSING_REQUIRED_FIELD */
+{call .header}
+  {param title kind="text"}{msg desc="Reset password page title"}Password reset{/msg}{/param}
+{/call}
+<style>{literal}
+main { text-align: center; }
+
+h1, h2 { font-weight: lighter; }
+h2 { font-size: 1.8em; }
+
+h1 { margin: 0; }
+h2 { margin-bottom: 2.5em; }
+
+.btn-row { margin-top: 1.8em; text-align: center; }
+.btn-row button {
+  border: none;
+  background: transparent; color: #6e418e;
+  font-weight: bold;
+  cursor: pointer;
+}
+.btn-row button img { vertical-align: middle; margin-right: 10px; }
+{/literal}</style>
+  <h1><img src="/images/logo_myoasis.png" alt="my Oasis" width=146 height=50></h1>
+  {if $error}
+    <p style="color: white; background: #d9534f; font-weight: bold; padding: 10px; text-align: center;">
+    {switch $error}
+    {case 'MISSING_REQUIRED_FIELD'}
+      {msg desc="Error message during account recovery"}Some required fields are not filled.{/msg}
+    {default}
+      {msg desc="Generic error message"}An error occurred. That's all we know.{/msg}
+    {/switch}
+    </p>
+  {/if}
+  <h2>{msg desc="Reset password page heading"}Choose your new password{/msg}</h2>
+
+  <form method=POST action="{$formAction}">
+    <input type=hidden name=_utf8 value="&#9731;">
+
+    <p>{$emailAddress}</p>
+    <input id=newpwd type=password name=newpwd required autofocus>
+
+    <div class=btn-row>
+      <button>
+        <img alt="" src="/images/go.png" width=50 height=50>
+        {msg desc="Form submit button"}Go!{/msg}
+      </button>
+    </div>
+  </form>
+{call .footer /}
+{/template}

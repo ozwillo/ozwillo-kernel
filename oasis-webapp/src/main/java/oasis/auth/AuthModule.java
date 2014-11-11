@@ -38,6 +38,7 @@ public class AuthModule extends AbstractModule {
           .setIdTokenDuration(Duration.millis(config.getDuration("id-token-duration", TimeUnit.MILLISECONDS)))
           .setSidTokenDuration(Duration.millis(config.getDuration("sid-token-duration", TimeUnit.MILLISECONDS)))
           .setAccountActivationTokenDuration(Duration.millis(config.getDuration("account-activation-token-duration", TimeUnit.MILLISECONDS)))
+          .setChangePasswordTokenDuration(Duration.millis(config.getDuration("change-password-token-duration", TimeUnit.MILLISECONDS)))
           .build();
     }
 
@@ -50,6 +51,7 @@ public class AuthModule extends AbstractModule {
       private Duration idTokenDuration;
       private Duration sidTokenDuration;
       private Duration accountActivationTokenDuration;
+      private Duration changePasswordTokenDuration;
 
       public Settings build() {
         return new Settings(this);
@@ -89,6 +91,11 @@ public class AuthModule extends AbstractModule {
         this.accountActivationTokenDuration = accountActivationTokenDuration;
         return this;
       }
+
+      public Builder setChangePasswordTokenDuration(Duration changePasswordTokenDuration) {
+        this.changePasswordTokenDuration = changePasswordTokenDuration;
+        return this;
+      }
     }
 
     public final KeyPair keyPair;
@@ -98,6 +105,7 @@ public class AuthModule extends AbstractModule {
     public final Duration idTokenDuration;
     public final Duration sidTokenDuration;
     public final Duration accountActivationTokenDuration;
+    public final Duration changePasswordTokenDuration;
 
     private Settings(Builder builder) {
       this.keyPair = builder.keyPair;
@@ -107,6 +115,7 @@ public class AuthModule extends AbstractModule {
       this.idTokenDuration = builder.idTokenDuration;
       this.sidTokenDuration = builder.sidTokenDuration;
       this.accountActivationTokenDuration = builder.accountActivationTokenDuration;
+      this.changePasswordTokenDuration = builder.changePasswordTokenDuration;
     }
   }
 

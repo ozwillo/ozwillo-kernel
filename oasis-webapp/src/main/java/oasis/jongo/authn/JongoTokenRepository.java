@@ -94,6 +94,18 @@ public class JongoTokenRepository implements TokenRepository, JongoBootstrapper 
   }
 
   @Override
+  public int revokeTokensForAccountAndTokenType(String accountId, Class<? extends Token> tokenType) {
+    checkArgument(!Strings.isNullOrEmpty(accountId));
+    checkNotNull(tokenType);
+
+    return this.getTokensCollection()
+        .remove("{ accountId: #, _type: # }", accountId,
+            // FIXME: this only works because all our token classes are in the same package
+            "." + tokenType.getSimpleName())
+        .getN();
+  }
+
+  @Override
   public int revokeTokensForClient(String clientId) {
     checkArgument(!Strings.isNullOrEmpty(clientId));
 

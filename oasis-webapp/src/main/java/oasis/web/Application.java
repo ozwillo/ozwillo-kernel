@@ -25,10 +25,12 @@ import oasis.web.auditlog.HttpInterceptor;
 import oasis.web.authn.ActivateAccountPage;
 import oasis.web.authn.ChangePasswordPage;
 import oasis.web.authn.ClientAuthenticationFilter;
+import oasis.web.authn.ForgotPasswordPage;
 import oasis.web.authn.LoginPage;
 import oasis.web.authn.LogoutPage;
 import oasis.web.authn.OAuthAuthenticationFilter;
 import oasis.web.authn.OAuthFilter;
+import oasis.web.authn.ResetPasswordPage;
 import oasis.web.authn.SignUpPage;
 import oasis.web.authn.UserAuthenticationFilter;
 import oasis.web.authn.UserCanonicalBaseUriFilter;
@@ -87,6 +89,8 @@ public class Application extends javax.ws.rs.core.Application {
         SignUpPage.class,
         ActivateAccountPage.class,
         ChangePasswordPage.class,
+        ForgotPasswordPage.class,
+        ResetPasswordPage.class,
         // Authorization
         OpenIdProviderConfigurationEndpoint.class,
         AuthorizationEndpoint.class,

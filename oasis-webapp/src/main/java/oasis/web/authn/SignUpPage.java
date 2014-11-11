@@ -78,7 +78,7 @@ public class SignUpPage {
     }
 
     if (Strings.isNullOrEmpty(email) || Strings.isNullOrEmpty(password) || Strings.isNullOrEmpty(nickname)) {
-      return LoginPage.signupForm(Response.ok(), continueUrl, urls, LoginPage.SignupError.MISSING_REQUIRED_FIELD);
+      return LoginPage.signupForm(Response.ok(), continueUrl, mailSettings, urls, LoginPage.SignupError.MISSING_REQUIRED_FIELD);
     }
     // TODO: Verify that the password as a sufficiently strong length or even a strong entropy
 
@@ -96,7 +96,7 @@ public class SignUpPage {
     account = accountRepository.createUserAccount(account);
     if (account == null) {
       // TODO: Allow the user to retrieve their password
-      return LoginPage.signupForm(Response.ok(), continueUrl, urls, LoginPage.SignupError.ACCOUNT_ALREADY_EXISTS);
+      return LoginPage.signupForm(Response.ok(), continueUrl, mailSettings, urls, LoginPage.SignupError.ACCOUNT_ALREADY_EXISTS);
     } else {
       userPasswordAuthenticator.setPassword(account.getId(), password);
     }
@@ -126,7 +126,7 @@ public class SignUpPage {
         logger.error("Error sending activation email", e);
         accountRepository.deleteUserAccount(account.getId());
         credentialsRepository.deleteCredentials(ClientType.USER, account.getId());
-        return LoginPage.signupForm(Response.ok(), continueUrl, urls, LoginPage.SignupError.MESSAGING_ERROR);
+        return LoginPage.signupForm(Response.ok(), continueUrl, mailSettings, urls, LoginPage.SignupError.MESSAGING_ERROR);
       }
     } else {
       byte[] fingerprint = fingerprinter.fingerprint(headers);

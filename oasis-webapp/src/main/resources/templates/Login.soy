@@ -6,6 +6,7 @@
 {template .login}
 {@param  signUpFormAction: string} /** URL to post the sign-up form to. */
 {@param  loginFormAction:  string} /** URL to post the sign-in form to. */
+{@param? forgotPassword:   string} /** URL to the form allowing for recovering your password. */
 {@param  continue:         string} /** URL to continue to after successful login/re-auth. */
 {@param? error:            string} /** error; can be one of INCORRECT_USERNAME_OR_PASSWORD, MISSING_REQUIRED_FIELD, ACCOUNT_ALREADY_EXISTS, or MESSAGING_ERROR */
 {@param? overview:         string} /** URL to the overview page. */
@@ -60,7 +61,11 @@ aside a { display: inline-block; padding: 5px 15px; font-weight: lighter; text-d
     {case 'MISSING_REQUIRED_FIELD'}
       {msg desc="Error message during sign-up"}Some required fields are not filled.{/msg}
     {case 'ACCOUNT_ALREADY_EXISTS'}
-      {msg desc="Error message during sign-up"}An account with that email address already exists.{/msg}
+      {if $forgotPassword}
+        {msg desc="Error message during sign-up"}An account with that email address already exists. Did you <a href="{$forgotPassword}">forgot your password?</a>{/msg}
+      {else}
+        {msg desc="Error message during sign-up"}An account with that email address already exists.{/msg}
+      {/if}
     {case 'MESSAGING_ERROR'}
       {msg desc="Error message during sign-up"}An error occurred creating your account. Check your email address and try again in a few minutes.{/msg}
     {default}
@@ -82,6 +87,11 @@ aside a { display: inline-block; padding: 5px 15px; font-weight: lighter; text-d
           <label for=pwd>{msg desc="Password field label"}Password{/msg}</label>
           <input id=pwd type=password  name=pwd required>
         </div>
+        {if $forgotPassword}
+          <div style="text-align: right; font-size: smaller;">
+            <a href="{$forgotPassword}">I forgot my password.</a>
+          </div>
+        {/if}
         <div class=btn-row>
           <button>
             <img alt="" src="/images/go.png" width=50 height=50>

@@ -30,6 +30,7 @@ import com.google.template.soy.data.SoyMapData;
 
 import oasis.auditlog.AuditLogEvent;
 import oasis.auditlog.AuditLogService;
+import oasis.mail.MailModule;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.authn.SidToken;
@@ -62,6 +63,7 @@ public class LoginPage {
   @Inject AccountRepository accountRepository;
   @Inject AuditLogService auditLogService;
   @Inject UserAgentFingerprinter fingerprinter;
+  @Inject MailModule.Settings mailSettings;
   @Inject Urls urls;
 
   @Context SecurityContext securityContext;
@@ -158,7 +160,7 @@ public class LoginPage {
       // XXX: what if account is null?
       return reauthForm(builder, continueUrl, error, account);
     }
-    return loginForm(builder, continueUrl, urls, error);
+    return loginForm(builder, continueUrl, mailSettings, urls, error);
   }
 
   private static Response reauthForm(Response.ResponseBuilder builder, URI continueUrl, @Nullable LoginError error, UserAccount userAccount) {
@@ -172,19 +174,21 @@ public class LoginPage {
     return buildResponseFromView(builder, soyTemplate);
   }
 
-  private static Response loginForm(Response.ResponseBuilder builder, URI continueUrl, Urls urls, @Nullable LoginError error) {
-    return loginAndSignupForm(builder, continueUrl, urls, error);
+  private static Response loginForm(Response.ResponseBuilder builder, URI continueUrl, MailModule.Settings mailSettings, Urls urls, @Nullable LoginError error) {
+    return loginAndSignupForm(builder, continueUrl, mailSettings, urls, error);
   }
 
-  static Response signupForm(Response.ResponseBuilder builder, URI continueUrl, Urls urls, @Nullable SignupError error) {
-    return loginAndSignupForm(builder, continueUrl, urls, error);
+  static Response signupForm(Response.ResponseBuilder builder, URI continueUrl, MailModule.Settings mailSettings, Urls urls, @Nullable SignupError error) {
+    return loginAndSignupForm(builder, continueUrl, mailSettings, urls, error);
   }
 
-  private static Response loginAndSignupForm(Response.ResponseBuilder builder, URI continueUrl, Urls urls, @Nullable Enum<?> error) {
+  private static Response loginAndSignupForm(Response.ResponseBuilder builder, URI continueUrl, MailModule.Settings mailSettings, Urls urls,
+      @Nullable Enum<?> error) {
     // TODO: I18N
     SoyTemplate soyTemplate = new SoyTemplate(LoginSoyInfo.LOGIN, Locale.ROOT, new SoyMapData(
         LoginSoyTemplateInfo.SIGN_UP_FORM_ACTION, UriBuilder.fromResource(SignUpPage.class).build().toString(),
         LoginSoyTemplateInfo.LOGIN_FORM_ACTION, UriBuilder.fromResource(LoginPage.class).build().toString(),
+        LoginSoyTemplateInfo.FORGOT_PASSWORD, mailSettings.enabled ? UriBuilder.fromResource(ForgotPasswordPage.class).build().toString() : null,
         LoginSoyTemplateInfo.CONTINUE, continueUrl.toString(),
         LoginSoyTemplateInfo.ERROR, error == null ? null : error.name(),
         LoginSoyTemplateInfo.OVERVIEW, Objects.toString(urls.landingPage().orNull(), null)

@@ -15,6 +15,7 @@ import com.google.common.io.BaseEncoding;
 import oasis.model.authn.AccessToken;
 import oasis.model.authn.AccountActivationToken;
 import oasis.model.authn.AuthorizationCode;
+import oasis.model.authn.ChangePasswordToken;
 import oasis.model.authn.RefreshToken;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.Token;
@@ -61,6 +62,21 @@ public class TokenHandler {
       return null;
     }
     return accountActivationToken;
+  }
+
+  public ChangePasswordToken createChangePasswordToken(String accountId, String pass) {
+    ChangePasswordToken changePasswordToken = new ChangePasswordToken();
+    changePasswordToken.setAccountId(accountId);
+    changePasswordToken.expiresIn(authSettings.changePasswordTokenDuration);
+
+    secureToken(changePasswordToken, pass);
+
+    tokenRepository.revokeTokensForAccountAndTokenType(accountId, ChangePasswordToken.class);
+
+    if (!tokenRepository.registerToken(changePasswordToken)) {
+      return null;
+    }
+    return changePasswordToken;
   }
 
   public AccessToken createAccessToken(AuthorizationCode authorizationCode, String pass) {

@@ -1,0 +1,52 @@
+{namespace oasis.mail autoescape="strict"}
+
+/**
+ * Forgot-password email subject; unknown account.
+ */
+{template .forgotPasswordUnknownAccountSubject kind="text"}
+{msg desc="Forgot-password email subject, for an unknown account"}
+Account Access Attempted
+{/msg}
+{/template}
+
+/**
+ * Forgot-password email; unknown account.
+ */
+{template .forgotPasswordUnknownAccount kind="text"}
+{msg desc="Forgot-password email body, for an unknown account"}
+You (or someone else) entered this email address when trying to change the password of an Oasis account.{\n}
+{\n}
+However, this email address is not on our database of registered users and therefore the attempted password change has failed.{\n}
+{\n}
+If you have an Oasis account and were expecting this email, please try again using the email address you gave when opening your account.{\n}
+{\n}
+If you don't have an Oasis account, please ignore this email.{\n}
+{\n}
+The Oasis team
+{/msg}
+{/template}
+
+
+/**
+ * Forgot-password email subject; existing account.
+ */
+{template .forgotPasswordExistingAccountSubject kind="text"}
+{msg desc="Forgot-password email subject, for an existing account"}
+Oasis password reset
+{/msg}
+{/template}
+
+/**
+ * Forgot-password email; existing account.
+ */
+{template .forgotPasswordExistingAccount kind="text"}
+{@param resetPasswordLink: string} /** Link to reset password. */
+{msg desc="Forgot-password email body, for an existing account"}
+You (or someone else) entered this email address when trying to change the password of an Oasis account.{\n}
+{\n}
+To continue with the password reset process, please proceed to:{\n}
+{$resetPasswordLink}{\n}
+{\n}
+The Oasis team
+{/msg}
+{/template}
