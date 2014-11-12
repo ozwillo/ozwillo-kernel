@@ -74,7 +74,7 @@ public class OAuthFilter implements ContainerRequestFilter {
     if (withScopesAnnotation == null) {
       withScopesAnnotation = resourceInfo.getResourceClass().getAnnotation(WithScopes.class);
       if (withScopesAnnotation == null) {
-        logger.warn("Resource requires OAuth token but doesn't declare required scopes: {}",
+        logger.debug("Resource requires OAuth token but doesn't declare required scopes: {}",
             resourceInfo.getResourceMethod() != null ? resourceInfo.getResourceMethod() : resourceInfo.getResourceClass());
         // XXX: should we send a forbidden response rather than let the request go in?
       }
