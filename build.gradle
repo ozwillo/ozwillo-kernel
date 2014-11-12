@@ -56,7 +56,6 @@ subprojects {
 
 buildscript {
   repositories {
-maven { url 'https://oss.sonatype.org/content/repositories/netltgt-1004/' }
     mavenCentral()
   }
   dependencies {
@@ -65,5 +64,5 @@ maven { url 'https://oss.sonatype.org/content/repositories/netltgt-1004/' }
 }
 
 task wrapper(type: Wrapper) {
-  gradleVersion = '2.1'
+  gradleVersion = '2.2'
 }
