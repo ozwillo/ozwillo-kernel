@@ -5,6 +5,7 @@
  */
 {template .forgotPassword}
 {@param  formAction:   string} /** URL to post the form to. */
+{@param  locale:       string} /** current locale, to be propagated to subsequent requests. */
 {@param? error:        string} /** error; can be one of MISSING_REQUIRED_FIELD, MESSAGING_ERROR, or EXPIRED_LINK */
 {call .header}
   {param title kind="text"}{msg desc="Forgot password page title"}Forgot password{/msg}{/param}
@@ -46,6 +47,7 @@ h2 { margin-bottom: 2.5em; }
 
   <form method=POST action="{$formAction}">
     <input type=hidden name=_utf8 value="&#9731;">
+    <input type="hidden" name="locale" value="{$locale}">
     <div>
       <label for=u>{msg desc="Email field label for account recovery"}Your email address:{/msg}</label>
       <input id=u type=email name=u required autofocus>
@@ -87,6 +89,7 @@ h1 { text-align: center; font-weight: lighter; font-size: 1.8em; }
 {template .resetPassword}
 {@param  formAction:   string} /** URL to post the form to. */
 {@param  emailAddress: string} /** email address for the account to recover */
+{@param  locale:       string} /** current locale, to be propagated to subsequent requests. */
 {@param? error:        string} /** error; can be one of MISSING_REQUIRED_FIELD */
 {call .header}
   {param title kind="text"}{msg desc="Reset password page title"}Password reset{/msg}{/param}
@@ -124,6 +127,7 @@ h2 { margin-bottom: 2.5em; }
 
   <form method=POST action="{$formAction}">
     <input type=hidden name=_utf8 value="&#9731;">
+    <input type="hidden" name="locale" value="{$locale}">
 
     <p>{$emailAddress}</p>
     <input id=newpwd type=password name=newpwd required autofocus>

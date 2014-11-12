@@ -2,17 +2,16 @@ package oasis.web.authn;
 
 import java.net.URI;
 import java.util.Locale;
-import java.util.Objects;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.mail.MessagingException;
-import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -35,9 +34,9 @@ import oasis.model.authn.ChangePasswordToken;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.soy.SoyTemplate;
-import oasis.soy.templates.ChangePasswordSoyInfo;
 import oasis.soy.templates.RecoverMailSoyInfo;
 import oasis.soy.templates.RecoverSoyInfo;
+import oasis.web.i18n.LocaleHelper;
 import oasis.web.resteasy.Resteasy1099;
 import oasis.web.utils.ResponseFactory;
 
@@ -49,32 +48,35 @@ public class ForgotPasswordPage {
   @Inject MailModule.Settings mailSettings;
   @Inject MailSender mailSender;
   @Inject TokenHandler tokenHandler;
+  @Inject LocaleHelper localeHelper;
 
   @Context UriInfo uriInfo;
 
   @GET
   @Produces(MediaType.TEXT_HTML)
-  public Response get() {
+  public Response get(
+      @QueryParam(LoginPage.LOCALE_PARAM) @Nullable Locale locale
+  ) {
     if (!mailSettings.enabled) {
       return ResponseFactory.NOT_FOUND;
     }
-    return form(Response.ok(), null);
+    return form(Response.ok(), localeHelper.getLocale(locale), null);
   }
 
   @POST
   public Response post(
+      @FormParam(LoginPage.LOCALE_PARAM) @Nullable Locale locale,
       @FormParam("u") String email
   ) {
     if (!mailSettings.enabled) {
       return ResponseFactory.NOT_FOUND;
     }
 
-    if (Strings.isNullOrEmpty(email)) {
-      return form(Response.status(Response.Status.BAD_REQUEST), ForgotPasswordError.MISSING_REQUIRED_FIELD);
-    }
+    locale = localeHelper.getLocale(locale);
 
-    // TODO: i18n
-    Locale locale = Locale.ROOT;
+    if (Strings.isNullOrEmpty(email)) {
+      return form(Response.status(Response.Status.BAD_REQUEST), locale, ForgotPasswordError.MISSING_REQUIRED_FIELD);
+    }
 
     UserAccount account = accountRepository.getUserAccountByEmail(email);
     try {
@@ -88,11 +90,14 @@ public class ForgotPasswordPage {
       } else {
         String pass = tokenHandler.generateRandom();
         ChangePasswordToken changePasswordToken = tokenHandler.createChangePasswordToken(account.getId(), pass);
-        URI resetPasswordLink = Resteasy1099.getBaseUriBuilder(uriInfo).path(ResetPasswordPage.class).build(TokenSerializer.serialize(changePasswordToken, pass));
+        URI resetPasswordLink = Resteasy1099.getBaseUriBuilder(uriInfo)
+            .path(ResetPasswordPage.class)
+            .queryParam(LoginPage.LOCALE_PARAM, locale.toLanguageTag())
+            .build(TokenSerializer.serialize(changePasswordToken, pass));
 
         mailSender.send(new MailMessage()
             .setRecipient(account.getEmail_address(), account.getDisplayName())
-            .setLocale(account.getLocale())
+            .setLocale(locale)
             .setSubject(RecoverMailSoyInfo.FORGOT_PASSWORD_EXISTING_ACCOUNT_SUBJECT)
             .setBody(RecoverMailSoyInfo.FORGOT_PASSWORD_EXISTING_ACCOUNT)
             .setPlainText()
@@ -102,7 +107,7 @@ public class ForgotPasswordPage {
       }
     } catch (MessagingException e) {
       logger.error("Error sending reset-password email", e);
-      return form(Response.serverError(), ForgotPasswordError.MESSAGING_ERROR);
+      return form(Response.serverError(), locale, ForgotPasswordError.MESSAGING_ERROR);
     }
 
     // XXX: do not use the account's locale (if it exists) as that would be a hint that the account exists.
@@ -113,7 +118,7 @@ public class ForgotPasswordPage {
         .build();
   }
 
-  static Response form(Response.ResponseBuilder builder, @Nullable ForgotPasswordError error) {
+  static Response form(Response.ResponseBuilder builder, Locale locale, @Nullable ForgotPasswordError error) {
     return builder
         .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store")
         .header("Pragma", "no-cache")
@@ -122,10 +127,10 @@ public class ForgotPasswordPage {
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
         .entity(new SoyTemplate(RecoverSoyInfo.FORGOT_PASSWORD,
-            // TODO: i18n
-            Locale.ROOT,
+            locale,
             new SoyMapData(
                 RecoverSoyInfo.ForgotPasswordSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(ForgotPasswordPage.class).build().toString(),
+                RecoverSoyInfo.ForgotPasswordSoyTemplateInfo.LOCALE, locale.toLanguageTag(),
                 RecoverSoyInfo.ForgotPasswordSoyTemplateInfo.ERROR, error == null ? null : error.name()
             )
         ))

@@ -45,6 +45,7 @@ import oasis.soy.templates.LoginSoyInfo.LoginSoyTemplateInfo;
 import oasis.soy.templates.LoginSoyInfo.ReauthSoyTemplateInfo;
 import oasis.urls.Urls;
 import oasis.web.StaticResources;
+import oasis.web.i18n.LocaleHelper;
 import oasis.web.resteasy.Resteasy1099;
 import oasis.web.security.StrictReferer;
 import oasis.web.utils.UserAgentFingerprinter;
@@ -56,6 +57,7 @@ public class LoginPage {
 
   public static final String CONTINUE_PARAM = "continue";
   public static final String CANCEL_PARAM = "cancel";
+  public static final String LOCALE_PARAM = "hl";
 
   @Inject UserPasswordAuthenticator userPasswordAuthenticator;
   @Inject TokenRepository tokenRepository;
@@ -65,14 +67,18 @@ public class LoginPage {
   @Inject UserAgentFingerprinter fingerprinter;
   @Inject MailModule.Settings mailSettings;
   @Inject Urls urls;
+  @Inject LocaleHelper localeHelper;
 
   @Context SecurityContext securityContext;
   @Context UriInfo uriInfo;
 
   @GET
   @Produces(MediaType.TEXT_HTML)
-  public Response get(@QueryParam(CONTINUE_PARAM) URI continueUrl) {
-    return loginOrReauthForm(Response.ok(), continueUrl, null);
+  public Response get(
+      @QueryParam(CONTINUE_PARAM) URI continueUrl,
+      @QueryParam(LOCALE_PARAM) @Nullable Locale locale
+  ) {
+    return loginOrReauthForm(Response.ok(), continueUrl, localeHelper.getLocale(locale), null);
   }
 
   @POST
@@ -80,12 +86,15 @@ public class LoginPage {
   @Produces(MediaType.TEXT_HTML)
   public Response post(
       @Context HttpHeaders headers,
+      @FormParam(LOCALE_PARAM) @Nullable Locale locale,
       @FormParam("u") @DefaultValue("") String userName,
       @FormParam("pwd") @DefaultValue("") String password,
       @FormParam("continue") URI continueUrl
   ) {
+    locale = localeHelper.getLocale(locale);
+
     if (userName.isEmpty()) {
-      return loginOrReauthForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, null);
+      return loginOrReauthForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, locale, null);
     }
     if (continueUrl == null) {
       continueUrl = defaultContinueUrl();
@@ -96,7 +105,7 @@ public class LoginPage {
       account = userPasswordAuthenticator.authenticate(userName, password);
     } catch (LoginException e) {
       log(userName, LoginLogEvent.LoginResult.AUTHENTICATION_FAILED);
-      return loginOrReauthForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, LoginError.INCORRECT_USERNAME_OR_PASSWORD);
+      return loginOrReauthForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, locale, LoginError.INCORRECT_USERNAME_OR_PASSWORD);
     }
 
     if (securityContext.getUserPrincipal() != null) {
@@ -136,7 +145,7 @@ public class LoginPage {
     if (!account.getId().equals(sidToken.getAccountId())) {
       // Form has been tampered with, or user signed in with another account since the form was generated
       // Re-display the form: if user signed out/in, it will show the new (current) user.
-      return loginOrReauthForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, null);
+      return loginOrReauthForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, account.getLocale(), null);
     }
     if (!tokenRepository.reAuthSidToken(sidToken.getId())) {
       // XXX: This shouldn't be audited because it shouldn't be the user fault
@@ -149,7 +158,7 @@ public class LoginPage {
     return Response.seeOther(continueUrl).build();
   }
 
-  private Response loginOrReauthForm(Response.ResponseBuilder builder, @Nullable URI continueUrl, @Nullable LoginError error) {
+  private Response loginOrReauthForm(Response.ResponseBuilder builder, @Nullable URI continueUrl, @Nullable Locale locale, @Nullable LoginError error) {
     if (continueUrl == null) {
       continueUrl = defaultContinueUrl();
     }
@@ -160,7 +169,7 @@ public class LoginPage {
       // XXX: what if account is null?
       return reauthForm(builder, continueUrl, error, account);
     }
-    return loginForm(builder, continueUrl, mailSettings, urls, error);
+    return loginForm(builder, continueUrl, mailSettings, urls, locale, error);
   }
 
   private static Response reauthForm(Response.ResponseBuilder builder, URI continueUrl, @Nullable LoginError error, UserAccount userAccount) {
@@ -168,27 +177,29 @@ public class LoginPage {
         ReauthSoyTemplateInfo.REAUTH_EMAIL, userAccount.getEmail_address(),
         ReauthSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(LoginPage.class).build().toString(),
         ReauthSoyTemplateInfo.CONTINUE, continueUrl.toString(),
+        ReauthSoyTemplateInfo.LOCALE, userAccount.getLocale().toLanguageTag(),
         ReauthSoyTemplateInfo.ERROR, error == null ? null : error.name()
     ));
 
     return buildResponseFromView(builder, soyTemplate);
   }
 
-  private static Response loginForm(Response.ResponseBuilder builder, URI continueUrl, MailModule.Settings mailSettings, Urls urls, @Nullable LoginError error) {
-    return loginAndSignupForm(builder, continueUrl, mailSettings, urls, error);
+  private static Response loginForm(Response.ResponseBuilder builder, URI continueUrl, MailModule.Settings mailSettings, Urls urls, Locale locale, @Nullable LoginError error) {
+    return loginAndSignupForm(builder, continueUrl, mailSettings, urls, locale, error);
   }
 
-  static Response signupForm(Response.ResponseBuilder builder, URI continueUrl, MailModule.Settings mailSettings, Urls urls, @Nullable SignupError error) {
-    return loginAndSignupForm(builder, continueUrl, mailSettings, urls, error);
+  static Response signupForm(Response.ResponseBuilder builder, URI continueUrl, MailModule.Settings mailSettings, Urls urls, Locale locale, @Nullable SignupError error) {
+    return loginAndSignupForm(builder, continueUrl, mailSettings, urls, locale, error);
   }
 
   private static Response loginAndSignupForm(Response.ResponseBuilder builder, URI continueUrl, MailModule.Settings mailSettings, Urls urls,
-      @Nullable Enum<?> error) {
-    // TODO: I18N
-    SoyTemplate soyTemplate = new SoyTemplate(LoginSoyInfo.LOGIN, Locale.ROOT, new SoyMapData(
+      Locale locale, @Nullable Enum<?> error) {
+    String languageTag = locale.toLanguageTag();
+    SoyTemplate soyTemplate = new SoyTemplate(LoginSoyInfo.LOGIN, locale, new SoyMapData(
         LoginSoyTemplateInfo.SIGN_UP_FORM_ACTION, UriBuilder.fromResource(SignUpPage.class).build().toString(),
         LoginSoyTemplateInfo.LOGIN_FORM_ACTION, UriBuilder.fromResource(LoginPage.class).build().toString(),
-        LoginSoyTemplateInfo.FORGOT_PASSWORD, mailSettings.enabled ? UriBuilder.fromResource(ForgotPasswordPage.class).build().toString() : null,
+        LoginSoyTemplateInfo.FORGOT_PASSWORD, mailSettings.enabled ? UriBuilder.fromResource(ForgotPasswordPage.class).queryParam(LOCALE_PARAM, languageTag).build().toString() : null,
+        LoginSoyTemplateInfo.LOCALE, languageTag,
         LoginSoyTemplateInfo.CONTINUE, continueUrl.toString(),
         LoginSoyTemplateInfo.ERROR, error == null ? null : error.name(),
         LoginSoyTemplateInfo.OVERVIEW, Objects.toString(urls.landingPage().orNull(), null)

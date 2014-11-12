@@ -110,7 +110,7 @@ public class UserAuthenticationFilterTest {
     public Response redirectToLogin(@Context UriInfo uriInfo) {
       assertThat(securityContext.getUserPrincipal()).isNotNull();
 
-      return UserAuthenticationFilter.loginResponse(uriInfo.getRequestUri(), null, securityContext);
+      return UserAuthenticationFilter.loginResponse(uriInfo.getRequestUri(), null, null);
     }
   }
 }

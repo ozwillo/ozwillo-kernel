@@ -35,13 +35,16 @@ public class UserAuthenticationFilter implements ContainerRequestFilter {
   }
 
   private void loginResponse(ContainerRequestContext requestContext) {
-    requestContext.abortWith(loginResponse(requestContext.getUriInfo().getRequestUri(), null, requestContext.getSecurityContext()));
+    requestContext.abortWith(loginResponse(requestContext.getUriInfo().getRequestUri(), null, null));
   }
 
-  public static Response loginResponse(URI continueUrl, @Nullable String cancelUrl, SecurityContext securityContext) {
+  public static Response loginResponse(URI continueUrl, @Nullable String locale, @Nullable String cancelUrl) {
     final UriBuilder redirectUri = UriBuilder
         .fromResource(LoginPage.class)
         .queryParam(LoginPage.CONTINUE_PARAM, UrlEscapers.urlFormParameterEscaper().escape(continueUrl.toString()));
+    if (locale != null) {
+      redirectUri.queryParam(LoginPage.LOCALE_PARAM, UrlEscapers.urlFormParameterEscaper().escape(locale));
+    }
     if (cancelUrl != null) {
       redirectUri.queryParam(LoginPage.CANCEL_PARAM, UrlEscapers.urlFormParameterEscaper().escape(cancelUrl));
     }

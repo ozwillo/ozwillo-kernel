@@ -40,6 +40,7 @@ import oasis.soy.SoyTemplate;
 import oasis.soy.templates.LoginSoyInfo;
 import oasis.soy.templates.SignUpSoyInfo;
 import oasis.urls.Urls;
+import oasis.web.i18n.LocaleHelper;
 import oasis.web.resteasy.Resteasy1099;
 import oasis.web.security.StrictReferer;
 import oasis.web.utils.UserAgentFingerprinter;
@@ -59,6 +60,7 @@ public class SignUpPage {
   @Inject Urls urls;
   @Inject MailModule.Settings mailSettings;
   @Inject @Nullable MailSender mailSender;
+  @Inject LocaleHelper localeHelper;
 
   @Context SecurityContext securityContext;
   @Context UriInfo uriInfo;
@@ -69,6 +71,7 @@ public class SignUpPage {
   public Response signUp(
       @Context HttpHeaders headers,
       @FormParam(CONTINUE_PARAM) URI continueUrl,
+      @FormParam(LoginPage.LOCALE_PARAM) @Nullable Locale locale,
       @FormParam("email") String email,
       @FormParam("pwd") String password,
       @FormParam("nickname") String nickname
@@ -76,9 +79,10 @@ public class SignUpPage {
     if (continueUrl == null) {
       continueUrl = LoginPage.defaultContinueUrl(urls.landingPage(), uriInfo);
     }
+    locale = localeHelper.getLocale(locale);
 
     if (Strings.isNullOrEmpty(email) || Strings.isNullOrEmpty(password) || Strings.isNullOrEmpty(nickname)) {
-      return LoginPage.signupForm(Response.ok(), continueUrl, mailSettings, urls, LoginPage.SignupError.MISSING_REQUIRED_FIELD);
+      return LoginPage.signupForm(Response.ok(), continueUrl, mailSettings, urls, locale, LoginPage.SignupError.MISSING_REQUIRED_FIELD);
     }
     // TODO: Verify that the password as a sufficiently strong length or even a strong entropy
 
@@ -89,14 +93,13 @@ public class SignUpPage {
       account.setEmail_verified(true);
     }
     account.setNickname(nickname);
-    // TODO: Use the user-selected locale
-    account.setLocale(Locale.UK);
+    account.setLocale(locale);
     // TODO: Use a zoneinfo "matching" the selected locale
     account.setZoneinfo("Europe/Paris");
     account = accountRepository.createUserAccount(account);
     if (account == null) {
       // TODO: Allow the user to retrieve their password
-      return LoginPage.signupForm(Response.ok(), continueUrl, mailSettings, urls, LoginPage.SignupError.ACCOUNT_ALREADY_EXISTS);
+      return LoginPage.signupForm(Response.ok(), continueUrl, mailSettings, urls, locale, LoginPage.SignupError.ACCOUNT_ALREADY_EXISTS);
     } else {
       userPasswordAuthenticator.setPassword(account.getId(), password);
     }
@@ -106,7 +109,10 @@ public class SignUpPage {
       try {
         String pass = tokenHandler.generateRandom();
         AccountActivationToken accountActivationToken = tokenHandler.createAccountActivationToken(account.getId(), pass);
-        URI activationLink = Resteasy1099.getBaseUriBuilder(uriInfo).path(ActivateAccountPage.class).build(TokenSerializer.serialize(accountActivationToken, pass));
+        URI activationLink = Resteasy1099.getBaseUriBuilder(uriInfo)
+            .path(ActivateAccountPage.class)
+            .queryParam(LoginPage.LOCALE_PARAM, account.getLocale().toLanguageTag())
+            .build(TokenSerializer.serialize(accountActivationToken, pass));
 
         mailSender.send(new MailMessage()
             .setRecipient(email, nickname)
@@ -126,7 +132,7 @@ public class SignUpPage {
         logger.error("Error sending activation email", e);
         accountRepository.deleteUserAccount(account.getId());
         credentialsRepository.deleteCredentials(ClientType.USER, account.getId());
-        return LoginPage.signupForm(Response.ok(), continueUrl, mailSettings, urls, LoginPage.SignupError.MESSAGING_ERROR);
+        return LoginPage.signupForm(Response.ok(), continueUrl, mailSettings, urls, locale, LoginPage.SignupError.MESSAGING_ERROR);
       }
     } else {
       byte[] fingerprint = fingerprinter.fingerprint(headers);

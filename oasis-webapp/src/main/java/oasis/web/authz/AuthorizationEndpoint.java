@@ -41,6 +41,8 @@ import com.google.template.soy.data.SoyMapData;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
+import oasis.auth.AuthModule;
+import oasis.auth.RedirectUri;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.applications.v2.AccessControlRepository;
@@ -56,8 +58,6 @@ import oasis.model.authn.SidToken;
 import oasis.model.authz.AuthorizationRepository;
 import oasis.model.authz.AuthorizedScopes;
 import oasis.model.bootstrap.ClientIds;
-import oasis.auth.AuthModule;
-import oasis.auth.RedirectUri;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.services.authz.AppAdminHelper;
@@ -68,6 +68,7 @@ import oasis.web.authn.Authenticated;
 import oasis.web.authn.User;
 import oasis.web.authn.UserAuthenticationFilter;
 import oasis.web.authn.UserSessionPrincipal;
+import oasis.web.i18n.LocaleHelper;
 import oasis.web.resteasy.Resteasy1099;
 
 @Path("/a/auth")
@@ -109,6 +110,7 @@ public class AuthorizationEndpoint {
   @Inject AppAdminHelper appAdminHelper;
   @Inject ScopeRepository scopeRepository;
   @Inject TokenHandler tokenHandler;
+  @Inject LocaleHelper localeHelper;
   @Inject JsonFactory jsonFactory;
   @Inject Clock clock;
 
@@ -262,6 +264,8 @@ public class AuthorizationEndpoint {
   }
 
   private Response redirectToLogin(UriInfo uriInfo, Prompt prompt) {
+    String ui_locales = getParameter("ui_locales");
+    String locale = (ui_locales == null) ? null : localeHelper.selectLocale(SPACE_SPLITTER.split(ui_locales));
     // Prepare cancel URL
     redirectUri.setError("login_required", null);
     // Redirect back to here, except without prompt=login
@@ -274,7 +278,7 @@ public class AuthorizationEndpoint {
     } else {
       continueUrl.replaceQueryParam("prompt", promptValue);
     }
-    return UserAuthenticationFilter.loginResponse(continueUrl.build(), redirectUri.toString(), securityContext);
+    return UserAuthenticationFilter.loginResponse(continueUrl.build(), locale, redirectUri.toString());
   }
 
   private Response generateAuthorizationCodeAndRedirect(SidToken sidToken, Set<String> scopeIds, String client_id,

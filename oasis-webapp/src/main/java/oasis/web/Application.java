@@ -46,6 +46,7 @@ import oasis.web.kibana.Kibana;
 import oasis.web.notifications.NotificationEndpoint;
 import oasis.web.openidconnect.OpenIdProviderConfigurationEndpoint;
 import oasis.web.providers.JacksonJsonProvider;
+import oasis.web.providers.LocaleParamConverterProvider;
 import oasis.web.providers.UriParamConverterProvider;
 import oasis.web.security.SecureFilter;
 import oasis.web.security.StrictRefererFilter;
@@ -67,6 +68,7 @@ public class Application extends javax.ws.rs.core.Application {
         // Hacks and workarounds
         UriParamConverterProvider.class,
         // Providers
+        LocaleParamConverterProvider.class,
         JacksonJsonProvider.class, // Note: this is our own implementation
         // Views
         SoyTemplateBodyWriter.class,
