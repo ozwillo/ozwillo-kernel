@@ -68,7 +68,7 @@ public class SignUpPage {
   @Produces(MediaType.TEXT_HTML)
   public Response signUp(
       @Context HttpHeaders headers,
-      @QueryParam(CONTINUE_PARAM) URI continueUrl,
+      @FormParam(CONTINUE_PARAM) URI continueUrl,
       @FormParam("email") String email,
       @FormParam("pwd") String password,
       @FormParam("nickname") String nickname
