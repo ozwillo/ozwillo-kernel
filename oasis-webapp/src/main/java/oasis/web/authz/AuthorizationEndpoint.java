@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -24,6 +25,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
@@ -100,6 +102,7 @@ public class AuthorizationEndpoint {
   }
 
   @Context SecurityContext securityContext;
+  @Context Request request;
 
   @Inject AuthModule.Settings settings;
   @Inject AuthorizationRepository authorizationRepository;
@@ -265,7 +268,9 @@ public class AuthorizationEndpoint {
 
   private Response redirectToLogin(UriInfo uriInfo, Prompt prompt) {
     String ui_locales = getParameter("ui_locales");
-    String locale = (ui_locales == null) ? null : localeHelper.selectLocale(SPACE_SPLITTER.split(ui_locales));
+    Locale locale = (ui_locales == null)
+        ? localeHelper.selectLocale(request)
+        : localeHelper.selectLocale(SPACE_SPLITTER.split(ui_locales), request);
     // Prepare cancel URL
     redirectUri.setError("login_required", null);
     // Redirect back to here, except without prompt=login

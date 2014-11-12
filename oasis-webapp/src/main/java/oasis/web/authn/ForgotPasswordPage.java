@@ -15,6 +15,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
@@ -51,6 +52,7 @@ public class ForgotPasswordPage {
   @Inject LocaleHelper localeHelper;
 
   @Context UriInfo uriInfo;
+  @Context Request request;
 
   @GET
   @Produces(MediaType.TEXT_HTML)
@@ -60,7 +62,7 @@ public class ForgotPasswordPage {
     if (!mailSettings.enabled) {
       return ResponseFactory.NOT_FOUND;
     }
-    return form(Response.ok(), localeHelper.getLocale(locale), null);
+    return form(Response.ok(), localeHelper.selectLocale(locale, request), null);
   }
 
   @POST
@@ -72,7 +74,7 @@ public class ForgotPasswordPage {
       return ResponseFactory.NOT_FOUND;
     }
 
-    locale = localeHelper.getLocale(locale);
+    locale = localeHelper.selectLocale(locale, request);
 
     if (Strings.isNullOrEmpty(email)) {
       return form(Response.status(Response.Status.BAD_REQUEST), locale, ForgotPasswordError.MISSING_REQUIRED_FIELD);

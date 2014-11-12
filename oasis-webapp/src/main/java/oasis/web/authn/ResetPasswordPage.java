@@ -12,8 +12,10 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
@@ -44,13 +46,15 @@ public class ResetPasswordPage {
   @Inject Urls urls;
   @Inject LocaleHelper localeHelper;
 
+  @Context Request request;
+
   @PathParam("token") String token;
 
   @GET
   public Response get(
       @QueryParam(LoginPage.LOCALE_PARAM) @Nullable Locale locale
   ) {
-    locale = localeHelper.getLocale(locale);
+    locale = localeHelper.selectLocale(locale, request);
 
     ChangePasswordToken changePasswordToken = tokenHandler.getCheckedToken(token, ChangePasswordToken.class);
     if (changePasswordToken == null) {
@@ -71,7 +75,7 @@ public class ResetPasswordPage {
       @FormParam(LoginPage.LOCALE_PARAM) @Nullable Locale locale,
       @FormParam("newpwd") String newpwd
   ) {
-    locale = localeHelper.getLocale(locale);
+    locale = localeHelper.selectLocale(locale, request);
 
     ChangePasswordToken changePasswordToken = tokenHandler.getCheckedToken(token, ChangePasswordToken.class);
     if (changePasswordToken == null) {

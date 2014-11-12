@@ -17,6 +17,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
@@ -71,6 +72,7 @@ public class LoginPage {
 
   @Context SecurityContext securityContext;
   @Context UriInfo uriInfo;
+  @Context Request request;
 
   @GET
   @Produces(MediaType.TEXT_HTML)
@@ -78,7 +80,7 @@ public class LoginPage {
       @QueryParam(CONTINUE_PARAM) URI continueUrl,
       @QueryParam(LOCALE_PARAM) @Nullable Locale locale
   ) {
-    return loginOrReauthForm(Response.ok(), continueUrl, localeHelper.getLocale(locale), null);
+    return loginOrReauthForm(Response.ok(), continueUrl, localeHelper.selectLocale(locale, request), null);
   }
 
   @POST
@@ -91,7 +93,7 @@ public class LoginPage {
       @FormParam("pwd") @DefaultValue("") String password,
       @FormParam("continue") URI continueUrl
   ) {
-    locale = localeHelper.getLocale(locale);
+    locale = localeHelper.selectLocale(locale, request);
 
     if (userName.isEmpty()) {
       return loginOrReauthForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, locale, null);

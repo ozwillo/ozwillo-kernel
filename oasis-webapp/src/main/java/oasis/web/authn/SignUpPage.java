@@ -10,10 +10,10 @@ import javax.ws.rs.FormParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
@@ -64,6 +64,7 @@ public class SignUpPage {
 
   @Context SecurityContext securityContext;
   @Context UriInfo uriInfo;
+  @Context Request request;
 
   @POST
   @StrictReferer
@@ -79,7 +80,7 @@ public class SignUpPage {
     if (continueUrl == null) {
       continueUrl = LoginPage.defaultContinueUrl(urls.landingPage(), uriInfo);
     }
-    locale = localeHelper.getLocale(locale);
+    locale = localeHelper.selectLocale(locale, request);
 
     if (Strings.isNullOrEmpty(email) || Strings.isNullOrEmpty(password) || Strings.isNullOrEmpty(nickname)) {
       return LoginPage.signupForm(Response.ok(), continueUrl, mailSettings, urls, locale, LoginPage.SignupError.MISSING_REQUIRED_FIELD);
