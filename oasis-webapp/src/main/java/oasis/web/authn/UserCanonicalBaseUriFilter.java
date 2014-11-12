@@ -29,7 +29,7 @@ public class UserCanonicalBaseUriFilter implements ContainerRequestFilter {
     if (!urls.canonicalBaseUri().isPresent()) {
       return; // nothing to do
     }
-    if (requestContext.getUriInfo().getBaseUri().equals(urls.canonicalBaseUri().get())) {
+    if (Resteasy1099.getBaseUri(requestContext.getUriInfo()).equals(urls.canonicalBaseUri().get())) {
       return; // we're already on the canonical base URI
     }
 
