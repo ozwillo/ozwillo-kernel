@@ -20,7 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Function;
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
@@ -63,7 +63,7 @@ public class MarketSearchEndpoint {
                         serviceRepository.getVisibleServices()
                     ),
                     new Comparator<CatalogEntry>() {
-                      Locale l = Objects.firstNonNull(locale, Locale.ROOT);
+                      Locale l = MoreObjects.firstNonNull(locale, Locale.ROOT);
 
                       @Override
                       public int compare(CatalogEntry o1, CatalogEntry o2) {

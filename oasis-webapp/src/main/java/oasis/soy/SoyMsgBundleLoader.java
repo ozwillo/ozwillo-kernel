@@ -1,6 +1,6 @@
 package oasis.soy;
 
-import static com.google.common.base.Objects.*;
+import static com.google.common.base.MoreObjects.*;
 
 import java.io.IOException;
 import java.net.URL;
@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import com.google.api.client.repackaged.com.google.common.base.Throwables;
+import com.google.common.base.Throwables;
 import com.google.template.soy.msgs.SoyMsgBundle;
 import com.google.template.soy.msgs.SoyMsgBundleHandler;
 import com.google.template.soy.msgs.restricted.SoyMsg;

@@ -16,7 +16,7 @@ import javax.ws.rs.core.UriInfo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Function;
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
 import com.google.common.collect.FluentIterable;
@@ -108,7 +108,7 @@ public class ServiceSubscriptionEndpoint {
                 final UserAccount user = accountRepository.getUserAccountById(input.getUser_id());
                 sub.user_name = user == null ? null : user.getDisplayName();
                 sub.subscription_type = input.getSubscription_type();
-                sub.creator_id = Objects.firstNonNull(input.getCreator_id(), input.getUser_id());
+                sub.creator_id = MoreObjects.firstNonNull(input.getCreator_id(), input.getUser_id());
                 // TODO: check access rights to the user name
                 // TODO: introduce some caching (it's not unlikely many subscriptions will have the same creator)
                 final UserAccount creator = accountRepository.getUserAccountById(sub.creator_id);
