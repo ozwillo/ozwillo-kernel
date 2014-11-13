@@ -21,6 +21,7 @@ import com.wordnik.swagger.annotations.ApiOperation;
 import oasis.model.InvalidVersionException;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
+import oasis.model.bootstrap.ClientIds;
 import oasis.services.etag.EtagService;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
@@ -51,9 +52,19 @@ public class UserEndpoint {
       return ResponseFactory.NOT_FOUND;
     }
     // TODO: implement sharing rights to filter properties depending on requesting user
+    // FIXME: temporarily give full-access to the portal only; sharing only the name and nickname to other applications.
+    UserAccount filteredAccount;
+    if (ClientIds.PORTAL.equals(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getServiceProviderId())) {
+      filteredAccount = account;
+    } else {
+      filteredAccount = new UserAccount();
+      filteredAccount.setId(account.getId());
+      filteredAccount.setName(account.getName());
+      filteredAccount.setNickname(account.getNickname());
+    }
     return Response.ok()
         .tag(etagService.getEtag(account))
-        .entity(account)
+        .entity(filteredAccount)
         .build();
   }
 
@@ -67,6 +78,10 @@ public class UserEndpoint {
       UserAccount account
   ) {
     if (!user_id.equals(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId())) {
+      return Response.status(Response.Status.FORBIDDEN).build();
+    }
+    // FIXME: temporarily limit updates to the portal only; we need a specific scope for updates (and possibly support partial updates)
+    if (!ClientIds.PORTAL.equals(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getServiceProviderId())) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
 
