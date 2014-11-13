@@ -13,6 +13,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
@@ -24,10 +25,12 @@ import com.wordnik.swagger.annotations.ApiParam;
 import oasis.model.InvalidVersionException;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Organization;
+import oasis.model.directory.OrganizationMembership;
 import oasis.model.directory.OrganizationMembershipRepository;
 import oasis.services.etag.EtagService;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
+import oasis.web.authn.OAuthPrincipal;
 import oasis.web.resteasy.Resteasy1099;
 import oasis.web.utils.ResponseFactory;
 
@@ -39,6 +42,8 @@ public class OrganizationEndpoint {
   @Inject DirectoryRepository directory;
   @Inject OrganizationMembershipRepository organizationMembershipRepository;
   @Inject EtagService etagService;
+
+  @Context SecurityContext securityContext;
 
   @PathParam("organizationId") String organizationId;
 
@@ -68,6 +73,10 @@ public class OrganizationEndpoint {
 
     if (Strings.isNullOrEmpty(etagStr)) {
       return ResponseFactory.preconditionRequiredIfMatch();
+    }
+
+    if (!isOrgAdmin()) {
+      return ResponseFactory.forbidden("Current user is not an admin of the organization");
     }
 
     Organization updatedOrganization;
@@ -101,6 +110,10 @@ public class OrganizationEndpoint {
       return ResponseFactory.preconditionRequiredIfMatch();
     }
 
+    if (!isOrgAdmin()) {
+      return ResponseFactory.forbidden("Current user is not an admin of the organization");
+    }
+
     // FIXME: what should we do about the organization's applications/instances/services?
 
     boolean deleted;
@@ -118,5 +131,11 @@ public class OrganizationEndpoint {
     organizationMembershipRepository.deleteMembershipsInOrganization(organizationId);
 
     return ResponseFactory.NO_CONTENT;
+  }
+
+  private boolean isOrgAdmin() {
+    OrganizationMembership membership = organizationMembershipRepository
+        .getOrganizationMembership(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId());
+    return membership != null && membership.isAdmin();
   }
 }
