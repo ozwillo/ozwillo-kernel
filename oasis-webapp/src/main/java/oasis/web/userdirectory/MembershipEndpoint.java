@@ -27,6 +27,7 @@ import oasis.model.directory.OrganizationMembershipRepository;
 import oasis.services.etag.EtagService;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
+import oasis.web.authn.OAuthPrincipal;
 import oasis.web.utils.ResponseFactory;
 
 @Path("/d/memberships/membership/{membership_id}")
@@ -53,7 +54,12 @@ public class MembershipEndpoint {
     if (membership == null) {
       return Response.status(Response.Status.NOT_FOUND).build();
     }
-    // TODO: check access rights on the membership
+
+    String userId = ((OAuthPrincipal) securityContext).getAccessToken().getAccountId();
+    if (!userId.equals(membership.getAccountId()) || !isOrgAdmin(userId, membership.getOrganizationId())) {
+      return Response.status(Response.Status.FORBIDDEN).build();
+    }
+
     return Response.ok()
         .tag(etagService.getEtag(membership))
         .entity(membership)
@@ -66,6 +72,16 @@ public class MembershipEndpoint {
     if (Strings.isNullOrEmpty(ifMatch)) {
       ResponseFactory.preconditionRequiredIfMatch();
     }
+
+    OrganizationMembership membership = organizationMembershipRepository.getOrganizationMembership(membershipId);
+    if (membership == null) {
+      return ResponseFactory.NOT_FOUND;
+    }
+    String userId = ((OAuthPrincipal) securityContext).getAccessToken().getAccountId();
+    if (!userId.equals(membership.getAccountId()) || !isOrgAdmin(userId, membership.getOrganizationId())) {
+      return Response.status(Response.Status.FORBIDDEN).build();
+    }
+
     boolean deleted;
     try {
       deleted = organizationMembershipRepository.deleteOrganizationMembership(membershipId, etagService.parseEtag(ifMatch));
@@ -89,11 +105,17 @@ public class MembershipEndpoint {
     if (Strings.isNullOrEmpty(ifMatch)) {
       ResponseFactory.preconditionRequiredIfMatch();
     }
-    // TODO: make a single, atomic update request to the repository
+
     OrganizationMembership membership = organizationMembershipRepository.getOrganizationMembership(membershipId);
     if (membership == null) {
       return ResponseFactory.NOT_FOUND;
     }
+    String userId = ((OAuthPrincipal) securityContext).getAccessToken().getAccountId();
+    if (userId.equals(membership.getAccountId()) || !isOrgAdmin(userId, membership.getOrganizationId())) {
+      // You must be an org admin, and can't update your own membership
+      return Response.status(Response.Status.FORBIDDEN).build();
+    }
+
     membership.setAdmin(request.admin);
     try {
       membership = organizationMembershipRepository.updateOrganizationMembership(membership, etagService.parseEtag(ifMatch));
@@ -107,6 +129,11 @@ public class MembershipEndpoint {
         .tag(etagService.getEtag(membership))
         .entity(membership)
         .build();
+  }
+
+  private boolean isOrgAdmin(String userId, String organizationId) {
+    OrganizationMembership membership = organizationMembershipRepository.getOrganizationMembership(userId, organizationId);
+    return membership != null && membership.isAdmin();
   }
 
   static class MembershipRequest {
