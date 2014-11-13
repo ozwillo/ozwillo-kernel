@@ -34,10 +34,6 @@ dependencies {
   testCompile libs.assertj
 }
 
-sourceSets.main.resources {
-  source sourceSets.main.java
-}
-
 configurations {
   soy
 }
