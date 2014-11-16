@@ -24,7 +24,6 @@ public class SoyGuiceModule extends AbstractModule {
         .add(getClass().getResource("/templates/Logout.soy"))
         .add(getClass().getResource("/templates/Authorize.soy"))
         .add(getClass().getResource("/templates/ChangePassword.soy"))
-        .add(getClass().getResource("/templates/KibanaConfig.soy"))
         .add(getClass().getResource("/templates/mail/SignUp.soy"))
         .add(getClass().getResource("/templates/mail/RecoverMail.soy"))
         .build()

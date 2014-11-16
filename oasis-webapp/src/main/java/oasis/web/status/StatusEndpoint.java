@@ -17,14 +17,14 @@ import org.jongo.Jongo;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mongodb.ReadPreference;
 
-import oasis.web.kibana.KibanaModule;
+import oasis.elasticsearch.ElasticsearchModule;
 
 @Path("/status")
 public class StatusEndpoint {
 
   private static final long PING_TIMEOUT_IN_SECONDS = 5;
 
-  @Inject KibanaModule.Settings kibanaSettings;
+  @Inject ElasticsearchModule.Settings esSettings;
   @Inject Jongo jongo;
 
   @GET
@@ -33,7 +33,7 @@ public class StatusEndpoint {
     Status status = new Status();
 
     Future<Response> esStatus = ClientBuilder.newClient()
-        .target(UriBuilder.fromUri(kibanaSettings.elasticsearchUrl).path("_nodes"))
+        .target(UriBuilder.fromUri(esSettings.url()).path("_nodes"))
         .request().async().get();
 
     try {

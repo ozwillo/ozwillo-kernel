@@ -15,16 +15,16 @@ import com.wordnik.swagger.reader.ClassReaders;
 
 import oasis.auditlog.log4j.logstash.LogstashLog4JAuditModule;
 import oasis.auditlog.noop.NoopAuditLogModule;
+import oasis.auth.AuthModule;
+import oasis.elasticsearch.ElasticsearchModule;
 import oasis.http.HttpServer;
 import oasis.http.HttpServerModule;
 import oasis.jongo.JongoService;
 import oasis.jongo.guice.JongoModule;
 import oasis.mail.MailModule;
-import oasis.auth.AuthModule;
 import oasis.tools.CommandLineTool;
 import oasis.urls.UrlsModule;
 import oasis.web.guice.OasisGuiceModule;
-import oasis.web.kibana.KibanaModule;
 
 public class WebApp extends CommandLineTool {
   // logger is not a static field to be initialized once log4j is configured
@@ -45,7 +45,7 @@ public class WebApp extends CommandLineTool {
         JongoModule.create(config.getConfig("oasis.mongo")),
         auditModule,
         HttpServerModule.create(config.getConfig("oasis.http")),
-        KibanaModule.create(config.getConfig("oasis.kibana")),
+        ElasticsearchModule.create(config.getConfig("oasis.elasticsearch")),
         // TODO: store PKIs in DB to use a single subtree of the config
         AuthModule.create(config.getConfig("oasis.auth")
             .withFallback(config.withOnlyPath("oasis.conf-dir"))),

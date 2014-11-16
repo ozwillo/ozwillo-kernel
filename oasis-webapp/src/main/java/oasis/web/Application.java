@@ -41,8 +41,6 @@ import oasis.web.authz.KeysEndpoint;
 import oasis.web.authz.RevokeEndpoint;
 import oasis.web.authz.TokenEndpoint;
 import oasis.web.eventbus.EventBusEndpoint;
-import oasis.web.kibana.ElasticSearchProxy;
-import oasis.web.kibana.Kibana;
 import oasis.web.notifications.NotificationEndpoint;
 import oasis.web.openidconnect.OpenIdProviderConfigurationEndpoint;
 import oasis.web.providers.JacksonJsonProvider;
@@ -132,10 +130,7 @@ public class Application extends javax.ws.rs.core.Application {
         OrganizationAppInstanceEndpoint.class,
         UserAppInstanceEndpoint.class,
         AccessControlEntryEndpoint.class,
-        AppInstanceAccessControlEndpoint.class,
-        // Kibana and ElasticSearch proxy
-        Kibana.class,
-        ElasticSearchProxy.class
+        AppInstanceAccessControlEndpoint.class
         );
   }
 }
