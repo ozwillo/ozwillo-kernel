@@ -31,7 +31,7 @@ public class LocaleHelper {
     // Iterate in reverse order so that the first locales take precedence (overwrite)
     for (Locale supportedLocale : SUPPORTED_LOCALES.reverse()) {
       for (Locale candidateLocale : control.getCandidateLocales("", supportedLocale)) {
-        if (candidateLocale.equals(Locale.ROOT)) {
+        if (!candidateLocale.equals(Locale.ROOT)) {
           supportedLocalesMap.set(candidateLocale, supportedLocale);
         }
       }
@@ -77,9 +77,5 @@ public class LocaleHelper {
       locale = selectLocale(request);
     }
     return MoreObjects.firstNonNull(locale, DEFAULT_LOCALE);
-  }
-
-  public Locale pickSupportedLocale(Locale locale) {
-    return MoreObjects.firstNonNull(SUPPORTED_LOCALES_MAP.get(locale), DEFAULT_LOCALE);
   }
 }

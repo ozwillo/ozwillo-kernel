@@ -43,7 +43,7 @@ class SoyMsgBundleLoader {
           break;
         }
         // Try load the bundle:
-        URL resource = getClass().getClassLoader().getResource(control.toResourceName(control.toBundleName("templates.messages", locale), "xlf"));
+        URL resource = getClass().getClassLoader().getResource(control.toResourceName(control.toBundleName("templates.messages", candidateLocale), "xlf"));
         if (resource != null) {
           try {
             bundle = soyMsgBundleHandler.createFromResource(resource);
