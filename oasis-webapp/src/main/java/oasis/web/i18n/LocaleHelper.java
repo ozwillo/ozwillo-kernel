@@ -17,7 +17,8 @@ public class LocaleHelper {
   public static final Locale DEFAULT_LOCALE = Locale.UK;
 
   private static final ImmutableList<Locale> SUPPORTED_LOCALES = ImmutableList.of(
-      Locale.UK
+      Locale.UK,
+      Locale.FRANCE
   );
   static {
     assert SUPPORTED_LOCALES.contains(DEFAULT_LOCALE);
