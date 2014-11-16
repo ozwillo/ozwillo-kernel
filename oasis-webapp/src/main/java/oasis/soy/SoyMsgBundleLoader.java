@@ -5,6 +5,7 @@ import static com.google.common.base.MoreObjects.*;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,12 +19,35 @@ import com.google.template.soy.msgs.SoyMsgBundleHandler;
 import com.google.template.soy.msgs.restricted.SoyMsg;
 import com.google.template.soy.msgs.restricted.SoyMsgBundleImpl;
 
+import oasis.web.i18n.LocaleHelper;
+
 @Singleton
 class SoyMsgBundleLoader {
   private static final ResourceBundle.Control control = ResourceBundle.Control.getNoFallbackControl(ResourceBundle.Control.FORMAT_DEFAULT);
 
-  /** Sentinel value used to represent the 'null' value in the cache. */
-  private static final SoyMsgBundle SENTINEL = new SoyMsgBundleImpl(null, Collections.<SoyMsg>emptyList());
+  private static final SoyMsgBundle DEFAULT = new SoyMsgBundle() {
+    final String localeString = LocaleHelper.DEFAULT_LOCALE.toString();
+
+    @Override
+    public String getLocaleString() {
+      return localeString;
+    }
+
+    @Override
+    public SoyMsg getMsg(long l) {
+      return null;
+    }
+
+    @Override
+    public int getNumMsgs() {
+      return 0;
+    }
+
+    @Override
+    public Iterator<SoyMsg> iterator() {
+      return Collections.emptyIterator();
+    }
+  };
 
   private final SoyMsgBundleHandler soyMsgBundleHandler;
 
@@ -54,10 +78,13 @@ class SoyMsgBundleLoader {
           break;
         }
       }
+      if (bundle == null) {
+        bundle = DEFAULT;
+      }
       // Cache the bundle for the requested locale to avoid walking the candidate locales next time.
       // XXX: cache the bundle for all visited intermediate locales?
-      cache.put(locale, firstNonNull(bundle, SENTINEL));
+      cache.put(locale, bundle);
     }
-    return bundle == SENTINEL ? null : bundle;
+    return bundle;
   }
 }

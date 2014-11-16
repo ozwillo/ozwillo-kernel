@@ -14,7 +14,8 @@ import oasis.model.accounts.UserAccount;
 import oasis.model.i18n.LocalizableValue;
 
 public class LocaleHelper {
-  private static final Locale DEFAULT_LOCALE = Locale.UK;
+  public static final Locale DEFAULT_LOCALE = Locale.UK;
+
   private static final ImmutableList<Locale> SUPPORTED_LOCALES = ImmutableList.of(
       Locale.UK
   );
