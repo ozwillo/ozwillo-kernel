@@ -91,7 +91,8 @@ task extractMessagesFromTemplates(type: JavaExec) {
   classpath = configurations.soy
   args = [
       '--allowExternalCalls',   'false',
-      '--srcs',                 srcs.files.join(',')
+      '--srcs',                 srcs.files.join(','),
+      '--sourceLocaleString',   'en-GB'
     ]
   if (project.hasProperty("outputFile")) {
     args += ['--outputFile', project.outputFile]
