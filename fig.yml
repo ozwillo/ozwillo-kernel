@@ -1,0 +1,15 @@
+mongo:
+  image: mongo:2.6
+  ports:
+    - "27017:27017"
+  volumes:
+    - docker/mongo:/data/db
+
+elasticsearch:
+  image: dockerfile/elasticsearch:latest
+  ports:
+    - "9200:9200"
+  volumes:
+    - docker/elasticsearch:/data
+  command: /elasticsearch/bin/elasticsearch -Des.config=/data/elasticsearch.yml
+

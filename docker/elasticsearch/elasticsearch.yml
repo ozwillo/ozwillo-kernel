@@ -1,0 +1,4 @@
+path:
+  logs: /data/log
+  data: /data/data
+
