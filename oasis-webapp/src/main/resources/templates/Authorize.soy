@@ -17,7 +17,7 @@
 {@param? nonce:        string} /** 'nonce' request parameter */
 
 {call .header}
-  {param title kind="text"}Authorize {$appName}{/param}
+  {param title kind="text"}{msg desc="Authorization page title"}Authorize {$appName}{/msg}{/param}
 {/call}
 <style>{literal}
 h1 { font-weight: lighter; font-size: 1.8em; text-align: center; }
@@ -38,7 +38,9 @@ a.cancel {
 }
 a { color: #6e418e; }
 {/literal}</style>
-  <h1>{$appName} needs some authorizations</h1>
+  <h1>{msg desc="Some app needs authorizations"}
+    {$appName} needs some authorizations
+  {/msg}</h1>
 
   <form method="POST" action="{$formAction}">
     <input type="hidden" name="_utf8" value="&#9731;">
@@ -55,9 +57,9 @@ a { color: #6e418e; }
     {/if}
 
     <div>
-      <p>
+      <p>{msg desc="Introduce list of required (and not already granted) scopes"}
         {$appName} wants to:
-      </p>
+      {/msg}</p>
       <ul>
         {foreach $scope in $missingScopes}
           {call .scopeField data="$scope"}
@@ -66,16 +68,20 @@ a { color: #6e418e; }
         {/foreach}
       </ul>
       <div style="text-align: center">
-        <button type="submit">Grant it</button>
-        <a href="{$cancelUrl}" class=cancel>Cancel</a>
+        <button type="submit">
+          {msg desc="Button to grant the scopes"}Grant it{/msg}
+        </button>
+        <a href="{$cancelUrl}" class=cancel>
+          {msg desc="Button to cancel (and return error to the app)"}Cancel{/msg}
+        </a>
       </div>
     </div>
 
     {if $optionalScopes and length($optionalScopes)}
       <div>
-        <p>
+        <p>{msg desc="Introduce list of 'needed scopes' declared but neither granted nor required"}
           {$appName} may later need to do the following; you can authorize it in advance by checking the boxes:
-        </p>
+        {/msg}</p>
         <ul>
           {foreach $scope in $optionalScopes}
             {call .scopeField data="$scope"}
@@ -88,9 +94,9 @@ a { color: #6e418e; }
 
     {if $alreadyAuthorizedScopes and length($alreadyAuthorizedScopes)}
       <div>
-        <p>
+        <p>{msg desc="Introduce list of already authorized scopes"}
           You have already authorized {$appName} to:
-        </p>
+        {/msg}</p>
         <ul>
           {foreach $scope in $alreadyAuthorizedScopes}
             {call .scope data="$scope" /}
