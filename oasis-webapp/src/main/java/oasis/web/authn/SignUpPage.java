@@ -120,7 +120,7 @@ public class SignUpPage {
             .setLocale(account.getLocale())
             .setSubject(SignUpSoyInfo.ACTIVATE_ACCOUNT_SUBJECT)
             .setBody(SignUpSoyInfo.ACTIVATE_ACCOUNT)
-            .setPlainText()
+            .setHtml()
             .setData(new SoyMapData(
                 SignUpSoyInfo.ActivateAccountSoyTemplateInfo.NICKNAME, nickname,
                 SignUpSoyInfo.ActivateAccountSoyTemplateInfo.ACTIVATION_LINK, activationLink.toString()

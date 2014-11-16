@@ -12,18 +12,19 @@ Account Access Attempted
 /**
  * Forgot-password email; unknown account.
  */
-{template .forgotPasswordUnknownAccount kind="text"}
+{template .forgotPasswordUnknownAccount}
+<!DOCTYPE html>
+<html>
+<body>
 {msg desc="Forgot-password email body, for an unknown account"}
-You (or someone else) entered this email address when trying to change the password of an Oasis account.{\n}
-{\n}
-However, this email address is not on our database of registered users and therefore the attempted password change has failed.{\n}
-{\n}
-If you have an Oasis account and were expecting this email, please try again using the email address you gave when opening your account.{\n}
-{\n}
-If you don't have an Oasis account, please ignore this email.{\n}
-{\n}
-The Oasis team
+<p>You (or someone else) entered this email address when trying to change the password of an Oasis account.
+<p>However, this email address is not on our database of registered users and therefore the attempted password change has failed.
+<p>If you have an Oasis account and were expecting this email, please try again using the email address you gave when opening your account.
+<p>If you don't have an Oasis account, please ignore this email.
+<p>The Oasis team
 {/msg}
+</body>
+</html>
 {/template}
 
 
@@ -39,14 +40,17 @@ Oasis password reset
 /**
  * Forgot-password email; existing account.
  */
-{template .forgotPasswordExistingAccount kind="text"}
+{template .forgotPasswordExistingAccount}
 {@param resetPasswordLink: string} /** Link to reset password. */
+<!DOCTYPE html>
+<html>
+<body>
 {msg desc="Forgot-password email body, for an existing account"}
-You (or someone else) entered this email address when trying to change the password of an Oasis account.{\n}
-{\n}
-To continue with the password reset process, please proceed to:{\n}
-{$resetPasswordLink}{\n}
-{\n}
-The Oasis team
+<p>You (or someone else) entered this email address when trying to change the password of an Oasis account.
+<p>To continue with the password reset process, please proceed to:<br>
+   <a href="{$resetPasswordLink}">{$resetPasswordLink}</a>
+<p>The Oasis team
 {/msg}
+</body>
+</html>
 {/template}

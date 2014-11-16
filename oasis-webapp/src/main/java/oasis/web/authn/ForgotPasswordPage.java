@@ -88,7 +88,7 @@ public class ForgotPasswordPage {
           .setLocale(locale)
           .setSubject(RecoverMailSoyInfo.FORGOT_PASSWORD_UNKNOWN_ACCOUNT_SUBJECT)
           .setBody(RecoverMailSoyInfo.FORGOT_PASSWORD_UNKNOWN_ACCOUNT)
-          .setPlainText());
+          .setHtml());
       } else {
         String pass = tokenHandler.generateRandom();
         ChangePasswordToken changePasswordToken = tokenHandler.createChangePasswordToken(account.getId(), pass);
@@ -102,7 +102,7 @@ public class ForgotPasswordPage {
             .setLocale(locale)
             .setSubject(RecoverMailSoyInfo.FORGOT_PASSWORD_EXISTING_ACCOUNT_SUBJECT)
             .setBody(RecoverMailSoyInfo.FORGOT_PASSWORD_EXISTING_ACCOUNT)
-            .setPlainText()
+            .setHtml()
             .setData(new SoyMapData(
                 RecoverMailSoyInfo.ForgotPasswordExistingAccountSoyTemplateInfo.RESET_PASSWORD_LINK, resetPasswordLink.toString()
             )));

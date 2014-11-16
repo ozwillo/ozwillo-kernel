@@ -68,7 +68,7 @@ public class ActivateAccountPage {
           .setLocale(userAccount.getLocale())
           .setSubject(SignUpSoyInfo.ACCOUNT_ACTIVATED_SUBJECT)
           .setBody(SignUpSoyInfo.ACCOUNT_ACTIVATED)
-          .setPlainText()
+          .setHtml()
           .setData(new SoyMapData(
               SignUpSoyInfo.AccountActivatedSoyTemplateInfo.NICKNAME, userAccount.getDisplayName()
           )));

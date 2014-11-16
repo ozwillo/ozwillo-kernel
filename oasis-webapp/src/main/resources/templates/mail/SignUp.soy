@@ -12,21 +12,22 @@ Activate your Oasis account
 /**
  * Sign-up email.
  */
-{template .activateAccount kind="text"}
+{template .activateAccount}
 {@param nickname: string} /** User's nickname */
 {@param activationLink: string} /** Link to activate account. */
+<!DOCTYPE html>
+<html>
+<body>
 {msg desc="Sign-up email body"}
-Hello {$nickname},{\n}
-{\n}
-You are receiving this e-mail because you have registered on the Oasis portal.{\n}
-{\n}
-In order to confirm your subscription, please click on the following link:{\n}
-{$activationLink}{\n}
-{\n}
-Wishing you a nice tour on the Oasis portal{\n}
-{\n}
-The Oasis team
+<p>Hello {$nickname},
+<p>You are receiving this e-mail because you have registered on the Oasis portal.
+<p>In order to confirm your subscription, please click on the following link:<br>
+   <a href="{$activationLink}">{$activationLink}</a>
+<p>Wishing you a nice tour on the Oasis portal
+<p>The Oasis team
 {/msg}
+</body>
+</html>
 {/template}
 
 /**
@@ -41,11 +42,15 @@ Welcome to Oasis
 /**
  * Welcome email.
  */
-{template .accountActivated kind="text"}
+{template .accountActivated}
 {@param nickname: string} /** User's nickname */
+<!DOCTYPE html>
+<html>
+<body>
 {msg desc="Welcome email body"}
-Congratulations {$nickname},{\n}
-{\n}
-Your subscription to the Oasis portal has been validated.
+<p>Congratulations {$nickname},
+<p>Your subscription to the Oasis portal has been validated.
 {/msg}
+</body>
+</html>
 {/template}
