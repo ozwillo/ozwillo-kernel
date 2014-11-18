@@ -54,7 +54,7 @@ class SoyMsgBundleLoader {
     this.soyMsgBundleHandler = soyMsgBundleHandler;
   }
 
-  /** Returns the corresponding bundle, or {@code null} if none has been found. */
+  /** Returns the corresponding bundle. */
   public SoyMsgBundle get(Locale locale) {
     SoyMsgBundle bundle = cache.get(locale);
     if (bundle == null) {

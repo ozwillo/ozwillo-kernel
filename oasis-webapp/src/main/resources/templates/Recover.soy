@@ -4,11 +4,13 @@
  * "I forgot my password" page.
  */
 {template .forgotPassword}
-{@param  formAction:   string} /** URL to post the form to. */
-{@param  locale:       string} /** current locale, to be propagated to subsequent requests. */
-{@param? error:        string} /** error; can be one of MISSING_REQUIRED_FIELD, MESSAGING_ERROR, or EXPIRED_LINK */
+{@param  formAction:     string} /** URL to post the form to. */
+{@param? error:          string} /** error; can be one of MISSING_REQUIRED_FIELD, MESSAGING_ERROR, or EXPIRED_LINK */
+{@param  locale_url_map:   map<string,string>}
+{@inject current_locale: string} /** current locale. */
 {call .header}
   {param title kind="text"}{msg desc="Forgot password page title"}Forgot password{/msg}{/param}
+  {param locale_url_map: $locale_url_map /}
 {/call}
 <style>{literal}
 main { text-align: center; }
@@ -47,7 +49,7 @@ h2 { margin-bottom: 2.5em; }
 
   <form method=POST action="{$formAction}">
     <input type=hidden name=_utf8 value="&#9731;">
-    <input type="hidden" name="locale" value="{$locale}">
+    <input type="hidden" name="locale" value="{$current_locale}">
     <div>
       <label for=u>{msg desc="Email field label for account recovery"}Your email address:{/msg}</label>
       {sp}

@@ -16,7 +16,7 @@ import oasis.model.i18n.LocalizableValue;
 public class LocaleHelper {
   public static final Locale DEFAULT_LOCALE = Locale.UK;
 
-  private static final ImmutableList<Locale> SUPPORTED_LOCALES = ImmutableList.of(
+  public static final ImmutableList<Locale> SUPPORTED_LOCALES = ImmutableList.of(
       Locale.UK,
       Locale.FRANCE,
       Locale.ITALY,

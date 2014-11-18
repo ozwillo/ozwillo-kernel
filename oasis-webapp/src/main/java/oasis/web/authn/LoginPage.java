@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Optional;
+import com.google.template.soy.data.SoyListData;
 import com.google.template.soy.data.SoyMapData;
 
 import oasis.auditlog.AuditLogEvent;
@@ -178,7 +179,6 @@ public class LoginPage {
         ReauthSoyTemplateInfo.REAUTH_EMAIL, userAccount.getEmail_address(),
         ReauthSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(LoginPage.class).build().toString(),
         ReauthSoyTemplateInfo.CONTINUE, continueUrl.toString(),
-        ReauthSoyTemplateInfo.LOCALE, userAccount.getLocale().toLanguageTag(),
         ReauthSoyTemplateInfo.ERROR, error == null ? null : error.name()
     ));
 
@@ -195,14 +195,22 @@ public class LoginPage {
 
   private static Response loginAndSignupForm(Response.ResponseBuilder builder, URI continueUrl, MailModule.Settings mailSettings,
       Locale locale, @Nullable Enum<?> error) {
-    String languageTag = locale.toLanguageTag();
+    SoyMapData localeUrlMap = new SoyMapData();
+    for (Locale supportedLocale : LocaleHelper.SUPPORTED_LOCALES) {
+      String languageTag = supportedLocale.toLanguageTag();
+      URI uri = UriBuilder.fromResource(LoginPage.class)
+          .queryParam(LoginPage.CONTINUE_PARAM, continueUrl)
+          .queryParam(LoginPage.LOCALE_PARAM, languageTag)
+          .build();
+      localeUrlMap.put(languageTag, uri.toString());
+    }
     SoyTemplate soyTemplate = new SoyTemplate(LoginSoyInfo.LOGIN, locale, new SoyMapData(
         LoginSoyTemplateInfo.SIGN_UP_FORM_ACTION, UriBuilder.fromResource(SignUpPage.class).build().toString(),
         LoginSoyTemplateInfo.LOGIN_FORM_ACTION, UriBuilder.fromResource(LoginPage.class).build().toString(),
-        LoginSoyTemplateInfo.FORGOT_PASSWORD, mailSettings.enabled ? UriBuilder.fromResource(ForgotPasswordPage.class).queryParam(LOCALE_PARAM, languageTag).build().toString() : null,
-        LoginSoyTemplateInfo.LOCALE, languageTag,
+        LoginSoyTemplateInfo.FORGOT_PASSWORD, mailSettings.enabled ? UriBuilder.fromResource(ForgotPasswordPage.class).queryParam(LOCALE_PARAM, locale.toLanguageTag()).build().toString() : null,
         LoginSoyTemplateInfo.CONTINUE, continueUrl.toString(),
-        LoginSoyTemplateInfo.ERROR, error == null ? null : error.name()
+        LoginSoyTemplateInfo.ERROR, error == null ? null : error.name(),
+        LoginSoyTemplateInfo.LOCALE_URL_MAP, localeUrlMap
     ));
 
     return buildResponseFromView(builder, soyTemplate);

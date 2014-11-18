@@ -241,6 +241,11 @@
         <target>Vous avez déjà autorisé <x id="APP_NAME"/> à :</target>
         <note priority="1" from="description">Introduce list of already authorized scopes</note>
       </trans-unit>
+      <trans-unit id="5866254605255506989" datatype="html">
+        <source>English</source>
+        <target>Anglais</target>
+        <note priority="1" from="description">Locale selector</note>
+      </trans-unit>
       <trans-unit id="6159587099290300397" datatype="html">
         <source>New password:</source>
         <target>Nouveau mot de passe :</target>
@@ -275,6 +280,11 @@
         <source><x id="APP_NAME"/> may later need to do the following; you can authorize it in advance by checking the boxes:</source>
         <target><x id="APP_NAME"/> pourra ultérieurement vous demander les autorisations suivantes ; vous pouvez les accorder à l'avance en cochant les cases :</target>
         <note priority="1" from="description">Introduce list of 'needed scopes' declared but neither granted nor required</note>
+      </trans-unit>
+      <trans-unit id="7633754075223722162" datatype="html">
+        <source>French</source>
+        <target>Français</target>
+        <note priority="1" from="description">Locale selector</note>
       </trans-unit>
       <trans-unit id="7645606619520439486" datatype="html">
         <source>An error occurred sending you an email. Check your email address and try again in a few minutes.</source>

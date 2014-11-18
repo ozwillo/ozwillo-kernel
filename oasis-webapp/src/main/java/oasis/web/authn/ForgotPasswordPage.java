@@ -121,6 +121,14 @@ public class ForgotPasswordPage {
   }
 
   static Response form(Response.ResponseBuilder builder, Locale locale, @Nullable ForgotPasswordError error) {
+    SoyMapData localeUrlMap = new SoyMapData();
+    for (Locale supportedLocale : LocaleHelper.SUPPORTED_LOCALES) {
+      String languageTag = supportedLocale.toLanguageTag();
+      URI uri = UriBuilder.fromResource(ForgotPasswordPage.class)
+          .queryParam(LoginPage.LOCALE_PARAM, languageTag)
+          .build();
+      localeUrlMap.put(languageTag, uri.toString());
+    }
     return builder
         .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store")
         .header("Pragma", "no-cache")
@@ -132,8 +140,8 @@ public class ForgotPasswordPage {
             locale,
             new SoyMapData(
                 RecoverSoyInfo.ForgotPasswordSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(ForgotPasswordPage.class).build().toString(),
-                RecoverSoyInfo.ForgotPasswordSoyTemplateInfo.LOCALE, locale.toLanguageTag(),
-                RecoverSoyInfo.ForgotPasswordSoyTemplateInfo.ERROR, error == null ? null : error.name()
+                RecoverSoyInfo.ForgotPasswordSoyTemplateInfo.ERROR, error == null ? null : error.name(),
+                RecoverSoyInfo.ForgotPasswordSoyTemplateInfo.LOCALE_URL_MAP, localeUrlMap
             )
         ))
         .build();

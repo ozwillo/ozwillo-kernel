@@ -8,10 +8,12 @@
 {@param  loginFormAction:  string} /** URL to post the sign-in form to. */
 {@param? forgotPassword:   string} /** URL to the form allowing for recovering your password. */
 {@param  continue:         string} /** URL to continue to after successful login/re-auth. */
-{@param  locale:           string} /** current locale, to be propagated to subsequent requests. */
 {@param? error:            string} /** error; can be one of INCORRECT_USERNAME_OR_PASSWORD, MISSING_REQUIRED_FIELD, ACCOUNT_ALREADY_EXISTS, or MESSAGING_ERROR */
+{@param  locale_url_map:   map<string,string>}
+{@inject current_locale:   string} /** current locale. */
 {call .header}
   {param title kind="text"}{msg desc="Login page title"}Login{/msg}{/param}
+  {param locale_url_map: $locale_url_map /}
 {/call}
 <style>{literal}
 h1, h2 { text-align: center; font-weight: lighter; }
@@ -80,7 +82,7 @@ aside a { display: inline-block; padding: 5px 15px; font-weight: lighter; text-d
       <form method=post action="{$loginFormAction}">
         <input type="hidden" name="_utf8" value="&#9731;">
         <input type="hidden" name="continue" value="{$continue}">
-        <input type="hidden" name="locale" value="{$locale}">
+        <input type="hidden" name="locale" value="{$current_locale}">
         <div>
           <label for=u>{msg desc="Email field label"}Email{/msg}</label>
           <input id=u type=email name=u required autofocus>
@@ -109,7 +111,7 @@ aside a { display: inline-block; padding: 5px 15px; font-weight: lighter; text-d
       <form method=post action="{$signUpFormAction}">
         <input type="hidden" name="_utf8" value="&#9731;">
         <input type="hidden" name="continue" value="{$continue}">
-        <input type="hidden" name="locale" value="{$locale}">
+        <input type="hidden" name="locale" value="{$current_locale}">
         <div>
           <label for=nickname>{msg desc="Nickname field label (for sign-up)"}Nickname{/msg}</label>
           <input id=nickname name=nickname required>
@@ -157,11 +159,11 @@ aside a { display: inline-block; padding: 5px 15px; font-weight: lighter; text-d
  * Asks user to re-enter his password.
  */
 {template .reauth}
-{@param  reauthEmail:  string} /** email of the logged-in user when asking for password. */
-{@param  formAction:   string} /** URL to post the form to. */
-{@param  continue:     string} /** URL to continue to after successful login/re-auth. */
-{@param  locale:       string} /** current locale, to be propagated to subsequent requests. */
-{@param? error:        string} /** error; can be one of INCORRECT_USERNAME_OR_PASSWORD */
+{@param  reauthEmail:    string} /** email of the logged-in user when asking for password. */
+{@param  formAction:     string} /** URL to post the form to. */
+{@param  continue:       string} /** URL to continue to after successful login/re-auth. */
+{@param? error:          string} /** error; can be one of INCORRECT_USERNAME_OR_PASSWORD */
+{@inject current_locale: string} /** current locale. */
 {call .header}
   {param title kind="text"}{msg desc="Login page title"}Login{/msg}{/param}
 {/call}
@@ -199,7 +201,7 @@ h2 { margin-bottom: 2.5em; }
   <form method=POST action="{$formAction}">
     <input type=hidden name=_utf8 value="&#9731;">
     <input type=hidden name=continue value="{$continue}">
-    <input type=hidden name=locale value="{$locale}">
+    <input type=hidden name=locale value="{$current_locale}">
     <input type=hidden name=u value="{$reauthEmail}">
     <p>{$reauthEmail}</p>
     <input type=password name=pwd required>

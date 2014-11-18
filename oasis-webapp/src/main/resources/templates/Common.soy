@@ -4,7 +4,8 @@
  * Common header for OASIS
  */
 {template .header private="true"}
-{@param? title: string} /** title for this page. */
+{@param?  title:  string} /** title for this page. */
+{@param? locale_url_map: map<string,string>}
 <!DOCTYPE html>
 <html>
 <head>
@@ -50,6 +51,7 @@ img { border: none; }
  */
 html,body { height: 100%; margin: 0; }
 .page-wrap { min-height: calc(100% - 70px); } /* 70px is 50px of EU logo + 2 * 10px of padding */
+header > nav { max-width: 1170px /* value from portal's bootstrap */ margin: 0 auto; }
 main { max-width: 700px; margin: 0 auto; border-width: 50px 15px 15px; border-style: solid }
 footer { max-width: 500px; margin: 0 auto; }
 
@@ -58,6 +60,7 @@ html,body { background: #6e418e; color: white; }
 header,main { background: white; color: #636884; }
 main { border-color: #626580; }
 
+header > nav { display: flex; justify-content: space-between; }
 main { padding: 25px 10px; }
 footer { padding: 10px; }
 footer::after { display: block; content: " "; clear: both; }
@@ -69,19 +72,88 @@ input:focus { border-color: #6e418e; color: #6e418e }
 
 input:not([type=checkbox]) { font-weight: normal; width: 100%; max-width: 200px; }
 label { font-weight: lighter; }
+
+/* most styles copied from Bootstrap */
+#localeselector { position: relative; }
+#localeselector > button { padding: 14px 15px; border: none; color: #636884; background: transparent; }
+#localeselector:not(:hover) > #locales-menu { display: none; }
+#locales-menu {
+  list-style: none;
+  position: absolute; right: 0;
+  margin: 0; padding: 5px 0;
+  background: white;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
+  background-clip: padding-box;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 0 0 4px 4px;
+  font-size: 16px;
+  min-width: 160px;
+}
+#locales-menu > li > a { display: block; padding: 5px 20px; color: #555; background: white; text-decoration: none }
+#localeselector:hover > button,
+#locales-menu:not(:hover) > li > a.selected,
+#locales-menu > li > a:hover {
+  color: #555; background: #eee;
+}
 {/literal}</style>
 </head>
 <body>
 
 <div class=page-wrap>
 <header>
+  <nav>
   // TODO: add link!
-  <a href="" title="{msg desc="link title on header logo"}Go to the Oasis portal{/msg}" style="padding:4px;display:inline-block;"><img src="/images/logo_oasis.png" alt="Oasis" width=90 height=30></a>
+  <a href="" title="{msg desc="link title on header logo"}Go to the Oasis portal{/msg}" style="padding:3px 15px 4px;display:inline-block;"><img src="/images/logo_oasis.png" alt="Oasis" width=90 height=30></a>
 
-   // TODO: Add a dropdown for modifying the locale of a page
+  {if $locale_url_map and length(keys($locale_url_map)) > 0}
+    {call .locale_selector}
+      {param locale_url_map: $locale_url_map /}
+    {/call}
+  {/if}
 </header>
 
 <main>
+{/template}
+
+/**
+ * Locale selector.
+ */
+{template .locale_selector private="true"}
+{@param  locale_url_map:    map<string,string>}
+{@inject current_locale:    string} /** current locale. */
+{@inject locale_name_map:   map<string,string>} /** map between language-tag and locale name. */
+{@inject supported_locales: list<[locale: string, native_name: string, translated_name: string]>} /** List of supported locales with labels. */
+<div id=localeselector>
+  <button>{$locale_name_map[$current_locale]}{sp}▼</button>
+  <ul id=locales-menu>
+    {foreach $supported_locale in $supported_locales}
+      {call .locale_selector_item}
+        {param locale: $supported_locale.locale /}
+        {param native_name: $supported_locale.native_name /}
+        {param translated_name: $supported_locale.translated_name /}
+        {param url: $locale_url_map[$supported_locale.locale] /}
+      {/call}
+    {/foreach}
+  </ul>
+</div>
+{/template}
+
+/**
+ * Locale-selector item.
+ */
+{template .locale_selector_item private="true"}
+{@param locale:          string}
+{@param native_name:     string}
+{@param translated_name: string}
+{@param url:             string}
+{@inject current_locale: string} /** current locale. */
+<li>
+  {if $current_locale != $locale}
+    <a href="{$url}" title="{$native_name} – {$translated_name}">{$native_name}</a>
+  {else}
+    <a class=selected>{$native_name}</a>
+  {/if}
+</li>
 {/template}
 
 /**
