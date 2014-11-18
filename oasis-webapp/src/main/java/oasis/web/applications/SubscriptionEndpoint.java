@@ -57,7 +57,7 @@ public class SubscriptionEndpoint {
       return ResponseFactory.NOT_FOUND;
     }
 
-    String userId = ((OAuthPrincipal) securityContext).getAccessToken().getAccountId();
+    String userId = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId();
     if (!userId.equals(subscription.getUser_id())) {
       AppInstance appInstance = getAppInstance(subscription.getService_id());
       if (appInstance == null) {
@@ -85,7 +85,7 @@ public class SubscriptionEndpoint {
     if (subscription == null) {
       return ResponseFactory.NOT_FOUND;
     }
-    String userId = ((OAuthPrincipal) securityContext).getAccessToken().getAccountId();
+    String userId = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId();
     switch (subscription.getSubscription_type()) {
       case PERSONAL:
         // Personal subscriptions can only be deleted by the user

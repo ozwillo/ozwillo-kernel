@@ -55,7 +55,7 @@ public class MembershipEndpoint {
       return Response.status(Response.Status.NOT_FOUND).build();
     }
 
-    String userId = ((OAuthPrincipal) securityContext).getAccessToken().getAccountId();
+    String userId = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId();
     if (!userId.equals(membership.getAccountId()) || !isOrgAdmin(userId, membership.getOrganizationId())) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
@@ -77,7 +77,7 @@ public class MembershipEndpoint {
     if (membership == null) {
       return ResponseFactory.NOT_FOUND;
     }
-    String userId = ((OAuthPrincipal) securityContext).getAccessToken().getAccountId();
+    String userId = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId();
     if (!userId.equals(membership.getAccountId()) || !isOrgAdmin(userId, membership.getOrganizationId())) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
@@ -110,7 +110,7 @@ public class MembershipEndpoint {
     if (membership == null) {
       return ResponseFactory.NOT_FOUND;
     }
-    String userId = ((OAuthPrincipal) securityContext).getAccessToken().getAccountId();
+    String userId = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId();
     if (userId.equals(membership.getAccountId()) || !isOrgAdmin(userId, membership.getOrganizationId())) {
       // You must be an org admin, and can't update your own membership
       return Response.status(Response.Status.FORBIDDEN).build();
