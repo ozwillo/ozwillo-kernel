@@ -43,13 +43,14 @@ Welcome to Oasis
  * Welcome email.
  */
 {template .accountActivated}
-{@param nickname: string} /** User's nickname */
+{@param nickname:  string} /** User's nickname. */
+{@param portalUrl: string} /** Portal URL. */
 <!DOCTYPE html>
 <html>
 <body>
 {msg desc="Welcome email body"}
 <p>Congratulations {$nickname},
-<p>Your subscription to the Oasis portal has been validated.
+<p>Your subscription to the <a href="{$portalUrl}">Oasis portal</a> has been validated.
 {/msg}
 </body>
 </html>

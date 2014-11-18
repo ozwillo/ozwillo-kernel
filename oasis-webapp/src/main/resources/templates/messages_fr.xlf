@@ -136,11 +136,6 @@
         <target>Un compte avec cette adresse email existe déjà.</target>
         <note priority="1" from="description">Error message during sign-up</note>
       </trans-unit>
-      <trans-unit id="3418186357420325049" datatype="html">
-        <source><x id="START_PARAGRAPH"/>Congratulations <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>Your subscription to the Oasis portal has been validated.</source>
-        <target><x id="START_PARAGRAPH"/>Félicitations <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>Vous venez de valider votre inscription au portail Oasis.</target>
-        <note priority="1" from="description">Welcome email body</note>
-      </trans-unit>
       <trans-unit id="3510526964471104374" datatype="html">
         <source>Cancel and log me back in</source>
         <target>Annuler et me connecté à nouveau</target>
@@ -170,6 +165,11 @@
         <source>Your email address:</source>
         <target>Votre adresse email :</target>
         <note priority="1" from="description">Email field label for account recovery</note>
+      </trans-unit>
+      <trans-unit id="4003327077144377574" datatype="html">
+        <source><x id="START_PARAGRAPH"/>Congratulations <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>Your subscription to the <x id="START_LINK"/>Oasis portal<x id="END_LINK"/> has been validated.</source>
+        <target><x id="START_PARAGRAPH"/>Félicitations <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>Vous venez de valider votre inscription au <x id="START_LINK"/>portail Oasis<x id="END_LINK"/>.</target>
+        <note priority="1" from="description">Welcome email body</note>
       </trans-unit>
       <trans-unit id="4202921825918258541" datatype="html">
         <source>Activate your Oasis account</source>

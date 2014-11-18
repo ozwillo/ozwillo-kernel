@@ -70,7 +70,8 @@ public class ActivateAccountPage {
           .setBody(SignUpSoyInfo.ACCOUNT_ACTIVATED)
           .setHtml()
           .setData(new SoyMapData(
-              SignUpSoyInfo.AccountActivatedSoyTemplateInfo.NICKNAME, userAccount.getDisplayName()
+              SignUpSoyInfo.AccountActivatedSoyTemplateInfo.NICKNAME, userAccount.getDisplayName(),
+              SignUpSoyInfo.AccountActivatedSoyTemplateInfo.PORTAL_URL, LoginPage.defaultContinueUrl(urls.landingPage(), uriInfo).toString()
           )));
     } catch (MessagingException e) {
       logger.error("Error sending welcome email", e);
