@@ -78,7 +78,7 @@ public class SignUpPage {
       @FormParam("nickname") String nickname
   ) {
     if (continueUrl == null) {
-      continueUrl = LoginPage.defaultContinueUrl(urls.landingPage(), uriInfo);
+      continueUrl = LoginPage.defaultContinueUrl(urls.myOasis(), uriInfo);
     }
     locale = localeHelper.selectLocale(locale, request);
 

@@ -1,5 +1,6 @@
 package oasis.web.authn;
 
+import java.net.URI;
 import java.util.Locale;
 
 import javax.annotation.Nullable;
@@ -62,6 +63,7 @@ public class ActivateAccountPage {
 
     tokenRepository.revokeTokensForAccount(accountActivationToken.getAccountId());
 
+    URI portalUrl = LoginPage.defaultContinueUrl(urls.myOasis(), uriInfo);
     try {
       mailSender.send(new MailMessage()
           .setRecipient(userAccount.getEmail_address(), userAccount.getDisplayName())
@@ -71,12 +73,12 @@ public class ActivateAccountPage {
           .setHtml()
           .setData(new SoyMapData(
               SignUpSoyInfo.AccountActivatedSoyTemplateInfo.NICKNAME, userAccount.getDisplayName(),
-              SignUpSoyInfo.AccountActivatedSoyTemplateInfo.PORTAL_URL, LoginPage.defaultContinueUrl(urls.landingPage(), uriInfo).toString()
+              SignUpSoyInfo.AccountActivatedSoyTemplateInfo.PORTAL_URL, portalUrl.toString()
           )));
     } catch (MessagingException e) {
       logger.error("Error sending welcome email", e);
       // fall through: it's unfortunate but not critical.
     }
-    return Response.seeOther(LoginPage.defaultContinueUrl(urls.landingPage(), uriInfo)).build();
+    return Response.seeOther(portalUrl).build();
   }
 }

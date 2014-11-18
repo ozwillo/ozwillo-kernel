@@ -150,9 +150,8 @@ public class LogoutPage {
     Collections.sort(otherApps, Collator.getInstance(account.getLocale()));
     viewModel.put(LogoutSoyTemplateInfo.OTHER_APPS, new SoyListData(otherApps));
     viewModel.put(LogoutSoyTemplateInfo.IS_PORTAL, appInstance != null && appInstance.getId().equals(ClientIds.PORTAL));
-    // FIXME: this should probably be a different URL, make it configurable
-    if (urls.landingPage().isPresent()) {
-      viewModel.put(LogoutSoyTemplateInfo.PORTAL_URL, urls.landingPage().get().toString());
+    if (urls.myOasis().isPresent()) {
+      viewModel.put(LogoutSoyTemplateInfo.PORTAL_URL, urls.myOasis().get().toString());
     }
 
     return Response.ok(new SoyTemplate(LogoutSoyInfo.LOGOUT, account.getLocale(), viewModel)).build();

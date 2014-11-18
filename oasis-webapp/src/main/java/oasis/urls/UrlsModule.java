@@ -18,6 +18,8 @@ public class UrlsModule extends AbstractModule {
     return new UrlsModule(ImmutableUrls.builder()
         .canonicalBaseUri(get(config, "canonical-base-uri"))
         .landingPage(get(config, "landing-page"))
+        .myOasis(get(config, "my-oasis"))
+        .myProfile(get(config, "my-profile"))
         .build());
   }
 

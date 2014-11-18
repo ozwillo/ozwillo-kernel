@@ -11,4 +11,8 @@ public interface Urls {
   Optional<URI> canonicalBaseUri();
 
   Optional<URI> landingPage();
+
+  Optional<URI> myOasis();
+
+  Optional<URI> myProfile();
 }

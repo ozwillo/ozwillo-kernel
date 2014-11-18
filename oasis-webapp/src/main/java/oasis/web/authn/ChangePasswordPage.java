@@ -1,7 +1,5 @@
 package oasis.web.authn;
 
-import java.util.Objects;
-
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.ws.rs.FormParam;
@@ -16,6 +14,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 
+import com.google.common.base.Functions;
 import com.google.template.soy.data.SoyMapData;
 
 import oasis.model.accounts.AccountRepository;
@@ -75,7 +74,7 @@ public class ChangePasswordPage {
         .entity(new SoyTemplate(ChangePasswordSoyInfo.PASSWORD_CHANGED,
             account.getLocale(),
             new SoyMapData(
-                PasswordChangedSoyTemplateInfo.CONTINUE, Objects.toString(urls.landingPage().orNull(), null)
+                PasswordChangedSoyTemplateInfo.CONTINUE, urls.myOasis().transform(Functions.toStringFunction()).orNull()
             )))
         .build();
   }
@@ -93,8 +92,7 @@ public class ChangePasswordPage {
             new SoyMapData(
                 ChangePasswordSoyTemplateInfo.EMAIL, account.getEmail_address(),
                 ChangePasswordSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(ChangePasswordPage.class).build().toString(),
-                // FIXME: get the URL to the profile page
-                ChangePasswordSoyTemplateInfo.PORTAL_URL, Objects.toString(urls.landingPage().orNull(), null),
+                ChangePasswordSoyTemplateInfo.PORTAL_URL, urls.myProfile().transform(Functions.toStringFunction()).orNull(),
                 ChangePasswordSoyTemplateInfo.ERROR, error == null ? null : error.name()
             )
         ))
