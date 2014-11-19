@@ -60,7 +60,11 @@ public class ElasticSearchProxy {
     return new InvocationCallback<Response>() {
       @Override
       public void completed(Response response) {
-        future.set(buildResponse(response));
+        try {
+          future.set(buildResponse(response));
+        } finally {
+          response.close();
+        }
       }
 
       @Override

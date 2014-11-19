@@ -11,14 +11,14 @@ import java.util.concurrent.TimeoutException;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.inject.Inject;
-import javax.ws.rs.client.ClientBuilder;
+import javax.inject.Provider;
+import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
-import com.google.common.primitives.Longs;
 
 import oasis.model.InvalidVersionException;
 import oasis.model.applications.v2.AccessControlRepository;
@@ -37,11 +37,11 @@ import oasis.model.authn.TokenRepository;
 import oasis.model.authz.AuthorizationRepository;
 import oasis.model.eventbus.SubscriptionRepository;
 import oasis.services.etag.EtagService;
-import oasis.web.providers.JacksonJsonProvider;
 import oasis.web.webhooks.WebhookSignatureFilter;
 
 public class DeleteAppInstance {
 
+  @Inject Provider<Client> clientProvider;
   @Inject AppInstanceRepository appInstanceRepository;
   @Inject ApplicationRepository applicationRepository;
   @Inject CredentialsRepository credentialsRepository;
@@ -142,18 +142,21 @@ public class DeleteAppInstance {
     }
     // FIXME: temporarily allow empty destruction_uri
     if (!Strings.isNullOrEmpty(endpoint)) {
-      Future<Response> future = ClientBuilder.newClient()
+      Future<Response> future = clientProvider.get()
           .target(appInstance.getDestruction_uri())
           .register(new WebhookSignatureFilter(secret))
-          .register(JacksonJsonProvider.class)
           .request()
           .async()
           .post(Entity.json(new ProviderRequest(appInstance.getId())));
       try {
         // TODO: make timeout configurable
         Response response = future.get(1, TimeUnit.MINUTES);
-        if (response.getStatusInfo().getFamily() != Response.Status.Family.SUCCESSFUL) {
-          return Status.PROVIDER_STATUS_ERROR;
+        try {
+          if (response.getStatusInfo().getFamily() != Response.Status.Family.SUCCESSFUL) {
+            return Status.PROVIDER_STATUS_ERROR;
+          }
+        } finally {
+          response.close();
         }
       } catch (InterruptedException | ExecutionException e) {
         // FIXME: check that wrapped exception is not a ResponseProcessingException

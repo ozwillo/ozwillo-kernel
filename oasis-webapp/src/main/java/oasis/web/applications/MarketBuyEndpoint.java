@@ -13,7 +13,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -47,7 +47,6 @@ import oasis.usecases.DeleteAppInstance;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
-import oasis.web.providers.JacksonJsonProvider;
 import oasis.web.resteasy.Resteasy1099;
 import oasis.web.utils.ResponseFactory;
 import oasis.web.webhooks.WebhookSignatureFilter;
@@ -67,6 +66,7 @@ public class MarketBuyEndpoint {
   @Inject PasswordGenerator passwordGenerator;
   @Inject CredentialsService credentialsService;
   @Inject DeleteAppInstance deleteAppInstance;
+  @Inject Client client;
 
   @Context UriInfo uriInfo;
   @Context SecurityContext securityContext;
@@ -137,10 +137,9 @@ public class MarketBuyEndpoint {
     String pwd = passwordGenerator.generate();
     credentialsService.setPassword(ClientType.PROVIDER, instance.getId(), pwd);
 
-    Future<Response> future = ClientBuilder.newClient()
+    Future<Response> future = client
         .target(application.getInstantiation_uri())
         .register(new WebhookSignatureFilter(application.getInstantiation_secret()))
-        .register(JacksonJsonProvider.class)
         .request()
         .async()
         .post(Entity.json(new CreateInstanceRequest()
@@ -160,15 +159,19 @@ public class MarketBuyEndpoint {
       logger.error("Timeout calling App Factory for app={} and user={}", applicationId, userId, e);
       return ResponseFactory.build(Response.Status.GATEWAY_TIMEOUT, "Application factory timed-out");
     }
-    if (response.getStatusInfo().getFamily() != Response.Status.Family.SUCCESSFUL) {
-      DeleteAppInstance.Request request = new DeleteAppInstance.Request(instance.getId());
-      request.callProvider = false;
-      request.checkStatus = Optional.of(AppInstance.InstantiationStatus.PENDING);
-      DeleteAppInstance.Status status = deleteAppInstance.deleteInstance(request, new DeleteAppInstance.Stats());
-      if (status != DeleteAppInstance.Status.BAD_INSTANCE_STATUS) {
-        return ResponseFactory.build(Response.Status.BAD_GATEWAY, "Application factory failed");
+    try {
+      if (response.getStatusInfo().getFamily() != Response.Status.Family.SUCCESSFUL) {
+        DeleteAppInstance.Request request = new DeleteAppInstance.Request(instance.getId());
+        request.callProvider = false;
+        request.checkStatus = Optional.of(AppInstance.InstantiationStatus.PENDING);
+        DeleteAppInstance.Status status = deleteAppInstance.deleteInstance(request, new DeleteAppInstance.Stats());
+        if (status != DeleteAppInstance.Status.BAD_INSTANCE_STATUS) {
+          return ResponseFactory.build(Response.Status.BAD_GATEWAY, "Application factory failed");
+        }
+        // instance has been provisioned despite unsuccessful response from the App Factory; fall through.
       }
-      // instance has been provisioned despite unsuccessful response from the App Factory; fall through.
+    } finally {
+      response.close();
     }
     // Get the possibly-updated instance
     instance = appInstanceRepository.getAppInstance(instance.getId());

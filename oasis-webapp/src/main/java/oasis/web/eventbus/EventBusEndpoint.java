@@ -9,7 +9,6 @@ import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.InvocationCallback;
 import javax.ws.rs.core.Context;
@@ -33,7 +32,6 @@ import oasis.model.eventbus.SubscriptionRepository;
 import oasis.services.etag.EtagService;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.Client;
-import oasis.web.providers.JacksonJsonProvider;
 import oasis.web.utils.ResponseFactory;
 import oasis.web.webhooks.WebhookSignatureFilter;
 
@@ -47,6 +45,7 @@ public class EventBusEndpoint {
   @Inject SubscriptionRepository subscriptionRepository;
   @Inject AppInstanceRepository appInstanceRepository;
   @Inject EtagService etagService;
+  @Inject javax.ws.rs.client.Client client;
 
   @POST
   @Path("/publish")
@@ -60,14 +59,17 @@ public class EventBusEndpoint {
 
       // TODO: better eventbus system
       try {
-        ClientBuilder.newClient()
-            .register(JacksonJsonProvider.class)
+        client
             .register(new WebhookSignatureFilter(subscription.getSecret()))
             .target(webhook).request()
-            .async().post(Entity.json(event), new InvocationCallback<Object>() {
+            .async().post(Entity.json(event), new InvocationCallback<Response>() {
               @Override
-              public void completed(Object o) {
-                logger.trace("Webhook {} called for eventType {}.", webhook, event.eventType);
+              public void completed(Response response) {
+                try {
+                  logger.trace("Webhook {} called for eventType {}.", webhook, event.eventType);
+                } finally {
+                  response.close();
+                }
               }
 
               @Override

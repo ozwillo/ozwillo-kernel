@@ -4,7 +4,6 @@ import java.net.URI;
 
 import javax.inject.Named;
 import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 
 import com.google.inject.AbstractModule;
@@ -61,11 +60,6 @@ public class KibanaModule extends AbstractModule {
   @Override
   protected void configure() {
     bind(Settings.class).toInstance(settings);
-  }
-
-  @Provides
-  Client provideClient() {
-    return ClientBuilder.newClient();
   }
 
   @Provides
