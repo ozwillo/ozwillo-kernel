@@ -16,6 +16,11 @@
         <target>Veuillez confirmer votre adresse électronique pour active votre compte.</target>
         <note priority="1" from="description">activation pending: what is it</note>
       </trans-unit>
+      <trans-unit id="250539212474752292" datatype="html">
+        <source>By completing your registration you acknowledge having read the <x id="START_LINK"/>Terms of Use<x id="END_LINK"/> and you accept them.</source>
+        <target>En finalisant votre inscription, vous déclarez avoir pris connaissance des <x id="START_LINK"/>CGU<x id="END_LINK"/> et les accepter.</target>
+        <note priority="1" from="description">Accept terms of use when signing up</note>
+      </trans-unit>
       <trans-unit id="896282919376501263" datatype="html">
         <source>An error occurred. That's all we know.</source>
         <target>Une erreur est survenue.</target>
@@ -270,6 +275,16 @@
         <source>I forgot my password.</source>
         <target>J'ai oublié mon mot de passe.</target>
         <note priority="1" from="description">Link to the 'for my password' page</note>
+      </trans-unit>
+      <trans-unit id="7837095501000148478" datatype="html">
+        <source>The information collected will be computer processed for the management of the website’s users and its services.<x id="START_BREAK"/>The recipient of data is Pôle Numérique.<x id="START_BREAK"/>In accordance with the EU Data Protection Directive (95/46/EC), you benefit from an access and modification right for the information concerning you, which you can exercise by contacting Pôle Numérique, 1 avenue de la gare 26958 VALENCE Cedex 9.<x id="START_BREAK"/>You can also, for legitimate reasons, object to the processing of your personal data.</source>
+        <target>Les informations recueillies font l'objet d'un traitement informatique destiné à la gestion des utilisateurs du site communautaire et à ses services.<x id="START_BREAK"/>Le destinataire des données est le Pôle Numérique (coordinateur du projet Ozwillo).<x id="START_BREAK"/>Conformément à la loi « informatique et libertés » du 6 janvier 1978 modifiée en 2004, vous bénéficiez d'un droit d'accès et de rectification aux informations qui vous concernent, que vous pouvez exercer en vous adressant à Pôle Numérique, 1 avenue de la gare 26958 VALENCE Cedex 9.<x id="START_BREAK"/>Vous pouvez également, pour des motifs légitimes, vous opposer au traitement des données vous concernant.</target>
+        <note priority="1" from="description">privacy notice / small prints</note>
+      </trans-unit>
+      <trans-unit id="7867997273230925107" datatype="html">
+        <source>https://www.oasis-eu.org/en/tou</source>
+        <target>https://www.oasis-eu.org/fr/cgu</target>
+        <note priority="1" from="description">terms of use URL</note>
       </trans-unit>
       <trans-unit id="8083850607833732083" datatype="html">
         <source>Authorize <x id="APP_NAME"/></source>
