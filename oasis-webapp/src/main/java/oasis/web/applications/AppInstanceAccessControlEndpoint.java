@@ -83,6 +83,7 @@ public class AppInstanceAccessControlEndpoint {
                 ace.user_id = input.getUser_id();
                 final UserAccount user = accountRepository.getUserAccountById(input.getUser_id());
                 ace.user_name = user == null ? null : user.getDisplayName();
+                ace.user_email_address = user == null ? null : user.getEmail_address();
                 ace.creator_id = input.getCreator_id();
                 final UserAccount creator = accountRepository.getUserAccountById(input.getCreator_id());
                 ace.creator_name = creator == null ? null : creator.getDisplayName();
@@ -137,6 +138,8 @@ public class AppInstanceAccessControlEndpoint {
     @JsonProperty String instance_id;
     @JsonProperty String user_id;
     @JsonProperty String user_name;
+    // FIXME: This is temporary! We must not leak the user's email address without a prior agreement.
+    @JsonProperty String user_email_address;
     @JsonProperty String creator_id;
     @JsonProperty String creator_name;
   }
