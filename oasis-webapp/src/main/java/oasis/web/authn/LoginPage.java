@@ -2,7 +2,6 @@ package oasis.web.authn;
 
 import java.net.URI;
 import java.util.Locale;
-import java.util.Objects;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -171,7 +170,7 @@ public class LoginPage {
       // XXX: what if account is null?
       return reauthForm(builder, continueUrl, error, account);
     }
-    return loginForm(builder, continueUrl, mailSettings, urls, locale, error);
+    return loginForm(builder, continueUrl, mailSettings, locale, error);
   }
 
   private static Response reauthForm(Response.ResponseBuilder builder, URI continueUrl, @Nullable LoginError error, UserAccount userAccount) {
@@ -186,15 +185,15 @@ public class LoginPage {
     return buildResponseFromView(builder, soyTemplate);
   }
 
-  private static Response loginForm(Response.ResponseBuilder builder, URI continueUrl, MailModule.Settings mailSettings, Urls urls, Locale locale, @Nullable LoginError error) {
-    return loginAndSignupForm(builder, continueUrl, mailSettings, urls, locale, error);
+  private static Response loginForm(Response.ResponseBuilder builder, URI continueUrl, MailModule.Settings mailSettings, Locale locale, @Nullable LoginError error) {
+    return loginAndSignupForm(builder, continueUrl, mailSettings, locale, error);
   }
 
-  static Response signupForm(Response.ResponseBuilder builder, URI continueUrl, MailModule.Settings mailSettings, Urls urls, Locale locale, @Nullable SignupError error) {
-    return loginAndSignupForm(builder, continueUrl, mailSettings, urls, locale, error);
+  static Response signupForm(Response.ResponseBuilder builder, URI continueUrl, MailModule.Settings mailSettings, Locale locale, @Nullable SignupError error) {
+    return loginAndSignupForm(builder, continueUrl, mailSettings, locale, error);
   }
 
-  private static Response loginAndSignupForm(Response.ResponseBuilder builder, URI continueUrl, MailModule.Settings mailSettings, Urls urls,
+  private static Response loginAndSignupForm(Response.ResponseBuilder builder, URI continueUrl, MailModule.Settings mailSettings,
       Locale locale, @Nullable Enum<?> error) {
     String languageTag = locale.toLanguageTag();
     SoyTemplate soyTemplate = new SoyTemplate(LoginSoyInfo.LOGIN, locale, new SoyMapData(
@@ -203,8 +202,7 @@ public class LoginPage {
         LoginSoyTemplateInfo.FORGOT_PASSWORD, mailSettings.enabled ? UriBuilder.fromResource(ForgotPasswordPage.class).queryParam(LOCALE_PARAM, languageTag).build().toString() : null,
         LoginSoyTemplateInfo.LOCALE, languageTag,
         LoginSoyTemplateInfo.CONTINUE, continueUrl.toString(),
-        LoginSoyTemplateInfo.ERROR, error == null ? null : error.name(),
-        LoginSoyTemplateInfo.OVERVIEW, Objects.toString(urls.landingPage().orNull(), null)
+        LoginSoyTemplateInfo.ERROR, error == null ? null : error.name()
     ));
 
     return buildResponseFromView(builder, soyTemplate);

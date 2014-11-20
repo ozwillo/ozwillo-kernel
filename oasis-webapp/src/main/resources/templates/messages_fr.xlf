@@ -161,6 +161,11 @@
         <target>Déconnexion</target>
         <note priority="1" from="description">logout page title</note>
       </trans-unit>
+      <trans-unit id="3873172170699656332" datatype="html">
+        <source>https://www.oasis-eu.org/en/discover/oasis</source>
+        <target>https://www.oasis-eu.org/fr/discover/oasis</target>
+        <note priority="1" from="description">overview URL</note>
+      </trans-unit>
       <trans-unit id="3883458945142779741" datatype="html">
         <source>Change my password</source>
         <target>Changer mon mot de passe</target>
