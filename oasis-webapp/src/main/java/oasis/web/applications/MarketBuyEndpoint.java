@@ -211,11 +211,15 @@ public class MarketBuyEndpoint {
     }
 
     public CreateInstanceRequest setOrganization(Organization organization) {
-      this.organization = organization;
       if (organization != null) {
+        // Copy to only include Organization fields, and restore the ID (not copied around)
+        this.organization = new Organization(organization);
+        this.organization.setId(organization.getId());
+
         organization_id = organization.getId();
         organization_name = organization.getName();
       } else {
+        this.organization = null;
         organization_id = organization_name = null;
       }
       return this;
