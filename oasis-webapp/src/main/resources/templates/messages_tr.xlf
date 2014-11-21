@@ -1,0 +1,342 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file original="SoyMsgBundle" datatype="x-soy-msg-bundle" xml:space="preserve" source-language="en-GB" target-language="tr-TR">
+    <body>
+      <trans-unit id="153573648835304242" datatype="html">
+        <source>Account Access Attempted</source>
+        <target>Hesap Erişimi Denendi</target>
+        <note priority="1" from="description">Forgot-password email subject, for an unknown account</note>
+      </trans-unit>
+      <trans-unit id="227286377398309927" datatype="html">
+        <source>Go back to Oasis</source>
+        <target>OASIS'e geri dön</target>
+        <note priority="1" from="description">Cancel erroneous sign-out from the Portal</note>
+      </trans-unit>
+      <trans-unit id="235553805622646291" datatype="html">
+        <source>Your account has been created but needs to be activated by confirming your email address.</source>
+        <target>Hesabınız oluşturuldu ancak eposta adresinizin teyit edilerek aktifleştirilmesi gerekiyor.</target>
+        <note priority="1" from="description">activation pending: what is it</note>
+      </trans-unit>
+      <trans-unit id="250539212474752292" datatype="html">
+        <source>By completing your registration you acknowledge having read the <x id="START_LINK"/>Terms of Use<x id="END_LINK"/> and you accept them.</source>
+        <target>Kaydınızı gerçekleştirmek suretiyle <x id="START_LINK"/>Kullanım Şartları’nı<x id="END_LINK"/> okuduğunuzu ve Kabul ettiğinizi teyit etmek oluyorsunuz.</target>
+        <note priority="1" from="description">Accept terms of use when signing up</note>
+      </trans-unit>
+      <trans-unit id="896282919376501263" datatype="html">
+        <source>An error occurred. That's all we know.</source>
+        <target>Bir hata oluştu. Tüm bildiğimiz bundan ibaret.</target>
+        <note priority="1" from="description">Generic error message</note>
+      </trans-unit>
+      <trans-unit id="1149234624403568354" datatype="html">
+        <source>Sign-out from Oasis</source>
+        <target>Oasis'te oturum sonlandırma</target>
+        <note priority="1" from="description">logout page heading</note>
+      </trans-unit>
+      <trans-unit id="1287914925960251751" datatype="html">
+        <source>An error occurred creating your account. Check your email address and try again in a few minutes.</source>
+        <target>Hesabınızı oluştururken bir sorun oluştu. Lütfen eposta adresinizi kontrol edip birkaç dakika içinde tekrar deneyin. </target>
+        <note priority="1" from="description">Error message during sign-up</note>
+      </trans-unit>
+      <trans-unit id="1375188762769896369" datatype="html">
+        <source>Change your password</source>
+        <target>Şifrenizi değiştirin</target>
+        <note priority="1" from="description">change password page</note>
+      </trans-unit>
+      <trans-unit id="1381727944434957991" datatype="html">
+        <source><x id="START_PARAGRAPH"/>We have sent an email to <x id="EMAIL_ADDRESS"/> with further instructions.<x id="START_PARAGRAPH"/>The email contains a link allowing you to choose a new password. The email link must be clicked within a limited time.</source>
+        <target><x id="START_PARAGRAPH"/> <x id="EMAIL_ADDRESS"/> e-posta adresine ilave talimatlar içeren bir e-posta gönderdik. <x id="START_PARAGRAPH"/> Bu eposta yeni bir şifre seçmenize izin veren bir link içermektedir. Eposta linki sınırlı bir süre zarfında tıklanmalıdır. </target>
+        <note priority="1" from="description">Password successfully changed: immediate consequences</note>
+      </trans-unit>
+      <trans-unit id="1431416938026210429" datatype="html">
+        <source>Password</source>
+        <target>Şifre</target>
+        <note priority="1" from="description">Password field label</note>
+      </trans-unit>
+      <trans-unit id="1458752404210741264" datatype="html">
+        <source>Incorrect email address or password.</source>
+        <target>Hatalı eposta adresi veya şifre.</target>
+        <note priority="1" from="description">Error message during login</note>
+      </trans-unit>
+      <trans-unit id="1589497881192767264" datatype="html">
+        <source>OASIS is a project by the EU under the Program for Competitiveness and Innovation CIP ICT PSP - N°297210</source>
+        <target>OASIS, Rekabetçilik ve İnovasyon Programı CIP ICT PSP kapsamında 297210 sayılı AT sözleşmesi ile desteklenen bir AB projesidir. </target>
+        <note priority="1" from="description">page footer</note>
+      </trans-unit>
+      <trans-unit id="1673907860639498890" datatype="html">
+        <source>We terminated all your sessions, on all your devices.</source>
+        <target>Tüm oturumlarınızı tüm cihazlarınızda sonlandırdık.</target>
+        <note priority="1" from="description">Password successfully changed: immediate consequences</note>
+      </trans-unit>
+      <trans-unit id="1877380838370116734" datatype="html">
+        <source><x id="START_PARAGRAPH"/>You (or someone else) entered this email address when trying to change the password of an Oasis account.<x id="START_PARAGRAPH"/>To continue with the password reset process, please proceed to:<x id="START_BREAK"/><x id="START_LINK"/><x id="RESET_PASSWORD_LINK"/><x id="END_LINK"/><x id="START_PARAGRAPH"/>The Oasis team</source>
+        <target><x id="START_PARAGRAPH"/>Siz (veya bir başkası) Oasis hesabının şifresini değiştirmeye çalışırken bu e-posta adresi bilgisi girildi.<x id="START_PARAGRAPH"/>Şifre yeniden belirleme işlemi ile devam etmek için lütfen buraya ilerleyiniz:<x id="START_PARAGRAPH"/><x id="START_LINK"/><x id="RESET_PASSWORD_LINK"/><x id="END_LINK"/><x id="START_PARAGRAPH"/> Oasis ekibi</target>
+        <note priority="1" from="description">Forgot-password email body, for an existing account</note>
+      </trans-unit>
+      <trans-unit id="2010287326867816724" datatype="html">
+        <source>You can now <x id="START_LINK"/>go back to the Oasis portal<x id="END_LINK"/> to sign in again with your new password.</source>
+        <target>Artık <x id="START_LINK"/>Oasis portalına geri dönebilirsiniz<x id="END_LINK"/> ve yeni şifreniz ile oturum açabilirsiniz.</target>
+        <note priority="1" from="description">Password successfully changed: next steps</note>
+      </trans-unit>
+      <trans-unit id="2012659005494284050" datatype="html">
+        <source>Forgot your password?</source>
+        <target>Şifrenizi mi unuttunuz?</target>
+        <note priority="1" from="description">forgot password page heading</note>
+      </trans-unit>
+      <trans-unit id="2120625415491832644" datatype="html">
+        <source>This will sign you out of Oasis, on all your devices.</source>
+        <target>Bu işlem ile Oasis oturumunuzdan tüm cihazlarınızda çıkış yapmış olacaksınız.</target>
+        <note priority="1" from="description">Consequence of changing password</note>
+      </trans-unit>
+      <trans-unit id="2159130950882492111" datatype="html">
+        <source>Cancel</source>
+        <target>İptal</target>
+        <note priority="1" from="description">Button to cancel (and return error to the app)</note>
+      </trans-unit>
+      <trans-unit id="2261283100685992180" datatype="html">
+        <source><x id="START_PARAGRAPH"/>Hello <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>You are receiving this e-mail because you have registered on the Oasis portal.<x id="START_PARAGRAPH"/>In order to confirm your subscription, please click on the following link:<x id="START_BREAK"/><x id="START_LINK"/><x id="ACTIVATION_LINK"/><x id="END_LINK"/><x id="START_PARAGRAPH"/>Wishing you a nice tour on the Oasis portal<x id="START_PARAGRAPH"/>The Oasis team</source>
+        <target><x id="START_PARAGRAPH"/>Merhaba <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>Bu epostayı Oasis portalında kaydolduğunuz için aldınız.<x id="START_PARAGRAPH"/>Aboneliğinizi onaylamak için lütfen bu linke tıklayınız:<x id="START_BREAK"/><x id="START_LINK"/><x id="ACTIVATION_LINK"/><x id="END_LINK"/><x id="START_PARAGRAPH"/>Size Oasis portalında keyifli bir gezinti diliyoruz.<x id="START_PARAGRAPH"/>Oasis ekibi</target>
+        <note priority="1" from="description">Sign-up email body</note>
+      </trans-unit>
+      <trans-unit id="2454050363478003966" datatype="html">
+        <source>Login</source>
+        <target>Oturum açma</target>
+        <note priority="1" from="description">Login page title</note>
+      </trans-unit>
+      <trans-unit id="2455036635324175768" datatype="html">
+        <source>The information collected will be computer processed for the management of the website’s users and its services. The recipient of data is Pôle Numérique.<x id="START_BREAK"/>In accordance with the EU Data Protection Directive (95/46/EC), you benefit from an access and modification right for the information concerning you, which you can exercise by contacting Pôle Numérique, 1 avenue de la gare 26958 VALENCE Cedex 9, FRANCE.<x id="START_BREAK"/>You can also, for legitimate reasons, object to the processing of your personal data.</source>
+        <target>Toplanan bilgiler internet sitesi kullanıcılarının ve servislerinin yönetimi için bilgisayar tarafından işlenecektir. Verilerin alıcısı Pôle Numérique’tir.<x id="START_BREAK"/>AB Veri Güvenliği Direktifi (95/46/EC) uyarınca sizi ilgilendiren bilgilere erişim ve değişiklik yapma hakkından istifade edebilirsiniz. Bu hakkınızdan Pôle Numérique, 1 avenue de la gare 26958 VALENCE Cedex 9 ile bağlantıya geçerek yararlanabilirsiniz.<x id="START_BREAK"/>Meşru sebeplere dayamak kaydıyla kişisel verilerinizin işlenmesine itiraz edebilirsiniz.</target>
+        <note priority="1" from="description">privacy notice / small prints</note>
+      </trans-unit>
+      <trans-unit id="2565164139557117651" datatype="html">
+        <source>Password reset</source>
+        <target>Şifrenizi yeniden belirleme</target>
+        <note priority="1" from="description">Reset password page title</note>
+      </trans-unit>
+      <trans-unit id="2614607010577950577" datatype="html">
+        <source>Overview</source>
+        <target>Genel Görünüm</target>
+        <note priority="1" from="description">Overview link on sign-up page</note>
+      </trans-unit>
+      <trans-unit id="2949848596707725099" datatype="html">
+        <source>Sign out</source>
+        <target>Oturum çıkışı</target>
+        <note priority="1" from="description">Form submit button; global sign-out</note>
+      </trans-unit>
+      <trans-unit id="3208540886437471103" datatype="html">
+        <source><x id="APP_NAME"/> wants to:</source>
+        <target><x id="APP_NAME"/> adlı uygulama şunu yapmak istiyor :</target>
+        <note priority="1" from="description">Introduce list of required (and not already granted) scopes</note>
+      </trans-unit>
+      <trans-unit id="3271954335539577827" datatype="html">
+        <source>Oasis password reset</source>
+        <target>Oasis şifre yeniden belirleme</target>
+        <note priority="1" from="description">Forgot-password email subject, for an existing account</note>
+      </trans-unit>
+      <trans-unit id="3327689519314151962" datatype="html">
+        <source><x id="START_PARAGRAPH"/>You are also logged in to these Oasis services:<x id="END_PARAGRAPH"/><x id="APPS"/><x id="START_PARAGRAPH"/>Signing out of Oasis will sign you out of these.<x id="END_PARAGRAPH"/></source>
+        <target><x id="START_PARAGRAPH"/>Aynı zamanda bu Oasis servislerinde de oturum açmış durumdasınız:<x id="END_PARAGRAPH"/><x id="APPS"/><x id="START_PARAGRAPH"/>Oasis oturumunuzdan çıkış yapmak aynı zamanda bunlardan da çıkış yapmanıza yol açacak.<x id="END_PARAGRAPH"/></target>
+        <note priority="1" from="description">List of other apps you're signed in to, displayed during sign-out</note>
+      </trans-unit>
+      <trans-unit id="3342471433315777526" datatype="html">
+        <source>We've sent you an email with an activation link, click on that link to activate your account.</source>
+        <target>epostanıza bir aktivasyon linki gönderdik; o linke tıklayarak hesabınızı aktifleştirebilirsiniz.</target>
+        <note priority="1" from="description">activation pending: next steps</note>
+      </trans-unit>
+      <trans-unit id="3346122856114415985" datatype="html">
+        <source>An account with that email address already exists.</source>
+        <target>Bu eposta adresi ile tanımlı bir hesap mevcut bulunmaktadır.</target>
+        <note priority="1" from="description">Error message during sign-up</note>
+      </trans-unit>
+      <trans-unit id="3510526964471104374" datatype="html">
+        <source>Cancel and log me back in</source>
+        <target>İptal et ve benim için tekrar oturum aç</target>
+        <note priority="1" from="description">Link to go back to app after erroneous sign-out</note>
+      </trans-unit>
+      <trans-unit id="3558484610088193987" datatype="html">
+        <source>Go to My Oasis</source>
+        <target>My Oasis kısmına git</target>
+        <note priority="1" from="description">Continue to Oasis after sign-out from some app</note>
+      </trans-unit>
+      <trans-unit id="3678807514259794747" datatype="html">
+        <source>Please re-enter your password</source>
+        <target>Lütfen şifrenizi tekrar girin</target>
+        <note priority="1" from="description">re-auth page heading</note>
+      </trans-unit>
+      <trans-unit id="3797778920049399855" datatype="html">
+        <source>Logout</source>
+        <target>Oturum çıkışı</target>
+        <note priority="1" from="description">logout page title</note>
+      </trans-unit>
+      <trans-unit id="3883458945142779741" datatype="html">
+        <source>Change my password</source>
+        <target>Şifremi değiştir</target>
+        <note priority="1" from="description">Form submit button</note>
+      </trans-unit>
+      <trans-unit id="3978318022149403441" datatype="html">
+        <source>Your email address:</source>
+        <target>eposta adresiniz:</target>
+        <note priority="1" from="description">Email field label for account recovery</note>
+      </trans-unit>
+      <trans-unit id="4003327077144377574" datatype="html">
+        <source><x id="START_PARAGRAPH"/>Congratulations <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>Your subscription to the <x id="START_LINK"/>Oasis portal<x id="END_LINK"/> has been validated.</source>
+        <target><x id="START_PARAGRAPH"/>Tebrikler <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/><x id="START_LINK"/>Oasis portalına<x id="END_LINK"/> aboneliğiniz doğrulanmıştır.</target>
+        <note priority="1" from="description">Welcome email body</note>
+      </trans-unit>
+      <trans-unit id="4202921825918258541" datatype="html">
+        <source>Activate your Oasis account</source>
+        <target>Oasis hesabınızı aktifleştirin</target>
+        <note priority="1" from="description">Sign-up email subject</note>
+      </trans-unit>
+      <trans-unit id="4230075599089089005" datatype="html">
+        <source>Welcome to Oasis</source>
+        <target>Oasis'e hoşgeldiniz</target>
+        <note priority="1" from="description">Welcome email subject</note>
+      </trans-unit>
+      <trans-unit id="4503676110666500451" datatype="html">
+        <source>Some required fields are not filled.</source>
+        <target>Bazı zorunlu alanlar doldurulmamış.</target>
+        <note priority="1" from="description">Error message during account recovery</note>
+      </trans-unit>
+      <trans-unit id="4764082581244349761" datatype="html">
+        <source>An account with that email address already exists. Did you <x id="START_LINK"/>forgot your password?<x id="END_LINK"/></source>
+        <target>Bu eposta adresi ile tanımlı bir hesap mevcut bulunmaktadır. Şifrenizi <x id="START_LINK"/> unuttunuz mu?<x id="END_LINK"/></target>
+        <note priority="1" from="description">Error message during sign-up</note>
+      </trans-unit>
+      <trans-unit id="4768749765465246664" datatype="html">
+        <source>Email</source>
+        <target>Eposta</target>
+        <note priority="1" from="description">Email field label</note>
+      </trans-unit>
+      <trans-unit id="4822319513638377041" datatype="html">
+        <source><x id="START_PARAGRAPH"/>You (or someone else) entered this email address when trying to change the password of an Oasis account.<x id="START_PARAGRAPH"/>However, this email address is not on our database of registered users and therefore the attempted password change has failed.<x id="START_PARAGRAPH"/>If you have an Oasis account and were expecting this email, please try again using the email address you gave when opening your account.<x id="START_PARAGRAPH"/>If you don't have an Oasis account, please ignore this email.<x id="START_PARAGRAPH"/>The Oasis team</source>
+        <target><x id="START_PARAGRAPH"/>Siz (veya bir başkası) Oasis hesabınızın şifresini değiştirmeye çalışırken bu e-posta adresi bilgisi girildi.<x id="START_PARAGRAPH"/>Ancak bu eposta adresi veritabanımızda kayıtlı kullanıcılar arasında yer almıyor ve bu yüzden şifre değiştirme işlemi başarısızlıkla sonlandı.<x id="START_PARAGRAPH"/>Eğer bir Oasis hesabınız varsa ve bu epostayı bekliyorduysanız lütfen tekrar hesabınızı oluştururken girmiş olduğunuz eposta adresini kullanarak deneyin. <x id="START_PARAGRAPH"/>Eğer bir Oasis hesabınız mevcut değilse lütfen bu epostayı dikkate almayınız.<x id="START_PARAGRAPH"/>Oasis ekibi</target>
+        <note priority="1" from="description">Forgot-password email body, for an unknown account</note>
+      </trans-unit>
+      <trans-unit id="4845769766826824513" datatype="html">
+        <source><x id="APP_NAME"/> needs some authorizations</source>
+        <target><x id="APP_NAME"/> bazı yetki izinleri gerekli</target>
+        <note priority="1" from="description">Some app needs authorizations</note>
+      </trans-unit>
+      <trans-unit id="5037003483276382412" datatype="html">
+        <source>https://www.oasis-eu.org/en/terms</source>
+        <target>https://www.oasis-eu.org/tr/sartlari</target>
+        <note priority="1" from="description">terms of use URL</note>
+      </trans-unit>
+      <trans-unit id="5108418000757845610" datatype="html">
+        <source>Password changed</source>
+        <target>Şifre değiştirildi</target>
+        <note priority="1" from="description">Password changed confirmation (title)</note>
+      </trans-unit>
+      <trans-unit id="5363404118084293884" datatype="html">
+        <source>Password reset requested</source>
+        <target>Şifre yeniden belirleme talep edildi</target>
+        <note priority="1" from="description">Password reset requested (title)</note>
+      </trans-unit>
+      <trans-unit id="5506569422969383542" datatype="html">
+        <source>Nickname</source>
+        <target>Rumuz</target>
+        <note priority="1" from="description">Nickname field label (for sign-up)</note>
+      </trans-unit>
+      <trans-unit id="5606277844100248611" datatype="html">
+        <source>You have already authorized <x id="APP_NAME"/> to:</source>
+        <target>Daha önceden <x id="APP_NAME"/> için yetki izni verdiniz :</target>
+        <note priority="1" from="description">Introduce list of already authorized scopes</note>
+      </trans-unit>
+      <trans-unit id="6159587099290300397" datatype="html">
+        <source>New password:</source>
+        <target>Yeni şifre:</target>
+        <note priority="1" from="description">New password (when changing password)</note>
+      </trans-unit>
+      <trans-unit id="6310825146600712191" datatype="html">
+        <source>Go to the Oasis portal</source>
+        <target>Oasis portalına git</target>
+        <note priority="1" from="description">link title on header logo</note>
+      </trans-unit>
+      <trans-unit id="6773310109171539191" datatype="html">
+        <source>This link has expired. Try again below.</source>
+        <target>Bu şifrenin süresi doldu. Lütfen aşağıda tekrar deneyin.</target>
+        <note priority="1" from="description">Error message during account recovery</note>
+      </trans-unit>
+      <trans-unit id="7206769355787176709" datatype="html">
+        <source>Go back to My Oasis</source>
+        <target>My Oasis'e geri dön</target>
+        <note priority="1" from="description">Cancel changing password</note>
+      </trans-unit>
+      <trans-unit id="7418322490061402095" datatype="html">
+        <source>Account pending activation</source>
+        <target>Hesap aktivasyon işleminin tamamlanmasını bekliyor</target>
+        <note priority="1" from="description">activation pending title</note>
+      </trans-unit>
+      <trans-unit id="7603459055013836218" datatype="html">
+        <source>Incorrect password.</source>
+        <target>Hatalı şifre.</target>
+        <note priority="1" from="description">Bad (current) password when changing password</note>
+      </trans-unit>
+      <trans-unit id="7631589074327383155" datatype="html">
+        <source><x id="APP_NAME"/> may later need to do the following; you can authorize it in advance by checking the boxes:</source>
+        <target><x id="APP_NAME"/> adlı uygulama daha sonra burada belirtilen işlemi yürütmeye ihtiyaç duyabilir; kutucukları işaretleyerek bu işleme önceden yetki izni verebilirsiniz:</target>
+        <note priority="1" from="description">Introduce list of 'needed scopes' declared but neither granted nor required</note>
+      </trans-unit>
+      <trans-unit id="7645606619520439486" datatype="html">
+        <source>An error occurred sending you an email. Check your email address and try again in a few minutes.</source>
+        <target>Size bir eposta gönderilirken hata oluştu. eposta adresinizi kontrol edin ve birkaç dakika sonra tekrar deneyin.</target>
+        <note priority="1" from="description">Error message during account recovery</note>
+      </trans-unit>
+      <trans-unit id="7790636738913620508" datatype="html">
+        <source>I forgot my password.</source>
+        <target>Şifremi unuttum.</target>
+        <note priority="1" from="description">Link to the 'for my password' page</note>
+      </trans-unit>
+      <trans-unit id="8083850607833732083" datatype="html">
+        <source>Authorize <x id="APP_NAME"/></source>
+        <target>Yetki izni ver <x id="APP_NAME"/></target>
+        <note priority="1" from="description">Authorization page title</note>
+      </trans-unit>
+      <trans-unit id="8164045255382745128" datatype="html">
+        <source>Current password:</source>
+        <target>Geçerli şifre:</target>
+        <note priority="1" from="description">Current password when changing password</note>
+      </trans-unit>
+      <trans-unit id="8264044238565501678" datatype="html">
+        <source>Forgot password</source>
+        <target>Şifre unutma</target>
+        <note priority="1" from="description">Forgot password page title</note>
+      </trans-unit>
+      <trans-unit id="8450994523775212991" datatype="html">
+        <source>Your password has been changed</source>
+        <target>Şifreniz değiştirildi</target>
+        <note priority="1" from="description">Password changed confirmation (heading)</note>
+      </trans-unit>
+      <trans-unit id="8506870940393194390" datatype="html">
+        <source>Go!</source>
+        <target>Git!</target>
+        <note priority="1" from="description">Form submit button</note>
+      </trans-unit>
+      <trans-unit id="8618714099234580673" datatype="html">
+        <source>Grant it</source>
+        <target>İzin ver</target>
+        <note priority="1" from="description">Button to grant the scopes</note>
+      </trans-unit>
+      <trans-unit id="8656531455531669663" datatype="html">
+        <source>Join Us!</source>
+        <target>Bize Katıl!</target>
+        <note priority="1" from="description">Sign-up form heading</note>
+      </trans-unit>
+      <trans-unit id="8901230246167053053" datatype="html">
+        <source>You've signed out of <x id="START_BOLD"/><x id="APP_NAME"/><x id="END_BOLD"/></source>
+        <target> Bu oturumdan çıkış yaptınız <x id="START_BOLD"/><x id="APP_NAME"/><x id="END_BOLD"/></target>
+        <note priority="1" from="description">successful sign-out from specific app</note>
+      </trans-unit>
+      <trans-unit id="8911447913400904360" datatype="html">
+        <source>https://www.oasis-eu.org/en/oz/discover</source>
+        <target>https://www.oasis-eu.org/tr/oz/kesfedin</target>
+        <note priority="1" from="description">overview URL</note>
+      </trans-unit>
+      <trans-unit id="9118307257372703426" datatype="html">
+        <source>Choose your new password</source>
+        <target>Yeni şifrenizi seçin</target>
+        <note priority="1" from="description">Reset password page heading</note>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

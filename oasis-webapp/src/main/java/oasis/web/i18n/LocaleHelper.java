@@ -18,7 +18,12 @@ public class LocaleHelper {
 
   private static final ImmutableList<Locale> SUPPORTED_LOCALES = ImmutableList.of(
       Locale.UK,
-      Locale.FRANCE
+      Locale.FRANCE,
+      Locale.ITALY,
+      Locale.forLanguageTag("bg-BG"),
+      Locale.forLanguageTag("ca-ES"),
+      Locale.forLanguageTag("es-ES"),
+      Locale.forLanguageTag("tr-TR")
   );
   static {
     assert SUPPORTED_LOCALES.contains(DEFAULT_LOCALE);
