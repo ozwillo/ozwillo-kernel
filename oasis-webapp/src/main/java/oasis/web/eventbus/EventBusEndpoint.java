@@ -15,6 +15,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 
 import org.slf4j.Logger;
@@ -26,12 +27,14 @@ import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiParam;
 
 import oasis.model.InvalidVersionException;
+import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.eventbus.Subscription;
 import oasis.model.eventbus.SubscriptionRepository;
 import oasis.services.etag.EtagService;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.Client;
+import oasis.web.authn.ClientPrincipal;
 import oasis.web.utils.ResponseFactory;
 import oasis.web.webhooks.WebhookSignatureFilter;
 
@@ -46,6 +49,8 @@ public class EventBusEndpoint {
   @Inject AppInstanceRepository appInstanceRepository;
   @Inject EtagService etagService;
   @Inject javax.ws.rs.client.Client client;
+
+  @Context SecurityContext securityContext;
 
   @POST
   @Path("/publish")
@@ -94,6 +99,14 @@ public class EventBusEndpoint {
       @PathParam("instanceId") String instanceId,
       Subscription subscription
   ) {
+    if (appInstanceRepository.getAppInstance(instanceId) == null) {
+      return ResponseFactory.notFound("The application instance does not exist");
+    }
+
+    if (!instanceId.equals(((ClientPrincipal) securityContext.getUserPrincipal()).getClientId())) {
+      return Response.status(Response.Status.FORBIDDEN).build();
+    }
+
     if (!Strings.isNullOrEmpty(subscription.getInstance_id()) && !instanceId.equals(subscription.getInstance_id())) {
       return ResponseFactory.unprocessableEntity("instance_id doesn't match URL");
     }
@@ -102,11 +115,7 @@ public class EventBusEndpoint {
 
     Subscription res = subscriptionRepository.createSubscription(subscription);
     if (res == null) {
-      // null can mean either the application doesn't exist or there's already a subscription for that application instance and event type
-      if (appInstanceRepository.getAppInstance(instanceId) != null) {
-        return ResponseFactory.conflict("Subscription already exists for this application instance and event type");
-      }
-      return ResponseFactory.notFound("The application instance does not exist");
+      return ResponseFactory.conflict("Subscription already exists for this application instance and event type");
     }
 
     URI uri = UriBuilder
@@ -115,6 +124,7 @@ public class EventBusEndpoint {
         .build(res.getId());
     return Response
         .created(uri)
+        .contentLocation(uri)
         .tag(etagService.getEtag(res))
         .build();
 
@@ -131,6 +141,14 @@ public class EventBusEndpoint {
   ) {
     if (Strings.isNullOrEmpty(etagStr)) {
       return ResponseFactory.preconditionRequiredIfMatch();
+    }
+
+    Subscription subscription = subscriptionRepository.getSubscription(subscriptionId);
+    if (subscription == null) {
+      return ResponseFactory.NOT_FOUND;
+    }
+    if (!((ClientPrincipal) securityContext.getUserPrincipal()).getClientId().equals(subscription.getInstance_id())) {
+      return Response.status(Response.Status.FORBIDDEN).build();
     }
 
     boolean deleted;

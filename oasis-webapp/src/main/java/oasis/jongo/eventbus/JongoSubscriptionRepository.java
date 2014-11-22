@@ -44,6 +44,13 @@ public class JongoSubscriptionRepository implements SubscriptionRepository, Jong
   }
 
   @Override
+  public Subscription getSubscription(String subscriptionId) {
+    return getSubscriptionsCollection()
+        .findOne("{ id: # }", subscriptionId)
+        .as(JongoSubscription.class);
+  }
+
+  @Override
   public boolean deleteSubscription(String subscriptionId, long[] versions) throws InvalidVersionException {
     WriteResult wr = getSubscriptionsCollection()
         .remove("{ id: #, modified: { $in: # } }", subscriptionId, Longs.asList(versions));
