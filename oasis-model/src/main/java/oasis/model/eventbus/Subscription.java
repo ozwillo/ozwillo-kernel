@@ -3,29 +3,21 @@ package oasis.model.eventbus;
 import javax.annotation.Nonnull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonRootName;
-import com.wordnik.swagger.annotations.ApiModelProperty;
 
 import oasis.model.annotations.Id;
 
-@JsonRootName("subscription")
 public class Subscription {
 
   @Id
-  @ApiModelProperty(required = true)
   private String id;
 
-  @JsonProperty
-  @ApiModelProperty(required = true)
-  String webHook;
+  @JsonProperty String webHook;
 
-  @JsonProperty
-  @ApiModelProperty
-  String secret;
+  @JsonProperty String secret;
 
-  @JsonProperty
-  @ApiModelProperty(required = true)
-  String eventType; // Unique (gives the application for an organisation)
+  @JsonProperty String eventType;
+
+  @JsonProperty String instance_id;
 
   public Subscription() {
   }
@@ -71,5 +63,13 @@ public class Subscription {
 
   public void setEventType(String eventType) {
     this.eventType = eventType;
+  }
+
+  public String getInstance_id() {
+    return instance_id;
+  }
+
+  public void setInstance_id(String instance_id) {
+    this.instance_id = instance_id;
   }
 }

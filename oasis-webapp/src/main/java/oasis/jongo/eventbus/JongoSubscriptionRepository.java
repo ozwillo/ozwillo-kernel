@@ -28,11 +28,10 @@ public class JongoSubscriptionRepository implements SubscriptionRepository, Jong
   }
 
   @Override
-  public Subscription createSubscription(String instanceId, Subscription subscription) {
+  public Subscription createSubscription(Subscription subscription) {
     // TODO: validate subscription.eventType
 
     JongoSubscription jongoSubscription = new JongoSubscription(subscription);
-    jongoSubscription.setInstance_id(instanceId);
 
     try {
       getSubscriptionsCollection()

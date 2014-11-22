@@ -94,9 +94,13 @@ public class EventBusEndpoint {
       @PathParam("instanceId") String instanceId,
       Subscription subscription
   ) {
+    if (!Strings.isNullOrEmpty(subscription.getInstance_id()) && !instanceId.equals(subscription.getInstance_id())) {
+      return ResponseFactory.unprocessableEntity("instance_id doesn't match URL");
+    }
+    subscription.setInstance_id(instanceId);
     // TODO: validate subscription.eventType
 
-    Subscription res = subscriptionRepository.createSubscription(instanceId, subscription);
+    Subscription res = subscriptionRepository.createSubscription(subscription);
     if (res == null) {
       // null can mean either the application doesn't exist or there's already a subscription for that application instance and event type
       if (appInstanceRepository.getAppInstance(instanceId) != null) {
