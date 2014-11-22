@@ -1,6 +1,5 @@
 package oasis.web.i18n;
 
-import java.util.Locale;
 import java.util.ResourceBundle;
 
 import javax.annotation.Nullable;
@@ -9,36 +8,37 @@ import javax.ws.rs.core.Variant;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
+import com.ibm.icu.util.ULocale;
 
-import oasis.model.accounts.UserAccount;
 import oasis.model.i18n.LocalizableValue;
 
 public class LocaleHelper {
-  public static final Locale DEFAULT_LOCALE = Locale.UK;
 
-  public static final ImmutableList<Locale> SUPPORTED_LOCALES = ImmutableList.of(
-      Locale.UK,
-      Locale.FRANCE,
-      Locale.ITALY,
-      Locale.forLanguageTag("bg-BG"),
-      Locale.forLanguageTag("ca-ES"),
-      Locale.forLanguageTag("es-ES"),
-      Locale.forLanguageTag("tr-TR")
+  public static final ULocale DEFAULT_LOCALE = ULocale.UK;
+
+  public static final ImmutableList<ULocale> SUPPORTED_LOCALES = ImmutableList.of(
+      ULocale.UK,
+      ULocale.FRANCE,
+      ULocale.ITALY,
+      ULocale.forLanguageTag("bg-BG"),
+      ULocale.forLanguageTag("ca-ES"),
+      ULocale.forLanguageTag("es-ES"),
+      ULocale.forLanguageTag("tr-TR")
   );
   static {
     assert SUPPORTED_LOCALES.contains(DEFAULT_LOCALE);
   }
 
-  private static final LocalizableValue<Locale> SUPPORTED_LOCALES_MAP;
+  private static final LocalizableValue<ULocale> SUPPORTED_LOCALES_MAP;
   static {
     final ResourceBundle.Control control = ResourceBundle.Control.getNoFallbackControl(ResourceBundle.Control.FORMAT_DEFAULT);
 
-    final LocalizableValue<Locale> supportedLocalesMap = new LocalizableValue<>();
+    final LocalizableValue<ULocale> supportedLocalesMap = new LocalizableValue<>();
 
     // Iterate in reverse order so that the first locales take precedence (overwrite)
-    for (Locale supportedLocale : SUPPORTED_LOCALES.reverse()) {
-      for (Locale candidateLocale : control.getCandidateLocales("", supportedLocale)) {
-        if (!candidateLocale.equals(Locale.ROOT)) {
+    for (ULocale supportedLocale : SUPPORTED_LOCALES.reverse()) {
+      for (ULocale candidateLocale = supportedLocale; candidateLocale != null; candidateLocale = candidateLocale.getFallback()) {
+        if (!candidateLocale.equals(ULocale.ROOT)) {
           supportedLocalesMap.set(candidateLocale, supportedLocale);
         }
       }
@@ -51,16 +51,16 @@ public class LocaleHelper {
   static {
     ImmutableList.Builder<Variant> supportedLocalesVariants = ImmutableList.builder();
 
-    for (Locale supportedLocale : SUPPORTED_LOCALES) {
-      supportedLocalesVariants.add(new Variant(null, supportedLocale, null));
+    for (ULocale supportedLocale : SUPPORTED_LOCALES) {
+      supportedLocalesVariants.add(new Variant(null, supportedLocale.toLocale(), null));
     }
 
     SUPPORTED_LOCALES_VARIANTS = supportedLocalesVariants.build();
   }
 
-  public Locale selectLocale(Iterable<String> ui_locales, Request request) {
+  public ULocale selectLocale(Iterable<String> ui_locales, Request request) {
     for (String candidateLocale : ui_locales) {
-      Locale selectedLocale = SUPPORTED_LOCALES_MAP.get(Locale.forLanguageTag(candidateLocale));
+      ULocale selectedLocale = SUPPORTED_LOCALES_MAP.get(ULocale.forLanguageTag(candidateLocale));
       if (selectedLocale != null) {
         return selectedLocale;
       }
@@ -68,15 +68,15 @@ public class LocaleHelper {
     return selectLocale(request);
   }
 
-  public Locale selectLocale(Request request) {
+  public ULocale selectLocale(Request request) {
     Variant selectedVariant = request.selectVariant(SUPPORTED_LOCALES_VARIANTS);
     if (selectedVariant != null) {
-      return selectedVariant.getLanguage();
+      return ULocale.forLocale(selectedVariant.getLanguage());
     }
     return DEFAULT_LOCALE;
   }
 
-  public Locale selectLocale(@Nullable Locale locale, Request request) {
+  public ULocale selectLocale(@Nullable ULocale locale, Request request) {
     if (locale != null) {
       locale = SUPPORTED_LOCALES_MAP.get(locale);
     }

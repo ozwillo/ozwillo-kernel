@@ -6,6 +6,7 @@ dependencies {
     compile libs.jackson_annotations
     compile libs.joda_time
     compile libs.jackson_joda
+    compile libs.icu4j
 
     testCompile libs.junit
     testCompile libs.assertj

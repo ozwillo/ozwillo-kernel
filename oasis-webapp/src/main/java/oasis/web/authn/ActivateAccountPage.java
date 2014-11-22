@@ -1,7 +1,6 @@
 package oasis.web.authn;
 
 import java.net.URI;
-import java.util.Locale;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -20,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.template.soy.data.SoyMapData;
+import com.ibm.icu.util.ULocale;
 
 import oasis.mail.MailMessage;
 import oasis.mail.MailSender;
@@ -46,7 +46,7 @@ public class ActivateAccountPage {
   @Context UriInfo uriInfo;
 
   @PathParam("token") String token;
-  @QueryParam(LoginPage.LOCALE_PARAM) @Nullable Locale locale;
+  @QueryParam(LoginPage.LOCALE_PARAM) @Nullable ULocale locale;
 
   @GET
   public Response activate() {

@@ -1,29 +1,28 @@
 package oasis.soy;
 
-import java.util.Locale;
-
 import javax.annotation.Nullable;
 
 import com.google.common.base.Preconditions;
 import com.google.template.soy.data.SanitizedContent;
 import com.google.template.soy.data.SoyMapData;
 import com.google.template.soy.parseinfo.SoyTemplateInfo;
+import com.ibm.icu.util.ULocale;
 
 public class SoyTemplate {
   private final SoyTemplateInfo templateInfo;
-  private final Locale locale;
+  private final ULocale locale;
   private final @Nullable SanitizedContent.ContentKind contentKind;
   private final @Nullable SoyMapData data;
 
-  public SoyTemplate(SoyTemplateInfo templateInfo, Locale locale) {
+  public SoyTemplate(SoyTemplateInfo templateInfo, ULocale locale) {
     this(templateInfo, locale, null);
   }
 
-  public SoyTemplate(SoyTemplateInfo templateInfo, Locale locale, @Nullable SoyMapData data) {
+  public SoyTemplate(SoyTemplateInfo templateInfo, ULocale locale, @Nullable SoyMapData data) {
     this(templateInfo, locale, null, data);
   }
 
-  public SoyTemplate(SoyTemplateInfo templateInfo, Locale locale, @Nullable SanitizedContent.ContentKind contentKind,
+  public SoyTemplate(SoyTemplateInfo templateInfo, ULocale locale, @Nullable SanitizedContent.ContentKind contentKind,
       @Nullable SoyMapData data) {
     this.templateInfo = Preconditions.checkNotNull(templateInfo);
     this.locale = locale;
@@ -35,7 +34,7 @@ public class SoyTemplate {
     return templateInfo;
   }
 
-  public Locale getLocale() {
+  public ULocale getLocale() {
     return locale;
   }
 

@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.ibm.icu.util.ULocale;
 
 public class LocalizableStringJsonSerializationTest {
 
@@ -30,9 +31,9 @@ public class LocalizableStringJsonSerializationTest {
   public void testSerialization() throws Exception {
     Foo foo = new Foo();
     foo.localized = new LocalizableString();
-    foo.localized.set(Locale.ROOT, "root");
-    foo.localized.set(Locale.FRENCH, "Français");
-    foo.localized.set(Locale.ENGLISH, "English");
+    foo.localized.set(ULocale.ROOT, "root");
+    foo.localized.set(ULocale.FRENCH, "Français");
+    foo.localized.set(ULocale.ENGLISH, "English");
 
     ObjectMapper mapper = new ObjectMapper()
         .registerModule(new LocalizableModule());
@@ -67,18 +68,18 @@ public class LocalizableStringJsonSerializationTest {
     assertThat(foo).isNotNull();
     assertThat(foo.localized).isNotNull();
     assertThat(foo.localized.values).containsOnly(
-        entry(Locale.ROOT, "root"),
-        entry(Locale.FRENCH, "Français"),
-        entry(Locale.ENGLISH, "English")
+        entry(ULocale.ROOT.toLocale(), "root"),
+        entry(ULocale.FRENCH.toLocale(), "Français"),
+        entry(ULocale.ENGLISH.toLocale(), "English")
     );
   }
 
   @Test
   public void testSetterlessSerialization() throws Exception {
     Foo foo = new Foo();
-    foo.getSetterless().set(Locale.ROOT, "root");
-    foo.getSetterless().set(Locale.FRENCH, "Français");
-    foo.getSetterless().set(Locale.ENGLISH, "English");
+    foo.getSetterless().set(ULocale.ROOT, "root");
+    foo.getSetterless().set(ULocale.FRENCH, "Français");
+    foo.getSetterless().set(ULocale.ENGLISH, "English");
 
     ObjectMapper mapper = new ObjectMapper()
         .registerModule(new LocalizableModule());
@@ -113,9 +114,9 @@ public class LocalizableStringJsonSerializationTest {
     assertThat(foo).isNotNull();
     assertThat(foo.getSetterless()).isNotNull();
     assertThat(foo.getSetterless().values).containsOnly(
-        entry(Locale.ROOT, "root"),
-        entry(Locale.FRENCH, "Français"),
-        entry(Locale.ENGLISH, "English")
+        entry(ULocale.ROOT.toLocale(), "root"),
+        entry(ULocale.FRENCH.toLocale(), "Français"),
+        entry(ULocale.ENGLISH.toLocale(), "English")
     );
   }
 }

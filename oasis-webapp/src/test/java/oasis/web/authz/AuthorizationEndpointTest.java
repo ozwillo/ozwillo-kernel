@@ -11,7 +11,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import javax.annotation.Nullable;
@@ -46,6 +45,7 @@ import com.google.common.collect.Sets;
 import com.google.common.net.UrlEscapers;
 import com.google.inject.Inject;
 import com.google.inject.Provides;
+import com.ibm.icu.util.ULocale;
 
 import oasis.auth.AuthModule;
 import oasis.http.testing.InProcessResteasy;
@@ -113,7 +113,7 @@ public class AuthorizationEndpointTest {
   private static final UserAccount account = new UserAccount() {{
     setId("accountId");
     setNickname("Nickname");
-    setLocale(Locale.ROOT);
+    setLocale(ULocale.ROOT);
   }};
 
   private static final SidToken sidToken = new SidToken() {{

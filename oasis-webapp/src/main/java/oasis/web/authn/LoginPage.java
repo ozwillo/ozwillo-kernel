@@ -1,7 +1,6 @@
 package oasis.web.authn;
 
 import java.net.URI;
-import java.util.Locale;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -26,8 +25,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Optional;
-import com.google.template.soy.data.SoyListData;
 import com.google.template.soy.data.SoyMapData;
+import com.ibm.icu.util.ULocale;
 
 import oasis.auditlog.AuditLogEvent;
 import oasis.auditlog.AuditLogService;
@@ -78,7 +77,7 @@ public class LoginPage {
   @Produces(MediaType.TEXT_HTML)
   public Response get(
       @QueryParam(CONTINUE_PARAM) URI continueUrl,
-      @QueryParam(LOCALE_PARAM) @Nullable Locale locale
+      @QueryParam(LOCALE_PARAM) @Nullable ULocale locale
   ) {
     return loginOrReauthForm(Response.ok(), continueUrl, localeHelper.selectLocale(locale, request), null);
   }
@@ -88,7 +87,7 @@ public class LoginPage {
   @Produces(MediaType.TEXT_HTML)
   public Response post(
       @Context HttpHeaders headers,
-      @FormParam(LOCALE_PARAM) @Nullable Locale locale,
+      @FormParam(LOCALE_PARAM) @Nullable ULocale locale,
       @FormParam("u") @DefaultValue("") String userName,
       @FormParam("pwd") @DefaultValue("") String password,
       @FormParam("continue") URI continueUrl
@@ -160,7 +159,7 @@ public class LoginPage {
     return Response.seeOther(continueUrl).build();
   }
 
-  private Response loginOrReauthForm(Response.ResponseBuilder builder, @Nullable URI continueUrl, @Nullable Locale locale, @Nullable LoginError error) {
+  private Response loginOrReauthForm(Response.ResponseBuilder builder, @Nullable URI continueUrl, @Nullable ULocale locale, @Nullable LoginError error) {
     if (continueUrl == null) {
       continueUrl = defaultContinueUrl();
     }
@@ -185,18 +184,18 @@ public class LoginPage {
     return buildResponseFromView(builder, soyTemplate);
   }
 
-  private static Response loginForm(Response.ResponseBuilder builder, URI continueUrl, MailModule.Settings mailSettings, Locale locale, @Nullable LoginError error) {
+  private static Response loginForm(Response.ResponseBuilder builder, URI continueUrl, MailModule.Settings mailSettings, ULocale locale, @Nullable LoginError error) {
     return loginAndSignupForm(builder, continueUrl, mailSettings, locale, error);
   }
 
-  static Response signupForm(Response.ResponseBuilder builder, URI continueUrl, MailModule.Settings mailSettings, Locale locale, @Nullable SignupError error) {
+  static Response signupForm(Response.ResponseBuilder builder, URI continueUrl, MailModule.Settings mailSettings, ULocale locale, @Nullable SignupError error) {
     return loginAndSignupForm(builder, continueUrl, mailSettings, locale, error);
   }
 
   private static Response loginAndSignupForm(Response.ResponseBuilder builder, URI continueUrl, MailModule.Settings mailSettings,
-      Locale locale, @Nullable Enum<?> error) {
+      ULocale locale, @Nullable Enum<?> error) {
     SoyMapData localeUrlMap = new SoyMapData();
-    for (Locale supportedLocale : LocaleHelper.SUPPORTED_LOCALES) {
+    for (ULocale supportedLocale : LocaleHelper.SUPPORTED_LOCALES) {
       String languageTag = supportedLocale.toLanguageTag();
       URI uri = UriBuilder.fromResource(LoginPage.class)
           .queryParam(LoginPage.CONTINUE_PARAM, continueUrl)

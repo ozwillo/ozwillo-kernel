@@ -1,7 +1,5 @@
 package oasis.web.authn;
 
-import java.util.Locale;
-
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.ws.rs.FormParam;
@@ -21,6 +19,7 @@ import javax.ws.rs.core.UriBuilder;
 import com.google.common.base.Functions;
 import com.google.common.base.Strings;
 import com.google.template.soy.data.SoyMapData;
+import com.ibm.icu.util.ULocale;
 
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
@@ -52,7 +51,7 @@ public class ResetPasswordPage {
 
   @GET
   public Response get(
-      @QueryParam(LoginPage.LOCALE_PARAM) @Nullable Locale locale
+      @QueryParam(LoginPage.LOCALE_PARAM) @Nullable ULocale locale
   ) {
     locale = localeHelper.selectLocale(locale, request);
 
@@ -72,7 +71,7 @@ public class ResetPasswordPage {
 
   @POST
   public Response post(
-      @FormParam(LoginPage.LOCALE_PARAM) @Nullable Locale locale,
+      @FormParam(LoginPage.LOCALE_PARAM) @Nullable ULocale locale,
       @FormParam("newpwd") String newpwd
   ) {
     locale = localeHelper.selectLocale(locale, request);
@@ -112,7 +111,7 @@ public class ResetPasswordPage {
         .build();
   }
 
-  private Response form(Response.ResponseBuilder builder, UserAccount account, Locale locale, @Nullable ResetPasswordError error) {
+  private Response form(Response.ResponseBuilder builder, UserAccount account, ULocale locale, @Nullable ResetPasswordError error) {
     return builder
         .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store")
         .header("Pragma", "no-cache")

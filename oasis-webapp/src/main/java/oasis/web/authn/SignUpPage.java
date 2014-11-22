@@ -1,7 +1,6 @@
 package oasis.web.authn;
 
 import java.net.URI;
-import java.util.Locale;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -23,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 import com.google.template.soy.data.SoyMapData;
+import com.ibm.icu.util.ULocale;
 
 import oasis.auditlog.AuditLogService;
 import oasis.mail.MailMessage;
@@ -72,7 +72,7 @@ public class SignUpPage {
   public Response signUp(
       @Context HttpHeaders headers,
       @FormParam(CONTINUE_PARAM) URI continueUrl,
-      @FormParam(LoginPage.LOCALE_PARAM) @Nullable Locale locale,
+      @FormParam(LoginPage.LOCALE_PARAM) @Nullable ULocale locale,
       @FormParam("email") String email,
       @FormParam("pwd") String password,
       @FormParam("nickname") String nickname

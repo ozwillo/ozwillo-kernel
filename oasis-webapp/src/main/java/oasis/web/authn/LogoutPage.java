@@ -2,10 +2,8 @@ package oasis.web.authn;
 
 import java.net.URI;
 import java.security.PublicKey;
-import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Objects;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -31,7 +29,10 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.template.soy.data.SoyListData;
 import com.google.template.soy.data.SoyMapData;
+import com.ibm.icu.text.Collator;
 
+import oasis.auth.AuthModule;
+import oasis.auth.RedirectUri;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.applications.v2.AppInstance;
@@ -41,8 +42,6 @@ import oasis.model.applications.v2.ServiceRepository;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
 import oasis.model.bootstrap.ClientIds;
-import oasis.auth.AuthModule;
-import oasis.auth.RedirectUri;
 import oasis.services.cookies.CookieFactory;
 import oasis.soy.SoyTemplate;
 import oasis.soy.templates.LogoutSoyInfo;

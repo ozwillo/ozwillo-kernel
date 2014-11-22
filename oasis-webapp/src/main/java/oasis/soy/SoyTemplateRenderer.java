@@ -1,11 +1,8 @@
 package oasis.soy;
 
-import java.text.Collator;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Locale;
 
 import javax.inject.Inject;
 
@@ -18,6 +15,8 @@ import com.google.template.soy.data.SoyMap;
 import com.google.template.soy.data.SoyMapData;
 import com.google.template.soy.msgs.SoyMsgBundle;
 import com.google.template.soy.tofu.SoyTofu;
+import com.ibm.icu.text.Collator;
+import com.ibm.icu.util.ULocale;
 
 import oasis.web.i18n.LocaleHelper;
 
@@ -28,9 +27,9 @@ public class SoyTemplateRenderer {
       .build(new CacheLoader<String, SoyList>() {
         @Override
         public SoyList load(String key) throws Exception {
-          final Locale currentLocale = Locale.forLanguageTag(key);
+          final ULocale currentLocale = ULocale.forLanguageTag(key);
           final ArrayList<SoyMapData> list = new ArrayList<>();
-          for (Locale locale : LocaleHelper.SUPPORTED_LOCALES) {
+          for (ULocale locale : LocaleHelper.SUPPORTED_LOCALES) {
             SoyMapData localeDesc = new SoyMapData(
                 "locale", locale.toLanguageTag(),
                 // XXX: Use only the language for now, until we add locales for same language in different variants.
@@ -41,7 +40,7 @@ public class SoyTemplateRenderer {
           }
           // We need a consistent ordering for all locales, so sort on the native_name using a locale-independent collator.
           Collections.sort(list, new Comparator<SoyMapData>() {
-            final Collator collator = Collator.getInstance(Locale.ROOT);
+            final Collator collator = Collator.getInstance(ULocale.ROOT);
             @Override
             public int compare(SoyMapData o1, SoyMapData o2) {
               return collator.compare(o1.getString("native_name"), o2.getString("native_name"));
@@ -54,7 +53,7 @@ public class SoyTemplateRenderer {
   private static final SoyMap LOCALE_NAMES;
   static {
     SoyMapData localeNames = new SoyMapData();
-    for (Locale locale : LocaleHelper.SUPPORTED_LOCALES) {
+    for (ULocale locale : LocaleHelper.SUPPORTED_LOCALES) {
       // XXX: Use only the language for now, until we add locales for same language in different variants.
       localeNames.put(locale.toLanguageTag(), locale.getDisplayLanguage(locale));
     }

@@ -3,7 +3,6 @@ package oasis.web.applications;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -24,6 +23,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
+import com.ibm.icu.util.ULocale;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
@@ -48,7 +48,7 @@ public class MarketSearchEndpoint {
   )
   public Response search(
       // TODO: add search criterias
-      @Nullable @QueryParam("hl") final Locale locale,
+      @Nullable @QueryParam("hl") final ULocale locale,
       @DefaultValue("0") @QueryParam("start") int start,
       @DefaultValue("25") @QueryParam("limit") int limit) {
     // TODO: use ElasticSearch
@@ -63,7 +63,7 @@ public class MarketSearchEndpoint {
                         serviceRepository.getVisibleServices()
                     ),
                     new Comparator<CatalogEntry>() {
-                      Locale l = MoreObjects.firstNonNull(locale, Locale.ROOT);
+                      ULocale l = MoreObjects.firstNonNull(locale, ULocale.ROOT);
 
                       @Override
                       public int compare(CatalogEntry o1, CatalogEntry o2) {

@@ -6,6 +6,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
 
+import com.ibm.icu.util.ULocale;
+
 public class LocalizableValue<T> {
   private static final ResourceBundle.Control control = ResourceBundle.Control.getNoFallbackControl(ResourceBundle.Control.FORMAT_DEFAULT);
 
@@ -13,7 +15,7 @@ public class LocalizableValue<T> {
 
   public LocalizableValue(T rootValue) {
     this();
-    set(Locale.ROOT, rootValue);
+    set(ULocale.ROOT, rootValue);
   }
 
   public LocalizableValue() {
@@ -28,8 +30,8 @@ public class LocalizableValue<T> {
     this.values = values;
   }
 
-  public T get(Locale locale) {
-    for (Locale candidateLocale : control.getCandidateLocales("", locale)) {
+  public T get(ULocale locale) {
+    for (Locale candidateLocale : control.getCandidateLocales("", locale.toLocale())) {
       T value = values.get(candidateLocale);
       if (value != null) {
         return value;
@@ -38,8 +40,8 @@ public class LocalizableValue<T> {
     return null;
   }
 
-  public void set(Locale locale, T localizedValue) {
-    values.put(locale, localizedValue);
+  public void set(ULocale locale, T localizedValue) {
+    values.put(locale.toLocale(), localizedValue);
   }
 
   public LocalizableValue<T> unmodifiable() {

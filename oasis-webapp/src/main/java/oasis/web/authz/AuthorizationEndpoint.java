@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -40,6 +39,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import com.google.template.soy.data.SoyListData;
 import com.google.template.soy.data.SoyMapData;
+import com.ibm.icu.util.ULocale;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
@@ -268,7 +268,7 @@ public class AuthorizationEndpoint {
 
   private Response redirectToLogin(UriInfo uriInfo, Prompt prompt) {
     String ui_locales = getParameter("ui_locales");
-    Locale locale = (ui_locales == null)
+    ULocale locale = (ui_locales == null)
         ? localeHelper.selectLocale(request)
         : localeHelper.selectLocale(SPACE_SPLITTER.split(ui_locales), request);
     // Prepare cancel URL

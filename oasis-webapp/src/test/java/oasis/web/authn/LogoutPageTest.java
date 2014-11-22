@@ -5,7 +5,6 @@ import static org.mockito.Mockito.*;
 
 import java.net.URI;
 import java.util.Collections;
-import java.util.Locale;
 import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
@@ -28,6 +27,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.html.HtmlEscapers;
 import com.google.common.net.UrlEscapers;
 import com.google.inject.Inject;
+import com.ibm.icu.util.ULocale;
 
 import oasis.auth.AuthModule;
 import oasis.auth.RedirectUri;
@@ -73,7 +73,7 @@ public class LogoutPageTest {
   private static final UserAccount account = new UserAccount() {{
     setId("accountId");
     setNickname("Nickname");
-    setLocale(Locale.ROOT);
+    setLocale(ULocale.ROOT);
   }};
 
   private static final SidToken sidToken = new SidToken() {{
@@ -165,7 +165,7 @@ public class LogoutPageTest {
       assertThat(response.getCookies().get(UserFilter.COOKIE_NAME).getExpiry()).isInTheFuture();
     }
     assertLogoutPage(response)
-        .contains(appInstance.getName().get(Locale.ROOT))
+        .contains(appInstance.getName().get(ULocale.ROOT))
         .contains(service.getService_uri())
         .matches(hiddenInput("continue", new RedirectUri(Iterables.getOnlyElement(service.getPost_logout_redirect_uris()))
             .setState("some&state")
@@ -199,7 +199,7 @@ public class LogoutPageTest {
       assertThat(response.getCookies().get(UserFilter.COOKIE_NAME).getExpiry()).isInTheFuture();
     }
     assertLogoutPage(response)
-        .contains(appInstance.getName().get(Locale.ROOT))
+        .contains(appInstance.getName().get(ULocale.ROOT))
         .doesNotMatch(hiddenInput("continue", "https://unregistered"));
 
     verify(tokenRepository, never()).revokeToken(sidToken.getId());
@@ -220,7 +220,7 @@ public class LogoutPageTest {
       assertThat(response.getCookies().get(UserFilter.COOKIE_NAME).getExpiry()).isInTheFuture();
     }
     assertLogoutPage(response)
-        .doesNotContain(appInstance.getName().get(Locale.ROOT))
+        .doesNotContain(appInstance.getName().get(ULocale.ROOT))
         .doesNotContain(service.getService_uri())
         .doesNotMatch(hiddenInput("continue", "http://example.com"));
 

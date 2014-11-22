@@ -3,8 +3,6 @@ package oasis.model.i18n;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.IllformedLocaleException;
-import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import com.fasterxml.jackson.core.JsonParser;
@@ -13,13 +11,12 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.deser.BeanDeserializer;
 import com.fasterxml.jackson.databind.deser.BeanDeserializerBase;
-import com.fasterxml.jackson.databind.deser.BeanDeserializerBuilder;
 import com.fasterxml.jackson.databind.deser.SettableBeanProperty;
 import com.fasterxml.jackson.databind.deser.impl.ObjectIdReader;
 import com.fasterxml.jackson.databind.introspect.AnnotatedMember;
-import com.fasterxml.jackson.databind.introspect.AnnotatedMethod;
 import com.fasterxml.jackson.databind.introspect.BeanPropertyDefinition;
 import com.fasterxml.jackson.databind.util.NameTransformer;
+import com.ibm.icu.util.ULocale;
 
 class LocalizableBeanDeserializer extends BeanDeserializer {
   private final Map<String, BeanPropertyDefinition> _propertyDefinitions;
@@ -77,7 +74,7 @@ class LocalizableBeanDeserializer extends BeanDeserializer {
       SettableBeanProperty prop = findProperty(propName.substring(0, hash));
       if (prop != null && prop.getType().hasRawClass(LocalizableString.class)) {
         try {
-          Locale locale = parseLocale(propName.substring(hash + 1));
+          ULocale locale = parseLocale(propName.substring(hash + 1));
           LocalizableString ls = getValue(ctxt, bean, prop);
           ls.set(locale, jp.getValueAsString());
           return;
@@ -89,8 +86,8 @@ class LocalizableBeanDeserializer extends BeanDeserializer {
     super.handleUnknownVanilla(jp, ctxt, bean, propName);
   }
 
-  private Locale parseLocale(String languageTag) throws IllformedLocaleException {
-    return new Locale.Builder()
+  private ULocale parseLocale(String languageTag) throws IllformedLocaleException {
+    return new ULocale.Builder()
         .setLanguageTag(languageTag)
         .build();
   }

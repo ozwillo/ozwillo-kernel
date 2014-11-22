@@ -15,6 +15,7 @@ import com.google.common.base.Throwables;
 import com.google.template.soy.msgs.SoyMsgBundle;
 import com.google.template.soy.msgs.SoyMsgBundleHandler;
 import com.google.template.soy.msgs.restricted.SoyMsg;
+import com.ibm.icu.util.ULocale;
 
 import oasis.web.i18n.LocaleHelper;
 
@@ -55,10 +56,10 @@ class SoyMsgBundleLoader {
   }
 
   /** Returns the corresponding bundle. */
-  public SoyMsgBundle get(Locale locale) {
-    SoyMsgBundle bundle = cache.get(locale);
+  public SoyMsgBundle get(ULocale locale) {
+    SoyMsgBundle bundle = cache.get(locale.toLocale());
     if (bundle == null) {
-      for (Locale candidateLocale : control.getCandidateLocales("", locale)) {
+      for (Locale candidateLocale : control.getCandidateLocales("", locale.toLocale())) {
         bundle = cache.get(candidateLocale);
         if (bundle != null) {
           break;
@@ -80,7 +81,7 @@ class SoyMsgBundleLoader {
       }
       // Cache the bundle for the requested locale to avoid walking the candidate locales next time.
       // XXX: cache the bundle for all visited intermediate locales?
-      cache.put(locale, bundle);
+      cache.put(locale.toLocale(), bundle);
     }
     return bundle;
   }

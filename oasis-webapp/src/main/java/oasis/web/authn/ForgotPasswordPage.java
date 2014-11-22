@@ -1,7 +1,6 @@
 package oasis.web.authn;
 
 import java.net.URI;
-import java.util.Locale;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -25,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 import com.google.template.soy.data.SoyMapData;
+import com.ibm.icu.util.ULocale;
 
 import oasis.mail.MailMessage;
 import oasis.mail.MailModule;
@@ -57,7 +57,7 @@ public class ForgotPasswordPage {
   @GET
   @Produces(MediaType.TEXT_HTML)
   public Response get(
-      @QueryParam(LoginPage.LOCALE_PARAM) @Nullable Locale locale
+      @QueryParam(LoginPage.LOCALE_PARAM) @Nullable ULocale locale
   ) {
     if (!mailSettings.enabled) {
       return ResponseFactory.NOT_FOUND;
@@ -67,7 +67,7 @@ public class ForgotPasswordPage {
 
   @POST
   public Response post(
-      @FormParam(LoginPage.LOCALE_PARAM) @Nullable Locale locale,
+      @FormParam(LoginPage.LOCALE_PARAM) @Nullable ULocale locale,
       @FormParam("u") String email
   ) {
     if (!mailSettings.enabled) {
@@ -120,9 +120,9 @@ public class ForgotPasswordPage {
         .build();
   }
 
-  static Response form(Response.ResponseBuilder builder, Locale locale, @Nullable ForgotPasswordError error) {
+  static Response form(Response.ResponseBuilder builder, ULocale locale, @Nullable ForgotPasswordError error) {
     SoyMapData localeUrlMap = new SoyMapData();
-    for (Locale supportedLocale : LocaleHelper.SUPPORTED_LOCALES) {
+    for (ULocale supportedLocale : LocaleHelper.SUPPORTED_LOCALES) {
       String languageTag = supportedLocale.toLanguageTag();
       URI uri = UriBuilder.fromResource(ForgotPasswordPage.class)
           .queryParam(LoginPage.LOCALE_PARAM, languageTag)

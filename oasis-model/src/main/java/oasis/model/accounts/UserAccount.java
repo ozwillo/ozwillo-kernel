@@ -1,7 +1,5 @@
 package oasis.model.accounts;
 
-import java.util.Locale;
-
 import javax.annotation.Nonnull;
 
 import org.joda.time.LocalDate;
@@ -9,6 +7,7 @@ import org.joda.time.LocalDate;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.ibm.icu.util.ULocale;
 
 import oasis.model.annotations.Id;
 
@@ -24,7 +23,7 @@ public class UserAccount {
 
   private String zoneinfo;
 
-  private Locale locale;
+  private ULocale locale;
 
   private String name;
 
@@ -120,11 +119,11 @@ public class UserAccount {
     this.zoneinfo = zoneinfo;
   }
 
-  public Locale getLocale() {
-    return locale == null ? Locale.ROOT : locale;
+  public ULocale getLocale() {
+    return locale == null ? ULocale.ROOT : locale;
   }
 
-  public void setLocale(Locale locale) {
+  public void setLocale(ULocale locale) {
     this.locale = locale;
   }
 

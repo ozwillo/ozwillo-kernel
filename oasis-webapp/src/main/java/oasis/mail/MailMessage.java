@@ -2,7 +2,6 @@ package oasis.mail;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
-import java.util.Locale;
 
 import javax.annotation.Nullable;
 import javax.mail.internet.AddressException;
@@ -11,20 +10,21 @@ import javax.mail.internet.InternetAddress;
 import com.google.common.base.Throwables;
 import com.google.template.soy.data.SoyMapData;
 import com.google.template.soy.parseinfo.SoyTemplateInfo;
+import com.ibm.icu.util.ULocale;
 
 public class MailMessage {
-  private Locale locale;
+  private ULocale locale;
   private InternetAddress recipient;
   private SoyTemplateInfo subject;
   private SoyTemplateInfo body;
   private boolean html = true;
   private SoyMapData data;
 
-  public Locale getLocale() {
+  public ULocale getLocale() {
     return locale;
   }
 
-  public MailMessage setLocale(Locale locale) {
+  public MailMessage setLocale(ULocale locale) {
     this.locale = locale;
     return this;
   }

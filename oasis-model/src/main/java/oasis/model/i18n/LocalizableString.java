@@ -6,6 +6,7 @@ import java.util.Map;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.ibm.icu.util.ULocale;
 
 @JsonSerialize(using = LocalizableStringSerializer.class)
 @JsonDeserialize(using = LocalizableStringDeserializer.class)

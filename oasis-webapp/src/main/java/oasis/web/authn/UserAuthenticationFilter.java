@@ -3,7 +3,6 @@ package oasis.web.authn;
 import java.io.IOException;
 import java.net.URI;
 import java.security.Principal;
-import java.util.Locale;
 
 import javax.annotation.Nullable;
 import javax.annotation.Priority;
@@ -12,15 +11,11 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Provider;
 
-import com.google.common.net.PercentEscaper;
 import com.google.common.net.UrlEscapers;
-
-import oasis.services.cookies.CookieFactory;
+import com.ibm.icu.util.ULocale;
 
 @Authenticated @User
 @Provider
@@ -39,7 +34,7 @@ public class UserAuthenticationFilter implements ContainerRequestFilter {
     requestContext.abortWith(loginResponse(requestContext.getUriInfo().getRequestUri(), null, null));
   }
 
-  public static Response loginResponse(URI continueUrl, Locale locale, @Nullable String cancelUrl) {
+  public static Response loginResponse(URI continueUrl, ULocale locale, @Nullable String cancelUrl) {
     final UriBuilder redirectUri = UriBuilder
         .fromResource(LoginPage.class)
         .queryParam(LoginPage.CONTINUE_PARAM, UrlEscapers.urlFormParameterEscaper().escape(continueUrl.toString()));

@@ -2,29 +2,30 @@ package oasis.web.providers;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
-import java.util.Locale;
 
 import javax.ws.rs.ext.ParamConverter;
 import javax.ws.rs.ext.ParamConverterProvider;
+
+import com.ibm.icu.util.ULocale;
 
 public class LocaleParamConverterProvider implements ParamConverterProvider {
   @Override
   @SuppressWarnings("unchecked")
   public <T> ParamConverter<T> getConverter(Class<T> rawType, Type genericType, Annotation[] annotations) {
-    if (Locale.class.equals(rawType)) {
+    if (ULocale.class.equals(rawType)) {
       return (ParamConverter<T>) new LocaleParamConverter();
     }
     return null;
   }
 
-  private static class LocaleParamConverter implements ParamConverter<Locale> {
+  private static class LocaleParamConverter implements ParamConverter<ULocale> {
     @Override
-    public Locale fromString(String value) {
-      return Locale.forLanguageTag(value);
+    public ULocale fromString(String value) {
+      return ULocale.forLanguageTag(value);
     }
 
     @Override
-    public String toString(Locale value) {
+    public String toString(ULocale value) {
       return value.toLanguageTag();
     }
   }

@@ -1,8 +1,5 @@
 package oasis.tools;
 
-import java.util.Locale;
-import java.util.TimeZone;
-
 import javax.inject.Inject;
 import javax.inject.Provider;
 
@@ -14,8 +11,11 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Strings;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.ibm.icu.util.TimeZone;
+import com.ibm.icu.util.ULocale;
 import com.typesafe.config.Config;
 
+import oasis.auth.AuthModule;
 import oasis.jongo.JongoService;
 import oasis.jongo.applications.v2.JongoAppInstance;
 import oasis.jongo.applications.v2.JongoAppInstanceRepository;
@@ -35,7 +35,6 @@ import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Organization;
 import oasis.model.directory.OrganizationMembership;
 import oasis.model.directory.OrganizationMembershipRepository;
-import oasis.auth.AuthModule;
 import oasis.services.authn.CredentialsService;
 import oasis.services.authn.PasswordGenerator;
 
@@ -122,40 +121,40 @@ public class Bootstrap extends CommandLineTool {
     Scope openid = new Scope();
     openid.setLocal_id("openid");
     openid.computeId();
-    openid.getName().set(Locale.ROOT, "Sign you in with your OASIS account");
-    openid.getDescription().set(Locale.ROOT, "The application will only know your account's internal identifier, no personal information will be shared.");
+    openid.getName().set(ULocale.ROOT, "Sign you in with your OASIS account");
+    openid.getDescription().set(ULocale.ROOT, "The application will only know your account's internal identifier, no personal information will be shared.");
     scopeRepository.createOrUpdateScope(openid);
 
     Scope profile = new Scope();
     profile.setLocal_id("profile");
     profile.computeId();
-    profile.getName().set(Locale.ROOT, "Basic information about your profile");
-    profile.getDescription().set(Locale.ROOT, "This information includes your name, gender, birth date and picture.");
+    profile.getName().set(ULocale.ROOT, "Basic information about your profile");
+    profile.getDescription().set(ULocale.ROOT, "This information includes your name, gender, birth date and picture.");
     scopeRepository.createOrUpdateScope(profile);
 
     Scope email = new Scope();
     email.setLocal_id("email");
     email.computeId();
-    email.getName().set(Locale.ROOT, "Your email address");
+    email.getName().set(ULocale.ROOT, "Your email address");
     scopeRepository.createOrUpdateScope(email);
 
     Scope address = new Scope();
     address.setLocal_id("address");
     address.computeId();
-    address.getName().set(Locale.ROOT, "Your postal address");
+    address.getName().set(ULocale.ROOT, "Your postal address");
     scopeRepository.createOrUpdateScope(address);
 
     Scope phone = new Scope();
     phone.setLocal_id("phone");
     phone.computeId();
-    phone.getName().set(Locale.ROOT, "Your phone number");
+    phone.getName().set(ULocale.ROOT, "Your phone number");
     scopeRepository.createOrUpdateScope(phone);
 
     Scope offline = new Scope();
     offline.setLocal_id("offline_access");
     offline.computeId();
-    offline.getName().set(Locale.ROOT, "Accessing all this information while you're not connected");
-    offline.getDescription().set(Locale.ROOT, "The application will be able to access your data even after you log out of OASIS.");
+    offline.getName().set(ULocale.ROOT, "Accessing all this information while you're not connected");
+    offline.getDescription().set(ULocale.ROOT, "The application will be able to access your data even after you log out of OASIS.");
     scopeRepository.createOrUpdateScope(offline);
   }
 
@@ -168,7 +167,7 @@ public class Bootstrap extends CommandLineTool {
     admin.setEmail_address(adminEmail);
     admin.setEmail_verified(true);
     admin.setNickname("Administrator");
-    admin.setLocale(Locale.getDefault());
+    admin.setLocale(ULocale.getDefault());
     admin.setZoneinfo(TimeZone.getDefault().getID());
     admin = accountRepositoryProvider.get().createUserAccount(admin);
     credentialsServiceProvider.get().setPassword(ClientType.USER, admin.getId(), adminPassword);
@@ -192,14 +191,14 @@ public class Bootstrap extends CommandLineTool {
 
   private String createPortal(String oasisOrgId, String adminAccountId) {
     Application app = new Application();
-    app.getName().set(Locale.ROOT, "OASIS Portal");
+    app.getName().set(ULocale.ROOT, "OASIS Portal");
     app.setProvider_id(oasisOrgId);
     app.setVisible(false);
     app = applicationRepositoryProvider.get().createApplication(app);
 
     JongoAppInstance instance = new JongoAppInstance();
     instance.setId(ClientIds.PORTAL);
-    instance.getName().set(Locale.ROOT, "OASIS Portal");
+    instance.getName().set(ULocale.ROOT, "OASIS Portal");
     instance.setApplication_id(app.getId());
     instance.setStatus(AppInstance.InstantiationStatus.RUNNING);
     instance.setInstantiator_id(adminAccountId);
@@ -217,7 +216,7 @@ public class Bootstrap extends CommandLineTool {
     service.setLocal_id("front");
     service.setInstance_id(instance.getId());
     service.setVisible(true); // we don't want filtering by ACL, portal will be filtered out by Market search
-    service.getName().set(Locale.ROOT, "OASIS Portal");
+    service.getName().set(ULocale.ROOT, "OASIS Portal");
     service.getRedirect_uris().add(portalRedirectUri);
     service.getPost_logout_redirect_uris().add(portalPostLogoutRedirectUri);
     serviceRepositoryProvider.get().createService(service);
@@ -227,14 +226,14 @@ public class Bootstrap extends CommandLineTool {
 
   private String createDatacore(String oasisOrgId, String adminAccountId) {
     Application app = new Application();
-    app.getName().set(Locale.ROOT, "OASIS Datacore");
+    app.getName().set(ULocale.ROOT, "OASIS Datacore");
     app.setProvider_id(oasisOrgId);
     app.setVisible(false);
     app = applicationRepositoryProvider.get().createApplication(app);
 
     JongoAppInstance instance = new JongoAppInstance();
     instance.setId(ClientIds.DATACORE);
-    instance.getName().set(Locale.ROOT, "OASIS Datacore");
+    instance.getName().set(ULocale.ROOT, "OASIS Datacore");
     instance.setApplication_id(app.getId());
     instance.setStatus(AppInstance.InstantiationStatus.RUNNING);
     instance.setInstantiator_id(adminAccountId);
@@ -249,7 +248,7 @@ public class Bootstrap extends CommandLineTool {
     // Note: computeId must be called BEFORE setInstance_id fo the scope ID to be "datacore" (and not "dc:datacore")
     scope.computeId();
     scope.setInstance_id(instance.getId());
-    scope.getName().set(Locale.ROOT, "Datacore");
+    scope.getName().set(ULocale.ROOT, "Datacore");
     scopeRepositoryProvider.get().createOrUpdateScope(scope);
 
     // XXX: do we need a service?

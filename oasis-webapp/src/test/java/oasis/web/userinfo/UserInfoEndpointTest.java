@@ -3,8 +3,6 @@ package oasis.web.userinfo;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import java.util.Locale;
-
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
@@ -20,12 +18,13 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
+import com.ibm.icu.util.ULocale;
 
+import oasis.auth.AuthModule;
 import oasis.http.testing.InProcessResteasy;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.authn.AccessToken;
-import oasis.auth.AuthModule;
 import oasis.security.KeyPairLoader;
 import oasis.web.authn.testing.TestOAuthFilter;
 
@@ -46,7 +45,7 @@ public class UserInfoEndpointTest {
 
   private static final UserAccount citizenAccount = new UserAccount() {{
     setId("citizen");
-    setLocale(Locale.ITALY);
+    setLocale(ULocale.ITALY);
   }};
 
   @Inject @Rule public InProcessResteasy resteasy;

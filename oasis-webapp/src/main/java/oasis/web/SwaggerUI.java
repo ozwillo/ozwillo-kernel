@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Date;
-import java.util.Locale;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -17,6 +16,7 @@ import javax.ws.rs.core.UriInfo;
 
 import com.google.common.io.Resources;
 import com.google.template.soy.data.SoyMapData;
+import com.ibm.icu.util.ULocale;
 import com.wordnik.swagger.jaxrs.listing.ApiListingResourceJSON;
 
 import oasis.soy.SoyTemplate;
@@ -54,7 +54,7 @@ public class SwaggerUI {
         SwaggerUISoyInfo.Param.BASE_PATH, Resteasy1099.getBaseUriBuilder(uriInfo).path("/swagger-ui/").build().toString(),
         SwaggerUISoyInfo.Param.API_PATH, Resteasy1099.getBaseUriBuilder(uriInfo).path(ApiListingResourceJSON.class).build().toString()
     );
-    return Response.ok(new SoyTemplate(SwaggerUISoyInfo.SWAGGER_UI, Locale.ROOT, model)).build();
+    return Response.ok(new SoyTemplate(SwaggerUISoyInfo.SWAGGER_UI, ULocale.ROOT, model)).build();
   }
 
   @GET
