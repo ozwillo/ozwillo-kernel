@@ -1,7 +1,5 @@
 package oasis.soy;
 
-import static com.google.common.base.MoreObjects.*;
-
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
@@ -17,7 +15,6 @@ import com.google.common.base.Throwables;
 import com.google.template.soy.msgs.SoyMsgBundle;
 import com.google.template.soy.msgs.SoyMsgBundleHandler;
 import com.google.template.soy.msgs.restricted.SoyMsg;
-import com.google.template.soy.msgs.restricted.SoyMsgBundleImpl;
 
 import oasis.web.i18n.LocaleHelper;
 
@@ -26,7 +23,7 @@ class SoyMsgBundleLoader {
   private static final ResourceBundle.Control control = ResourceBundle.Control.getNoFallbackControl(ResourceBundle.Control.FORMAT_DEFAULT);
 
   private static final SoyMsgBundle DEFAULT = new SoyMsgBundle() {
-    final String localeString = LocaleHelper.DEFAULT_LOCALE.toString();
+    final String localeString = LocaleHelper.DEFAULT_LOCALE.toLanguageTag();
 
     @Override
     public String getLocaleString() {
