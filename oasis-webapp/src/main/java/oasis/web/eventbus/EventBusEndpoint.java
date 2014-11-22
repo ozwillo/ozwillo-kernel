@@ -59,7 +59,13 @@ public class EventBusEndpoint {
   public Response publish(
       final Event event
   ) {
+    final String providerId = getProviderId(((ClientPrincipal) securityContext.getUserPrincipal()).getClientId());
     for (Subscription subscription : subscriptionRepository.getSubscriptionsForEventType(event.eventType)) {
+      if (!providerId.equals(getProviderId(subscription.getInstance_id()))) {
+        // Don't send events to instances from other providers
+        continue;
+      }
+
       final String webhook = subscription.getWebHook();
 
       // TODO: better eventbus system
@@ -88,6 +94,20 @@ public class EventBusEndpoint {
     }
 
     return ResponseFactory.NO_CONTENT;
+  }
+
+  private String getProviderId(String instanceId) {
+    AppInstance appInstance = appInstanceRepository.getAppInstance(instanceId);
+    if (appInstance == null) {
+      return null;
+    }
+    if (appInstance.getProvider_id() != null) {
+      return "org:" + appInstance.getProvider_id();
+    }
+    if (appInstance.getInstantiator_id() != null) {
+      return "user:" + appInstance.getInstantiator_id();
+    }
+    return null;
   }
 
   @POST
