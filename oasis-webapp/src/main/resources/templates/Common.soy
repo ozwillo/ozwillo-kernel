@@ -4,10 +4,11 @@
  * Common header for OASIS
  */
 {template .header private="true"}
-{@param?  title:  string} /** title for this page. */
+{@param?  title:         string} /** title for this page. */
 {@param? locale_url_map: map<string,string>}
+{@inject current_locale: string} /** current locale. */
 <!DOCTYPE html>
-<html>
+<html lang="{$current_locale}">
 <head>
   <meta charset=utf-8>
   <title>Oasis{if $title} – {$title}{/if}</title>
