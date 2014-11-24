@@ -4,6 +4,7 @@
     <body>
       <trans-unit id="153573648835304242" datatype="html">
         <source>Account Access Attempted</source>
+        <target>Tentative d'accès à un compte Oasis</target>
         <note priority="1" from="description">Forgot-password email subject, for an unknown account</note>
       </trans-unit>
       <trans-unit id="227286377398309927" datatype="html">
@@ -95,6 +96,11 @@
         <source><x id="START_PARAGRAPH"/>Hello <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>You are receiving this e-mail because you have registered on the Oasis portal.<x id="START_PARAGRAPH"/>In order to confirm your subscription, please click on the following link:<x id="START_BREAK"/><x id="START_LINK"/><x id="ACTIVATION_LINK"/><x id="END_LINK"/><x id="START_PARAGRAPH"/>Wishing you a nice tour on the Oasis portal<x id="START_PARAGRAPH"/>The Oasis team</source>
         <target><x id="START_PARAGRAPH"/>Bonjour <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>Vous recevez ce message parce que vous vous êtes inscrit sur le portail Oasis.<x id="START_PARAGRAPH"/>Pour confirmer votre inscription, cliquez sur le lien suivant :<x id="START_BREAK"/><x id="START_LINK"/><x id="ACTIVATION_LINK"/><x id="END_LINK"/><x id="START_PARAGRAPH"/>En vous souhaitant une bonne visite sur le portail Oasis<x id="START_PARAGRAPH"/>L'équipe d'Oasis</target>
         <note priority="1" from="description">Sign-up email body</note>
+      </trans-unit>
+      <trans-unit id="2336550011721758066" datatype="html">
+        <source>Log in</source>
+        <target>Se connecter</target>
+        <note priority="1" from="description">Form submit button</note>
       </trans-unit>
       <trans-unit id="2454050363478003966" datatype="html">
         <source>Login</source>
@@ -241,11 +247,6 @@
         <target>Vous avez déjà autorisé <x id="APP_NAME"/> à :</target>
         <note priority="1" from="description">Introduce list of already authorized scopes</note>
       </trans-unit>
-      <trans-unit id="5866254605255506989" datatype="html">
-        <source>English</source>
-        <target>Anglais</target>
-        <note priority="1" from="description">Locale selector</note>
-      </trans-unit>
       <trans-unit id="6159587099290300397" datatype="html">
         <source>New password:</source>
         <target>Nouveau mot de passe :</target>
@@ -260,6 +261,11 @@
         <source>This link has expired. Try again below.</source>
         <target>Ce lien a expiré. Essayez à nouveau ci-dessous.</target>
         <note priority="1" from="description">Error message during account recovery</note>
+      </trans-unit>
+      <trans-unit id="7028204981963450021" datatype="html">
+        <source>Sign up</source>
+        <target>S'inscrire</target>
+        <note priority="1" from="description">Form submit button</note>
       </trans-unit>
       <trans-unit id="7206769355787176709" datatype="html">
         <source>Go back to My Oasis</source>
@@ -280,11 +286,6 @@
         <source><x id="APP_NAME"/> may later need to do the following; you can authorize it in advance by checking the boxes:</source>
         <target><x id="APP_NAME"/> pourra ultérieurement vous demander les autorisations suivantes ; vous pouvez les accorder à l'avance en cochant les cases :</target>
         <note priority="1" from="description">Introduce list of 'needed scopes' declared but neither granted nor required</note>
-      </trans-unit>
-      <trans-unit id="7633754075223722162" datatype="html">
-        <source>French</source>
-        <target>Français</target>
-        <note priority="1" from="description">Locale selector</note>
       </trans-unit>
       <trans-unit id="7645606619520439486" datatype="html">
         <source>An error occurred sending you an email. Check your email address and try again in a few minutes.</source>

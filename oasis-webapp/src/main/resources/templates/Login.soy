@@ -101,7 +101,11 @@ aside a { display: inline-block; padding: 5px 15px; font-weight: lighter; text-d
         <div class=btn-row>
           <button>
             <img alt="" src="/images/go.png" width=50 height=50>
-            {msg desc="Form submit button"}Go!{/msg}
+            {msg desc="Form submit button"}
+              Log in
+            {fallbackmsg desc="Form submit button"}
+              Go!
+            {/msg}
           </button>
         </div>
       </form>
@@ -131,7 +135,11 @@ aside a { display: inline-block; padding: 5px 15px; font-weight: lighter; text-d
         <div class=btn-row>
           <button>
             <img alt="" src="/images/go.png" width=50 height=50>
-            {msg desc="Form submit button"}Go!{/msg}
+            {msg desc="Form submit button"}
+              Sign up
+            {fallbackmsg desc="Form submit button"}
+              Go!
+            {/msg}
           </button>
         </div>
       </form>
