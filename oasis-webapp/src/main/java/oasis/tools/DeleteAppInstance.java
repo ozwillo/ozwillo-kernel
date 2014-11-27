@@ -13,15 +13,14 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.typesafe.config.Config;
 
+import oasis.auth.AuthModule;
 import oasis.http.HttpClientModule;
 import oasis.jongo.JongoService;
 import oasis.jongo.guice.JongoModule;
 import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstanceRepository;
-import oasis.auth.AuthModule;
 import oasis.usecases.DeleteAppInstance.Request;
 import oasis.usecases.DeleteAppInstance.Stats;
-import oasis.web.guice.OasisGuiceModule;
 
 public class DeleteAppInstance extends CommandLineTool {
 
@@ -65,8 +64,8 @@ public class DeleteAppInstance extends CommandLineTool {
     }
 
     final Injector injector = Guice.createInjector(
-        new HttpClientModule(),
         JongoModule.create(config.getConfig("oasis.mongo")),
+        HttpClientModule.create(config.getConfig("oasis.http.client")),
         // TODO: store PKIs in DB to use a single subtree of the config
         AuthModule.create(config.getConfig("oasis.auth")
             .withFallback(config.withOnlyPath("oasis.conf-dir")))

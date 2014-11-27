@@ -45,7 +45,7 @@ public class WebApp extends CommandLineTool {
         new OasisGuiceModule(),
         JongoModule.create(config.getConfig("oasis.mongo")),
         auditModule,
-        new HttpClientModule(),
+        HttpClientModule.create(config.getConfig("oasis.http.client")),
         HttpServerModule.create(config.getConfig("oasis.http")),
         ElasticsearchModule.create(config.getConfig("oasis.elasticsearch")),
         // TODO: store PKIs in DB to use a single subtree of the config
