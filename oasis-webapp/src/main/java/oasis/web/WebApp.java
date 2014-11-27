@@ -17,6 +17,7 @@ import oasis.auditlog.log4j.logstash.LogstashLog4JAuditModule;
 import oasis.auditlog.noop.NoopAuditLogModule;
 import oasis.auth.AuthModule;
 import oasis.elasticsearch.ElasticsearchModule;
+import oasis.http.HttpClientModule;
 import oasis.http.HttpServer;
 import oasis.http.HttpServerModule;
 import oasis.jongo.JongoService;
@@ -44,6 +45,7 @@ public class WebApp extends CommandLineTool {
         new OasisGuiceModule(),
         JongoModule.create(config.getConfig("oasis.mongo")),
         auditModule,
+        new HttpClientModule(),
         HttpServerModule.create(config.getConfig("oasis.http")),
         ElasticsearchModule.create(config.getConfig("oasis.elasticsearch")),
         // TODO: store PKIs in DB to use a single subtree of the config

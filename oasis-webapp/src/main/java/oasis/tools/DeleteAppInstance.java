@@ -13,6 +13,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.typesafe.config.Config;
 
+import oasis.http.HttpClientModule;
 import oasis.jongo.JongoService;
 import oasis.jongo.guice.JongoModule;
 import oasis.model.applications.v2.AppInstance;
@@ -64,7 +65,7 @@ public class DeleteAppInstance extends CommandLineTool {
     }
 
     final Injector injector = Guice.createInjector(
-        new OasisGuiceModule(),
+        new HttpClientModule(),
         JongoModule.create(config.getConfig("oasis.mongo")),
         // TODO: store PKIs in DB to use a single subtree of the config
         AuthModule.create(config.getConfig("oasis.auth")
