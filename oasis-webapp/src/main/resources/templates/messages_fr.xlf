@@ -22,6 +22,11 @@
         <target>En finalisant votre inscription, vous déclarez avoir pris connaissance des <x id="START_LINK"/>CGU<x id="END_LINK"/> d'Oasis et que vous les acceptez.</target>
         <note priority="1" from="description">Accept terms of use when signing up</note>
       </trans-unit>
+      <trans-unit id="667496017372169371" datatype="html">
+        <source>Password must be at least <x id="PWD_MIN_LENGTH"/> characters long.</source>
+        <target>Mot de passe trop court (longueur minimale: <x id="PWD_MIN_LENGTH"/>).</target>
+        <note priority="1" from="description">Password too short; when changing password</note>
+      </trans-unit>
       <trans-unit id="896282919376501263" datatype="html">
         <source>An error occurred. That's all we know.</source>
         <target>Une erreur est survenue.</target>

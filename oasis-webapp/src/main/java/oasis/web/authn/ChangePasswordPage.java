@@ -2,6 +2,7 @@ package oasis.web.authn;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -17,6 +18,7 @@ import javax.ws.rs.core.UriBuilder;
 import com.google.common.base.Functions;
 import com.google.template.soy.data.SoyMapData;
 
+import oasis.auth.AuthModule;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.authn.ClientType;
@@ -36,6 +38,7 @@ public class ChangePasswordPage {
   @Inject AccountRepository accountRepository;
   @Inject CredentialsService credentialsService;
   @Inject TokenRepository tokenRepository;
+  @Inject AuthModule.Settings authSettings;
   @Inject Urls urls;
 
   @Context SecurityContext securityContext;
@@ -50,7 +53,7 @@ public class ChangePasswordPage {
   @POST
   public Response post(
       @FormParam("oldpwd") String oldpwd,
-      @FormParam("newpwd") String newpwd
+      @FormParam("newpwd") @DefaultValue("") String newpwd
   ) {
     String userId = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken().getAccountId();
     UserAccount account = accountRepository.getUserAccountById(userId);
@@ -58,6 +61,9 @@ public class ChangePasswordPage {
       return form(Response.status(Response.Status.BAD_REQUEST), account, PasswordChangeError.BAD_PASSWORD);
     }
 
+    if (newpwd.length() < authSettings.passwordMinimumLength) {
+      return form(Response.status(Response.Status.BAD_REQUEST), account, PasswordChangeError.PASSWORD_TOO_SHORT);
+    }
     credentialsService.setPassword(ClientType.USER, userId, newpwd);
 
     // revoke all sessions / tokens
@@ -93,13 +99,15 @@ public class ChangePasswordPage {
                 ChangePasswordSoyTemplateInfo.EMAIL, account.getEmail_address(),
                 ChangePasswordSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(ChangePasswordPage.class).build().toString(),
                 ChangePasswordSoyTemplateInfo.PORTAL_URL, urls.myProfile().transform(Functions.toStringFunction()).orNull(),
-                ChangePasswordSoyTemplateInfo.ERROR, error == null ? null : error.name()
+                ChangePasswordSoyTemplateInfo.ERROR, error == null ? null : error.name(),
+                ChangePasswordSoyTemplateInfo.PWD_MIN_LENGTH, authSettings.passwordMinimumLength
             )
         ))
         .build();
   }
 
   enum PasswordChangeError {
-    BAD_PASSWORD
+    BAD_PASSWORD,
+    PASSWORD_TOO_SHORT
   }
 }

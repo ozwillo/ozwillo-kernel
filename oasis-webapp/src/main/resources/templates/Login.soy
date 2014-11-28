@@ -8,8 +8,9 @@
 {@param  loginFormAction:  string} /** URL to post the sign-in form to. */
 {@param? forgotPassword:   string} /** URL to the form allowing for recovering your password. */
 {@param  continue:         string} /** URL to continue to after successful login/re-auth. */
-{@param? error:            string} /** error; can be one of INCORRECT_USERNAME_OR_PASSWORD, MISSING_REQUIRED_FIELD, ACCOUNT_ALREADY_EXISTS, or MESSAGING_ERROR */
+{@param? error:            string} /** error; can be one of INCORRECT_USERNAME_OR_PASSWORD, MISSING_REQUIRED_FIELD, ACCOUNT_ALREADY_EXISTS, MESSAGING_ERROR, or PASSWORD_TOO_SHORT */
 {@param  locale_url_map:   map<string,string>}
+{@param? pwdMinLength:     int}    /** password minimum length; only used on sign-up errors. */
 {@inject current_locale:   string} /** current locale. */
 {call .header}
   {param title kind="text"}{msg desc="Login page title"}Login{/msg}{/param}
@@ -71,6 +72,8 @@ aside a { display: inline-block; padding: 5px 15px; font-weight: lighter; text-d
       {/if}
     {case 'MESSAGING_ERROR'}
       {msg desc="Error message during sign-up"}An error occurred creating your account. Check your email address and try again in a few minutes.{/msg}
+    {case 'PASSWORD_TOO_SHORT'}
+      {msg desc="Password too short; during sign-up"}Password must be at least {$pwdMinLength|formatNum} characters long.{/msg}
     {default}
       {msg desc="Generic error message"}An error occurred. That's all we know.{/msg}
     {/switch}

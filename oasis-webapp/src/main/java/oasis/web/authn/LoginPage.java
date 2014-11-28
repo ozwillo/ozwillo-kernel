@@ -30,6 +30,7 @@ import com.ibm.icu.util.ULocale;
 
 import oasis.auditlog.AuditLogEvent;
 import oasis.auditlog.AuditLogService;
+import oasis.auth.AuthModule;
 import oasis.mail.MailModule;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
@@ -185,15 +186,15 @@ public class LoginPage {
   }
 
   private static Response loginForm(Response.ResponseBuilder builder, URI continueUrl, MailModule.Settings mailSettings, ULocale locale, @Nullable LoginError error) {
-    return loginAndSignupForm(builder, continueUrl, mailSettings, locale, error);
+    return loginAndSignupForm(builder, continueUrl, mailSettings, locale, null, error);
   }
 
-  static Response signupForm(Response.ResponseBuilder builder, URI continueUrl, MailModule.Settings mailSettings, ULocale locale, @Nullable SignupError error) {
-    return loginAndSignupForm(builder, continueUrl, mailSettings, locale, error);
+  static Response signupForm(Response.ResponseBuilder builder, URI continueUrl, MailModule.Settings mailSettings, ULocale locale, AuthModule.Settings authSettings, @Nullable SignupError error) {
+    return loginAndSignupForm(builder, continueUrl, mailSettings, locale, authSettings, error);
   }
 
   private static Response loginAndSignupForm(Response.ResponseBuilder builder, URI continueUrl, MailModule.Settings mailSettings,
-      ULocale locale, @Nullable Enum<?> error) {
+      ULocale locale, @Nullable AuthModule.Settings authSettings, @Nullable Enum<?> error) {
     SoyMapData localeUrlMap = new SoyMapData();
     for (ULocale supportedLocale : LocaleHelper.SUPPORTED_LOCALES) {
       String languageTag = supportedLocale.toLanguageTag();
@@ -209,7 +210,8 @@ public class LoginPage {
         LoginSoyTemplateInfo.FORGOT_PASSWORD, mailSettings.enabled ? UriBuilder.fromResource(ForgotPasswordPage.class).queryParam(LOCALE_PARAM, locale.toLanguageTag()).build().toString() : null,
         LoginSoyTemplateInfo.CONTINUE, continueUrl.toString(),
         LoginSoyTemplateInfo.ERROR, error == null ? null : error.name(),
-        LoginSoyTemplateInfo.LOCALE_URL_MAP, localeUrlMap
+        LoginSoyTemplateInfo.LOCALE_URL_MAP, localeUrlMap,
+        LoginSoyTemplateInfo.PWD_MIN_LENGTH, authSettings == null ? null : authSettings.passwordMinimumLength
     ));
 
     return buildResponseFromView(builder, soyTemplate);
@@ -278,6 +280,7 @@ public class LoginPage {
   enum SignupError {
     MISSING_REQUIRED_FIELD,
     ACCOUNT_ALREADY_EXISTS,
-    MESSAGING_ERROR
+    MESSAGING_ERROR,
+    PASSWORD_TOO_SHORT,
   }
 }

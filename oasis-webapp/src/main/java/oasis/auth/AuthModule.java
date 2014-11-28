@@ -39,6 +39,7 @@ public class AuthModule extends AbstractModule {
           .setSidTokenDuration(Duration.millis(config.getDuration("sid-token-duration", TimeUnit.MILLISECONDS)))
           .setAccountActivationTokenDuration(Duration.millis(config.getDuration("account-activation-token-duration", TimeUnit.MILLISECONDS)))
           .setChangePasswordTokenDuration(Duration.millis(config.getDuration("change-password-token-duration", TimeUnit.MILLISECONDS)))
+          .setPasswordMinimumLength(config.getInt("password-minimum-length"))
           .build();
     }
 
@@ -52,6 +53,7 @@ public class AuthModule extends AbstractModule {
       private Duration sidTokenDuration;
       private Duration accountActivationTokenDuration;
       private Duration changePasswordTokenDuration;
+      private int passwordMinimumLength;
 
       public Settings build() {
         return new Settings(this);
@@ -96,6 +98,11 @@ public class AuthModule extends AbstractModule {
         this.changePasswordTokenDuration = changePasswordTokenDuration;
         return this;
       }
+
+      public Builder setPasswordMinimumLength(int passwordMinimumLength) {
+        this.passwordMinimumLength = passwordMinimumLength;
+        return this;
+      }
     }
 
     public final KeyPair keyPair;
@@ -106,6 +113,7 @@ public class AuthModule extends AbstractModule {
     public final Duration sidTokenDuration;
     public final Duration accountActivationTokenDuration;
     public final Duration changePasswordTokenDuration;
+    public final int passwordMinimumLength;
 
     private Settings(Builder builder) {
       this.keyPair = builder.keyPair;
@@ -116,6 +124,7 @@ public class AuthModule extends AbstractModule {
       this.sidTokenDuration = builder.sidTokenDuration;
       this.accountActivationTokenDuration = builder.accountActivationTokenDuration;
       this.changePasswordTokenDuration = builder.changePasswordTokenDuration;
+      this.passwordMinimumLength = builder.passwordMinimumLength;
     }
   }
 
