@@ -125,6 +125,16 @@ public class JongoOrganizationMembershipRepository implements OrganizationMember
 
   @Override
   @SuppressWarnings("unchecked")
+  public Iterable<OrganizationMembership> getAdminsOfOrganization(String organizationId, int start, int limit) {
+    return (Iterable<OrganizationMembership>) (Iterable<?>) getOrganizationMembershipsCollection()
+        .find("{ organizationId: #, admin: true }", organizationId)
+        .skip(start)
+        .limit(limit)
+        .as(JongoOrganizationMembership.class);
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
   public Iterable<OrganizationMembership> getOrganizationsForUser(String userId, int start, int limit) {
     return (Iterable<OrganizationMembership>) (Iterable<?>) getOrganizationMembershipsCollection()
         .find("{ accountId: # }", userId)

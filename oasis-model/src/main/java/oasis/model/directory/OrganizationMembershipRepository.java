@@ -17,6 +17,8 @@ public interface OrganizationMembershipRepository {
 
   Iterable<OrganizationMembership> getMembersOfOrganization(String organizationId, int start, int limit);
 
+  Iterable<OrganizationMembership> getAdminsOfOrganization(String organizationId, int start, int limit);
+
   Iterable<OrganizationMembership> getOrganizationsForUser(String userId, int start, int limit);
 
   @Deprecated @Nullable OrganizationMembership getOrganizationForUserIfUnique(String userId);

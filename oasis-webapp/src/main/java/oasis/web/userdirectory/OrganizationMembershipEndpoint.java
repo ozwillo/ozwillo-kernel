@@ -50,7 +50,7 @@ public class OrganizationMembershipEndpoint {
 
   @GET
   @ApiOperation(
-      value = "Retrieves users who are memebrs of the organization",
+      value = "Retrieves users who are members of the organization",
       response = OrgMembership.class,
       responseContainer = "Array"
   )
@@ -58,9 +58,25 @@ public class OrganizationMembershipEndpoint {
     OrganizationMembership membership = organizationMembershipRepository
         .getOrganizationMembership(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId(), organizationId);
     if (membership == null || !membership.isAdmin()) {
-      return Response.status(Response.Status.FORBIDDEN).build();
+      return ResponseFactory.forbidden("Current user is not an admin for the organization");
     }
     Iterable<OrganizationMembership> memberships = organizationMembershipRepository.getMembersOfOrganization(organizationId, start, limit);
+    return toResponse(memberships);
+  }
+
+  @GET
+  @Path("/admins")
+  public Response getAdmins(@QueryParam("start") int start, @QueryParam("limit") int limit) {
+    OrganizationMembership membership = organizationMembershipRepository
+        .getOrganizationMembership(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId(), organizationId);
+    if (membership == null) {
+      return ResponseFactory.forbidden("Current user is not a member of the organization");
+    }
+    Iterable<OrganizationMembership> admins = organizationMembershipRepository.getAdminsOfOrganization(organizationId, start, limit);
+    return toResponse(admins);
+  }
+
+  private Response toResponse(Iterable<OrganizationMembership> memberships) {
     return Response.ok()
         .entity(new GenericEntity<Iterable<OrgMembership>>(Iterables.transform(memberships,
             new Function<OrganizationMembership, OrgMembership>() {
