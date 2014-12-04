@@ -135,7 +135,7 @@ public class OrganizationEndpoint {
 
   private boolean isOrgAdmin() {
     OrganizationMembership membership = organizationMembershipRepository
-        .getOrganizationMembership(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId());
+        .getOrganizationMembership(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId(), organizationId);
     return membership != null && membership.isAdmin();
   }
 }
