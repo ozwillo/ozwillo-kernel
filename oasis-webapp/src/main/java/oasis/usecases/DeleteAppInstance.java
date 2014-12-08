@@ -45,13 +45,7 @@ public class DeleteAppInstance {
   @Inject AppInstanceRepository appInstanceRepository;
   @Inject ApplicationRepository applicationRepository;
   @Inject CredentialsRepository credentialsRepository;
-  @Inject TokenRepository tokenRepository;
-  @Inject AuthorizationRepository authorizationRepository;
-  @Inject ScopeRepository scopeRepository;
-  @Inject AccessControlRepository accessControlRepository;
-  @Inject ServiceRepository serviceRepository;
-  @Inject UserSubscriptionRepository userSubscriptionRepository;
-  @Inject SubscriptionRepository subscriptionRepository;
+  @Inject CleanupAppInstance cleanupAppInstance;
   @Inject EtagService etagService;
 
   public Status deleteInstance(Request request, Stats stats) {
@@ -91,27 +85,8 @@ public class DeleteAppInstance {
       stats.appInstanceDeleted = appInstanceRepository.deleteInstance(request.instance_id);
     }
     stats.credentialsDeleted = credentialsRepository.deleteCredentials(ClientType.PROVIDER, request.instance_id);
-    stats.tokensRevokedForInstance = tokenRepository.revokeTokensForClient(request.instance_id);
-    stats.authorizationsDeletedForInstance = authorizationRepository.revokeAllForClient(request.instance_id);
 
-    ArrayList<String> scopes = new ArrayList<>();
-    for (Scope scope : scopeRepository.getScopesOfAppInstance(request.instance_id)) {
-      scopes.add(scope.getId());
-    }
-    stats.tokensRevokedForScopes = tokenRepository.revokeTokensForScopes(scopes);
-    stats.authorizationsDeletedForScopes = authorizationRepository.revokeForAllUsers(scopes);
-    stats.scopesDeleted = scopeRepository.deleteScopesOfAppInstance(request.instance_id);
-
-    stats.appUsersDeleted = accessControlRepository.deleteAccessControlListForAppInstance(request.instance_id);
-
-    ArrayList<String> serviceIds = new ArrayList<>();
-    for (Service service : serviceRepository.getServicesOfInstance(request.instance_id)) {
-      serviceIds.add(service.getId());
-    }
-    stats.subscriptionsDeleted = userSubscriptionRepository.deleteSubscriptionsForServices(serviceIds);
-    stats.servicesDeleted = serviceRepository.deleteServicesOfInstance(request.instance_id);
-
-    stats.eventBusHooksDeleted = subscriptionRepository.deleteSubscriptionsForAppInstance(request.instance_id);
+    cleanupAppInstance.cleanupInstance(request.instance_id, stats);
 
     if (stats.appInstanceDeleted) {
       return Status.DELETED_INSTANCE;
@@ -189,31 +164,14 @@ public class DeleteAppInstance {
   }
 
   @NotThreadSafe
-  public static class Stats {
+  public static class Stats extends CleanupAppInstance.Stats {
     public boolean appInstanceDeleted;
     public boolean credentialsDeleted;
-    public int tokensRevokedForInstance;
-    public int authorizationsDeletedForInstance;
-    public int tokensRevokedForScopes;
-    public int authorizationsDeletedForScopes;
-    public int scopesDeleted;
-    public int appUsersDeleted;
-    public int subscriptionsDeleted;
-    public int servicesDeleted;
-    public int eventBusHooksDeleted;
 
     public boolean isEmpty() {
       return !appInstanceDeleted
           && !credentialsDeleted
-          && tokensRevokedForInstance == 0
-          && authorizationsDeletedForInstance == 0
-          && tokensRevokedForScopes == 0
-          && authorizationsDeletedForScopes == 0
-          && scopesDeleted == 0
-          && appUsersDeleted == 0
-          && subscriptionsDeleted == 0
-          && servicesDeleted == 0
-          && eventBusHooksDeleted == 0;
+          && super.isEmpty();
     }
   }
 

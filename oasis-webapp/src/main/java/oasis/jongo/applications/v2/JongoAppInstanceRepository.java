@@ -103,6 +103,15 @@ public class JongoAppInstanceRepository implements AppInstanceRepository, JongoB
   }
 
   @Override
+  public AppInstance backToPending(String instanceId) {
+    return getAppInstancesCollection()
+        .findAndModify("{ id: #, status: # }", instanceId, AppInstance.InstantiationStatus.RUNNING)
+        .with("{ $set: { status: # }, $unset: { needed_scopes: 1, destruction_uri: 1, destruction_secret: 1 } }",
+            AppInstance.InstantiationStatus.PENDING)
+        .as(AppInstance.class);
+  }
+
+  @Override
   public boolean deleteInstance(String instanceId) {
     return getAppInstancesCollection()
         .remove("{ id: # }", instanceId)

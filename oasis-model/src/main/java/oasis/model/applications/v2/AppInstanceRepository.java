@@ -22,6 +22,8 @@ public interface AppInstanceRepository {
 
   AppInstance instantiated(String instanceId, List<AppInstance.NeededScope> neededScopes, String destruction_uri, String destruction_secret);
 
+  AppInstance backToPending(String instanceId);
+
   boolean deleteInstance(String instanceId, long[] versions) throws InvalidVersionException;
 
   boolean deleteInstance(String instanceId);

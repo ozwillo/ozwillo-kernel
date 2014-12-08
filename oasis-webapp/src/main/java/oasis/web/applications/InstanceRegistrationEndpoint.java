@@ -33,6 +33,7 @@ import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.ServiceRepository;
 import oasis.model.applications.v2.UserSubscription;
 import oasis.model.applications.v2.UserSubscriptionRepository;
+import oasis.usecases.CleanupAppInstance;
 import oasis.usecases.DeleteAppInstance;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.Client;
@@ -49,6 +50,7 @@ public class InstanceRegistrationEndpoint {
   @Inject ScopeRepository scopeRepository;
   @Inject UserSubscriptionRepository userSubscriptionRepository;
   @Inject DeleteAppInstance deleteAppInstance;
+  @Inject CleanupAppInstance cleanupAppInstance;
 
   @PathParam("instance_id") String instanceId;
 
@@ -81,28 +83,34 @@ public class InstanceRegistrationEndpoint {
       return ResponseFactory.notFound("Pending instance not found");
     }
 
-    for (Scope scope : acknowledgementRequest.getScopes()) {
-      scope.setInstance_id(instanceId);
-      scope.computeId();
-      scopeRepository.createOrUpdateScope(scope);
-    }
-    Map<String, String> acknowledgementResponse = new LinkedHashMap<>(acknowledgementRequest.getServices().size());
-    for (Service service : acknowledgementRequest.getServices()) {
-      service.setInstance_id(instanceId);
-      service.setProvider_id(instance.getProvider_id());
-      service = serviceRepository.createService(service);
-      acknowledgementResponse.put(service.getLocal_id(), service.getId());
+    Map<String, String> acknowledgementResponse = new LinkedHashMap<>(
+        acknowledgementRequest.getServices().size());
+    try {
+      for (Scope scope : acknowledgementRequest.getScopes()) {
+        scope.setInstance_id(instanceId);
+        scope.computeId();
+        scopeRepository.createOrUpdateScope(scope);
+      }
+      for (Service service : acknowledgementRequest.getServices()) {
+        service.setInstance_id(instanceId);
+        service.setProvider_id(instance.getProvider_id());
+        service = serviceRepository.createService(service);
+        acknowledgementResponse.put(service.getLocal_id(), service.getId());
 
-      // Automatically subscribe the "instantiator" to all services
-      UserSubscription subscription = new UserSubscription();
-      subscription.setUser_id(instance.getInstantiator_id());
-      subscription.setService_id(service.getId());
-      subscription.setCreator_id(instance.getInstantiator_id());
-      subscription.setSubscription_type(
-          instance.getProvider_id() == null
-              ? UserSubscription.SubscriptionType.PERSONAL
-              : UserSubscription.SubscriptionType.ORGANIZATION);
-      userSubscriptionRepository.createUserSubscription(subscription);
+        // Automatically subscribe the "instantiator" to all services
+        UserSubscription subscription = new UserSubscription();
+        subscription.setUser_id(instance.getInstantiator_id());
+        subscription.setService_id(service.getId());
+        subscription.setCreator_id(instance.getInstantiator_id());
+        subscription.setSubscription_type(
+            instance.getProvider_id() == null
+                ? UserSubscription.SubscriptionType.PERSONAL
+                : UserSubscription.SubscriptionType.ORGANIZATION);
+        userSubscriptionRepository.createUserSubscription(subscription);
+      }
+    } catch (Throwable t) {
+      appInstanceRepository.backToPending(instanceId);
+      cleanupAppInstance.cleanupInstance(instanceId, new DeleteAppInstance.Stats());
     }
 
     return Response.created(Resteasy1099.getBaseUriBuilder(uriInfo).path(AppInstanceEndpoint.class).build(instanceId))
