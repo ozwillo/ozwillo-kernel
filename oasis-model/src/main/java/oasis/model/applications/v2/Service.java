@@ -4,13 +4,14 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import oasis.model.annotations.Id;
 
 public class Service extends CatalogEntry {
   private String local_id;
   private String instance_id;
-  private Boolean restricted;
+  @JsonProperty private Boolean restricted;
   private String service_uri;
   private String notification_uri;
   private Set<String> redirect_uris;

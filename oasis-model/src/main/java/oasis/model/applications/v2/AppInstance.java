@@ -41,7 +41,7 @@ public class AppInstance extends CommonProperties {
     }
     destruction_uri = other.getDestruction_uri();
     destruction_secret = other.getDestruction_secret();
-    redirect_uri_validation_disabled = other.isRedirect_uri_validation_disabled();
+    redirect_uri_validation_disabled = other.redirect_uri_validation_disabled;
   }
 
   public String getId() {
