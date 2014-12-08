@@ -21,6 +21,10 @@ public interface OrganizationMembershipRepository {
 
   Iterable<OrganizationMembership> getOrganizationsForUser(String userId, int start, int limit);
 
+  Iterable<OrganizationMembership> getOrganizationsForAdmin(String userId);
+
+  Iterable<OrganizationMembership> getOrganizationsForAdmin(String userId, int start, int limit);
+
   @Deprecated @Nullable OrganizationMembership getOrganizationForUserIfUnique(String userId);
 
   boolean deleteMembershipsInOrganization(String organizationId);

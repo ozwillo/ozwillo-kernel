@@ -70,9 +70,25 @@ public class JongoAppInstanceRepository implements AppInstanceRepository, JongoB
 
   @Override
   @SuppressWarnings("unchecked")
+  public Iterable<AppInstance> findByOrganizationIdAndStatus(String organizationId, AppInstance.InstantiationStatus instantiationStatus) {
+    return (Iterable<AppInstance>) (Iterable<?>) getAppInstancesCollection()
+        .find("{ provider_id: #, status: # }", organizationId, instantiationStatus)
+        .as(JongoAppInstance.class);
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
   public Iterable<AppInstance> findPersonalInstancesByUserId(String userId) {
     return (Iterable<AppInstance>) (Iterable<?>) getAppInstancesCollection()
         .find("{ instantiator_id: #, provider_id: { $exists: 0 } }", userId)
+        .as(JongoAppInstance.class);
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public Iterable<AppInstance> findPersonalInstancesByUserIdAndStatus(String userId, AppInstance.InstantiationStatus instantiationStatus) {
+    return (Iterable<AppInstance>) (Iterable<?>) getAppInstancesCollection()
+        .find("{ instantiator_id: #, status: #, provider_id: { $exists: 0 } }", userId, instantiationStatus)
         .as(JongoAppInstance.class);
   }
 

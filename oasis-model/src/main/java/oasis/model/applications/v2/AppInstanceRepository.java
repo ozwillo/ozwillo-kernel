@@ -14,7 +14,11 @@ public interface AppInstanceRepository {
 
   Iterable<AppInstance> findByOrganizationId(String organizationId);
 
+  Iterable<AppInstance> findByOrganizationIdAndStatus(String organizationId, AppInstance.InstantiationStatus instantiationStatus);
+
   Iterable<AppInstance> findPersonalInstancesByUserId(String userId);
+
+  Iterable<AppInstance> findPersonalInstancesByUserIdAndStatus(String userId, AppInstance.InstantiationStatus instantiationStatus);
 
   AppInstance instantiated(String instanceId, List<AppInstance.NeededScope> neededScopes, String destruction_uri, String destruction_secret);
 

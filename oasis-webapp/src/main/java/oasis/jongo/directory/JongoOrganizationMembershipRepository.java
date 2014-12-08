@@ -143,6 +143,24 @@ public class JongoOrganizationMembershipRepository implements OrganizationMember
         .as(JongoOrganizationMembership.class);
   }
 
+  @Override
+  @SuppressWarnings("unchecked")
+  public Iterable<OrganizationMembership> getOrganizationsForAdmin(String userId) {
+    return (Iterable<OrganizationMembership>) (Iterable<?>) getOrganizationMembershipsCollection()
+        .find("{ accountId: #, admin: true }", userId)
+        .as(JongoOrganizationMembership.class);
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public Iterable<OrganizationMembership> getOrganizationsForAdmin(String userId, int start, int limit) {
+    return (Iterable<OrganizationMembership>) (Iterable<?>) getOrganizationMembershipsCollection()
+        .find("{ accountId: #, admin: true }", userId)
+        .skip(start)
+        .limit(limit)
+        .as(JongoOrganizationMembership.class);
+  }
+
   @Nullable
   @Override
   public OrganizationMembership getOrganizationForUserIfUnique(String userId) {
