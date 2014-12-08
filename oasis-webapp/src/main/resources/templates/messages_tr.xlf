@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="250539212474752292" datatype="html">
         <source>By completing your registration you acknowledge having read the <x id="START_LINK"/>Terms of Use<x id="END_LINK"/> and you accept them.</source>
-        <target>Kaydınızı gerçekleştirmek suretiyle <x id="START_LINK"/>Kullanım Şartları’nı<x id="END_LINK"/> okuduğunuzu ve Kabul ettiğinizi teyit etmek oluyorsunuz.</target>
+        <target>Kaydınızı gerçekleştirmek suretiyle <x id="START_LINK"/>Kullanım Şartları’nı<x id="END_LINK"/> okuduğunuzu ve kabul ettiğinizi teyit etmiş oluyorsunuz.</target>
         <note priority="1" from="description">Accept terms of use when signing up</note>
       </trans-unit>
       <trans-unit id="896282919376501263" datatype="html">
@@ -214,7 +214,7 @@
       </trans-unit>
       <trans-unit id="4845769766826824513" datatype="html">
         <source><x id="APP_NAME"/> needs some authorizations</source>
-        <target><x id="APP_NAME"/> bazı yetki izinleri gerekli</target>
+        <target><x id="APP_NAME"/> için bazı yetki izinleri gerekli</target>
         <note priority="1" from="description">Some app needs authorizations</note>
       </trans-unit>
       <trans-unit id="5037003483276382412" datatype="html">
