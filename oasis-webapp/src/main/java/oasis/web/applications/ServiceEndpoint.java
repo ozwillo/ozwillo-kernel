@@ -1,5 +1,6 @@
 package oasis.web.applications;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -27,6 +28,7 @@ import oasis.model.applications.v2.ServiceRepository;
 import oasis.services.authz.AppAdminHelper;
 import oasis.services.etag.EtagService;
 import oasis.usecases.DeleteService;
+import oasis.usecases.ServiceValidator;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthAuthenticationFilter;
@@ -45,6 +47,7 @@ public class ServiceEndpoint {
   @Inject AppInstanceRepository appInstanceRepository;
   @Inject EtagService etagService;
   @Inject DeleteService deleteService;
+  @Inject ServiceValidator serviceValidator;
 
   @Context SecurityContext securityContext;
 
@@ -106,6 +109,11 @@ public class ServiceEndpoint {
 
     if (!isAppAdmin(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId(), updatedService)) {
       return ResponseFactory.forbidden("Current user is not an app_admin for the service");
+    }
+
+    @Nullable String error = serviceValidator.validateService(service, updatedService.getInstance_id());
+    if (error != null) {
+      return ResponseFactory.unprocessableEntity(error);
     }
 
     try {

@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -21,6 +23,9 @@ import javax.ws.rs.core.UriInfo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
+import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
+import com.ibm.icu.util.ULocale;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
@@ -35,6 +40,7 @@ import oasis.model.applications.v2.UserSubscription;
 import oasis.model.applications.v2.UserSubscriptionRepository;
 import oasis.usecases.CleanupAppInstance;
 import oasis.usecases.DeleteAppInstance;
+import oasis.usecases.ServiceValidator;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.Client;
 import oasis.web.authn.ClientPrincipal;
@@ -45,6 +51,7 @@ import oasis.web.utils.ResponseFactory;
 @Authenticated @Client
 @Api(value = "instance-registration", description = "Application Factories' callback")
 public class InstanceRegistrationEndpoint {
+  @Inject ServiceValidator serviceValidator;
   @Inject AppInstanceRepository appInstanceRepository;
   @Inject ServiceRepository serviceRepository;
   @Inject ScopeRepository scopeRepository;
@@ -73,9 +80,23 @@ public class InstanceRegistrationEndpoint {
     if (!instanceId.equals(acknowledgementRequest.getInstance_id())) {
       return ResponseFactory.unprocessableEntity("instance_id doesn't match URL");
     }
-    // TODO: check uniqueness of service IDs, scope IDs and needed scope IDs
-    // TODO: check that service's and scope's instance_id is exact.
-    // TODO: check existence of needed scopes.
+
+    // FIXME: don't mandate a destruction_uri yet, but error out if provided without a destruction_secret.
+    if (acknowledgementRequest.destruction_uri != null && Strings.isNullOrEmpty(acknowledgementRequest.destruction_secret)) {
+      return ResponseFactory.unprocessableEntity("Missing destruction_secret");
+    }
+    @Nullable Response error = acknowledgementRequest.checkScopes(instanceId);
+    if (error != null) {
+      return error;
+    }
+    error = acknowledgementRequest.checkServices(serviceValidator, instanceId);
+    if (error != null) {
+      return error;
+    }
+    error = acknowledgementRequest.checkNeededScopes(scopeRepository);
+    if (error != null) {
+      return error;
+    }
 
     AppInstance instance = appInstanceRepository.instantiated(instanceId, acknowledgementRequest.getNeeded_scopes(),
         acknowledgementRequest.destruction_uri, acknowledgementRequest.destruction_secret);
@@ -179,6 +200,66 @@ public class InstanceRegistrationEndpoint {
         needed_scopes = new ArrayList<>();
       }
       return needed_scopes;
+    }
+
+    @Nullable Response checkServices(ServiceValidator serviceValidator, String instance_id) {
+      if (services == null) {
+        return null;
+      }
+      Set<String> serviceIds = Sets.newHashSetWithExpectedSize(services.size());
+      for (Service service : services) {
+        @Nullable String error = serviceValidator.validateService(service, instance_id);
+        if (error != null) {
+          return ResponseFactory.unprocessableEntity(error);
+        }
+        if (!serviceIds.add(service.getLocal_id())) {
+          return ResponseFactory.unprocessableEntity("Duplicate services: " + service.getLocal_id());
+        }
+      }
+      return null;
+    }
+
+    @Nullable Response checkScopes(String instance_id) {
+      if (scopes == null) {
+        return null;
+      }
+      for (Scope scope : scopes) {
+        if (Strings.isNullOrEmpty(scope.getLocal_id())) {
+          return ResponseFactory.unprocessableEntity("Scope missing local_id");
+        }
+        // TODO: validate all provided names (here, we enforce presence of a ROOT value)
+        if (Strings.isNullOrEmpty(scope.getName().get(ULocale.ROOT))) {
+          return ResponseFactory.unprocessableEntity("Scope missing name: " + scope.getLocal_id());
+        }
+        // XXX: description?
+        if (scope.getInstance_id() != null && !scope.getInstance_id().equals(instance_id)) {
+          return ResponseFactory.unprocessableEntity("Bad scope instance_id");
+        }
+      }
+      return null;
+    }
+
+    @Nullable Response checkNeededScopes(ScopeRepository scopeRepository) {
+      if (needed_scopes == null || needed_scopes.isEmpty()) {
+        return null;
+      }
+
+      Set<String> neededScopeIds = Sets.newHashSetWithExpectedSize(needed_scopes.size());
+      for (NeededScope neededScope : needed_scopes) {
+        if (Strings.isNullOrEmpty(neededScope.getScope_id())) {
+          return ResponseFactory.unprocessableEntity("needed_scope missing scope_id");
+        }
+        if (!neededScopeIds.add(neededScope.getScope_id())) {
+          return ResponseFactory.unprocessableEntity("Duplicate needed_scopes: " + neededScope.getScope_id());
+        }
+        // XXX: motivation?
+      }
+      try {
+        scopeRepository.getScopes(neededScopeIds);
+      } catch (IllegalArgumentException iae) {
+        return ResponseFactory.unprocessableEntity("needed_scopes references nonexistent scope_id");
+      }
+      return null;
     }
   }
 }
