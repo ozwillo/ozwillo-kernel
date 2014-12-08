@@ -52,6 +52,8 @@ import oasis.security.KeyPairLoader;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.services.authz.AppAdminHelper;
+import oasis.urls.ImmutableUrls;
+import oasis.urls.Urls;
 import oasis.web.authn.testing.TestClientAuthenticationFilter;
 
 @RunWith(JukitoRunner.class)
@@ -72,6 +74,7 @@ public class TokenEndpointTest {
           .setIdTokenDuration(Duration.standardMinutes(1))
           .setKeyPair(KeyPairLoader.generateRandomKeyPair())
           .build());
+      bind(Urls.class).toInstance(ImmutableUrls.builder().build());
     }
 
     @Provides @TestSingleton FixedClock providesFixedClock() {

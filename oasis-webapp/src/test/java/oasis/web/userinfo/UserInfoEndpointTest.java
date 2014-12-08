@@ -26,6 +26,8 @@ import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.authn.AccessToken;
 import oasis.security.KeyPairLoader;
+import oasis.urls.ImmutableUrls;
+import oasis.urls.Urls;
 import oasis.web.authn.testing.TestOAuthFilter;
 
 @RunWith(JukitoRunner.class)
@@ -40,6 +42,7 @@ public class UserInfoEndpointTest {
       bind(AuthModule.Settings.class).toInstance(AuthModule.Settings.builder()
           .setKeyPair(KeyPairLoader.generateRandomKeyPair())
           .build());
+      bind(Urls.class).toInstance(ImmutableUrls.builder().build());
     }
   }
 

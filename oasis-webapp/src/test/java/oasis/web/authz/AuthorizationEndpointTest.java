@@ -70,6 +70,8 @@ import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.services.authz.AppAdminHelper;
 import oasis.soy.TestingSoyGuiceModule;
+import oasis.urls.ImmutableUrls;
+import oasis.urls.Urls;
 import oasis.web.authn.LoginPage;
 import oasis.web.authn.testing.TestUserFilter;
 import oasis.web.view.SoyTemplateBodyWriter;
@@ -101,6 +103,7 @@ public class AuthorizationEndpointTest {
       bind(AuthModule.Settings.class).toInstance(AuthModule.Settings.builder()
           .setKeyPair(KeyPairLoader.generateRandomKeyPair())
           .build());
+      bind(Urls.class).toInstance(ImmutableUrls.builder().build());
     }
 
     @Provides FixedClock provideFixedClock() {

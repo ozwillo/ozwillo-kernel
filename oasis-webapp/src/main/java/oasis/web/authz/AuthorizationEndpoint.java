@@ -66,6 +66,7 @@ import oasis.services.authz.AppAdminHelper;
 import oasis.soy.SoyTemplate;
 import oasis.soy.templates.AuthorizeSoyInfo;
 import oasis.soy.templates.AuthorizeSoyInfo.AuthorizeSoyTemplateInfo;
+import oasis.urls.Urls;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.User;
 import oasis.web.authn.UserAuthenticationFilter;
@@ -116,6 +117,7 @@ public class AuthorizationEndpoint {
   @Inject LocaleHelper localeHelper;
   @Inject JsonFactory jsonFactory;
   @Inject Clock clock;
+  @Inject Urls urls;
 
   private MultivaluedMap<String, String> params;
   private RedirectUri redirectUri;
@@ -283,7 +285,8 @@ public class AuthorizationEndpoint {
     } else {
       continueUrl.replaceQueryParam("prompt", promptValue);
     }
-    return UserAuthenticationFilter.loginResponse(continueUrl.build(), locale, redirectUri.toString());
+    return UserAuthenticationFilter.loginResponse(continueUrl.build(), locale,
+        redirectUri.toString());
   }
 
   private Response generateAuthorizationCodeAndRedirect(SidToken sidToken, Set<String> scopeIds, String client_id,
@@ -435,7 +438,7 @@ public class AuthorizationEndpoint {
       try {
         idTokenHint = IdToken.parse(jsonFactory, id_token_hint);
         if (!idTokenHint.verifySignature(settings.keyPair.getPublic()) ||
-            !idTokenHint.verifyIssuer(Resteasy1099.getBaseUri(uriInfo).toString())) {
+            !idTokenHint.verifyIssuer(getIssuer(uriInfo))) {
           throw invalidParam("id_token_hint");
         }
       } catch (WebApplicationException wae) {
@@ -449,6 +452,13 @@ public class AuthorizationEndpoint {
         throw error("login_required", null);
       }
     }
+  }
+
+  private String getIssuer(UriInfo uriInfo) {
+    if (urls.canonicalBaseUri().isPresent()) {
+      return urls.canonicalBaseUri().get().toString();
+    }
+    return Resteasy1099.getBaseUri(uriInfo).toString();
   }
 
   private Set<String> getAuthorizedScopeIds(String client_id, String userId) {

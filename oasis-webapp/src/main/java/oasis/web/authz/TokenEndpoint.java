@@ -54,6 +54,7 @@ import oasis.auth.AuthModule;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.services.authz.AppAdminHelper;
+import oasis.urls.Urls;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.Client;
 import oasis.web.authn.ClientPrincipal;
@@ -80,6 +81,7 @@ public class TokenEndpoint {
   @Inject AppInstanceRepository appInstanceRepository;
   @Inject AccessControlRepository accessControlRepository;
   @Inject AppAdminHelper appAdminHelper;
+  @Inject Urls urls;
 
   @Context UriInfo uriInfo;
   @Context SecurityContext securityContext;
@@ -234,7 +236,7 @@ public class TokenEndpoint {
         jsonFactory,
         JWS_HEADER,
         new IdToken.Payload()
-            .setIssuer(Resteasy1099.getBaseUri(uriInfo).toString())
+            .setIssuer(getIssuer())
             .setSubject(accessToken.getAccountId())
             .setAudience(client_id)
             .setExpirationTimeSeconds(issuedAt + settings.idTokenDuration.getStandardSeconds())
@@ -246,6 +248,13 @@ public class TokenEndpoint {
     ));
 
     return response(Response.Status.OK, response);
+  }
+
+  private String getIssuer() {
+    if (urls.canonicalBaseUri().isPresent()) {
+      return urls.canonicalBaseUri().get().toString();
+    }
+    return Resteasy1099.getBaseUri(uriInfo).toString();
   }
 
   private Response response(Response.Status status, Object response) {

@@ -34,6 +34,7 @@ import oasis.model.authn.AccessToken;
 import oasis.model.directory.OrganizationMembership;
 import oasis.model.directory.OrganizationMembershipRepository;
 import oasis.auth.AuthModule;
+import oasis.urls.Urls;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
@@ -64,6 +65,7 @@ public class UserInfoEndpoint {
   @Inject JsonFactory jsonFactory;
   @Inject AccountRepository accountRepository;
   @Inject OrganizationMembershipRepository organizationMembershipRepository;
+  @Inject Urls urls;
 
   @GET
   @Produces(APPLICATION_JWT)
@@ -75,7 +77,7 @@ public class UserInfoEndpoint {
   )
   public Response getSigned() throws GeneralSecurityException, IOException {
     UserInfo userInfo = getUserInfo();
-    userInfo.setIssuer(Resteasy1099.getBaseUri(uriInfo).toString());
+    userInfo.setIssuer(getIssuer());
     AccessToken accessToken = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken();
     userInfo.setAudience(accessToken.getServiceProviderId());
 
@@ -86,6 +88,13 @@ public class UserInfoEndpoint {
         userInfo
     );
     return Response.ok().entity(signedJwt).build();
+  }
+
+  private String getIssuer() {
+    if (urls.canonicalBaseUri().isPresent()) {
+      return urls.canonicalBaseUri().get().toString();
+    }
+    return Resteasy1099.getBaseUri(uriInfo).toString();
   }
 
   @GET

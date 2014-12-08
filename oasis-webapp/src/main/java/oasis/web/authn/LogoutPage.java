@@ -166,8 +166,15 @@ public class LogoutPage {
   @VisibleForTesting
   @Nullable
   private IdToken.Payload parseIdTokenHint(@Nullable String idTokenHint, @Nullable SidToken sidToken) {
-    return parseIdTokenHint(jsonFactory, settings.keyPair.getPublic(), Resteasy1099.getBaseUri(uriInfo).toString(),
-        idTokenHint, sidToken);
+    return parseIdTokenHint(jsonFactory, settings.keyPair.getPublic(), getIssuer(), idTokenHint,
+        sidToken);
+  }
+
+  private String getIssuer() {
+    if (urls.canonicalBaseUri().isPresent()) {
+      return urls.canonicalBaseUri().get().toString();
+    }
+    return Resteasy1099.getBaseUri(uriInfo).toString();
   }
 
   @VisibleForTesting
