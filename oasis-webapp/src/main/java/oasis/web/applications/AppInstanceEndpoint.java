@@ -2,7 +2,9 @@ package oasis.web.applications;
 
 import java.net.URI;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
+import javax.inject.Provider;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -33,6 +35,7 @@ import oasis.model.applications.v2.ServiceRepository;
 import oasis.services.authz.AppAdminHelper;
 import oasis.services.etag.EtagService;
 import oasis.usecases.DeleteAppInstance;
+import oasis.usecases.ServiceValidator;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
@@ -50,6 +53,7 @@ public class AppInstanceEndpoint {
   @Inject ServiceRepository serviceRepository;
   @Inject EtagService etagService;
   @Inject DeleteAppInstance deleteAppInstance;
+  @Inject Provider<ServiceValidator> serviceValidatorProvider;
 
   @Context SecurityContext securityContext;
 
@@ -131,9 +135,11 @@ public class AppInstanceEndpoint {
       return ResponseFactory.forbidden("Current user is not an app_admin for the instance");
     }
 
-    if (service.getInstance_id() != null && !service.getInstance_id().equals(instanceId)) {
-      return ResponseFactory.unprocessableEntity("instance_id doesn't match URL");
+    @Nullable String error = serviceValidatorProvider.get().validateService(service, instanceId);
+    if (error != null) {
+      return ResponseFactory.unprocessableEntity(error);
     }
+
     service.setInstance_id(instanceId);
     service.setProvider_id(instance.getProvider_id());
     service = serviceRepository.createService(service);
