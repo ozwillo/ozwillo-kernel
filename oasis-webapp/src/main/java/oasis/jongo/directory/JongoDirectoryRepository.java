@@ -65,6 +65,7 @@ public class JongoDirectoryRepository implements DirectoryRepository, JongoBoots
   @Override
   public Organization createOrganization(Organization organization) {
     JongoOrganization jongoOrganization = new JongoOrganization(organization);
+    jongoOrganization.initCreated();
     try {
       getOrganizationCollection().insert(jongoOrganization);
     } catch (DuplicateKeyException e) {

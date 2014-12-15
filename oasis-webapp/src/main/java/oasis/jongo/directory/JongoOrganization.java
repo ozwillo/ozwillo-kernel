@@ -15,6 +15,9 @@ import oasis.model.directory.Organization;
 class JongoOrganization extends Organization implements HasModified {
 
   @JsonProperty
+  private Long created; // XXX: not exposed, only initialized once
+
+  @JsonProperty
   private ImmutableList<JongoGroup> groups = ImmutableList.of();
 
   private long modified = System.currentTimeMillis();
@@ -42,5 +45,9 @@ class JongoOrganization extends Organization implements HasModified {
 
   public void setModified(long modified) {
     this.modified = modified;
+  }
+
+  void initCreated() {
+    created = System.currentTimeMillis();
   }
 }

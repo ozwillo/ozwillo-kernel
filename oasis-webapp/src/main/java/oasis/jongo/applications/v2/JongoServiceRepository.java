@@ -42,6 +42,7 @@ public class JongoServiceRepository implements ServiceRepository, JongoBootstrap
   @Override
   public Service createService(Service service) {
     JongoService jongoService = new JongoService(service);
+    jongoService.initCreated();
     try {
       getServicesCollection().insert(jongoService);
     } catch (DuplicateKeyException e) {

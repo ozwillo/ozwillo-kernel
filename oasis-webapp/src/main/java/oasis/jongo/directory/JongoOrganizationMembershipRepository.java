@@ -48,6 +48,7 @@ public class JongoOrganizationMembershipRepository implements OrganizationMember
     checkArgument(!Strings.isNullOrEmpty(membership.getOrganizationId()));
 
     JongoOrganizationMembership member = new JongoOrganizationMembership(membership);
+    member.initCreated();
     try {
       getOrganizationMembershipsCollection().insert(member);
     } catch (DuplicateKeyException e) {

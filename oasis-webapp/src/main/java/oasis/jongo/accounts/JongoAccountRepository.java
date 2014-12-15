@@ -87,10 +87,11 @@ public class JongoAccountRepository implements AccountRepository, JongoBootstrap
 
   @Override
   public UserAccount verifyEmailAddress(String id) {
-    // XXX: use a JongoUserAccount to update the updated_at field
+    // XXX: we use a JongoUserAccount to update the updated_at field
     JongoUserAccount userAccount = new JongoUserAccount();
     userAccount.setId(id);
     userAccount.setEmail_verified(true);
+    userAccount.initActivated_at();
     return getAccountCollection()
         .findAndModify("{ id: # }", id)
         .with("{ $set: # }", userAccount)

@@ -34,6 +34,7 @@ public class JongoAppInstanceRepository implements AppInstanceRepository, JongoB
   @Override
   public AppInstance createAppInstance(AppInstance instance) {
     JongoAppInstance jongoAppInstance = new JongoAppInstance(instance);
+    jongoAppInstance.initCreated();
     try {
       getAppInstancesCollection().insert(jongoAppInstance);
     } catch (DuplicateKeyException e) {
@@ -45,7 +46,7 @@ public class JongoAppInstanceRepository implements AppInstanceRepository, JongoB
   @Override
   public AppInstance getAppInstance(String instanceId) {
     return getAppInstancesCollection()
-        .findOne("{ id: #}", instanceId)
+        .findOne("{ id: # }", instanceId)
         .as(JongoAppInstance.class);
   }
 
@@ -96,8 +97,8 @@ public class JongoAppInstanceRepository implements AppInstanceRepository, JongoB
   public AppInstance instantiated(String instanceId, List<AppInstance.NeededScope> neededScopes, String destruction_uri, String destruction_secret) {
     AppInstance instance = getAppInstancesCollection()
         .findAndModify("{ id: #, status: # }", instanceId, AppInstance.InstantiationStatus.PENDING)
-        .with("{ $set: { status: #, needed_scopes: #, destruction_uri: #, destruction_secret: # } }",
-            AppInstance.InstantiationStatus.RUNNING, neededScopes, destruction_uri, destruction_secret)
+        .with("{ $set: { status: #, needed_scopes: #, destruction_uri: #, destruction_secret: #, provisioned: # } }",
+            AppInstance.InstantiationStatus.RUNNING, neededScopes, destruction_uri, destruction_secret, System.currentTimeMillis())
         .as(AppInstance.class);
     return instance;
   }
@@ -106,7 +107,7 @@ public class JongoAppInstanceRepository implements AppInstanceRepository, JongoB
   public AppInstance backToPending(String instanceId) {
     return getAppInstancesCollection()
         .findAndModify("{ id: #, status: # }", instanceId, AppInstance.InstantiationStatus.RUNNING)
-        .with("{ $set: { status: # }, $unset: { needed_scopes: 1, destruction_uri: 1, destruction_secret: 1 } }",
+        .with("{ $set: { status: # }, $unset: { needed_scopes: 1, destruction_uri: 1, destruction_secret: 1, provisioned: 1 } }",
             AppInstance.InstantiationStatus.PENDING)
         .as(AppInstance.class);
   }
