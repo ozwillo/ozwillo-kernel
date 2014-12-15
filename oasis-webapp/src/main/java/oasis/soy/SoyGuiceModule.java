@@ -26,6 +26,7 @@ public class SoyGuiceModule extends AbstractModule {
         .add(getClass().getResource("/templates/ChangePassword.soy"))
         .add(getClass().getResource("/templates/mail/SignUp.soy"))
         .add(getClass().getResource("/templates/mail/RecoverMail.soy"))
+        .add(getClass().getResource("/templates/notification/AppProvisioning.soy"))
         .build()
         .compileToTofu();
   }

@@ -27,12 +27,11 @@ public class MailSender {
   }
 
   public void send(MailMessage message) throws MessagingException {
-    StringBuilder subject = new StringBuilder();
-    templateRenderer.render(new SoyTemplate(message.getSubject(), message.getLocale(), SanitizedContent.ContentKind.TEXT, message.getData()), subject);
+    String subject =  templateRenderer.renderAsString(
+        new SoyTemplate(message.getSubject(), message.getLocale(), SanitizedContent.ContentKind.TEXT, message.getData()));
 
-    StringBuilder body = new StringBuilder();
-    templateRenderer.render(new SoyTemplate(message.getBody(), message.getLocale(), message.isHtml() ? SanitizedContent.ContentKind.HTML : SanitizedContent.ContentKind.TEXT,
-        message.getData()), body);
+    String body = templateRenderer.renderAsString(
+        new SoyTemplate(message.getBody(), message.getLocale(), message.isHtml() ? SanitizedContent.ContentKind.HTML : SanitizedContent.ContentKind.TEXT, message.getData()));
 
     MimeMessage msg = new MimeMessage(session);
     msg.setFrom(settings.from);

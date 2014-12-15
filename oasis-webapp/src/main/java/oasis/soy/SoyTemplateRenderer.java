@@ -84,5 +84,9 @@ public class SoyTemplateRenderer {
     renderer.render(writer);
   }
 
-  private static class LocaleData {}
+  public String renderAsString(SoyTemplate template) {
+    StringBuilder sb = new StringBuilder();
+    render(template, sb);
+    return sb.toString();
+  }
 }

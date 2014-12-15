@@ -20,6 +20,7 @@ public class UrlsModule extends AbstractModule {
         .landingPage(get(config, "landing-page"))
         .myOasis(get(config, "my-oasis"))
         .myProfile(get(config, "my-profile"))
+        .myApps(get(config, "my-apps"))
         .build());
   }
 

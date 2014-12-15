@@ -21,6 +21,10 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import org.joda.time.Instant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
@@ -38,12 +42,19 @@ import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.ServiceRepository;
 import oasis.model.applications.v2.UserSubscription;
 import oasis.model.applications.v2.UserSubscriptionRepository;
+import oasis.model.notification.Notification;
+import oasis.model.notification.NotificationRepository;
+import oasis.soy.SoyTemplate;
+import oasis.soy.SoyTemplateRenderer;
+import oasis.soy.templates.AppProvisioningSoyInfo;
+import oasis.urls.Urls;
 import oasis.usecases.CleanupAppInstance;
 import oasis.usecases.DeleteAppInstance;
 import oasis.usecases.ServiceValidator;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.Client;
 import oasis.web.authn.ClientPrincipal;
+import oasis.web.i18n.LocaleHelper;
 import oasis.web.resteasy.Resteasy1099;
 import oasis.web.utils.ResponseFactory;
 
@@ -51,6 +62,8 @@ import oasis.web.utils.ResponseFactory;
 @Authenticated @Client
 @Api(value = "instance-registration", description = "Application Factories' callback")
 public class InstanceRegistrationEndpoint {
+  private static final Logger logger = LoggerFactory.getLogger(InstanceRegistrationEndpoint.class);
+
   @Inject ServiceValidator serviceValidator;
   @Inject AppInstanceRepository appInstanceRepository;
   @Inject ServiceRepository serviceRepository;
@@ -58,6 +71,9 @@ public class InstanceRegistrationEndpoint {
   @Inject UserSubscriptionRepository userSubscriptionRepository;
   @Inject DeleteAppInstance deleteAppInstance;
   @Inject CleanupAppInstance cleanupAppInstance;
+  @Inject Urls urls;
+  @Inject SoyTemplateRenderer templateRenderer;
+  @Inject NotificationRepository notificationRepository;
 
   @PathParam("instance_id") String instanceId;
 
@@ -132,6 +148,29 @@ public class InstanceRegistrationEndpoint {
     } catch (Throwable t) {
       appInstanceRepository.backToPending(instanceId);
       cleanupAppInstance.cleanupInstance(instanceId, new DeleteAppInstance.Stats());
+    }
+
+    // If everything's OK, notify the instantiator
+    if (urls.myApps().isPresent()) {
+      try {
+        Notification notification = new Notification();
+        notification.setInstance_id(instance.getId());
+        notification.setUser_id(instance.getInstantiator_id());
+        for (ULocale locale : LocaleHelper.SUPPORTED_LOCALES) {
+          if (LocaleHelper.DEFAULT_LOCALE.equals(locale)) {
+            locale = ULocale.ROOT;
+          }
+          notification.getMessage().set(locale, templateRenderer.renderAsString(new SoyTemplate(AppProvisioningSoyInfo.MESSAGE, locale)));
+          notification.getAction_label().set(locale, templateRenderer.renderAsString(new SoyTemplate(AppProvisioningSoyInfo.ACTION_LABEL, locale)));
+        }
+        notification.getAction_uri().set(ULocale.ROOT, urls.myApps().get().toString());
+        notification.setTime(Instant.now());
+        notification.setStatus(Notification.Status.UNREAD);
+        notificationRepository.createNotification(notification);
+      } catch (Exception e) {
+        // Don't fail if we can't notify
+        logger.error("Error notifying instantiator after successful provisioning of {}", instanceId, e);
+      }
     }
 
     return Response.created(Resteasy1099.getBaseUriBuilder(uriInfo).path(AppInstanceEndpoint.class).build(instanceId))

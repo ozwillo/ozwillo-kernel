@@ -15,4 +15,6 @@ public interface Urls {
   Optional<URI> myOasis();
 
   Optional<URI> myProfile();
+
+  Optional<URI> myApps();
 }
