@@ -36,21 +36,25 @@ import com.google.api.client.util.Clock;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
+import oasis.auditlog.AuditLogEvent;
+import oasis.auditlog.AuditLogService;
+import oasis.auth.AuthModule;
 import oasis.model.applications.v2.AccessControlRepository;
 import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstanceRepository;
+import oasis.model.authn.AbstractOAuthToken;
 import oasis.model.authn.AccessToken;
 import oasis.model.authn.AuthorizationCode;
 import oasis.model.authn.RefreshToken;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.Token;
 import oasis.model.authn.TokenRepository;
-import oasis.auth.AuthModule;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.services.authz.AppAdminHelper;
@@ -81,6 +85,7 @@ public class TokenEndpoint {
   @Inject AppInstanceRepository appInstanceRepository;
   @Inject AccessControlRepository accessControlRepository;
   @Inject AppAdminHelper appAdminHelper;
+  @Inject AuditLogService auditLogService;
   @Inject Urls urls;
 
   @Context UriInfo uriInfo;
@@ -152,6 +157,8 @@ public class TokenEndpoint {
       return Response.serverError().build();
     }
 
+    log(accessToken, TokenLogEvent.GrantType.refresh_token);
+
     String access_token = TokenSerializer.serialize(accessToken, pass);
 
     TokenResponse response = new TokenResponse();
@@ -199,6 +206,9 @@ public class TokenEndpoint {
       if (refreshToken == null) {
         return Response.serverError().build();
       }
+
+      log(refreshToken);
+
       String refresh_token = TokenSerializer.serialize(refreshToken, refreshPass);
 
       response.setRefreshToken(refresh_token);
@@ -211,6 +221,8 @@ public class TokenEndpoint {
     if (accessToken == null) {
       return Response.serverError().build();
     }
+
+    log(accessToken, TokenLogEvent.GrantType.authorization_code);
 
     String access_token = TokenSerializer.serialize(accessToken, pass);
 
@@ -318,5 +330,64 @@ public class TokenEndpoint {
         .setError(error)
         .setErrorDescription(description);
     return response(Response.Status.BAD_REQUEST, response);
+  }
+
+  private void log(AccessToken token, TokenLogEvent.GrantType grantType) {
+    _log(token, TokenLogEvent.TokenType.access_token, grantType);
+  }
+
+  private void log(RefreshToken token) {
+    _log(token, TokenLogEvent.TokenType.refresh_token, TokenLogEvent.GrantType.authorization_code);
+  }
+
+  private void _log(AbstractOAuthToken token, TokenLogEvent.TokenType tokenType, TokenLogEvent.GrantType grantType) {
+    auditLogService.event(TokenLogEvent.class)
+        .setGrantType(grantType)
+        .setTokenType(tokenType)
+        .setRemoteUser(token.getAccountId())
+        .setRemoteClient(token.getServiceProviderId())
+        .setScope(ImmutableSet.copyOf(token.getScopeIds()))
+        .log();
+  }
+
+  public static class TokenLogEvent extends AuditLogEvent {
+    public TokenLogEvent() {
+      super("issued_token_event");
+    }
+
+    public TokenLogEvent setGrantType(GrantType grantType) {
+      this.addContextData("grant_type", grantType);
+      return this;
+    }
+
+    public TokenLogEvent setTokenType(TokenType tokenType) {
+      this.addContextData("token_type", tokenType);
+      return this;
+    }
+
+    public TokenLogEvent setRemoteUser(String remoteUser) {
+      this.addContextData("remote_user", remoteUser);
+      return this;
+    }
+
+    public TokenLogEvent setRemoteClient(String remoteClient) {
+      this.addContextData("remote_client", remoteClient);
+      return this;
+    }
+
+    public TokenLogEvent setScope(ImmutableSet<String> scopes) {
+      this.addContextData("scope", scopes);
+      return this;
+    }
+
+    public static enum GrantType {
+      authorization_code,
+      refresh_token,
+    }
+
+    public static enum TokenType {
+      access_token,
+      refresh_token,
+    }
   }
 }

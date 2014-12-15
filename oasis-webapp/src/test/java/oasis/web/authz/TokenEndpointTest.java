@@ -35,6 +35,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.google.inject.Provides;
 
+import oasis.auditlog.noop.NoopAuditLogModule;
 import oasis.http.testing.InProcessResteasy;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
@@ -63,6 +64,8 @@ public class TokenEndpointTest {
     @Override
     protected void configureTest() {
       bind(TokenEndpoint.class);
+
+      install(new NoopAuditLogModule());
 
       bindMock(TokenHandler.class).in(TestSingleton.class);
       bindMock(AppAdminHelper.class).in(TestSingleton.class);
