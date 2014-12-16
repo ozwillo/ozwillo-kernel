@@ -15,11 +15,15 @@ public class SoyTemplate {
   private final @Nullable SoyMapData data;
 
   public SoyTemplate(SoyTemplateInfo templateInfo, ULocale locale) {
-    this(templateInfo, locale, null);
+    this(templateInfo, locale, null, null);
   }
 
   public SoyTemplate(SoyTemplateInfo templateInfo, ULocale locale, @Nullable SoyMapData data) {
     this(templateInfo, locale, null, data);
+  }
+
+  public SoyTemplate(SoyTemplateInfo templateInfo, ULocale locale, @Nullable SanitizedContent.ContentKind contentKind) {
+    this(templateInfo, locale, contentKind, null);
   }
 
   public SoyTemplate(SoyTemplateInfo templateInfo, ULocale locale, @Nullable SanitizedContent.ContentKind contentKind,

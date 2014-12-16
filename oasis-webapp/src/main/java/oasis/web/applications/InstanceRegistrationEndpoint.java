@@ -29,6 +29,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
+import com.google.template.soy.data.SanitizedContent;
 import com.ibm.icu.util.ULocale;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
@@ -160,8 +161,10 @@ public class InstanceRegistrationEndpoint {
           if (LocaleHelper.DEFAULT_LOCALE.equals(locale)) {
             locale = ULocale.ROOT;
           }
-          notification.getMessage().set(locale, templateRenderer.renderAsString(new SoyTemplate(AppProvisioningSoyInfo.MESSAGE, locale)));
-          notification.getAction_label().set(locale, templateRenderer.renderAsString(new SoyTemplate(AppProvisioningSoyInfo.ACTION_LABEL, locale)));
+          notification.getMessage().set(locale, templateRenderer.renderAsString(
+              new SoyTemplate(AppProvisioningSoyInfo.MESSAGE, locale, SanitizedContent.ContentKind.TEXT)));
+          notification.getAction_label().set(locale, templateRenderer.renderAsString(
+              new SoyTemplate(AppProvisioningSoyInfo.ACTION_LABEL, locale, SanitizedContent.ContentKind.TEXT)));
         }
         notification.getAction_uri().set(ULocale.ROOT, urls.myApps().get().toString());
         notification.setTime(Instant.now());
