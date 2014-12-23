@@ -1,63 +1,34 @@
 package oasis.auditlog.log4j;
 
-import javax.inject.Inject;
+import java.text.SimpleDateFormat;
+import java.util.TimeZone;
 
-import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.core.Appender;
-import org.apache.logging.log4j.core.Logger;
-import org.apache.logging.log4j.core.async.AsyncLoggerConfig;
-import org.apache.logging.log4j.core.config.BaseConfiguration;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.message.Message;
 
-import oasis.auditlog.AuditLogService;
+import com.google.common.collect.ImmutableMap;
+
 import oasis.auditlog.AuditLogEvent;
+import oasis.auditlog.AuditLogService;
+import oasis.auditlog.JsonMessage;
 
 public class Log4JAuditLogService extends AuditLogService {
   private static final String LOGGER_NAME = "OASIS_AUDIT_LOGGER";
-  private static final String APPENDER_NAME = "OASIS_AUDIT_APPENDER";
-  private static final org.slf4j.Logger logger = LoggerFactory.getLogger(Log4JAuditLogService.class);
 
-  private final Log4JSupplier log4JSupplier;
-  private Logger auditLogger;
-
-  @Inject
-  protected Log4JAuditLogService(Log4JSupplier log4JSupplier) {
-    super();
-
-    this.log4JSupplier = log4JSupplier;
-  }
+  private Logger auditLogger = LogManager.getLogger(LOGGER_NAME);
 
   @Override
   protected void log(AuditLogEvent auditLogEvent) {
-    synchronized (this) {
-      if (auditLogger == null) {
-        initLogger();
-      }
-    }
+    ImmutableMap<String, Object> data = ImmutableMap.<String, Object>of(
+        "type", auditLogEvent.getEventType(),
+        "time", auditLogEvent.getDate(),
+        "data", auditLogEvent.getContextMap()
+    );
 
-    auditLogger.info(this.log4JSupplier.generateMessage(auditLogEvent));
-  }
+    Message message = new JsonMessage(data, new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX"), TimeZone.getTimeZone(
+        "UTC"));
 
-  private void initLogger() {
-    auditLogger = (Logger) LogManager.getLogger(LOGGER_NAME);
-    Appender appender = this.log4JSupplier.createAppender(APPENDER_NAME);
-
-    if(appender == null) {
-      logger.warn("Audit log service cannot be used without Log4J Appender. Audit logger is now disabled.");
-      auditLogger.setLevel(Level.OFF);
-      return;
-    }
-
-    BaseConfiguration configuration = (BaseConfiguration) auditLogger.getContext().getConfiguration();
-
-    AsyncLoggerConfig asyncLoggerConfig = new AsyncLoggerConfig(LOGGER_NAME, Level.ALL, false);
-    asyncLoggerConfig.addAppender(appender, Level.ALL, null);
-    asyncLoggerConfig.startFilter();
-    if (!appender.isStarted()) {
-      appender.start();
-    }
-    configuration.addLogger(LOGGER_NAME, asyncLoggerConfig);
-    auditLogger.getContext().updateLoggers(configuration);
+    auditLogger.info(message);
   }
 }

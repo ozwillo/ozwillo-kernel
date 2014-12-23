@@ -14,8 +14,33 @@
         <TimeBasedTriggeringPolicy />
       </Policies>
     </RollingFile>
+
+    <Async name="AsyncAuditLog">
+      <AppenderRef ref="AuditLogFile" />
+      <AppenderRef ref="Logstash" />
+    </Async>
+    <RollingFile name="AuditLogFile"
+      fileName="${env:LOG_DIR}/oasis-audit.log"
+      filePattern="${env:LOG_DIR}/oasis-audit-%d{yyyy-MM-dd}.log.gz">
+      <PatternLayout>
+        <Pattern>%m%n</Pattern>
+      </PatternLayout>
+      <Policies>
+        <TimeBasedTriggeringPolicy />
+      </Policies>
+    </RollingFile>
+    <Socket name="Logstash"
+      host="localhost" port="11111"
+      reconnectionDelay="30000">
+      <PatternLayout>
+        <Pattern>%m%n</Pattern>
+      </PatternLayout>
+    </Socket>
   </Appenders>
   <Loggers>
+    <AsyncLogger name="OASIS_AUDIT_LOGGER" level="ALL" additivity="false">
+      <AppenderRef ref="AsyncAuditLog" />
+    </AsyncLogger>
     <Root level="info">
       <AppenderRef ref="AsyncLogFile" />
     </Root>

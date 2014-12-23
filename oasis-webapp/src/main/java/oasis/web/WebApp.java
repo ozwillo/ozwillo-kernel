@@ -13,7 +13,7 @@ import com.wordnik.swagger.jaxrs.config.DefaultJaxrsScanner;
 import com.wordnik.swagger.jaxrs.reader.DefaultJaxrsApiReader;
 import com.wordnik.swagger.reader.ClassReaders;
 
-import oasis.auditlog.log4j.logstash.LogstashLog4JAuditModule;
+import oasis.auditlog.log4j.Log4JAuditLogModule;
 import oasis.auditlog.noop.NoopAuditLogModule;
 import oasis.auth.AuthModule;
 import oasis.elasticsearch.ElasticsearchModule;
@@ -39,7 +39,7 @@ public class WebApp extends CommandLineTool {
 
     AbstractModule auditModule = (config.getBoolean("oasis.auditlog.disabled")) ?
         new NoopAuditLogModule() :
-        LogstashLog4JAuditModule.create(config.getConfig("oasis.auditlog.logstash"));
+        new Log4JAuditLogModule();
 
     final Injector injector = Guice.createInjector(
         new OasisGuiceModule(),
