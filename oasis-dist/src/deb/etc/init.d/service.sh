@@ -60,7 +60,8 @@ do_start()
 	  -c $SERVICE_USER -g $SERVICE_GROUP --background --make-pidfile --test > /dev/null \
 		|| return 1
 	start-stop-daemon --start --quiet --pidfile $PIDFILE --startas $DAEMON \
-		-c $SERVICE_USER -g $SERVICE_GROUP --background --make-pidfile -- $DAEMON_ARGS \
+		-c $SERVICE_USER -g $SERVICE_GROUP --background --make-pidfile --no-close \
+		-- $DAEMON_ARGS >"$LOG_DIR/$NAME.stdout" 2>"$LOG_DIR/$NAME.stderr" \
 		|| return 2
 }
 
