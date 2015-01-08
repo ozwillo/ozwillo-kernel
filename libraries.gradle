@@ -8,11 +8,12 @@ subprojects {
 }
 
 def guiceVersion = '4.0-beta5'
+def httpclientVersion = '4.3.6'
+def immutablesVersion = '1.0.1'
 def jacksonVersion = '2.4.3'
 def log4jVersion = '2.1'
 def resteasyVersion = '3.0.6.Final'
 def swaggerVersion = '1.3.5'
-def immutablesVersion = '1.0.1'
 
 ext.libs = [
   guava:               'com.google.guava:guava:18.0',
@@ -48,12 +49,12 @@ ext.libs = [
       },
       'io.netty:netty:3.9.5.Final',
       // For some reason, resteasy-jaxrs depends on httpclient…
-      'org.apache.httpcomponents:httpclient:4.2.6',
+      "org.apache.httpcomponents:httpclient:${httpclientVersion}",
     ],
 
   resteasy_client:     [
       "org.jboss.resteasy:resteasy-client:$resteasyVersion",
-      'org.apache.httpcomponents:httpclient:4.2.6',
+      "org.apache.httpcomponents:httpclient:${httpclientVersion}",
     ],
 
   closure_templates_standalone: [
