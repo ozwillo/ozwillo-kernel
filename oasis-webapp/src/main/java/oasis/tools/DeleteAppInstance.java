@@ -65,7 +65,7 @@ public class DeleteAppInstance extends CommandLineTool {
 
     final Injector injector = Guice.createInjector(
         JongoModule.create(config.getConfig("oasis.mongo")),
-        HttpClientModule.create(config.getConfig("oasis.http.client")),
+        new HttpClientModule(),
         // TODO: store PKIs in DB to use a single subtree of the config
         AuthModule.create(config.getConfig("oasis.auth")
             .withFallback(config.withOnlyPath("oasis.conf-dir")))

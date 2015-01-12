@@ -8,7 +8,6 @@ subprojects {
 }
 
 def guiceVersion = '4.0-beta5'
-def httpclientVersion = '4.3.6'
 def immutablesVersion = '1.0.1'
 def jacksonVersion = '2.4.3'
 def log4jVersion = '2.1'
@@ -48,14 +47,9 @@ ext.libs = [
         exclude module: 'resteasy-jackson2-provider'
       },
       'io.netty:netty:3.9.5.Final',
-      // For some reason, resteasy-jaxrs depends on httpclient…
-      "org.apache.httpcomponents:httpclient:${httpclientVersion}",
     ],
 
-  resteasy_client:     [
-      "org.jboss.resteasy:resteasy-client:$resteasyVersion",
-      "org.apache.httpcomponents:httpclient:${httpclientVersion}",
-    ],
+  resteasy_client:     "org.jboss.resteasy:resteasy-client:$resteasyVersion",
 
   closure_templates_standalone: [
       'com.google.template:soy:2014-10-31-atolcd-e74fcfa',
