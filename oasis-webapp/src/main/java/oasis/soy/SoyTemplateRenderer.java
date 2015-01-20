@@ -15,7 +15,11 @@ import com.google.template.soy.data.SoyMap;
 import com.google.template.soy.data.SoyMapData;
 import com.google.template.soy.msgs.SoyMsgBundle;
 import com.google.template.soy.tofu.SoyTofu;
+import com.ibm.icu.lang.UCharacter;
+import com.ibm.icu.text.BreakIterator;
 import com.ibm.icu.text.Collator;
+import com.ibm.icu.text.DisplayContext;
+import com.ibm.icu.text.LocaleDisplayNames;
 import com.ibm.icu.util.ULocale;
 
 import oasis.web.i18n.LocaleHelper;
@@ -28,13 +32,14 @@ public class SoyTemplateRenderer {
         @Override
         public SoyList load(String key) throws Exception {
           final ULocale currentLocale = ULocale.forLanguageTag(key);
+          final LocaleDisplayNames currentLocaleDisplayNames = getLocaleDisplayNames(currentLocale);
           final ArrayList<SoyMapData> list = new ArrayList<>();
           for (ULocale locale : LocaleHelper.SUPPORTED_LOCALES) {
+            LocaleDisplayNames localeDisplayNames = getLocaleDisplayNames(locale);
             SoyMapData localeDesc = new SoyMapData(
                 "locale", locale.toLanguageTag(),
-                // XXX: Use only the language for now, until we add locales for same language in different variants.
-                "native_name", locale.getDisplayLanguage(locale),
-                "translated_name", locale.getDisplayLanguage(currentLocale)
+                "native_name", getDisplayName(locale, localeDisplayNames),
+                "translated_name", getDisplayName(locale, currentLocaleDisplayNames)
             );
             list.add(localeDesc);
           }
@@ -54,10 +59,28 @@ public class SoyTemplateRenderer {
   static {
     SoyMapData localeNames = new SoyMapData();
     for (ULocale locale : LocaleHelper.SUPPORTED_LOCALES) {
-      // XXX: Use only the language for now, until we add locales for same language in different variants.
-      localeNames.put(locale.toLanguageTag(), locale.getDisplayLanguage(locale));
+      localeNames.put(locale.toLanguageTag(), getDisplayName(locale, getLocaleDisplayNames(locale)));
     }
     LOCALE_NAMES = localeNames;
+  }
+
+  private static LocaleDisplayNames getLocaleDisplayNames(ULocale locale) {
+    return LocaleDisplayNames.getInstance(locale,
+        DisplayContext.CAPITALIZATION_FOR_UI_LIST_OR_MENU,
+        DisplayContext.DIALECT_NAMES, // XXX: Default is STANDARD_NAMES, should we use that instead?
+        DisplayContext.LENGTH_FULL);
+  }
+
+  private static String toTitleCase(ULocale locale, String name) {
+    // Logic copied from com.ibm.icu.impl.LocaleDisplayNamesImpl#adjustForUsageAndContext
+    return UCharacter.toTitleCase(locale, name, BreakIterator.getSentenceInstance(locale),
+        UCharacter.TITLECASE_NO_LOWERCASE | UCharacter.TITLECASE_NO_BREAK_ADJUSTMENT);
+  }
+
+  // XXX: Use only the language for now, until we add locales for same language in different variants.
+  private static String getDisplayName(ULocale locale, LocaleDisplayNames localeDisplayNames) {
+    // XXX: explicitly title-case results as some locales (e.g. Bulgarian or Catalan) are all-lowercase even in CAPITALIZATION_FOR_UI_LIST_OR_MENU
+    return toTitleCase(localeDisplayNames.getLocale(), localeDisplayNames.languageDisplayName(locale.getLanguage()));
   }
 
   private final SoyTofu soyTofu;
