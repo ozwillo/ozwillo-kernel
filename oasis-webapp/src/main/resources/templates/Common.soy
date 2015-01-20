@@ -52,7 +52,7 @@ img { border: none; }
  */
 html,body { height: 100%; margin: 0; }
 .page-wrap { min-height: calc(100% - 70px); } /* 70px is 50px of EU logo + 2 * 10px of padding */
-header > nav { max-width: 1170px /* value from portal's bootstrap */ margin: 0 auto; }
+header > nav { max-width: 1170px /* value from portal's bootstrap */; margin: 0 auto; }
 main { max-width: 700px; margin: 0 auto; border-width: 50px 15px 15px; border-style: solid }
 footer { max-width: 500px; margin: 0 auto; }
 
@@ -103,14 +103,15 @@ label { font-weight: lighter; }
 <div class=page-wrap>
 <header>
   <nav>
-  // TODO: add link!
-  <a href="" title="{msg desc="link title on header logo"}Go to the Oasis portal{/msg}" style="padding:3px 15px 4px;display:inline-block;"><img src="/images/logo_oasis.png" alt="Oasis" width=90 height=30></a>
+    // TODO: add link!
+    <a href="" title="{msg desc="link title on header logo"}Go to the Oasis portal{/msg}" style="padding:3px 15px 4px;display:inline-block;"><img src="/images/logo_oasis.png" alt="Oasis" width=90 height=30></a>
 
-  {if $locale_url_map and length(keys($locale_url_map)) > 0}
-    {call .locale_selector}
-      {param locale_url_map: $locale_url_map /}
-    {/call}
-  {/if}
+    {if $locale_url_map and length(keys($locale_url_map)) > 0}
+      {call .locale_selector}
+        {param locale_url_map: $locale_url_map /}
+      {/call}
+    {/if}
+  </nav>
 </header>
 
 <main>
