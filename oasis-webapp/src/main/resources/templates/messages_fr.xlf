@@ -159,7 +159,7 @@
       </trans-unit>
       <trans-unit id="3510526964471104374" datatype="html">
         <source>Cancel and log me back in</source>
-        <target>Annuler et me connecté à nouveau</target>
+        <target>Annuler et me connecter à nouveau</target>
         <note priority="1" from="description">Link to go back to app after erroneous sign-out</note>
       </trans-unit>
       <trans-unit id="3558484610088193987" datatype="html">
