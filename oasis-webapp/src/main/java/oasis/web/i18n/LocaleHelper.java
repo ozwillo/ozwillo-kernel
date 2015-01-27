@@ -1,7 +1,5 @@
 package oasis.web.i18n;
 
-import java.util.ResourceBundle;
-
 import javax.annotation.Nullable;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Variant;
@@ -31,8 +29,6 @@ public class LocaleHelper {
 
   private static final LocalizableValue<ULocale> SUPPORTED_LOCALES_MAP;
   static {
-    final ResourceBundle.Control control = ResourceBundle.Control.getNoFallbackControl(ResourceBundle.Control.FORMAT_DEFAULT);
-
     final LocalizableValue<ULocale> supportedLocalesMap = new LocalizableValue<>();
 
     // Iterate in reverse order so that the first locales take precedence (overwrite)
