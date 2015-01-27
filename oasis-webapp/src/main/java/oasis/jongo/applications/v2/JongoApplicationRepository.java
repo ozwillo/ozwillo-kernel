@@ -16,18 +16,12 @@ import oasis.model.applications.v2.ApplicationRepository;
 public class JongoApplicationRepository implements ApplicationRepository, JongoBootstrapper {
   private static final Logger logger = LoggerFactory.getLogger(ApplicationRepository.class);
 
+  static final String APPLICATIONS_COLLECTION = "applications";
+
   private final Jongo jongo;
 
   @Inject JongoApplicationRepository(Jongo jongo) {
     this.jongo = jongo;
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  public Iterable<Application> getVisibleApplications() {
-    return (Iterable<Application>) (Iterable<?>) getApplicationsCollection()
-        .find("{ visible: true }")
-        .as(JongoApplication.class);
   }
 
   @Override
@@ -54,6 +48,6 @@ public class JongoApplicationRepository implements ApplicationRepository, JongoB
   }
 
   private MongoCollection getApplicationsCollection() {
-    return jongo.getCollection("applications");
+    return jongo.getCollection(APPLICATIONS_COLLECTION);
   }
 }

@@ -21,6 +21,8 @@ import oasis.auth.AuthModule;
 public class JongoServiceRepository implements ServiceRepository, JongoBootstrapper {
   private static final Logger logger = LoggerFactory.getLogger(ServiceRepository.class);
 
+  static final String SERVICES_COLLECTION = "services";
+
   private final Jongo jongo;
   private final AuthModule.Settings settings;
 
@@ -31,12 +33,7 @@ public class JongoServiceRepository implements ServiceRepository, JongoBootstrap
   }
 
   private MongoCollection getServicesCollection() {
-    return jongo.getCollection("services");
-  }
-
-  @Override
-  public Iterable<Service> getVisibleServices() {
-    return getServicesCollection().find("{ visible: true }").as(Service.class);
+    return jongo.getCollection(SERVICES_COLLECTION);
   }
 
   @Override

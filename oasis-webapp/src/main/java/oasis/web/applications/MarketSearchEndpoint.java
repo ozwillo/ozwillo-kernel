@@ -1,8 +1,7 @@
 package oasis.web.applications;
 
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import java.util.Collections;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -18,26 +17,23 @@ import javax.ws.rs.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Function;
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.ComparisonChain;
+import com.google.common.base.Optional;
+import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
-import com.google.common.collect.Iterables;
 import com.ibm.icu.util.ULocale;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
-import oasis.model.applications.v2.ApplicationRepository;
 import oasis.model.applications.v2.CatalogEntry;
-import oasis.model.applications.v2.ServiceRepository;
+import oasis.model.applications.v2.CatalogEntryRepository;
+import oasis.model.applications.v2.ImmutableCatalogEntryRepository;
 
 @Path("/m/search")
 @Api(value = "market-search", description = "Searches the market catalog")
 public class MarketSearchEndpoint {
   private static final Logger logger = LoggerFactory.getLogger(MarketSearchEndpoint.class);
 
-  @Inject ApplicationRepository applicationRepository;
-  @Inject ServiceRepository serviceRepository;
+  @Inject CatalogEntryRepository catalogEntryRepository;
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
@@ -47,56 +43,48 @@ public class MarketSearchEndpoint {
       responseContainer = "Array"
   )
   public Response search(
-      // TODO: add search criterias
       @Nullable @QueryParam("hl") final ULocale locale,
       @DefaultValue("0") @QueryParam("start") int start,
-      @DefaultValue("25") @QueryParam("limit") int limit) {
+      @DefaultValue("25") @QueryParam("limit") int limit,
+      // TODO: handle full-text search
+      // @Nullable @QueryParam("q") String query,
+      @Nullable @QueryParam("territory_id") Set<String> territory_id,
+      @Nullable @QueryParam("target_audience") Set<CatalogEntry.TargetAudience> target_audience,
+      @Nullable @QueryParam("payment_option") Set<CatalogEntry.PaymentOption> payment_option,
+      @Nullable @QueryParam("category_id") Set<String> category_id
+  ) {
     // TODO: use ElasticSearch
-    // TODO: filter to return only data for the locale passed in parameter (if any)
     // TODO: add information about apps the user has already "bought"
+    CatalogEntryRepository.SearchRequest request = ImmutableCatalogEntryRepository.SearchRequest.builder()
+        .displayLocale(Optional.fromNullable(locale))
+        .start(start)
+        .limit(limit)
+        .addAllTerritory_id(preProcessStr(territory_id))
+        .addAllTarget_audience(preProcess(target_audience))
+        .addAllPayment_option(preProcess(payment_option))
+        .addAllCategory_id(preProcessStr(category_id))
+        .build();
     return Response.ok()
-        .entity(new GenericEntity<List<CatalogEntry>>(
-            FluentIterable.from(
-                Iterables.mergeSorted(
-                    Arrays.asList(
-                        applicationRepository.getVisibleApplications(),
-                        serviceRepository.getVisibleServices()
-                    ),
-                    new Comparator<CatalogEntry>() {
-                      ULocale l = MoreObjects.firstNonNull(locale, ULocale.ROOT);
-
-                      @Override
-                      public int compare(CatalogEntry o1, CatalogEntry o2) {
-                        return ComparisonChain.start()
-                            .compare(o1.getName().get(l), o2.getName().get(l))
-                            .result();
-                      }
-                    }
-                )
-            )
-                .skip(start)
-                .limit(limit)
-                .transform(new Function<CatalogEntry, CatalogEntry>() {
-                  @Nullable
-                  @Override
-                  public CatalogEntry apply(final @Nullable CatalogEntry input) {
-                    // Filter to only send CatalogEntry fields (avoids sending secrets over the wire)
-                    return new CatalogEntry(input) {
-                      final EntryType type = input.getType();
-
-                      {
-                        setId(input.getId());
-                      }
-
-                      @Override
-                      public EntryType getType() {
-                        return type;
-                      }
-                    };
-                  }
-                })
-                .toList()
+        .entity(new GenericEntity<Iterable<CatalogEntry>>(
+            catalogEntryRepository.search(request)
         ) {})
         .build();
+  }
+
+  private Iterable<String> preProcessStr(@Nullable Set<String> s) {
+    if (s == null) {
+      return Collections.emptySet();
+    }
+    return FluentIterable.from(s)
+        .filter(Predicates.notNull())
+        .filter(Predicates.not(Predicates.equalTo("")));
+  }
+
+  private <T extends Enum<T>> Iterable<T> preProcess(@Nullable Set<T> s) {
+    if (s == null) {
+      return Collections.emptySet();
+    }
+    return FluentIterable.from(s)
+        .filter(Predicates.notNull());
   }
 }

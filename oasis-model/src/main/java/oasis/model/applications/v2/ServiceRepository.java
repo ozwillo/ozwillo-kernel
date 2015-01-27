@@ -3,8 +3,6 @@ package oasis.model.applications.v2;
 import oasis.model.InvalidVersionException;
 
 public interface ServiceRepository {
-  Iterable<Service> getVisibleServices(); // TODO: remove when we integrate ElasticSearch
-
   Service createService(Service service);
 
   Service getService(String serviceId);
