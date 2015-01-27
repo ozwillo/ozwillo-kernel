@@ -5,8 +5,11 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
@@ -30,20 +33,18 @@ import oasis.model.applications.v2.ImmutableCatalogEntryRepository;
 
 @Path("/m/search")
 @Api(value = "market-search", description = "Searches the market catalog")
+@Produces(MediaType.APPLICATION_JSON)
 public class MarketSearchEndpoint {
-  private static final Logger logger = LoggerFactory.getLogger(MarketSearchEndpoint.class);
-
   @Inject CatalogEntryRepository catalogEntryRepository;
 
   @GET
-  @Produces(MediaType.APPLICATION_JSON)
   @ApiOperation(
       value = "Searches the market catalog",
       response = CatalogEntry.class,
       responseContainer = "Array"
   )
-  public Response search(
-      @Nullable @QueryParam("hl") final ULocale locale,
+  public Response get(
+      @Nullable @QueryParam("hl") ULocale locale,
       @DefaultValue("0") @QueryParam("start") int start,
       @DefaultValue("25") @QueryParam("limit") int limit,
       // TODO: handle full-text search
@@ -52,6 +53,22 @@ public class MarketSearchEndpoint {
       @Nullable @QueryParam("target_audience") Set<CatalogEntry.TargetAudience> target_audience,
       @Nullable @QueryParam("payment_option") Set<CatalogEntry.PaymentOption> payment_option,
       @Nullable @QueryParam("category_id") Set<String> category_id
+  ) {
+    return post(locale, start, limit, territory_id, target_audience, payment_option, category_id);
+  }
+
+  @POST
+  @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+  public Response post(
+      @Nullable @FormParam("hl") ULocale locale,
+      @DefaultValue("0") @FormParam("start") int start,
+      @DefaultValue("25") @FormParam("limit") int limit,
+      // TODO: handle full-text search
+      // @Nullable @FormParam("q") String query,
+      @Nullable @FormParam("territory_id") Set<String> territory_id,
+      @Nullable @FormParam("target_audience") Set<CatalogEntry.TargetAudience> target_audience,
+      @Nullable @FormParam("payment_option") Set<CatalogEntry.PaymentOption> payment_option,
+      @Nullable @FormParam("category_id") Set<String> category_id
   ) {
     // TODO: use ElasticSearch
     // TODO: add information about apps the user has already "bought"
