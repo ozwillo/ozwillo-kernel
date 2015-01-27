@@ -13,9 +13,11 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,15 +29,23 @@ import com.ibm.icu.util.ULocale;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
+import oasis.model.accounts.AccountRepository;
+import oasis.model.accounts.UserAccount;
 import oasis.model.applications.v2.CatalogEntry;
 import oasis.model.applications.v2.CatalogEntryRepository;
 import oasis.model.applications.v2.ImmutableCatalogEntryRepository;
+import oasis.web.authn.OAuth;
+import oasis.web.authn.OAuthPrincipal;
 
 @Path("/m/search")
 @Api(value = "market-search", description = "Searches the market catalog")
+@OAuth
 @Produces(MediaType.APPLICATION_JSON)
 public class MarketSearchEndpoint {
   @Inject CatalogEntryRepository catalogEntryRepository;
+  @Inject AccountRepository accountRepository;
+
+  @Context SecurityContext context;
 
   @GET
   @ApiOperation(
@@ -70,6 +80,11 @@ public class MarketSearchEndpoint {
       @Nullable @FormParam("payment_option") Set<CatalogEntry.PaymentOption> payment_option,
       @Nullable @FormParam("category_id") Set<String> category_id
   ) {
+    if (locale == null && context.getUserPrincipal() != null) {
+      String accountId = ((OAuthPrincipal) context.getUserPrincipal()).getAccessToken().getAccountId();
+      UserAccount account = accountRepository.getUserAccountById(accountId);
+      locale = account.getLocale();
+    }
     // TODO: use ElasticSearch
     // TODO: add information about apps the user has already "bought"
     CatalogEntryRepository.SearchRequest request = ImmutableCatalogEntryRepository.SearchRequest.builder()
