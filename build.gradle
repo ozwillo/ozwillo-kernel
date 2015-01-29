@@ -7,6 +7,9 @@ ext.versionlessOutputs = project.hasProperty("versionlessOutputs") ? Boolean.par
 
 subprojects {
   apply plugin: 'errorprone'
+  configurations.errorprone {
+    resolutionStrategy.force 'com.google.errorprone:error_prone_core:1.+'
+  }
 
   apply plugin: 'idea' // IDEA needs extra configuration for generated sources *sigh*
   idea {
