@@ -78,7 +78,7 @@ public class MembershipEndpoint {
       return ResponseFactory.NOT_FOUND;
     }
     String userId = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId();
-    if (!userId.equals(membership.getAccountId()) || !isOrgAdmin(userId, membership.getOrganizationId())) {
+    if (!userId.equals(membership.getAccountId()) && !isOrgAdmin(userId, membership.getOrganizationId())) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
 
