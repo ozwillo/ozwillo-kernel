@@ -92,7 +92,7 @@ public class JongoOrganizationMembershipRepository implements OrganizationMember
         .as(JongoOrganizationMembership.class);
 
     if (res == null) {
-      if (getOrganizationMembershipsCollection().count("{ id, # }", membershipId) != 0) {
+      if (getOrganizationMembershipsCollection().count("{ id: # }", membershipId) != 0) {
         throw new InvalidVersionException("organizationMember", membershipId);
       }
       logger.warn("Organization member {} does not exist", membershipId);
