@@ -2,6 +2,7 @@ package oasis.model.applications.v2;
 
 import java.util.ArrayList;
 import java.util.List;
+import com.ibm.icu.util.ULocale;
 
 import oasis.model.annotations.Id;
 import oasis.model.i18n.LocalizableString;
@@ -16,6 +17,7 @@ public abstract class CatalogEntry extends CommonProperties {
   private LocalizableString policy_uri;
   private List<String> contacts;
   private List<String> screenshot_uris;
+  private List<ULocale> supported_locales;
 
   protected CatalogEntry() {
     target_audience = new ArrayList<>();
@@ -24,6 +26,7 @@ public abstract class CatalogEntry extends CommonProperties {
     policy_uri = new LocalizableString();
     contacts = new ArrayList<>();
     screenshot_uris = new ArrayList<>();
+    supported_locales = new ArrayList<>();
   }
 
   /**
@@ -41,6 +44,7 @@ public abstract class CatalogEntry extends CommonProperties {
     policy_uri = new LocalizableString(other.getPolicy_uri());
     contacts = new ArrayList<>(other.getContacts());
     screenshot_uris = new ArrayList<>(other.getScreenshot_uris());
+    supported_locales = new ArrayList<>(other.getSupported_locales());
   }
 
   public String getId() {
@@ -115,6 +119,14 @@ public abstract class CatalogEntry extends CommonProperties {
 
   public void setScreenshot_uris(List<String> screenshot_uris) {
     this.screenshot_uris = screenshot_uris;
+  }
+
+  public List<ULocale> getSupported_locales() {
+    return supported_locales;
+  }
+
+  public void setSupported_locales(List<ULocale> supported_locales) {
+    this.supported_locales = supported_locales;
   }
 
   public static enum EntryType {
