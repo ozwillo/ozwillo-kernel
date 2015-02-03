@@ -31,6 +31,7 @@ public class Subscription {
     this.webHook = other.getWebHook();
     this.secret = other.getSecret();
     this.eventType = other.getEventType();
+    this.instance_id = other.getInstance_id();
   }
 
   public String getId() {
