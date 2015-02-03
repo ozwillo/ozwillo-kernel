@@ -1,0 +1,20 @@
+{namespace oasis.notification autoescape="strict"}
+
+/**
+ * Deleted organization membership notification message.
+ */
+{template .deletedMembershipMessage kind="text"}
+{@param  userName:         string} /** User name. */
+{@param  organizationName: string} /** Organization name. */
+{@param  isAdmin:          bool}   /** Is the membership an administrator? */
+
+{if $isAdmin}
+  {msg desc="Deleted organization administrator notification message"}
+    The administrator {$userName} left the organization {$organizationName}.
+  {/msg}
+{else}
+  {msg desc="Deleted organization membership notification message"}
+    {$userName} left the organization {$organizationName}.
+  {/msg}
+{/if}
+{/template}

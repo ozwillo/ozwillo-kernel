@@ -1,5 +1,7 @@
 package oasis.web.userdirectory;
 
+import static oasis.soy.templates.DeletedOrganizationMembershipSoyInfo.DeletedMembershipMessageSoyTemplateInfo;
+
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -16,18 +18,35 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import org.joda.time.Instant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Strings;
+import com.google.template.soy.data.SanitizedContent;
+import com.google.template.soy.data.SoyMapData;
+import com.ibm.icu.util.ULocale;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.InvalidVersionException;
+import oasis.model.accounts.AccountRepository;
+import oasis.model.accounts.UserAccount;
+import oasis.model.directory.DirectoryRepository;
+import oasis.model.directory.Organization;
 import oasis.model.directory.OrganizationMembership;
 import oasis.model.directory.OrganizationMembershipRepository;
+import oasis.model.notification.Notification;
+import oasis.model.notification.NotificationRepository;
 import oasis.services.etag.EtagService;
+import oasis.soy.SoyTemplate;
+import oasis.soy.SoyTemplateRenderer;
+import oasis.soy.templates.DeletedOrganizationMembershipSoyInfo;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
+import oasis.web.i18n.LocaleHelper;
 import oasis.web.utils.ResponseFactory;
 
 @Path("/d/memberships/membership/{membership_id}")
@@ -36,8 +55,14 @@ import oasis.web.utils.ResponseFactory;
 @Authenticated @OAuth
 @Api(value = "memberships", description = "Organization membership")
 public class MembershipEndpoint {
+  private static final Logger logger = LoggerFactory.getLogger(MembershipEndpoint.class);
+
+  @Inject DirectoryRepository directoryRepository;
+  @Inject NotificationRepository notificationRepository;
   @Inject OrganizationMembershipRepository organizationMembershipRepository;
+  @Inject AccountRepository accountRepository;
   @Inject EtagService etagService;
+  @Inject SoyTemplateRenderer templateRenderer;
 
   @Context UriInfo uriInfo;
   @Context SecurityContext securityContext;
@@ -91,6 +116,18 @@ public class MembershipEndpoint {
     if (!deleted) {
       return ResponseFactory.NOT_FOUND;
     }
+
+    // Only create the notification when the targeted user is not the administrator
+    if (userId.equals(membership.getAccountId())) {
+      try {
+        notifyAdminsOfDeletedMembership(membership.getOrganizationId(), membership.getAccountId(), membership.isAdmin());
+      } catch (Exception e) {
+        // Don't fail if we can't notify
+        logger.error("Error notifying admins after the user (accountId = {}) has left the organization {}",
+            membership.getAccountId(), membership.getOrganizationId(), e);
+      }
+    }
+
     return ResponseFactory.NO_CONTENT;
   }
 
@@ -134,6 +171,39 @@ public class MembershipEndpoint {
   private boolean isOrgAdmin(String userId, String organizationId) {
     OrganizationMembership membership = organizationMembershipRepository.getOrganizationMembership(userId, organizationId);
     return membership != null && membership.isAdmin();
+  }
+
+  private void notifyAdminsOfDeletedMembership(String organizationId, String userId, boolean isAdmin) {
+    Iterable<OrganizationMembership> admins = organizationMembershipRepository.getAdminsOfOrganization(organizationId);
+    Organization organization = directoryRepository.getOrganization(organizationId);
+    UserAccount userAccount = accountRepository.getUserAccountById(userId);
+
+    Notification notificationPrototype = new Notification();
+    SoyMapData data = new SoyMapData();
+    data.put(DeletedMembershipMessageSoyTemplateInfo.USER_NAME, userAccount.getDisplayName());
+    data.put(DeletedMembershipMessageSoyTemplateInfo.ORGANIZATION_NAME, organization.getName());
+    data.put(DeletedMembershipMessageSoyTemplateInfo.IS_ADMIN, isAdmin);
+    for (ULocale locale : LocaleHelper.SUPPORTED_LOCALES) {
+      if (LocaleHelper.DEFAULT_LOCALE.equals(locale)) {
+        locale = ULocale.ROOT;
+      }
+      notificationPrototype.getMessage().set(locale, templateRenderer.renderAsString(new SoyTemplate(
+          DeletedOrganizationMembershipSoyInfo.DELETED_MEMBERSHIP_MESSAGE, locale, SanitizedContent.ContentKind.TEXT, data)));
+    }
+    notificationPrototype.setTime(Instant.now());
+    notificationPrototype.setStatus(Notification.Status.UNREAD);
+
+    for (OrganizationMembership admin : admins) {
+      try {
+        Notification notification = new Notification(notificationPrototype);
+        notification.setUser_id(admin.getAccountId());
+        notificationRepository.createNotification(notification);
+      } catch (Exception e) {
+        // Don't fail if we can't notify
+        logger.error("Error notifying admin {} after the user (accountId = {}) has left the organization {}",
+            admin.getId(), userAccount.getId(), organizationId, e);
+      }
+    }
   }
 
   static class MembershipRequest {

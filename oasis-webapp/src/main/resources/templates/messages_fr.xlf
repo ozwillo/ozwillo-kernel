@@ -92,6 +92,11 @@
         <target>Ceci vous déconnectera d'Oasis, sur tous vos appareils.</target>
         <note priority="1" from="description">Consequence of changing password</note>
       </trans-unit>
+      <trans-unit id="2138735712130224013" datatype="html">
+        <source><x id="USER_NAME"/> left the organization <x id="ORGANIZATION_NAME"/>.</source>
+        <target><x id="USER_NAME"/> a quitté l'organisation <x id="ORGANIZATION_NAME"/>.</target>
+        <note priority="1" from="description">Deleted organization membership notification message</note>
+      </trans-unit>
       <trans-unit id="2159130950882492111" datatype="html">
         <source>Cancel</source>
         <target>Annuler</target>
@@ -246,6 +251,11 @@
         <source>Nickname</source>
         <target>Pseudonyme</target>
         <note priority="1" from="description">Nickname field label (for sign-up)</note>
+      </trans-unit>
+      <trans-unit id="5580292871018316143" datatype="html">
+        <source>The administrator <x id="USER_NAME"/> left the organization <x id="ORGANIZATION_NAME"/>.</source>
+        <target>L'administrateur <x id="USER_NAME"/> a quitté l'organisation <x id="ORGANIZATION_NAME"/>.</target>
+        <note priority="1" from="description">Deleted organization administrator notification message</note>
       </trans-unit>
       <trans-unit id="5606277844100248611" datatype="html">
         <source>You have already authorized <x id="APP_NAME"/> to:</source>
