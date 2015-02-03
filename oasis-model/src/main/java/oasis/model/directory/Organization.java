@@ -1,5 +1,7 @@
 package oasis.model.directory;
 
+import java.net.URI;
+
 import javax.annotation.Nonnull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -22,6 +24,7 @@ public class Organization {
   @JsonProperty
   @ApiModelProperty(required = true)
   private Type type;
+  private URI territory_id;
 
   public Organization() {
   }
@@ -34,6 +37,7 @@ public class Organization {
   public Organization(@Nonnull Organization other) {
     this.name = other.getName();
     this.type = other.getType();
+    this.territory_id = other.getTerritory_id();
   }
 
   public String getId() {
@@ -58,6 +62,14 @@ public class Organization {
 
   public void setType(Type type) {
     this.type = type;
+  }
+
+  public URI getTerritory_id() {
+    return territory_id;
+  }
+
+  public void setTerritory_id(URI territory_id) {
+    this.territory_id = territory_id;
   }
 
   public enum Type {
