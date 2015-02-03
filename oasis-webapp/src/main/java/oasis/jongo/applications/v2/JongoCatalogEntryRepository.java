@@ -71,7 +71,8 @@ public class JongoCatalogEntryRepository implements CatalogEntryRepository {
     static FindHelper create(final SearchRequest request) {
       ImmutableList.Builder<String> queryParts = ImmutableList.builder();
       ImmutableList.Builder<Object> params = ImmutableList.builder();
-      addIfNotEmpty(request.territory_id(), "territory_id", queryParts, params);
+      addIfNotEmpty(request.geographical_areas(), "geographical_areas", queryParts, params);
+      addIfNotEmpty(request.restricted_areas(), "restricted_areas", queryParts, params);
       addIfNotEmpty(request.target_audience(), "target_audience", queryParts, params);
       addIfNotEmpty(request.payment_option(), "payment_option", queryParts, params);
       addIfNotEmpty(request.category_id(), "category_ids", queryParts, params);

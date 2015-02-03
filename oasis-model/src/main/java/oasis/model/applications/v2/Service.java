@@ -16,7 +16,6 @@ public class Service extends CatalogEntry {
   private String notification_uri;
   private Set<String> redirect_uris;
   private Set<String> post_logout_redirect_uris;
-  private String territory_id;
   private String subscription_uri;
   private String subscription_secret;
 
@@ -39,7 +38,6 @@ public class Service extends CatalogEntry {
     notification_uri = other.getNotification_uri();
     redirect_uris = new LinkedHashSet<>(other.getRedirect_uris());
     post_logout_redirect_uris = new LinkedHashSet<>(other.getPost_logout_redirect_uris());
-    territory_id = other.getTerritory_id();
     subscription_uri = other.getSubscription_uri();
     subscription_secret = other.getSubscription_secret();
   }
@@ -106,14 +104,6 @@ public class Service extends CatalogEntry {
 
   public void setPost_logout_redirect_uris(Set<String> post_logout_redirect_uris) {
     this.post_logout_redirect_uris = post_logout_redirect_uris;
-  }
-
-  public String getTerritory_id() {
-    return territory_id;
-  }
-
-  public void setTerritory_id(String territory_id) {
-    this.territory_id = territory_id;
   }
 
   public String getSubscription_uri() {

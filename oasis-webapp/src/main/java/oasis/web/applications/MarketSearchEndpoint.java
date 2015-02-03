@@ -1,5 +1,6 @@
 package oasis.web.applications;
 
+import java.net.URI;
 import java.util.Collections;
 import java.util.Set;
 
@@ -19,12 +20,10 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.base.Optional;
 import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Iterables;
 import com.ibm.icu.util.ULocale;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
@@ -59,12 +58,13 @@ public class MarketSearchEndpoint {
       @DefaultValue("25") @QueryParam("limit") int limit,
       // TODO: handle full-text search
       // @Nullable @QueryParam("q") String query,
-      @Nullable @QueryParam("territory_id") Set<String> territory_id,
+      @Nullable @QueryParam("geographical_areas") Set<URI> geographical_areas,
+      @Nullable @QueryParam("restricted_areas") Set<URI> restricted_areas,
       @Nullable @QueryParam("target_audience") Set<CatalogEntry.TargetAudience> target_audience,
       @Nullable @QueryParam("payment_option") Set<CatalogEntry.PaymentOption> payment_option,
       @Nullable @QueryParam("category_id") Set<String> category_id
   ) {
-    return post(locale, start, limit, territory_id, target_audience, payment_option, category_id);
+    return post(locale, start, limit, geographical_areas, restricted_areas, target_audience, payment_option, category_id);
   }
 
   @POST
@@ -75,7 +75,8 @@ public class MarketSearchEndpoint {
       @DefaultValue("25") @FormParam("limit") int limit,
       // TODO: handle full-text search
       // @Nullable @FormParam("q") String query,
-      @Nullable @FormParam("territory_id") Set<String> territory_id,
+      @Nullable @QueryParam("geographical_areas") Set<URI> geographical_areas,
+      @Nullable @QueryParam("restricted_areas") Set<URI> restricted_areas,
       @Nullable @FormParam("target_audience") Set<CatalogEntry.TargetAudience> target_audience,
       @Nullable @FormParam("payment_option") Set<CatalogEntry.PaymentOption> payment_option,
       @Nullable @FormParam("category_id") Set<String> category_id
@@ -91,7 +92,8 @@ public class MarketSearchEndpoint {
         .displayLocale(Optional.fromNullable(locale))
         .start(start)
         .limit(limit)
-        .addAllTerritory_id(preProcessStr(territory_id))
+        .addAllGeographical_areas(preProcess(geographical_areas))
+        .addAllRestricted_areas(preProcess(restricted_areas))
         .addAllTarget_audience(preProcess(target_audience))
         .addAllPayment_option(preProcess(payment_option))
         .addAllCategory_id(preProcessStr(category_id))
@@ -104,19 +106,14 @@ public class MarketSearchEndpoint {
   }
 
   private Iterable<String> preProcessStr(@Nullable Set<String> s) {
-    if (s == null) {
-      return Collections.emptySet();
-    }
-    return FluentIterable.from(s)
-        .filter(Predicates.notNull())
-        .filter(Predicates.not(Predicates.equalTo("")));
+    return Iterables.filter(preProcess(s), Predicates.not(Predicates.equalTo("")));
   }
 
-  private <T extends Enum<T>> Iterable<T> preProcess(@Nullable Set<T> s) {
-    if (s == null) {
+  private <T> Iterable<T> preProcess(@Nullable Set<T> objects) {
+    if (objects == null) {
       return Collections.emptySet();
     }
-    return FluentIterable.from(s)
+    return FluentIterable.from(objects)
         .filter(Predicates.notNull());
   }
 }

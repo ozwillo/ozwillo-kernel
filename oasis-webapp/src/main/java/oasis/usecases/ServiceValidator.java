@@ -84,7 +84,22 @@ public class ServiceValidator {
     if (service.getSubscription_uri() != null && Strings.isNullOrEmpty(service.getSubscription_secret())) {
       return "Service missing subscription_secret when subscription_uri is provider";
     }
+    for (URI geographical_area : service.getGeographical_areas()) {
+      if (!isValidDataCoreUri(geographical_area)) {
+        return "Invalid interesting_area: " + geographical_area;
+      }
+    }
+    for (URI restricted_area : service.getRestricted_areas()) {
+      if (!isValidDataCoreUri(restricted_area)) {
+        return "Invalid restricted_area: " + restricted_area;
+      }
+    }
     return null;
+  }
+
+  private boolean isValidDataCoreUri(URI uri) {
+    // XXX: for now we only check that it's an HTTP URI, there's room for improvement.
+    return isValidHttpUri(uri);
   }
 
   /**
@@ -102,11 +117,19 @@ public class ServiceValidator {
       return false;
     }
 
-    if (!parsedUri.isAbsolute() || parsedUri.isOpaque()) {
+    return isValidHttpUri(parsedUri);
+  }
+
+  private boolean isValidHttpUri(@Nullable URI uri) {
+    if (uri == null) {
       return false;
     }
 
-    if (!"http".equals(parsedUri.getScheme()) && !"https".equals(parsedUri.getScheme())) {
+    if (!uri.isAbsolute() || uri.isOpaque()) {
+      return false;
+    }
+
+    if (!"http".equals(uri.getScheme()) && !"https".equals(uri.getScheme())) {
       return false;
     }
 

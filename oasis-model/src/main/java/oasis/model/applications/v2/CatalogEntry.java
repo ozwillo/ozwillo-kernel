@@ -1,7 +1,11 @@
 package oasis.model.applications.v2;
 
+import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
 import com.ibm.icu.util.ULocale;
 
 import oasis.model.annotations.Id;
@@ -18,6 +22,8 @@ public abstract class CatalogEntry extends CommonProperties {
   private List<String> contacts;
   private List<String> screenshot_uris;
   private List<ULocale> supported_locales;
+  private Set<URI> geographical_areas;
+  private Set<URI> restricted_areas;
 
   protected CatalogEntry() {
     target_audience = new ArrayList<>();
@@ -27,6 +33,8 @@ public abstract class CatalogEntry extends CommonProperties {
     contacts = new ArrayList<>();
     screenshot_uris = new ArrayList<>();
     supported_locales = new ArrayList<>();
+    geographical_areas = new HashSet<>();
+    restricted_areas = new HashSet<>();
   }
 
   /**
@@ -45,6 +53,8 @@ public abstract class CatalogEntry extends CommonProperties {
     contacts = new ArrayList<>(other.getContacts());
     screenshot_uris = new ArrayList<>(other.getScreenshot_uris());
     supported_locales = new ArrayList<>(other.getSupported_locales());
+    geographical_areas = new HashSet<>(other.getGeographical_areas());
+    restricted_areas = new HashSet<>(other.getRestricted_areas());
   }
 
   public String getId() {
@@ -127,6 +137,22 @@ public abstract class CatalogEntry extends CommonProperties {
 
   public void setSupported_locales(List<ULocale> supported_locales) {
     this.supported_locales = supported_locales;
+  }
+
+  public Set<URI> getGeographical_areas() {
+    return geographical_areas;
+  }
+
+  public void setGeographical_areas(Set<URI> geographical_areas) {
+    this.geographical_areas = geographical_areas;
+  }
+
+  public Set<URI> getRestricted_areas() {
+    return restricted_areas;
+  }
+
+  public void setRestricted_areas(Set<URI> restricted_areas) {
+    this.restricted_areas = restricted_areas;
   }
 
   public static enum EntryType {
