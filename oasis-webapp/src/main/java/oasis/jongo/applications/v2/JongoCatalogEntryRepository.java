@@ -87,6 +87,9 @@ public class JongoCatalogEntryRepository implements CatalogEntryRepository {
         // TODO: compute from model classes instead of hard-coding the list.
         fields.put("id", 1);
         fields.put("provider_id", 1);
+        fields.put("supported_locales", 1);
+        fields.put("geographical_areas", 1);
+        fields.put("restricted_areas", 1);
         fields.put("payment_option", 1);
         fields.put("target_audience", 1);
         fields.put("category_ids", 1);
