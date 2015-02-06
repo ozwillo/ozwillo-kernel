@@ -1,6 +1,7 @@
 package oasis.model.applications.v2;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Set;
 
 import org.immutables.value.Value;
@@ -19,6 +20,7 @@ public interface CatalogEntryRepository {
     int limit();
     // TODO: handle full-text search
     // Optional<String> query();
+    List<ULocale> supported_locale();
     Set<URI> geographical_area();
     Set<URI> restricted_area();
     Set<CatalogEntry.TargetAudience> target_audience();

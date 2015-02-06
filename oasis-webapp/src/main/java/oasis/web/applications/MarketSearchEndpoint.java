@@ -1,7 +1,9 @@
 package oasis.web.applications;
 
 import java.net.URI;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -58,13 +60,14 @@ public class MarketSearchEndpoint {
       @DefaultValue("25") @QueryParam("limit") int limit,
       // TODO: handle full-text search
       // @Nullable @QueryParam("q") String query,
+      @Nullable @QueryParam("supported_locale") List<ULocale> supported_locale,
       @Nullable @QueryParam("geographical_areas") Set<URI> geographical_areas,
       @Nullable @QueryParam("restricted_areas") Set<URI> restricted_areas,
       @Nullable @QueryParam("target_audience") Set<CatalogEntry.TargetAudience> target_audience,
       @Nullable @QueryParam("payment_option") Set<CatalogEntry.PaymentOption> payment_option,
       @Nullable @QueryParam("category_id") Set<String> category_id
   ) {
-    return post(locale, start, limit, geographical_areas, restricted_areas, target_audience, payment_option, category_id);
+    return post(locale, start, limit, supported_locale, geographical_areas, restricted_areas, target_audience, payment_option, category_id);
   }
 
   @POST
@@ -75,6 +78,7 @@ public class MarketSearchEndpoint {
       @DefaultValue("25") @FormParam("limit") int limit,
       // TODO: handle full-text search
       // @Nullable @FormParam("q") String query,
+      @Nullable @QueryParam("supported_locale") List<ULocale> supported_locale,
       @Nullable @QueryParam("geographical_area") Set<URI> geographical_area,
       @Nullable @QueryParam("restricted_area") Set<URI> restricted_area,
       @Nullable @FormParam("target_audience") Set<CatalogEntry.TargetAudience> target_audience,
@@ -92,6 +96,7 @@ public class MarketSearchEndpoint {
         .displayLocale(Optional.fromNullable(locale))
         .start(start)
         .limit(limit)
+        .addAllSupported_locale(preProcess(supported_locale))
         .addAllGeographical_area(preProcess(geographical_area))
         .addAllRestricted_area(preProcess(restricted_area))
         .addAllTarget_audience(preProcess(target_audience))
@@ -105,11 +110,11 @@ public class MarketSearchEndpoint {
         .build();
   }
 
-  private Iterable<String> preProcessStr(@Nullable Set<String> s) {
+  private Iterable<String> preProcessStr(@Nullable Collection<String> s) {
     return Iterables.filter(preProcess(s), Predicates.not(Predicates.equalTo("")));
   }
 
-  private <T> Iterable<T> preProcess(@Nullable Set<T> objects) {
+  private <T> Iterable<T> preProcess(@Nullable Collection<T> objects) {
     if (objects == null) {
       return Collections.emptySet();
     }
