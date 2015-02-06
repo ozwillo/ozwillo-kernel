@@ -79,19 +79,20 @@ public class ServiceSubscriptionEndpoint {
 
     Iterable<UserSubscription> subscriptions = userSubscriptionRepository.getSubscriptionsForService(serviceId);
 
-    // Filter the list to only the app_users.
-    final ImmutableSet<String> app_users = FluentIterable.from(accessControlRepository.getAccessControlListForAppInstance(instance.getId()))
+    // Filter the list to only the app_users and app_admins.
+    final ImmutableSet<String> app_users_and_admins = FluentIterable.from(accessControlRepository.getAccessControlListForAppInstance(instance.getId()))
         .transform(new Function<AccessControlEntry, String>() {
           @Override
           public String apply(AccessControlEntry input) {
             return input.getUser_id();
           }
         })
+        .append(appAdminHelper.getAdmins(instance))
         .toSet();
     subscriptions = Iterables.filter(subscriptions, new Predicate<UserSubscription>() {
       @Override
       public boolean apply(UserSubscription input) {
-        return app_users.contains(input.getUser_id());
+        return app_users_and_admins.contains(input.getUser_id());
       }
     });
 
@@ -144,8 +145,9 @@ public class ServiceSubscriptionEndpoint {
     if (!appAdminHelper.isAdmin(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId(), instance)) {
       return ResponseFactory.forbidden("Current user is not an app_admin for the service");
     }
-    if (accessControlRepository.getAccessControlEntry(instance.getId(), subscription.getUser_id()) == null) {
-      return ResponseFactory.unprocessableEntity("Target user is not an app_user for the service");
+    if (accessControlRepository.getAccessControlEntry(instance.getId(), subscription.getUser_id()) == null
+        && !appAdminHelper.isAdmin(subscription.getUser_id(), instance)) {
+      return ResponseFactory.unprocessableEntity("Target user is neither an app_admin or app_user for the service");
     }
     return createSubscription(subscription);
   }

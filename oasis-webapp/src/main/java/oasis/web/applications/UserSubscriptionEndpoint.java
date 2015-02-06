@@ -121,20 +121,18 @@ public class UserSubscriptionEndpoint {
     if (service == null) {
       return ResponseFactory.unprocessableEntity("Unknown service");
     }
-    if (!service.isVisible() && !isAppUser(service)) {
-      // a personal subscription can only target a public service, or once for which the user is an app_user
-      return ResponseFactory.forbidden("Cannot subscribe to this service");
+    // a personal subscription can only target a public service, or one for which the user is an app_user
+    if (!service.isVisible()) {
+      AppInstance instance = appInstanceRepository.getAppInstance(service.getInstance_id());
+      if (instance == null) {
+        return ResponseFactory.build(Response.Status.INTERNAL_SERVER_ERROR, "Oops, service has no app instance");
+      }
+      if (accessControlRepository.getAccessControlEntry(instance.getId(), userId) == null
+          && !appAdminHelper.isAdmin(userId, instance)) {
+        return ResponseFactory.forbidden("Cannot subscribe to this service");
+      }
     }
     return createSubscription(subscription);
-  }
-
-  private boolean isAppUser(Service service) {
-    AppInstance instance = appInstanceRepository.getAppInstance(service.getInstance_id());
-    if (instance == null) {
-      // XXX: that should not happen; log? return a 500?
-      return false;
-    }
-    return appAdminHelper.isAdmin(userId, instance);
   }
 
   /** Called when the subscription_type is ORGANIZATION. */
@@ -153,8 +151,9 @@ public class UserSubscriptionEndpoint {
     if (!appAdminHelper.isAdmin(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId(), instance)) {
       return ResponseFactory.forbidden("Current user is not an app_admin for the service");
     }
-    if (accessControlRepository.getAccessControlEntry(instance.getId(), userId) == null) {
-      return ResponseFactory.unprocessableEntity("Target user is not an app_user for the service");
+    if (accessControlRepository.getAccessControlEntry(instance.getId(), userId) == null
+        && !appAdminHelper.isAdmin(userId, instance)) {
+      return ResponseFactory.unprocessableEntity("Target user is neither an app_admin or app_user for the service");
     }
     return createSubscription(subscription);
   }
