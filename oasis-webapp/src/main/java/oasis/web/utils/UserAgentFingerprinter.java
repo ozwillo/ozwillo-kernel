@@ -39,9 +39,7 @@ public class UserAgentFingerprinter {
 
   private void putHeader(Hasher hasher, String name, String value) {
     if (value != null) {
-      // willfully use == rather than equals() because we know we're using the interned constant here
-      //noinspection StringEquality
-      if (name == HttpHeaders.ACCEPT_ENCODING) {
+      if (HttpHeaders.ACCEPT_ENCODING.equals(name)) {
         // special-case for Chrome, which sends an "sdch" accept-encoding randomly [1],
         // but never sends it on POST requests [2] (e.g. when submitting the login form
         // and creating a SidToken). The Accept-Encoding value is hard-coded [3,4] so we
