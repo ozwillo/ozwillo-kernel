@@ -75,8 +75,8 @@ public class MarketSearchEndpoint {
       @DefaultValue("25") @FormParam("limit") int limit,
       // TODO: handle full-text search
       // @Nullable @FormParam("q") String query,
-      @Nullable @QueryParam("geographical_areas") Set<URI> geographical_areas,
-      @Nullable @QueryParam("restricted_areas") Set<URI> restricted_areas,
+      @Nullable @QueryParam("geographical_area") Set<URI> geographical_area,
+      @Nullable @QueryParam("restricted_area") Set<URI> restricted_area,
       @Nullable @FormParam("target_audience") Set<CatalogEntry.TargetAudience> target_audience,
       @Nullable @FormParam("payment_option") Set<CatalogEntry.PaymentOption> payment_option,
       @Nullable @FormParam("category_id") Set<String> category_id
@@ -92,8 +92,8 @@ public class MarketSearchEndpoint {
         .displayLocale(Optional.fromNullable(locale))
         .start(start)
         .limit(limit)
-        .addAllGeographical_areas(preProcess(geographical_areas))
-        .addAllRestricted_areas(preProcess(restricted_areas))
+        .addAllGeographical_area(preProcess(geographical_area))
+        .addAllRestricted_area(preProcess(restricted_area))
         .addAllTarget_audience(preProcess(target_audience))
         .addAllPayment_option(preProcess(payment_option))
         .addAllCategory_id(preProcessStr(category_id))

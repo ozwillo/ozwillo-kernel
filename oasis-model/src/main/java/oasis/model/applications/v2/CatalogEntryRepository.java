@@ -19,8 +19,8 @@ public interface CatalogEntryRepository {
     int limit();
     // TODO: handle full-text search
     // Optional<String> query();
-    Set<URI> geographical_areas();
-    Set<URI> restricted_areas();
+    Set<URI> geographical_area();
+    Set<URI> restricted_area();
     Set<CatalogEntry.TargetAudience> target_audience();
     Set<CatalogEntry.PaymentOption> payment_option();
     Set<String> category_id();
