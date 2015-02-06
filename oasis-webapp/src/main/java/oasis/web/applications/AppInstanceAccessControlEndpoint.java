@@ -1,6 +1,8 @@
 package oasis.web.applications;
 
 import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -17,9 +19,7 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Function;
 import com.google.common.base.Strings;
-import com.google.common.collect.Iterables;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
@@ -69,27 +69,56 @@ public class AppInstanceAccessControlEndpoint {
       return ResponseFactory.forbidden("Current user is not an app_admin for the application instance");
     }
 
-    Iterable<AccessControlEntry> aces = accessControlRepository.getAccessControlListForAppInstance(instance_id);
+    Map<String, ACE> acesByUser = new HashMap<>();
+    // First add all app_users
+    for (AccessControlEntry input : accessControlRepository.getAccessControlListForAppInstance(instance_id)) {
+      assert !acesByUser.containsKey(input.getUser_id());
+      ACE ace = new ACE();
+      // Note: the *_name fields will be filled later
+      ace.id = input.getId();
+      ace.entry_uri = Resteasy1099.getBaseUriBuilder(uriInfo).path(AccessControlEntryEndpoint.class).build(input.getId()).toString();
+      ace.entry_etag = etagService.getEtag(input);
+      ace.instance_id = input.getInstance_id();
+      ace.user_id = input.getUser_id();
+      ace.app_user = true;
+      ace.creator_id = input.getCreator_id();
+      acesByUser.put(ace.user_id, ace);
+    }
+    // Then update the app_admin flag or insert a new ACE
+    for (String app_admin : appAdminHelper.getAdmins(instance)) {
+      ACE ace = acesByUser.get(app_admin);
+      if (ace == null) {
+        ace = new ACE();
+        acesByUser.put(app_admin, ace);
+        // XXX: no id or creator_id.
+        ace.instance_id = instance_id;
+        ace.user_id = app_admin;
+      }
+      ace.app_admin = true;
+    }
+    // Finally, compute the *_name fields for all entries
+    // Use a cache as we're likely to see the same user several times
+    Map<String, UserAccount> accountsById = new HashMap<>();
+    final UserAccount sentinel = new UserAccount();
+    for (ACE ace : acesByUser.values()) {
+      UserAccount user = accountsById.get(ace.user_id);
+      if (user == null) {
+        user = accountRepository.getUserAccountById(ace.user_id);
+        accountsById.put(ace.user_id, user == null ? sentinel : user);
+      }
+      ace.user_name = user == null ? null : user.getDisplayName();
+      ace.user_email_address = user == null ? null : user.getEmail_address();
+
+      UserAccount creator = accountsById.get(ace.creator_id);
+      if (creator == null) {
+        creator = accountRepository.getUserAccountById(ace.creator_id);
+        accountsById.put(ace.user_id, creator == null ? sentinel : creator);
+      }
+      ace.creator_name = creator == null ? null : creator.getDisplayName();
+    }
+
     return Response.ok()
-        .entity(new GenericEntity<Iterable<ACE>>(Iterables.transform(aces,
-            new Function<AccessControlEntry, ACE>() {
-              @Override
-              public ACE apply(AccessControlEntry input) {
-                ACE ace = new ACE();
-                ace.id = input.getId();
-                ace.entry_uri = Resteasy1099.getBaseUriBuilder(uriInfo).path(AccessControlEntryEndpoint.class).build(input.getId()).toString();
-                ace.entry_etag = etagService.getEtag(input);
-                ace.instance_id = input.getInstance_id();
-                ace.user_id = input.getUser_id();
-                final UserAccount user = accountRepository.getUserAccountById(input.getUser_id());
-                ace.user_name = user == null ? null : user.getDisplayName();
-                ace.user_email_address = user == null ? null : user.getEmail_address();
-                ace.creator_id = input.getCreator_id();
-                final UserAccount creator = accountRepository.getUserAccountById(input.getCreator_id());
-                ace.creator_name = creator == null ? null : creator.getDisplayName();
-                return ace;
-              }
-            })) {})
+        .entity(new GenericEntity<Iterable<ACE>>(acesByUser.values()) {})
         .build();
   }
 
@@ -142,7 +171,7 @@ public class AppInstanceAccessControlEndpoint {
     @JsonProperty String user_email_address;
     @JsonProperty String creator_id;
     @JsonProperty String creator_name;
-    // TODO: add app_admin and make app_user conditional to… being an app_user.
-    @JsonProperty boolean app_user = true;
+    @JsonProperty Boolean app_user;
+    @JsonProperty Boolean app_admin;
   }
 }
