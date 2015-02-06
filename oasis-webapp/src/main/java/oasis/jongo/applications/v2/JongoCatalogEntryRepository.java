@@ -15,6 +15,7 @@ import org.jongo.Jongo;
 import org.jongo.MongoCollection;
 
 import com.google.common.base.Function;
+import com.google.common.base.Functions;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ComparisonChain;
@@ -60,6 +61,7 @@ public class JongoCatalogEntryRepository implements CatalogEntryRepository {
             findHelper.getComparator()
         )
     )
+        .transform(findHelper.getDisplayLocaleFunction())
         .skip(request.start())
         .limit(request.limit());
   }
@@ -148,20 +150,19 @@ public class JongoCatalogEntryRepository implements CatalogEntryRepository {
     private final Object[] queryParams;
     private final ImmutableMap<String, Integer> fields;
     private final int limit;
-    private final Optional<ULocale> displayLocale;
     private final Comparator<CatalogEntry> comparator;
+    private final Function<CatalogEntry, CatalogEntry> displayLocaleFunction;
 
     private FindHelper(String query, Object[] queryParams, ImmutableMap<String, Integer> fields,
-        int limit, Optional<ULocale> displayLocale) {
+        int limit, final Optional<ULocale> displayLocale) {
       this.query = query;
       this.queryParams = queryParams;
       this.fields = fields;
       this.limit = limit;
-      this.displayLocale = displayLocale;
       // XXX: we can't sort on the server due to https://jira.mongodb.org/browse/SERVER-1920,
       // so we're forced to load and then sort everything here, in memory!
       this.comparator = new Comparator<CatalogEntry>() {
-        final ULocale locale = FindHelper.this.displayLocale.or(ULocale.ROOT);
+        final ULocale locale = displayLocale.or(ULocale.ROOT);
         final Collator collator = Collator.getInstance(locale);
 
         @Override
@@ -171,10 +172,29 @@ public class JongoCatalogEntryRepository implements CatalogEntryRepository {
               .result();
         }
       };
+      this.displayLocaleFunction = displayLocale.isPresent()
+          ? new Function<CatalogEntry, CatalogEntry>() {
+              final ULocale locale = displayLocale.get();
+
+              @Override
+              public CatalogEntry apply(CatalogEntry input) {
+                input.setName(new LocalizableString(input.getName().get(locale)));
+                input.setDescription(new LocalizableString(input.getDescription().get(locale)));
+                input.setIcon(new LocalizableString(input.getIcon().get(locale)));
+                input.setTos_uri(new LocalizableString(input.getTos_uri().get(locale)));
+                input.setPolicy_uri(new LocalizableString(input.getPolicy_uri().get(locale)));
+                return input;
+              }
+            }
+          : Functions.<CatalogEntry>identity();
     }
 
     public Comparator<CatalogEntry> getComparator() {
       return comparator;
+    }
+
+    public Function<CatalogEntry, CatalogEntry> getDisplayLocaleFunction() {
+      return displayLocaleFunction;
     }
 
     public Iterable<CatalogEntry> findAll(MongoCollection collection, final CatalogEntry.EntryType type) {
@@ -194,13 +214,6 @@ public class JongoCatalogEntryRepository implements CatalogEntryRepository {
             @Override
             public CatalogEntry apply(JongoCatalogEntry input) {
               input.setType(type);
-              if (displayLocale.isPresent()) {
-                input.setName(new LocalizableString(input.getName().get(displayLocale.get())));
-                input.setDescription(new LocalizableString(input.getDescription().get(displayLocale.get())));
-                input.setIcon(new LocalizableString(input.getIcon().get(displayLocale.get())));
-                input.setTos_uri(new LocalizableString(input.getTos_uri().get(displayLocale.get())));
-                input.setPolicy_uri(new LocalizableString(input.getPolicy_uri().get(displayLocale.get())));
-              }
               return input;
             }
           });
