@@ -1,9 +1,6 @@
 subprojects {
   repositories {
     mavenCentral()
-    maven {
-      url 'http://nexus/content/repositories/thirdparty'
-    }
   }
 }
 
@@ -52,11 +49,11 @@ ext.libs = [
   resteasy_client:     "org.jboss.resteasy:resteasy-client:$resteasyVersion",
 
   closure_templates_standalone: [
-      'com.google.template:soy:2014-10-31-atolcd-e74fcfa',
+      'com.google.template:soy:2015-02-10',
       'args4j:args4j:2.0.29',
     ],
   closure_templates:   [
-      'com.google.template:soy:2014-10-31-atolcd-e74fcfa',
+      'com.google.template:soy:2015-02-10',
       "com.google.inject.extensions:guice-assistedinject:$guiceVersion",
       "com.google.inject.extensions:guice-multibindings:$guiceVersion",
     ],
