@@ -49,7 +49,7 @@ public class UserCanonicalBaseUriFilterTest {
   @Test public void testRedirectToCanonicalUri() {
     Response response = resteasy.getClient().target("/foo/bar/baz?qux=quux").request().get();
 
-    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.MOVED_PERMANENTLY);
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
     assertThat(response.getLocation()).isEqualTo(URI.create("http://example.com/somepath/foo/bar/baz?qux=quux"));
   }
 

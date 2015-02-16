@@ -36,8 +36,6 @@ public class UserCanonicalBaseUriFilter implements ContainerRequestFilter {
     URI relativeUri = Resteasy1099.getBaseUri(requestContext.getUriInfo()).relativize(requestContext.getUriInfo().getRequestUri());
     URI canonicalUri = urls.canonicalBaseUri().get().resolve(relativeUri);
 
-    requestContext.abortWith(Response.status(Response.Status.MOVED_PERMANENTLY)
-        .location(canonicalUri)
-        .build());
+    requestContext.abortWith(Response.seeOther(canonicalUri).build());
   }
 }
