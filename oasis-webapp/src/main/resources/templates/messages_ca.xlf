@@ -12,11 +12,6 @@
         <target>Intent d'accés al compte</target>
         <note priority="1" from="description">Forgot-password email subject, for an unknown account</note>
       </trans-unit>
-      <trans-unit id="227286377398309927" datatype="html">
-        <source>Go back to Oasis</source>
-        <target>Retornar a Oasis</target>
-        <note priority="1" from="description">Cancel erroneous sign-out from the Portal</note>
-      </trans-unit>
       <trans-unit id="235553805622646291" datatype="html">
         <source>Your account has been created but needs to be activated by confirming your email address.</source>
         <target>El seu compte ha estat creat, però és necessari que l'activi mitjançant la confirmació de la seva adreça de correu electrònic</target>
@@ -27,15 +22,20 @@
         <target>En completar el seu registre, vostè accepta haver llegit les <x id="START_LINK"/>condicions d’ús<x id="END_LINK"/> i les accepta.</target>
         <note priority="1" from="description">Accept terms of use when signing up</note>
       </trans-unit>
+      <trans-unit id="706458367103369348" datatype="html">
+        <source>Ozwillo password reset</source>
+        <target>Reiniciar la contrasenya Ozwillo</target>
+        <note priority="1" from="description">Forgot-password email subject, for an existing account</note>
+      </trans-unit>
       <trans-unit id="896282919376501263" datatype="html">
         <source>An error occurred. That's all we know.</source>
         <target>Hi ha hagut un error.</target>
         <note priority="1" from="description">Generic error message</note>
       </trans-unit>
-      <trans-unit id="1149234624403568354" datatype="html">
-        <source>Sign-out from Oasis</source>
-        <target>Sortir d'Oasis</target>
-        <note priority="1" from="description">logout page heading</note>
+      <trans-unit id="953108370004911682" datatype="html">
+        <source>Go back to Ozwillo</source>
+        <target>Retornar a Ozwillo</target>
+        <note priority="1" from="description">Cancel erroneous sign-out from the Portal</note>
       </trans-unit>
       <trans-unit id="1287914925960251751" datatype="html">
         <source>An error occurred creating your account. Check your email address and try again in a few minutes.</source>
@@ -51,6 +51,11 @@
         <source><x id="START_PARAGRAPH"/>We have sent an email to <x id="EMAIL_ADDRESS"/> with further instructions.<x id="START_PARAGRAPH"/>The email contains a link allowing you to choose a new password. The email link must be clicked within a limited time.</source>
         <target><x id="START_PARAGRAPH"/>Li hem enviat un correu electrònic a <x id="EMAIL_ADDRESS"/> amb les instruccions a seguir.<x id="START_PARAGRAPH"/>El missatge conté un link que li permetrà escollir una nova contrassenya. El link del correu ha de ser clicat dins un temps limitat.</target>
         <note priority="1" from="description">Password successfully changed: immediate consequences</note>
+      </trans-unit>
+      <trans-unit id="1399441502629336200" datatype="html">
+        <source>Sign-out from Ozwillo</source>
+        <target>Sortir d'Ozwillo</target>
+        <note priority="1" from="description">logout page heading</note>
       </trans-unit>
       <trans-unit id="1431416938026210429" datatype="html">
         <source>Password</source>
@@ -72,35 +77,15 @@
         <target>Hem tancat totes les seves sessions, en tots els seus dispositius.</target>
         <note priority="1" from="description">Password successfully changed: immediate consequences</note>
       </trans-unit>
-      <trans-unit id="1877380838370116734" datatype="html">
-        <source><x id="START_PARAGRAPH"/>You (or someone else) entered this email address when trying to change the password of an Oasis account.<x id="START_PARAGRAPH"/>To continue with the password reset process, please proceed to:<x id="START_BREAK"/><x id="START_LINK"/><x id="RESET_PASSWORD_LINK"/><x id="END_LINK"/><x id="START_PARAGRAPH"/>The Oasis team</source>
-        <target><x id="START_PARAGRAPH"/>Vostè (o algú altre) ha entrat amb aquesta adreça electrònica mentre s'estava intentant modificar la contrasenya del compte d'Oasis.<x id="START_PARAGRAPH"/>Per seguir amb el procés de modificació de la contrasenya, cliqui sobre el següent link:<x id="START_PARAGRAPH"/><x id="START_LINK"/><x id="RESET_PASSWORD_LINK"/><x id="END_LINK"/><x id="START_PARAGRAPH"/>L'equip d'Oasis</target>
-        <note priority="1" from="description">Forgot-password email body, for an existing account</note>
-      </trans-unit>
-      <trans-unit id="2010287326867816724" datatype="html">
-        <source>You can now <x id="START_LINK"/>go back to the Oasis portal<x id="END_LINK"/> to sign in again with your new password.</source>
-        <target>Vostè pot <x id="START_LINK"/>tornar al portal d'Oasis<x id="END_LINK"/> per a connectar-se amb la seva nova contrasenya.</target>
-        <note priority="1" from="description">Password successfully changed: next steps</note>
-      </trans-unit>
       <trans-unit id="2012659005494284050" datatype="html">
         <source>Forgot your password?</source>
         <target>Ha oblidat la seva contrasenya?</target>
         <note priority="1" from="description">forgot password page heading</note>
       </trans-unit>
-      <trans-unit id="2120625415491832644" datatype="html">
-        <source>This will sign you out of Oasis, on all your devices.</source>
-        <target>Aquí desconnectarà d'Oasis tots els seus dispositius.</target>
-        <note priority="1" from="description">Consequence of changing password</note>
-      </trans-unit>
       <trans-unit id="2159130950882492111" datatype="html">
         <source>Cancel</source>
         <target>Cancel·lar</target>
         <note priority="1" from="description">Button to cancel (and return error to the app)</note>
-      </trans-unit>
-      <trans-unit id="2261283100685992180" datatype="html">
-        <source><x id="START_PARAGRAPH"/>Hello <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>You are receiving this e-mail because you have registered on the Oasis portal.<x id="START_PARAGRAPH"/>In order to confirm your subscription, please click on the following link:<x id="START_BREAK"/><x id="START_LINK"/><x id="ACTIVATION_LINK"/><x id="END_LINK"/><x id="START_PARAGRAPH"/>Wishing you a nice tour on the Oasis portal<x id="START_PARAGRAPH"/>The Oasis team</source>
-        <target><x id="START_PARAGRAPH"/>Hola <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>Vostè ha rebut aquest correu electrònic perquè s'ha registrat dins el portal d'Oasis.<x id="START_PARAGRAPH"/>Per confirmar el seu registre, cliqui sobre el següent link:<x id="START_BREAK"/><x id="START_LINK"/><x id="ACTIVATION_LINK"/><x id="END_LINK"/><x id="START_PARAGRAPH"/>Li desitgem que tingui una visita agradable dins el portal Oasis<x id="START_PARAGRAPH"/>L'equip d'Oasis</target>
-        <note priority="1" from="description">Sign-up email body</note>
       </trans-unit>
       <trans-unit id="2454050363478003966" datatype="html">
         <source>Login</source>
@@ -117,10 +102,20 @@
         <target>Reiniciar la contrasenya</target>
         <note priority="1" from="description">Reset password page title</note>
       </trans-unit>
+      <trans-unit id="2577214670075765110" datatype="html">
+        <source>Welcome to Ozwillo</source>
+        <target>Benvingut a Ozwillo</target>
+        <note priority="1" from="description">Welcome email subject</note>
+      </trans-unit>
       <trans-unit id="2614607010577950577" datatype="html">
         <source>Overview</source>
         <target>Vista general</target>
         <note priority="1" from="description">Overview link on sign-up page</note>
+      </trans-unit>
+      <trans-unit id="2904061631873939197" datatype="html">
+        <source>Go back to My Ozwillo</source>
+        <target>Retornar al meu Ozwillo</target>
+        <note priority="1" from="description">Cancel changing password</note>
       </trans-unit>
       <trans-unit id="2949848596707725099" datatype="html">
         <source>Sign out</source>
@@ -131,16 +126,6 @@
         <source><x id="APP_NAME"/> wants to:</source>
         <target><x id="APP_NAME"/> desitja :</target>
         <note priority="1" from="description">Introduce list of required (and not already granted) scopes</note>
-      </trans-unit>
-      <trans-unit id="3271954335539577827" datatype="html">
-        <source>Oasis password reset</source>
-        <target>Reiniciar la contrasenya Oasis</target>
-        <note priority="1" from="description">Forgot-password email subject, for an existing account</note>
-      </trans-unit>
-      <trans-unit id="3327689519314151962" datatype="html">
-        <source><x id="START_PARAGRAPH"/>You are also logged in to these Oasis services:<x id="END_PARAGRAPH"/><x id="APPS"/><x id="START_PARAGRAPH"/>Signing out of Oasis will sign you out of these.<x id="END_PARAGRAPH"/></source>
-        <target><x id="START_PARAGRAPH"/>Vostè també està connectat en aquests serveis de Oasis:<x id="END_PARAGRAPH"/><x id="APPS"/><x id="START_PARAGRAPH"/>Si vostè es desconnecta d'Oasis, vostè es desconnectarà de tots els serveis.<x id="END_PARAGRAPH"/></target>
-        <note priority="1" from="description">List of other apps you're signed in to, displayed during sign-out</note>
       </trans-unit>
       <trans-unit id="3342471433315777526" datatype="html">
         <source>We've sent you an email with an activation link, click on that link to activate your account.</source>
@@ -157,11 +142,6 @@
         <target>Cancel·lar i connectar-me de nou</target>
         <note priority="1" from="description">Link to go back to app after erroneous sign-out</note>
       </trans-unit>
-      <trans-unit id="3558484610088193987" datatype="html">
-        <source>Go to My Oasis</source>
-        <target>Anar al meu Oasis</target>
-        <note priority="1" from="description">Continue to Oasis after sign-out from some app</note>
-      </trans-unit>
       <trans-unit id="3678807514259794747" datatype="html">
         <source>Please re-enter your password</source>
         <target>Si us plau, torni a introduir la seva contrasenya</target>
@@ -172,6 +152,11 @@
         <target>Sortir</target>
         <note priority="1" from="description">logout page title</note>
       </trans-unit>
+      <trans-unit id="3883051557997593200" datatype="html">
+        <source>Go to the Ozwillo portal</source>
+        <target>Anar al portal Ozwillo</target>
+        <note priority="1" from="description">link title on header logo</note>
+      </trans-unit>
       <trans-unit id="3883458945142779741" datatype="html">
         <source>Change my password</source>
         <target>Modificar la meva contrasenya</target>
@@ -181,21 +166,6 @@
         <source>Your email address:</source>
         <target>La vostra adreça electrònica:</target>
         <note priority="1" from="description">Email field label for account recovery</note>
-      </trans-unit>
-      <trans-unit id="4003327077144377574" datatype="html">
-        <source><x id="START_PARAGRAPH"/>Congratulations <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>Your subscription to the <x id="START_LINK"/>Oasis portal<x id="END_LINK"/> has been validated.</source>
-        <target><x id="START_PARAGRAPH"/>Felicitats <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>El vostre registre al <x id="START_LINK"/>portal Oasis<x id="END_LINK"/> s'ha validat correctament.</target>
-        <note priority="1" from="description">Welcome email body</note>
-      </trans-unit>
-      <trans-unit id="4202921825918258541" datatype="html">
-        <source>Activate your Oasis account</source>
-        <target>Activar el seu compte d'Oasis</target>
-        <note priority="1" from="description">Sign-up email subject</note>
-      </trans-unit>
-      <trans-unit id="4230075599089089005" datatype="html">
-        <source>Welcome to Oasis</source>
-        <target>Benvingut a Oasis</target>
-        <note priority="1" from="description">Welcome email subject</note>
       </trans-unit>
       <trans-unit id="4503676110666500451" datatype="html">
         <source>Some required fields are not filled.</source>
@@ -212,11 +182,6 @@
         <target>Correu electrònic</target>
         <note priority="1" from="description">Email field label</note>
       </trans-unit>
-      <trans-unit id="4822319513638377041" datatype="html">
-        <source><x id="START_PARAGRAPH"/>You (or someone else) entered this email address when trying to change the password of an Oasis account.<x id="START_PARAGRAPH"/>However, this email address is not on our database of registered users and therefore the attempted password change has failed.<x id="START_PARAGRAPH"/>If you have an Oasis account and were expecting this email, please try again using the email address you gave when opening your account.<x id="START_PARAGRAPH"/>If you don't have an Oasis account, please ignore this email.<x id="START_PARAGRAPH"/>The Oasis team</source>
-        <target><x id="START_PARAGRAPH"/>Vostè (o algú altre) ha entrat amb aquesta adreça electrònica mentre s'estava intentant modificar la contrasenya del compte d'Oasis.<x id="START_PARAGRAPH"/>Tot i així, aquesta adreça electrònica no existeix en les nostres bases de dades d'usuaris registrats i per tant la modificació de la contrasenya ha fallat.<x id="START_PARAGRAPH"/>Si vostè disposa d'un compte d'Oasis i esperava aquest correu electrònic, si us plau torni a intentar utilitzar l’adreça electrònica que ens ha donat al obrir el compte.<x id="START_PARAGRAPH"/>Si vostè no disposa d'un compte d'Oasis, si us plau ignori aquest missatge.<x id="START_PARAGRAPH"/>L’equip d'Oasis</target>
-        <note priority="1" from="description">Forgot-password email body, for an unknown account</note>
-      </trans-unit>
       <trans-unit id="4845769766826824513" datatype="html">
         <source><x id="APP_NAME"/> needs some authorizations</source>
         <target><x id="APP_NAME"/> necessita algunes autoritzacions</target>
@@ -227,10 +192,20 @@
         <target>Contrasenya modificada</target>
         <note priority="1" from="description">Password changed confirmation (title)</note>
       </trans-unit>
+      <trans-unit id="5309305695211754551" datatype="html">
+        <source>This will sign you out of Ozwillo, on all your devices.</source>
+        <target>Aquí desconnectarà d'Ozwillo tots els seus dispositius.</target>
+        <note priority="1" from="description">Consequence of changing password</note>
+      </trans-unit>
       <trans-unit id="5363404118084293884" datatype="html">
         <source>Password reset requested</source>
         <target>Modificació de contrasenya sol·licitada</target>
         <note priority="1" from="description">Password reset requested (title)</note>
+      </trans-unit>
+      <trans-unit id="5384260819180900680" datatype="html">
+        <source>Go to My Ozwillo</source>
+        <target>Anar al meu Ozwillo</target>
+        <note priority="1" from="description">Continue to Ozwillo after sign-out from some app</note>
       </trans-unit>
       <trans-unit id="5506569422969383542" datatype="html">
         <source>Nickname</source>
@@ -242,35 +217,55 @@
         <target>Vostè ha estat autoritzat<x id="APP_NAME"/> à :</target>
         <note priority="1" from="description">Introduce list of already authorized scopes</note>
       </trans-unit>
+      <trans-unit id="5641262489600335225" datatype="html">
+        <source><x id="START_PARAGRAPH"/>You (or someone else) entered this email address when trying to change the password of an Ozwillo account.<x id="START_PARAGRAPH"/>However, this email address is not on our database of registered users and therefore the attempted password change has failed.<x id="START_PARAGRAPH"/>If you have an Ozwillo account and were expecting this email, please try again using the email address you gave when opening your account.<x id="START_PARAGRAPH"/>If you don't have an Ozwillo account, please ignore this email.<x id="START_PARAGRAPH"/>The Ozwillo team</source>
+        <target><x id="START_PARAGRAPH"/>Vostè (o algú altre) ha entrat amb aquesta adreça electrònica mentre s'estava intentant modificar la contrasenya del compte d'Ozwillo.<x id="START_PARAGRAPH"/>Tot i així, aquesta adreça electrònica no existeix en les nostres bases de dades d'usuaris registrats i per tant la modificació de la contrasenya ha fallat.<x id="START_PARAGRAPH"/>Si vostè disposa d'un compte d'Ozwillo i esperava aquest correu electrònic, si us plau torni a intentar utilitzar l’adreça electrònica que ens ha donat al obrir el compte.<x id="START_PARAGRAPH"/>Si vostè no disposa d'un compte d'Ozwillo, si us plau ignori aquest missatge.<x id="START_PARAGRAPH"/>L’equip d'Ozwillo</target>
+        <note priority="1" from="description">Forgot-password email body, for an unknown account</note>
+      </trans-unit>
+      <trans-unit id="5962776201852038125" datatype="html">
+        <source><x id="START_PARAGRAPH"/>You are also logged in to these Ozwillo services:<x id="END_PARAGRAPH"/><x id="APPS"/><x id="START_PARAGRAPH"/>Signing out of Ozwillo will sign you out of these.<x id="END_PARAGRAPH"/></source>
+        <target><x id="START_PARAGRAPH"/>Vostè també està connectat en aquests serveis de Ozwillo:<x id="END_PARAGRAPH"/><x id="APPS"/><x id="START_PARAGRAPH"/>Si vostè es desconnecta d'Ozwillo, vostè es desconnectarà de tots els serveis.<x id="END_PARAGRAPH"/></target>
+        <note priority="1" from="description">List of other apps you're signed in to, displayed during sign-out</note>
+      </trans-unit>
       <trans-unit id="6159587099290300397" datatype="html">
         <source>New password:</source>
         <target>Contrasenya nova:</target>
         <note priority="1" from="description">New password (when changing password)</note>
       </trans-unit>
-      <trans-unit id="6310825146600712191" datatype="html">
-        <source>Go to the Oasis portal</source>
-        <target>Anar al portal Oasis</target>
-        <note priority="1" from="description">link title on header logo</note>
+      <trans-unit id="6263536566459432245" datatype="html">
+        <source>Activate your Ozwillo account</source>
+        <target>Activar el seu compte d'Ozwillo</target>
+        <note priority="1" from="description">Sign-up email subject</note>
       </trans-unit>
       <trans-unit id="6402974759009404648" datatype="html">
         <source>https://www.ozwillo.com/en/oz/discover</source>
         <target>https://www.ozwillo.com/ca/oz/descobrint</target>
         <note priority="1" from="description">overview URL</note>
       </trans-unit>
+      <trans-unit id="6442419536401397182" datatype="html">
+        <source><x id="START_PARAGRAPH"/>Congratulations <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>Your subscription to the <x id="START_LINK"/>Ozwillo portal<x id="END_LINK"/> has been validated.</source>
+        <target><x id="START_PARAGRAPH"/>Felicitats <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>El vostre registre al <x id="START_LINK"/>portal Ozwillo<x id="END_LINK"/> s'ha validat correctament.</target>
+        <note priority="1" from="description">Welcome email body</note>
+      </trans-unit>
+      <trans-unit id="6649495811083440761" datatype="html">
+        <source><x id="START_PARAGRAPH"/>Hello <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>You are receiving this e-mail because you have registered on the Ozwillo portal.<x id="START_PARAGRAPH"/>In order to confirm your subscription, please click on the following link:<x id="START_BREAK"/><x id="START_LINK"/><x id="ACTIVATION_LINK"/><x id="END_LINK"/><x id="START_PARAGRAPH"/>Wishing you a nice tour on the Ozwillo portal<x id="START_PARAGRAPH"/>The Ozwillo team</source>
+        <target><x id="START_PARAGRAPH"/>Hola <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>Vostè ha rebut aquest correu electrònic perquè s'ha registrat dins el portal d'Ozwillo.<x id="START_PARAGRAPH"/>Per confirmar el seu registre, cliqui sobre el següent link:<x id="START_BREAK"/><x id="START_LINK"/><x id="ACTIVATION_LINK"/><x id="END_LINK"/><x id="START_PARAGRAPH"/>Li desitgem que tingui una visita agradable dins el portal Ozwillo<x id="START_PARAGRAPH"/>L'equip d'Ozwillo</target>
+        <note priority="1" from="description">Sign-up email body</note>
+      </trans-unit>
       <trans-unit id="6773310109171539191" datatype="html">
         <source>This link has expired. Try again below.</source>
         <target>El link ha expirat. Torni a intentar-ho més endavant.</target>
         <note priority="1" from="description">Error message during account recovery</note>
       </trans-unit>
-      <trans-unit id="7206769355787176709" datatype="html">
-        <source>Go back to My Oasis</source>
-        <target>Retornar al meu Oasis</target>
-        <note priority="1" from="description">Cancel changing password</note>
-      </trans-unit>
       <trans-unit id="7418322490061402095" datatype="html">
         <source>Account pending activation</source>
         <target>Compte pendent d'activació</target>
         <note priority="1" from="description">activation pending title</note>
+      </trans-unit>
+      <trans-unit id="7601564290921092628" datatype="html">
+        <source><x id="START_PARAGRAPH"/>You (or someone else) entered this email address when trying to change the password of an Ozwillo account.<x id="START_PARAGRAPH"/>To continue with the password reset process, please proceed to:<x id="START_BREAK"/><x id="START_LINK"/><x id="RESET_PASSWORD_LINK"/><x id="END_LINK"/><x id="START_PARAGRAPH"/>The Ozwillo team</source>
+        <target><x id="START_PARAGRAPH"/>Vostè (o algú altre) ha entrat amb aquesta adreça electrònica mentre s'estava intentant modificar la contrasenya del compte d'Ozwillo.<x id="START_PARAGRAPH"/>Per seguir amb el procés de modificació de la contrasenya, cliqui sobre el següent link:<x id="START_PARAGRAPH"/><x id="START_LINK"/><x id="RESET_PASSWORD_LINK"/><x id="END_LINK"/><x id="START_PARAGRAPH"/>L'equip d'Ozwillo</target>
+        <note priority="1" from="description">Forgot-password email body, for an existing account</note>
       </trans-unit>
       <trans-unit id="7603459055013836218" datatype="html">
         <source>Incorrect password.</source>
@@ -286,6 +281,11 @@
         <source>An error occurred sending you an email. Check your email address and try again in a few minutes.</source>
         <target>Hi ha hagut un error durant l'enviament del correu electrònic. Verifiqui l'adreça electrònica i torni a intentar-ho en uns minuts.</target>
         <note priority="1" from="description">Error message during account recovery</note>
+      </trans-unit>
+      <trans-unit id="7771855748190435213" datatype="html">
+        <source>You can now <x id="START_LINK"/>go back to the Ozwillo portal<x id="END_LINK"/> to sign in again with your new password.</source>
+        <target>Vostè pot <x id="START_LINK"/>tornar al portal d'Ozwillo<x id="END_LINK"/> per a connectar-se amb la seva nova contrasenya.</target>
+        <note priority="1" from="description">Password successfully changed: next steps</note>
       </trans-unit>
       <trans-unit id="7790636738913620508" datatype="html">
         <source>I forgot my password.</source>

@@ -47,7 +47,7 @@ p { margin: 0; }
     </div>
   {/if}
 
-  <h1>{msg desc="logout page heading"}Sign-out from Oasis{/msg}</h1>
+  <h1>{msg desc="logout page heading"}Sign-out from Ozwillo{/msg}</h1>
 
   {if $otherApps and length($otherApps)}
     <div style="background: #f0ad4e; color: white; border-radius: 10px; padding: .5em; margin: 2.5em auto; max-width: 500px">
@@ -59,9 +59,9 @@ p { margin: 0; }
         </ul>
       {/let}
       {msg desc="List of other apps you're signed in to, displayed during sign-out"}
-        <p>You are also logged in to these Oasis services:</p>
+        <p>You are also logged in to these Ozwillo services:</p>
         {$apps}
-        <p>Signing out of Oasis will sign you out of these.</p>
+        <p>Signing out of Ozwillo will sign you out of these.</p>
       {/msg}
     </div>
   {/if}
@@ -76,9 +76,9 @@ p { margin: 0; }
     {if $portalUrl}
       <a href="{$portalUrl}" class=portal>
         {if $isPortal}
-          {msg desc="Cancel erroneous sign-out from the Portal"}Go back to Oasis{/msg}
+          {msg desc="Cancel erroneous sign-out from the Portal"}Go back to Ozwillo{/msg}
         {else}
-          {msg desc="Continue to Oasis after sign-out from some app"}Go to My Oasis{/msg}
+          {msg desc="Continue to Ozwillo after sign-out from some app"}Go to My Ozwillo{/msg}
         {/if}
       </a>
     {/if}
