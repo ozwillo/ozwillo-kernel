@@ -2,6 +2,11 @@
 <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
   <file original="SoyMsgBundle" datatype="x-soy-msg-bundle" xml:space="preserve" source-language="en-GB" target-language="fr-FR">
     <body>
+      <trans-unit id="85256968653381481" datatype="html">
+        <source>https://www.ozwillo.com/en/terms</source>
+        <target>https://www.ozwillo.com/fr/cgu</target>
+        <note priority="1" from="description">terms of use URL</note>
+      </trans-unit>
       <trans-unit id="153573648835304242" datatype="html">
         <source>Account Access Attempted</source>
         <target>Tentative d'accès à un compte Oasis</target>
@@ -232,11 +237,6 @@
         <target><x id="APP_NAME"/> a besoin d'autorisations</target>
         <note priority="1" from="description">Some app needs authorizations</note>
       </trans-unit>
-      <trans-unit id="5037003483276382412" datatype="html">
-        <source>https://www.oasis-eu.org/en/terms</source>
-        <target>https://www.oasis-eu.org/fr/cgu</target>
-        <note priority="1" from="description">terms of use URL</note>
-      </trans-unit>
       <trans-unit id="5108418000757845610" datatype="html">
         <source>Password changed</source>
         <target>Mot de passe modifié</target>
@@ -271,6 +271,11 @@
         <source>Go to the Oasis portal</source>
         <target>Aller au portail Oasis</target>
         <note priority="1" from="description">link title on header logo</note>
+      </trans-unit>
+      <trans-unit id="6402974759009404648" datatype="html">
+        <source>https://www.ozwillo.com/en/oz/discover</source>
+        <target>https://www.ozwillo.com/fr/oz/decouvrir</target>
+        <note priority="1" from="description">overview URL</note>
       </trans-unit>
       <trans-unit id="6773310109171539191" datatype="html">
         <source>This link has expired. Try again below.</source>
@@ -351,11 +356,6 @@
         <source>You've signed out of <x id="START_BOLD"/><x id="APP_NAME"/><x id="END_BOLD"/></source>
         <target>Vous vous êtes déconnecté de <x id="START_BOLD"/><x id="APP_NAME"/><x id="END_BOLD"/></target>
         <note priority="1" from="description">successful sign-out from specific app</note>
-      </trans-unit>
-      <trans-unit id="8911447913400904360" datatype="html">
-        <source>https://www.oasis-eu.org/en/oz/discover</source>
-        <target>https://www.oasis-eu.org/fr/oz/decouvrir</target>
-        <note priority="1" from="description">overview URL</note>
       </trans-unit>
       <trans-unit id="9118307257372703426" datatype="html">
         <source>Choose your new password</source>
