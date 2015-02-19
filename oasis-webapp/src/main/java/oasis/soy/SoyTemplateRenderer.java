@@ -6,6 +6,7 @@ import java.util.Comparator;
 
 import javax.inject.Inject;
 
+import com.google.common.base.Functions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -22,6 +23,7 @@ import com.ibm.icu.text.DisplayContext;
 import com.ibm.icu.text.LocaleDisplayNames;
 import com.ibm.icu.util.ULocale;
 
+import oasis.urls.Urls;
 import oasis.web.i18n.LocaleHelper;
 
 public class SoyTemplateRenderer {
@@ -85,10 +87,12 @@ public class SoyTemplateRenderer {
 
   private final SoyTofu soyTofu;
   private final SoyMsgBundleLoader soyMsgBundleLoader;
+  private final Urls urls;
 
-  @Inject SoyTemplateRenderer(SoyTofu soyTofu, SoyMsgBundleLoader soyMsgBundleLoader) {
+  @Inject SoyTemplateRenderer(SoyTofu soyTofu, SoyMsgBundleLoader soyMsgBundleLoader, Urls urls) {
     this.soyTofu = soyTofu;
     this.soyMsgBundleLoader = soyMsgBundleLoader;
+    this.urls = urls;
   }
 
   public void render(SoyTemplate template, Appendable writer) {
@@ -97,6 +101,7 @@ public class SoyTemplateRenderer {
         .setData(template.getData())
         .setMsgBundle(msgBundle)
         .setIjData(new SoyMapData(
+            "landing_page_url", urls.landingPage().transform(Functions.toStringFunction()).or(""),
             "current_locale", msgBundle.getLocaleString(),
             "locale_name_map", LOCALE_NAMES,
             "supported_locales", SUPPORTED_LOCALES.getUnchecked(msgBundle.getLocaleString())

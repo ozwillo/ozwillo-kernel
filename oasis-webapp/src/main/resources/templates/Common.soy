@@ -4,9 +4,10 @@
  * Common header for OASIS
  */
 {template .header private="true"}
-{@param?  title:         string} /** title for this page. */
-{@param? locale_url_map: map<string,string>}
-{@inject current_locale: string} /** current locale. */
+{@param? title:            string} /** title for this page. */
+{@param? locale_url_map:   map<string,string>}
+{@inject landing_page_url: string}
+{@inject current_locale:   string} /** current locale. */
 <!DOCTYPE html>
 <html lang="{$current_locale}">
 <head>
@@ -103,8 +104,7 @@ label { font-weight: lighter; }
 <div class=page-wrap>
 <header>
   <nav>
-    // TODO: add link!
-    <a href="" title="{msg desc="link title on header logo"}Go to the Ozwillo portal{/msg}" style="padding:6px 15px 4px;display:inline-block;"><img src="/images/logo_ozwillo.png" alt="Ozwillo" width=108 height=30></a>
+    <a href="{$landing_page_url}" title="{msg desc="link title on header logo"}Go to the Ozwillo portal{/msg}" style="padding:6px 15px 4px;display:inline-block;"><img src="/images/logo_ozwillo.png" alt="Ozwillo" width=108 height=30></a>
 
     {if $locale_url_map and length(keys($locale_url_map)) > 0}
       {call .locale_selector}
