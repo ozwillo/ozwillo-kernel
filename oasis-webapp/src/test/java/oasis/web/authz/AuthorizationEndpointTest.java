@@ -129,6 +129,7 @@ public class AuthorizationEndpointTest {
     setId("appInstance");
     setName(new LocalizableString("Test Application Instance"));
     setProvider_id("organizationId");
+    setStatus(InstantiationStatus.RUNNING);
   }};
 
   private static final Service service = new Service() {{
@@ -185,6 +186,7 @@ public class AuthorizationEndpointTest {
       neededScope.setScope_id(scope.getId());
       getNeeded_scopes().add(neededScope);
     }
+    setStatus(InstantiationStatus.RUNNING);
   }};
   private static final Service portalService = new Service() {{
     setId("portal-service");

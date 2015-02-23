@@ -380,7 +380,7 @@ public class AuthorizationEndpoint {
 
   private AppInstance getAppInstance(String client_id) {
     AppInstance appInstance = appInstanceRepository.getAppInstance(client_id);
-    if (appInstance == null) {
+    if (appInstance == null || appInstance.getStatus() != AppInstance.InstantiationStatus.RUNNING) {
       throw accessDenied("Unknown client id");
     }
     return appInstance;
