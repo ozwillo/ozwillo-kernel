@@ -158,12 +158,13 @@ public class InstanceRegistrationEndpoint {
         notification.setInstance_id(instance.getId());
         notification.setUser_id(instance.getInstantiator_id());
         for (ULocale locale : LocaleHelper.SUPPORTED_LOCALES) {
+          ULocale messageLocale = locale;
           if (LocaleHelper.DEFAULT_LOCALE.equals(locale)) {
-            locale = ULocale.ROOT;
+            messageLocale = ULocale.ROOT;
           }
-          notification.getMessage().set(locale, templateRenderer.renderAsString(
+          notification.getMessage().set(messageLocale, templateRenderer.renderAsString(
               new SoyTemplate(AppProvisioningSoyInfo.MESSAGE, locale, SanitizedContent.ContentKind.TEXT)));
-          notification.getAction_label().set(locale, templateRenderer.renderAsString(
+          notification.getAction_label().set(messageLocale, templateRenderer.renderAsString(
               new SoyTemplate(AppProvisioningSoyInfo.ACTION_LABEL, locale, SanitizedContent.ContentKind.TEXT)));
         }
         notification.getAction_uri().set(ULocale.ROOT, urls.myApps().get().toString());

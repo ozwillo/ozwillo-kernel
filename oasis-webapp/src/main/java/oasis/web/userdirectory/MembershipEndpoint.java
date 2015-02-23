@@ -184,10 +184,11 @@ public class MembershipEndpoint {
     data.put(DeletedMembershipMessageSoyTemplateInfo.ORGANIZATION_NAME, organization.getName());
     data.put(DeletedMembershipMessageSoyTemplateInfo.IS_ADMIN, isAdmin);
     for (ULocale locale : LocaleHelper.SUPPORTED_LOCALES) {
+      ULocale messageLocale = locale;
       if (LocaleHelper.DEFAULT_LOCALE.equals(locale)) {
-        locale = ULocale.ROOT;
+        messageLocale = ULocale.ROOT;
       }
-      notificationPrototype.getMessage().set(locale, templateRenderer.renderAsString(new SoyTemplate(
+      notificationPrototype.getMessage().set(messageLocale, templateRenderer.renderAsString(new SoyTemplate(
           DeletedOrganizationMembershipSoyInfo.DELETED_MEMBERSHIP_MESSAGE, locale, SanitizedContent.ContentKind.TEXT, data)));
     }
     notificationPrototype.setTime(Instant.now());
