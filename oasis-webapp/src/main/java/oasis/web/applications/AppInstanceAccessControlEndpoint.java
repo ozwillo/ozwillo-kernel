@@ -142,5 +142,7 @@ public class AppInstanceAccessControlEndpoint {
     @JsonProperty String user_email_address;
     @JsonProperty String creator_id;
     @JsonProperty String creator_name;
+    // TODO: add app_admin and make app_user conditional to… being an app_user.
+    @JsonProperty boolean app_user = true;
   }
 }
