@@ -19,8 +19,8 @@ import oasis.jongo.JongoService;
 import oasis.jongo.guice.JongoModule;
 import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstanceRepository;
-import oasis.usecases.DeleteAppInstance.Request;
 import oasis.usecases.DeleteAppInstance.Stats;
+import oasis.usecases.ImmutableDeleteAppInstance;
 
 public class DeleteAppInstance extends CommandLineTool {
 
@@ -108,11 +108,13 @@ public class DeleteAppInstance extends CommandLineTool {
         // For now, just check whether the instance exists
         stats.appInstanceDeleted = appInstanceRepositoryProvider.get().getAppInstance(instance_id) == null;
       } else {
-        Request request = new Request(instance_id);
-        request.callProvider = false;
-        request.checkStatus = Optional.absent();
-        request.checkVersions = Optional.absent();
-        usecaseProvider.get().deleteInstance(request, stats);
+        ImmutableDeleteAppInstance.Request deleteAppInstanceRequest = ImmutableDeleteAppInstance.Request.builder()
+            .instanceId(instance_id)
+            .callProvider(false)
+            .checkStatus(Optional.<AppInstance.InstantiationStatus>absent())
+            .checkVersions(Optional.<long[]>absent())
+            .build();
+        usecaseProvider.get().deleteInstance(deleteAppInstanceRequest, stats);
       }
       displayStats(instance_id, stats);
     } catch (Exception e) {

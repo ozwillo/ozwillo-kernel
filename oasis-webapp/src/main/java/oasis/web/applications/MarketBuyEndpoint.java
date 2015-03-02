@@ -44,6 +44,7 @@ import oasis.model.directory.Organization;
 import oasis.services.authn.CredentialsService;
 import oasis.services.authn.PasswordGenerator;
 import oasis.usecases.DeleteAppInstance;
+import oasis.usecases.ImmutableDeleteAppInstance;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
@@ -161,9 +162,12 @@ public class MarketBuyEndpoint {
     }
     try {
       if (response.getStatusInfo().getFamily() != Response.Status.Family.SUCCESSFUL) {
-        DeleteAppInstance.Request request = new DeleteAppInstance.Request(instance.getId());
-        request.callProvider = false;
-        request.checkStatus = Optional.of(AppInstance.InstantiationStatus.PENDING);
+        ImmutableDeleteAppInstance.Request request = ImmutableDeleteAppInstance.Request.builder()
+            .instanceId(instance.getId())
+            .callProvider(false)
+            .checkStatus(AppInstance.InstantiationStatus.PENDING)
+            .checkVersions(Optional.<long[]>absent())
+            .build();
         DeleteAppInstance.Status status = deleteAppInstance.deleteInstance(request, new DeleteAppInstance.Stats());
         if (status != DeleteAppInstance.Status.BAD_INSTANCE_STATUS) {
           return ResponseFactory.build(Response.Status.BAD_GATEWAY, "Application factory failed");

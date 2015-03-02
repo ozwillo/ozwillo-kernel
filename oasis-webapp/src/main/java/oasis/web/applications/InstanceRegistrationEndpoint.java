@@ -51,6 +51,7 @@ import oasis.soy.templates.AppProvisioningSoyInfo;
 import oasis.urls.Urls;
 import oasis.usecases.CleanupAppInstance;
 import oasis.usecases.DeleteAppInstance;
+import oasis.usecases.ImmutableDeleteAppInstance;
 import oasis.usecases.ServiceValidator;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.Client;
@@ -192,10 +193,12 @@ public class InstanceRegistrationEndpoint {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
 
-    DeleteAppInstance.Request request = new DeleteAppInstance.Request(instanceId);
-    request.callProvider = false;
-    request.checkStatus = Optional.of(AppInstance.InstantiationStatus.PENDING);
-    request.checkVersions = Optional.absent();
+    ImmutableDeleteAppInstance.Request request = ImmutableDeleteAppInstance.Request.builder()
+        .instanceId(instanceId)
+        .callProvider(false)
+        .checkStatus(AppInstance.InstantiationStatus.PENDING)
+        .checkVersions(Optional.<long[]>absent())
+        .build();
     DeleteAppInstance.Status status = deleteAppInstance.deleteInstance(request, new DeleteAppInstance.Stats());
 
     switch (status) {

@@ -2,7 +2,6 @@ package oasis.usecases;
 
 import static java.util.Objects.*;
 
-import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -16,29 +15,23 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
 
+import org.immutables.value.Value;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 
 import oasis.model.InvalidVersionException;
-import oasis.model.applications.v2.AccessControlRepository;
 import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.applications.v2.Application;
 import oasis.model.applications.v2.ApplicationRepository;
-import oasis.model.applications.v2.Scope;
-import oasis.model.applications.v2.ScopeRepository;
-import oasis.model.applications.v2.Service;
-import oasis.model.applications.v2.ServiceRepository;
-import oasis.model.applications.v2.UserSubscriptionRepository;
 import oasis.model.authn.ClientType;
 import oasis.model.authn.CredentialsRepository;
-import oasis.model.authn.TokenRepository;
-import oasis.model.authz.AuthorizationRepository;
-import oasis.model.eventbus.SubscriptionRepository;
 import oasis.services.etag.EtagService;
 import oasis.web.webhooks.WebhookSignatureFilter;
 
+@Value.Nested
 public class DeleteAppInstance {
 
   @Inject Provider<Client> clientProvider;
@@ -51,19 +44,19 @@ public class DeleteAppInstance {
   public Status deleteInstance(Request request, Stats stats) {
     requireNonNull(request);
     requireNonNull(stats);
-    if (request.callProvider || request.checkStatus.isPresent()) {
-      AppInstance appInstance = appInstanceRepository.getAppInstance(request.instance_id);
+    if (request.callProvider() || request.checkStatus().isPresent()) {
+      AppInstance appInstance = appInstanceRepository.getAppInstance(request.instanceId());
       if (appInstance != null) {
-        if (request.checkVersions.isPresent() && !etagService.hasEtag(appInstance, request.checkVersions.get())) {
+        if (request.checkVersions().isPresent() && !etagService.hasEtag(appInstance, request.checkVersions().get())) {
           return Status.BAD_INSTANCE_VERSION;
         }
-        if (request.checkStatus.isPresent()) {
-          @Nullable Status status = checkStatus(appInstance, request.checkStatus.get());
+        if (request.checkStatus().isPresent()) {
+          @Nullable Status status = checkStatus(appInstance, request.checkStatus().get());
           if (status != null) {
             return status;
           }
         }
-        if (request.callProvider) {
+        if (request.callProvider()) {
           @Nullable Status status = callProvider(appInstance);
           if (status != null) {
             return status;
@@ -74,19 +67,19 @@ public class DeleteAppInstance {
 
     // XXX: we first delete the instance, then all the orphan data: ACL, services, scopes, etc.
     // Only use checkVersions if we haven't issued a request to the provider yet!
-    if (request.checkVersions.isPresent() && !request.callProvider && !request.checkStatus.isPresent()) {
+    if (request.checkVersions().isPresent() && !request.callProvider() && !request.checkStatus().isPresent()) {
       try {
-        stats.appInstanceDeleted = appInstanceRepository.deleteInstance(request.instance_id, request.checkVersions.get());
+        stats.appInstanceDeleted = appInstanceRepository.deleteInstance(request.instanceId(), request.checkVersions().get());
       } catch (InvalidVersionException e) {
         stats.appInstanceDeleted = false;
         return Status.BAD_INSTANCE_VERSION;
       }
     } else {
-      stats.appInstanceDeleted = appInstanceRepository.deleteInstance(request.instance_id);
+      stats.appInstanceDeleted = appInstanceRepository.deleteInstance(request.instanceId());
     }
-    stats.credentialsDeleted = credentialsRepository.deleteCredentials(ClientType.PROVIDER, request.instance_id);
+    stats.credentialsDeleted = credentialsRepository.deleteCredentials(ClientType.PROVIDER, request.instanceId());
 
-    cleanupAppInstance.cleanupInstance(request.instance_id, stats);
+    cleanupAppInstance.cleanupInstance(request.instanceId(), stats);
 
     if (stats.appInstanceDeleted) {
       return Status.DELETED_INSTANCE;
@@ -150,17 +143,15 @@ public class DeleteAppInstance {
     return null;
   }
 
-  // TODO: convert to immutable+builder
-  @NotThreadSafe
-  public static class Request {
-    public final String instance_id;
-    public boolean callProvider = false;
-    public Optional<AppInstance.InstantiationStatus> checkStatus = Optional.absent();
-    public Optional<long[]> checkVersions = Optional.absent();
+  @Value.Immutable
+  public static interface Request {
+    String instanceId();
 
-    public Request(String instance_id) {
-      this.instance_id = instance_id;
-    }
+    boolean callProvider();
+
+    Optional<AppInstance.InstantiationStatus> checkStatus();
+
+    Optional<long[]> checkVersions();
   }
 
   @NotThreadSafe
