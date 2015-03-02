@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="953108370004911682" datatype="html">
         <source>Go back to Ozwillo</source>
-        <target>Ozwillo'e geri dön</target>
+        <target>Ozwillo'ya geri dön</target>
         <note priority="1" from="description">Cancel erroneous sign-out from the Portal</note>
       </trans-unit>
       <trans-unit id="1287914925960251751" datatype="html">
@@ -54,7 +54,7 @@
       </trans-unit>
       <trans-unit id="1399441502629336200" datatype="html">
         <source>Sign-out from Ozwillo</source>
-        <target>Ozwillo'te oturum sonlandırma</target>
+        <target>Ozwillo'da oturum sonlandırma</target>
         <note priority="1" from="description">logout page heading</note>
       </trans-unit>
       <trans-unit id="1431416938026210429" datatype="html">
@@ -104,7 +104,7 @@
       </trans-unit>
       <trans-unit id="2577214670075765110" datatype="html">
         <source>Welcome to Ozwillo</source>
-        <target>Ozwillo'e hoşgeldiniz</target>
+        <target>Ozwillo'ya hoşgeldiniz</target>
         <note priority="1" from="description">Welcome email subject</note>
       </trans-unit>
       <trans-unit id="2614607010577950577" datatype="html">
@@ -114,7 +114,7 @@
       </trans-unit>
       <trans-unit id="2904061631873939197" datatype="html">
         <source>Go back to My Ozwillo</source>
-        <target>My Ozwillo'e geri dön</target>
+        <target>My Ozwillo'ya geri dön</target>
         <note priority="1" from="description">Cancel changing password</note>
       </trans-unit>
       <trans-unit id="2949848596707725099" datatype="html">
