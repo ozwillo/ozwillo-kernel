@@ -98,6 +98,14 @@ public class JongoAppInstanceRepository implements AppInstanceRepository, JongoB
   }
 
   @Override
+  @SuppressWarnings("unchecked")
+  public Iterable<AppInstance> findStoppedBefore(Instant stoppedBefore) {
+    return (Iterable<AppInstance>) (Iterable<?>) getAppInstancesCollection()
+        .find("{ status: #, status_changed: { $lt: # } }", AppInstance.InstantiationStatus.STOPPED, stoppedBefore.toDate())
+        .as(JongoAppInstance.class);
+  }
+
+  @Override
   public AppInstance updateStatus(String instanceId, AppInstance.InstantiationStatus newStatus, String statusChangeRequesterId, long[] versions)
       throws InvalidVersionException {
     checkArgument(checkNotNull(newStatus) != AppInstance.InstantiationStatus.PENDING);

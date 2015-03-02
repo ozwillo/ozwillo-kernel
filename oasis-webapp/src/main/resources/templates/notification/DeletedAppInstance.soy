@@ -1,0 +1,12 @@
+{namespace oasis.notification autoescape="strict"}
+
+/**
+ * Deleted application instance notification message.
+ */
+{template .deletedAppInstanceMessage kind="text"}
+{@param  appInstanceName: string} /** Application instance name. */
+
+{msg desc="Stopped application instance user notification message"}
+  The application {$appInstanceName} was uninstalled successfully.
+{/msg}
+{/template}

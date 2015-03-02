@@ -200,6 +200,7 @@ public class InstanceRegistrationEndpoint {
         .callProvider(false)
         .checkStatus(AppInstance.InstantiationStatus.PENDING)
         .checkVersions(Optional.<long[]>absent())
+        .notifyAdmins(false)
         .build();
     DeleteAppInstance.Status status = deleteAppInstance.deleteInstance(request, new DeleteAppInstance.Stats());
 

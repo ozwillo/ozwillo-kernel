@@ -113,6 +113,7 @@ public class DeleteAppInstance extends CommandLineTool {
             .callProvider(false)
             .checkStatus(Optional.<AppInstance.InstantiationStatus>absent())
             .checkVersions(Optional.<long[]>absent())
+            .notifyAdmins(false)
             .build();
         usecaseProvider.get().deleteInstance(deleteAppInstanceRequest, stats);
       }

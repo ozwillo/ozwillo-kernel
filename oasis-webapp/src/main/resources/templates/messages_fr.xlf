@@ -82,6 +82,11 @@
         <target>Nous avons fermé toutes vos sessions, sur tous vos appareils.</target>
         <note priority="1" from="description">Password successfully changed: immediate consequences</note>
       </trans-unit>
+      <trans-unit id="1905705329717211043" datatype="html">
+        <source>The application <x id="APP_INSTANCE_NAME"/> was uninstalled successfully.</source>
+        <target>L'application <x id="APP_INSTANCE_NAME"/> a été supprimée avec succès.</target>
+        <note priority="1" from="description">Stopped application instance user notification message</note>
+      </trans-unit>
       <trans-unit id="2012659005494284050" datatype="html">
         <source>Forgot your password?</source>
         <target>Mot de passe oublié ?</target>

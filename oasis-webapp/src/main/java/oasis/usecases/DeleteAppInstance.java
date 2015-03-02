@@ -16,10 +16,15 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
 
 import org.immutables.value.Value;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
+import com.google.template.soy.data.SanitizedContent;
+import com.google.template.soy.data.SoyMapData;
+import com.ibm.icu.util.ULocale;
 
 import oasis.model.InvalidVersionException;
 import oasis.model.applications.v2.AppInstance;
@@ -28,24 +33,39 @@ import oasis.model.applications.v2.Application;
 import oasis.model.applications.v2.ApplicationRepository;
 import oasis.model.authn.ClientType;
 import oasis.model.authn.CredentialsRepository;
+import oasis.model.notification.Notification;
+import oasis.model.notification.NotificationRepository;
+import oasis.services.authz.AppAdminHelper;
 import oasis.services.etag.EtagService;
+import oasis.soy.SoyTemplate;
+import oasis.soy.SoyTemplateRenderer;
+import oasis.soy.templates.DeletedAppInstanceSoyInfo;
+import oasis.soy.templates.DeletedAppInstanceSoyInfo.DeletedAppInstanceMessageSoyTemplateInfo;
+import oasis.web.i18n.LocaleHelper;
 import oasis.web.webhooks.WebhookSignatureFilter;
 
 @Value.Nested
 public class DeleteAppInstance {
+  private static final Logger logger = LoggerFactory.getLogger(DeleteAppInstance.class);
 
   @Inject Provider<Client> clientProvider;
   @Inject AppInstanceRepository appInstanceRepository;
   @Inject ApplicationRepository applicationRepository;
   @Inject CredentialsRepository credentialsRepository;
+  @Inject NotificationRepository notificationRepository;
+  @Inject AppAdminHelper appAdminHelper;
   @Inject CleanupAppInstance cleanupAppInstance;
   @Inject EtagService etagService;
+  @Inject SoyTemplateRenderer templateRenderer;
 
   public Status deleteInstance(Request request, Stats stats) {
     requireNonNull(request);
     requireNonNull(stats);
-    if (request.callProvider() || request.checkStatus().isPresent()) {
-      AppInstance appInstance = appInstanceRepository.getAppInstance(request.instanceId());
+
+    AppInstance appInstance = null;
+    Iterable<String> adminIds = null;
+    if (request.callProvider() || request.checkStatus().isPresent() || request.notifyAdmins()) {
+      appInstance = appInstanceRepository.getAppInstance(request.instanceId());
       if (appInstance != null) {
         if (request.checkVersions().isPresent() && !etagService.hasEtag(appInstance, request.checkVersions().get())) {
           return Status.BAD_INSTANCE_VERSION;
@@ -61,6 +81,9 @@ public class DeleteAppInstance {
           if (status != null) {
             return status;
           }
+        }
+        if (request.notifyAdmins()) {
+          adminIds = appAdminHelper.getAdmins(appInstance);
         }
       }
     }
@@ -80,6 +103,10 @@ public class DeleteAppInstance {
     stats.credentialsDeleted = credentialsRepository.deleteCredentials(ClientType.PROVIDER, request.instanceId());
 
     cleanupAppInstance.cleanupInstance(request.instanceId(), stats);
+
+    if (request.notifyAdmins() && appInstance != null && adminIds != null) {
+      notifyAdmins(appInstance, adminIds);
+    }
 
     if (stats.appInstanceDeleted) {
       return Status.DELETED_INSTANCE;
@@ -137,6 +164,32 @@ public class DeleteAppInstance {
     return null;
   }
 
+  private void notifyAdmins(AppInstance appInstance, Iterable<String> adminIds) {
+    Notification notificationPrototype = new Notification();
+    for (ULocale locale : LocaleHelper.SUPPORTED_LOCALES) {
+      SoyMapData data = new SoyMapData();
+      data.put(DeletedAppInstanceMessageSoyTemplateInfo.APP_INSTANCE_NAME, appInstance.getName().get(locale));
+
+      ULocale messageLocale = locale;
+      if (LocaleHelper.DEFAULT_LOCALE.equals(locale)) {
+        messageLocale = ULocale.ROOT;
+      }
+      notificationPrototype.getMessage().set(messageLocale, templateRenderer.renderAsString(new SoyTemplate(
+          DeletedAppInstanceSoyInfo.DELETED_APP_INSTANCE_MESSAGE, locale, SanitizedContent.ContentKind.TEXT, data)));
+    }
+
+    for (String adminId : adminIds) {
+      try {
+        Notification notification = new Notification(notificationPrototype);
+        notification.setUser_id(adminId);
+        notificationRepository.createNotification(notification);
+      } catch (Exception e) {
+        // Don't fail if we can't notify
+        logger.error("Error notifying admin {} after deleting the instance {}", adminId, appInstance.getName().get(ULocale.ROOT), e);
+      }
+    }
+  }
+
   private @Nullable Status checkStatus(AppInstance appInstance, AppInstance.InstantiationStatus checkStatus) {
     if (appInstance.getStatus() != checkStatus) {
       return Status.BAD_INSTANCE_STATUS;
@@ -149,6 +202,8 @@ public class DeleteAppInstance {
     String instanceId();
 
     boolean callProvider();
+
+    public boolean notifyAdmins();
 
     Optional<AppInstance.InstantiationStatus> checkStatus();
 

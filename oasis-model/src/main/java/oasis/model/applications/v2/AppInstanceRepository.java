@@ -3,6 +3,8 @@ package oasis.model.applications.v2;
 import java.util.Collection;
 import java.util.List;
 
+import org.joda.time.Instant;
+
 import oasis.model.InvalidVersionException;
 
 public interface AppInstanceRepository {
@@ -19,6 +21,8 @@ public interface AppInstanceRepository {
   Iterable<AppInstance> findPersonalInstancesByUserId(String userId);
 
   Iterable<AppInstance> findPersonalInstancesByUserIdAndStatus(String userId, AppInstance.InstantiationStatus instantiationStatus);
+
+  Iterable<AppInstance> findStoppedBefore(Instant stoppedBefore);
 
   AppInstance updateStatus(String instanceId, AppInstance.InstantiationStatus newStatus, String statusChangeRequesterId, long[] versions)
       throws InvalidVersionException;
