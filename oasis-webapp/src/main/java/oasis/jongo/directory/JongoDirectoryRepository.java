@@ -64,6 +64,15 @@ public class JongoDirectoryRepository implements DirectoryRepository, JongoBoots
   }
 
   @Override
+  @SuppressWarnings("unchecked")
+  public Iterable<Organization> findOrganizationsDeletedBefore(Instant deletedBefore) {
+    return (Iterable<Organization>) (Iterable<?>) getOrganizationCollection()
+        .find("{ status: #, status_changed: { $lt: # } }", Organization.Status.DELETED, deletedBefore.toDate())
+        .projection(ORGANIZATION_PROJECTION)
+        .as(JongoOrganization.class);
+  }
+
+  @Override
   public Organization createOrganization(Organization organization) {
     JongoOrganization jongoOrganization = new JongoOrganization(organization);
     jongoOrganization.initCreated();
@@ -106,6 +115,18 @@ public class JongoDirectoryRepository implements DirectoryRepository, JongoBoots
     }
 
     return res;
+  }
+
+  @Override
+  public boolean deleteOrganization(String organizationId) {
+    WriteResult wr = getOrganizationCollection().remove("{ id: # }", organizationId);
+    return wr.getN() > 0;
+  }
+
+  @Override
+  public boolean deleteOrganization(String organizationId, Organization.Status status) {
+    WriteResult wr = getOrganizationCollection().remove("{ id: #, status: # }", organizationId, status);
+    return wr.getN() > 0;
   }
 
   @Override

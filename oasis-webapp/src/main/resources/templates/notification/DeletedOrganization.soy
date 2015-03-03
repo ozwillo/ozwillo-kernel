@@ -1,0 +1,12 @@
+{namespace oasis.notification autoescape="strict"}
+
+/**
+ * Deleted organization notification message.
+ */
+{template .deletedOrganizationMessage kind="text"}
+{@param  organizationName: string} /** Organization name. */
+
+{msg desc="Deleted organization notification message"}
+  The organization {$organizationName} was deleted successfully.
+{/msg}
+{/template}

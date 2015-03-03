@@ -31,6 +31,7 @@ public class SoyGuiceModule extends AbstractModule {
         .add(getClass().getResource("/templates/notification/ChangedAppInstanceStatus.soy"))
         .add(getClass().getResource("/templates/notification/ChangedOrganizationStatus.soy"))
         .add(getClass().getResource("/templates/notification/DeletedAppInstance.soy"))
+        .add(getClass().getResource("/templates/notification/DeletedOrganization.soy"))
         .build()
         .compileToTofu();
   }

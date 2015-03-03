@@ -276,6 +276,11 @@
         <target><x id="START_PARAGRAPH"/>Vous (ou quelqu'un d'autre) avez saisi cette adresse email dans une demande de changement de mot de passe d'un compte Ozwillo.<x id="START_PARAGRAPH"/>Cependant, cette adresse n'est pas dans notre base de données utilisateurs et la tentative de changement de mot de passe a échoué.<x id="START_PARAGRAPH"/>Si vous êtes un utilisateur d'Ozwillo et que vous attendiez ce message, refaite la demande en utilisant l'adresse email que vous aviez donné à la création de votre compte.<x id="START_PARAGRAPH"/>Si vous n'êtes pas un utilisateur d'Ozwillo, ignorez ce message.<x id="START_PARAGRAPH"/>L'équipe d'Ozwillo</target>
         <note priority="1" from="description">Forgot-password email body, for an unknown account</note>
       </trans-unit>
+      <trans-unit id="5905477645089564482" datatype="html">
+        <source>The organization <x id="ORGANIZATION_NAME"/> was deleted successfully.</source>
+        <target>L'organisation <x id="ORGANIZATION_NAME"/> a été supprimée avec succès.</target>
+        <note priority="1" from="description">Deleted organization notification message</note>
+      </trans-unit>
       <trans-unit id="5962776201852038125" datatype="html">
         <source><x id="START_PARAGRAPH"/>You are also logged in to these Ozwillo services:<x id="END_PARAGRAPH"/><x id="APPS"/><x id="START_PARAGRAPH"/>Signing out of Ozwillo will sign you out of these.<x id="END_PARAGRAPH"/></source>
         <target><x id="START_PARAGRAPH"/>Vous êtes aussi connecté à ces services Ozwillo :<x id="END_PARAGRAPH"/><x id="APPS"/><x id="START_PARAGRAPH"/>En vous déconnectant d'Ozwillo, vous vous déconnecterez aussi de ces services.<x id="END_PARAGRAPH"/></target>
