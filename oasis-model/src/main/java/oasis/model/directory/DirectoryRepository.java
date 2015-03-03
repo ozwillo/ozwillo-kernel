@@ -15,7 +15,10 @@ public interface DirectoryRepository {
 
   Organization updateOrganization(String organizationId, Organization organization, long[] versions) throws InvalidVersionException;
 
-  boolean deleteOrganization(String organizationId, long[] versions) throws InvalidVersionException;
+  Organization changeOrganizationStatus(String organizationId, Organization.Status newStatus, String requesterId);
+
+  Organization changeOrganizationStatus(String organizationId, Organization.Status newStatus, String requesterId, long[] versions)
+      throws InvalidVersionException;
 
   Iterable<Organization> getOrganizations();
 

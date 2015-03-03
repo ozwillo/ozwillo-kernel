@@ -57,6 +57,7 @@ public class UserDirectoryEndpoint {
       notes = "The returned location URL get access to the organization (retrieve, update, delete this organization)",
       response = Organization.class)
   public Response createOrganization(@Context SecurityContext securityContext, Organization organization) {
+    organization.setStatus(Organization.Status.AVAILABLE);
     organization = directory.createOrganization(organization);
 
     // Automatically add the current user as an admin for the organization

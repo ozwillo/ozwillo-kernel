@@ -4,4 +4,6 @@ public interface ApplicationRepository {
   Application getApplication(String applicationId);
 
   Application createApplication(Application application);
+
+  long getCountByProvider(String providerId);
 }

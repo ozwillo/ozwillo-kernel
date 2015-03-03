@@ -82,6 +82,10 @@
         <target>Nous avons fermé toutes vos sessions, sur tous vos appareils.</target>
         <note priority="1" from="description">Password successfully changed: immediate consequences</note>
       </trans-unit>
+      <trans-unit id="1702605619572199250" datatype="html">
+        <source>The organization <x id="ORGANIZATION_NAME"/> has been restored.</source>
+        <note priority="1" from="description">Restored organization requester notification message</note>
+      </trans-unit>
       <trans-unit id="1905705329717211043" datatype="html">
         <source>The application <x id="APP_INSTANCE_NAME"/> was uninstalled successfully.</source>
         <target>L'application <x id="APP_INSTANCE_NAME"/> a été supprimée avec succès.</target>
@@ -137,10 +141,20 @@
         <target>Aperçu</target>
         <note priority="1" from="description">Overview link on sign-up page</note>
       </trans-unit>
+      <trans-unit id="2637452443915953032" datatype="html">
+        <source><x id="REQUESTER_NAME"/> requested the deletion of the organization <x id="ORGANIZATION_NAME"/>, deletion will be effective in a week.</source>
+        <target><x id="REQUESTER_NAME"/> a demandé la suppression de l'organisation <x id="ORGANIZATION_NAME"/>. La suppression sera effective dans une semaine.</target>
+        <note priority="1" from="description">Soflty deleted organization admin notification message</note>
+      </trans-unit>
       <trans-unit id="2904061631873939197" datatype="html">
         <source>Go back to My Ozwillo</source>
         <target>Retourner à My Ozwillo</target>
         <note priority="1" from="description">Cancel changing password</note>
+      </trans-unit>
+      <trans-unit id="2912423960746840762" datatype="html">
+        <source>Your request to remove the organization <x id="ORGANIZATION_NAME"/> has been registered, you have a week to cancel the operation before its deletion.</source>
+        <target>Votre demande de suppression de l'organization <x id="ORGANIZATION_NAME"/> a été enregistrée. Vous avez une semaine pour annuler la suppression.</target>
+        <note priority="1" from="description">Soflty deleted organization requester notification message</note>
       </trans-unit>
       <trans-unit id="2949848596707725099" datatype="html">
         <source>Sign out</source>
@@ -301,6 +315,11 @@
         <source>Sign up</source>
         <target>S'inscrire</target>
         <note priority="1" from="description">Form submit button</note>
+      </trans-unit>
+      <trans-unit id="7155351833114954148" datatype="html">
+        <source>Manage my network</source>
+        <target>Gérer mon réseau.</target>
+        <note priority="1" from="description">Soflty deleted organization notification action label</note>
       </trans-unit>
       <trans-unit id="7418322490061402095" datatype="html">
         <source>Account pending activation</source>

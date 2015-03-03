@@ -178,6 +178,7 @@ public class Bootstrap extends CommandLineTool {
     Organization oasis = new Organization();
     oasis.setName("OASIS");
     oasis.setType(Organization.Type.COMPANY);
+    oasis.setStatus(Organization.Status.AVAILABLE);
     oasis = directoryRepositoryProvider.get().createOrganization(oasis);
 
     OrganizationMembership membership = new OrganizationMembership();

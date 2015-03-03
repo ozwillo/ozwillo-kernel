@@ -31,6 +31,8 @@ import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.ServiceRepository;
+import oasis.model.directory.DirectoryRepository;
+import oasis.model.directory.Organization;
 import oasis.services.authz.AppAdminHelper;
 import oasis.services.etag.EtagService;
 import oasis.urls.Urls;
@@ -50,6 +52,7 @@ import oasis.web.utils.ResponseFactory;
 @Api(value = "app-instances", description = "Application instances")
 public class AppInstanceEndpoint {
   @Inject AppInstanceRepository appInstanceRepository;
+  @Inject DirectoryRepository directoryRepository;
   @Inject ServiceRepository serviceRepository;
   @Inject AppAdminHelper appAdminHelper;
   @Inject EtagService etagService;
@@ -185,12 +188,19 @@ public class AppInstanceEndpoint {
     if (!appAdminHelper.isAdmin(userId, instance)) {
       return ResponseFactory.forbidden("Current user is not an app_admin for the instance");
     }
+    if (!Strings.isNullOrEmpty(instance.getProvider_id())) {
+      Organization organization = directoryRepository.getOrganization(instance.getProvider_id());
+      if (organization == null || organization.getStatus() == Organization.Status.DELETED) {
+        return ResponseFactory.forbidden("Can't change the status of an app instance related to a deleted organization.");
+      }
+    }
 
     ChangeAppInstanceStatus.Request changeAppInstanceStatusRequest = ImmutableChangeAppInstanceStatus.Request.builder()
         .appInstance(instance)
         .requesterId(userId)
         .newStatus(request.status)
         .ifMatch(etagService.parseEtag(ifMatch))
+        .notifyAdmins(true)
         .build();
     ChangeAppInstanceStatus.Response changeAppInstanceStatusResponse = changeAppInstanceStatus.updateStatus(changeAppInstanceStatusRequest);
 

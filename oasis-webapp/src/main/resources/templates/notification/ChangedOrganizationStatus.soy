@@ -1,0 +1,44 @@
+{namespace oasis.notification autoescape="strict"}
+
+/**
+* Softly deleted organization notification message for admins.
+*/
+{template .softlyDeletedOrganizationMessageForAdmins kind="text"}
+{@param  requesterName:    string} /** Requester name. */
+{@param  organizationName: string} /** Organization name. */
+
+{msg desc="Soflty deleted organization admin notification message"}
+  {$requesterName} requested the deletion of the organization {$organizationName}, deletion will be effective in a week.
+{/msg}
+{/template}
+
+/**
+* Softly deleted organization notification message for the requester.
+*/
+{template .softlyDeletedOrganizationMessageForRequester kind="text"}
+{@param  organizationName: string} /** Organization name. */
+
+{msg desc="Soflty deleted organization requester notification message"}
+  Your request to remove the organization {$organizationName} has been registered, you have a week to cancel the operation before its deletion.
+{/msg}
+{/template}
+
+/**
+* Restored organization notification message.
+*/
+{template .restoredOrganizationMessage kind="text"}
+{@param  organizationName: string} /** Organization name. */
+
+{msg desc="Restored organization requester notification message"}
+  The organization {$organizationName} has been restored.
+{/msg}
+{/template}
+
+/**
+* Stopped organization action label.
+*/
+{template .softlyDeletedOrganizationAction kind="text"}
+{msg desc="Soflty deleted organization notification action label"}
+  Manage my network
+{/msg}
+{/template}

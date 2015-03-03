@@ -43,6 +43,12 @@ public class JongoApplicationRepository implements ApplicationRepository, JongoB
   }
 
   @Override
+  public long getCountByProvider(String providerId) {
+    return getApplicationsCollection()
+        .count("{ provider_id: # }", providerId);
+  }
+
+  @Override
   public void bootstrap() {
     getApplicationsCollection().ensureIndex("{ id : 1 }", "{ unique: 1 }");
   }

@@ -15,6 +15,7 @@ import org.jongo.MongoCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.Longs;
 import com.mongodb.DuplicateKeyException;
@@ -106,6 +107,19 @@ public class JongoAppInstanceRepository implements AppInstanceRepository, JongoB
   }
 
   @Override
+  public AppInstance updateStatus(String instanceId, AppInstance.InstantiationStatus newStatus, String statusChangeRequesterId) {
+    checkArgument(checkNotNull(newStatus) != AppInstance.InstantiationStatus.PENDING);
+
+    Instant now = Instant.now();
+    return getAppInstancesCollection()
+        // let's ensure that the updated app instance is not pending
+        .findAndModify("{ id: #, status: { $ne: # } }", instanceId, AppInstance.InstantiationStatus.PENDING)
+        .returnNew()
+        .with("{ $set: { status: #, status_changed: #, status_change_requester_id: #, modified: # } }", newStatus, now.toDate(), statusChangeRequesterId, now.getMillis())
+        .as(JongoAppInstance.class);
+  }
+
+  @Override
   public AppInstance updateStatus(String instanceId, AppInstance.InstantiationStatus newStatus, String statusChangeRequesterId, long[] versions)
       throws InvalidVersionException {
     checkArgument(checkNotNull(newStatus) != AppInstance.InstantiationStatus.PENDING);
@@ -127,11 +141,13 @@ public class JongoAppInstanceRepository implements AppInstanceRepository, JongoB
   }
 
   @Override
-  public AppInstance instantiated(String instanceId, List<AppInstance.NeededScope> neededScopes, String destruction_uri, String destruction_secret) {
+  public AppInstance instantiated(String instanceId, List<AppInstance.NeededScope> neededScopes, String destruction_uri, String destruction_secret,
+      AppInstance.InstantiationStatus status) {
+    Preconditions.checkArgument(status == AppInstance.InstantiationStatus.RUNNING || status == AppInstance.InstantiationStatus.STOPPED);
     AppInstance instance = getAppInstancesCollection()
         .findAndModify("{ id: #, status: # }", instanceId, AppInstance.InstantiationStatus.PENDING)
         .with("{ $set: { status: #, needed_scopes: #, destruction_uri: #, destruction_secret: #, provisioned: # } }",
-            AppInstance.InstantiationStatus.RUNNING, neededScopes, destruction_uri, destruction_secret, System.currentTimeMillis())
+            status, neededScopes, destruction_uri, destruction_secret, System.currentTimeMillis())
         .as(AppInstance.class);
     return instance;
   }

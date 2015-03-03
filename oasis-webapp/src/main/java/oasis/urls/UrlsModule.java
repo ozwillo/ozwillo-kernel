@@ -21,6 +21,7 @@ public class UrlsModule extends AbstractModule {
         .myOasis(get(config, "my-oasis"))
         .myProfile(get(config, "my-profile"))
         .myApps(get(config, "my-apps"))
+        .myNetwork(get(config, "my-network"))
         .build());
   }
 

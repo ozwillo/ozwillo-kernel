@@ -8,6 +8,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
+import org.joda.time.Instant;
 import org.jongo.Jongo;
 import org.jongo.MongoCollection;
 import org.slf4j.Logger;
@@ -108,17 +109,31 @@ public class JongoDirectoryRepository implements DirectoryRepository, JongoBoots
   }
 
   @Override
-  public boolean deleteOrganization(String organizationId, long[] versions) throws InvalidVersionException {
-    WriteResult wr = getOrganizationCollection().remove("{id: #, modified: { $in: # } }", organizationId, Longs.asList(versions));
-    int n = wr.getN();
-    if (n == 0) {
+  public Organization changeOrganizationStatus(String organizationId, Organization.Status newStatus, String requesterId) {
+    Instant now = Instant.now();
+    return getOrganizationCollection()
+        .findAndModify("{ id: # }", organizationId)
+        .returnNew()
+        .with("{ $set: { status: #, status_changed: #, status_change_requester_id: #, modified: # } }", newStatus, now.toDate(), requesterId, now.getMillis())
+        .as(JongoOrganization.class);
+  }
+
+  @Override
+  public Organization changeOrganizationStatus(String organizationId, Organization.Status newStatus, String requesterId, long[] versions) throws InvalidVersionException {
+    Instant now = Instant.now();
+    JongoOrganization organization = getOrganizationCollection()
+        .findAndModify("{id: #, modified: { $in: # } }", organizationId, Longs.asList(versions))
+        .returnNew()
+        .with("{ $set: { status: #, status_changed: #, status_change_requester_id: #, modified: # } }", newStatus, now.toDate(), requesterId, now.getMillis())
+        .as(JongoOrganization.class);
+    if (organization == null) {
       if (getOrganizationCollection().count("{ id: # }", organizationId) != 0) {
         throw new InvalidVersionException("organization", organizationId);
       }
-      return false;
+      logger.warn("The organization {} does not exist", organizationId);
     }
 
-    return true;
+    return organization;
   }
 
   @Override

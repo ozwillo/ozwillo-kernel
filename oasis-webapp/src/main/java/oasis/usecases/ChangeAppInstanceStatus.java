@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Functions;
+import com.google.common.base.Optional;
 import com.google.template.soy.data.SanitizedContent;
 import com.google.template.soy.data.SoyMapData;
 import com.ibm.icu.util.ULocale;
@@ -57,12 +58,16 @@ public class ChangeAppInstanceStatus {
     }
 
     final AppInstance instance;
-    try {
-      instance = appInstanceRepository.updateStatus(request.appInstance().getId(), request.newStatus(), request.requesterId(), request.ifMatch());
-    } catch (InvalidVersionException e) {
-      return responseBuilder.appInstance(request.appInstance())
-          .responseStatus(ResponseStatus.VERSION_CONFLICT)
-          .build();
+    if (request.ifMatch().isPresent()) {
+      try {
+        instance = appInstanceRepository.updateStatus(request.appInstance().getId(), request.newStatus(), request.requesterId(), request.ifMatch().get());
+      } catch (InvalidVersionException e) {
+        return responseBuilder.appInstance(request.appInstance())
+            .responseStatus(ResponseStatus.VERSION_CONFLICT)
+            .build();
+      }
+    } else {
+      instance = appInstanceRepository.updateStatus(request.appInstance().getId(), request.newStatus(), request.requesterId());
     }
     if (instance == null) {
       // i.e. the instance was deleted or updated between first DB call and the updateStatus()
@@ -76,12 +81,14 @@ public class ChangeAppInstanceStatus {
 
     tokenRepository.revokeTokensForClient(instance.getId());
 
-    try {
-      notifyAdmins(request.requesterId(), instance, request.newStatus());
-    } catch (Exception e) {
-      // Don't fail if we can't notify
-      logger.error("Error notifying app admins after the user {} has stopped the instance {}", request.requesterId(),
-          instance.getName().get(ULocale.ROOT), e);
+    if (request.notifyAdmins()) {
+      try {
+        notifyAdmins(request.requesterId(), instance, request.newStatus());
+      } catch (Exception e) {
+        // Don't fail if we can't notify
+        logger.error("Error notifying app admins after the user {} has stopped the instance {}", request.requesterId(),
+            instance.getName().get(ULocale.ROOT), e);
+      }
     }
 
     return responseBuilder.appInstance(instance)
@@ -227,9 +234,11 @@ public class ChangeAppInstanceStatus {
 
     AppInstance appInstance();
 
-    long[] ifMatch();
+    Optional<long[]> ifMatch();
 
     AppInstance.InstantiationStatus newStatus();
+
+    boolean notifyAdmins();
   }
 
   @Value.Immutable

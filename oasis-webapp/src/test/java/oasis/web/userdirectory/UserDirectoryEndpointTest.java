@@ -49,6 +49,7 @@ public class UserDirectoryEndpointTest {
         Organization organization = (Organization) invocation.getArguments()[0];
         organization = new Organization(organization);
         organization.setId("organization");
+        organization.setStatus(Organization.Status.AVAILABLE);
         return organization;
       }
     });
@@ -60,6 +61,7 @@ public class UserDirectoryEndpointTest {
     Organization sentOrganization = new Organization();
     sentOrganization.setName("Test");
     sentOrganization.setType(Organization.Type.PUBLIC_BODY);
+    sentOrganization.setStatus(Organization.Status.AVAILABLE);
 
     Response response = resteasy.getClient()
         .target(UriBuilder.fromResource(UserDirectoryEndpoint.class).path(UserDirectoryEndpoint.class, "createOrganization")).request()

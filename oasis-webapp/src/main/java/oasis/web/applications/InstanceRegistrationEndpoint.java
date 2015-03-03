@@ -43,6 +43,8 @@ import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.ServiceRepository;
 import oasis.model.applications.v2.UserSubscription;
 import oasis.model.applications.v2.UserSubscriptionRepository;
+import oasis.model.directory.DirectoryRepository;
+import oasis.model.directory.Organization;
 import oasis.model.notification.Notification;
 import oasis.model.notification.NotificationRepository;
 import oasis.soy.SoyTemplate;
@@ -66,16 +68,17 @@ import oasis.web.utils.ResponseFactory;
 public class InstanceRegistrationEndpoint {
   private static final Logger logger = LoggerFactory.getLogger(InstanceRegistrationEndpoint.class);
 
-  @Inject ServiceValidator serviceValidator;
   @Inject AppInstanceRepository appInstanceRepository;
-  @Inject ServiceRepository serviceRepository;
-  @Inject ScopeRepository scopeRepository;
-  @Inject UserSubscriptionRepository userSubscriptionRepository;
-  @Inject DeleteAppInstance deleteAppInstance;
-  @Inject CleanupAppInstance cleanupAppInstance;
-  @Inject Urls urls;
-  @Inject SoyTemplateRenderer templateRenderer;
+  @Inject DirectoryRepository directoryRepository;
   @Inject NotificationRepository notificationRepository;
+  @Inject ScopeRepository scopeRepository;
+  @Inject ServiceRepository serviceRepository;
+  @Inject UserSubscriptionRepository userSubscriptionRepository;
+  @Inject CleanupAppInstance cleanupAppInstance;
+  @Inject DeleteAppInstance deleteAppInstance;
+  @Inject ServiceValidator serviceValidator;
+  @Inject SoyTemplateRenderer templateRenderer;
+  @Inject Urls urls;
 
   @PathParam("instance_id") String instanceId;
 
@@ -116,8 +119,17 @@ public class InstanceRegistrationEndpoint {
       return error;
     }
 
-    AppInstance instance = appInstanceRepository.instantiated(instanceId, acknowledgementRequest.getNeeded_scopes(),
-        acknowledgementRequest.destruction_uri, acknowledgementRequest.destruction_secret);
+    AppInstance.InstantiationStatus instanceStatus = AppInstance.InstantiationStatus.RUNNING;
+    // If the related organization is deleted, the instance and related services will be stopped too
+    AppInstance instance = appInstanceRepository.getAppInstance(instanceId);
+    if (!Strings.isNullOrEmpty(instance.getProvider_id())) {
+      Organization organization = directoryRepository.getOrganization(instance.getProvider_id());
+      if (organization == null || organization.getStatus() == Organization.Status.DELETED) {
+        instanceStatus = AppInstance.InstantiationStatus.STOPPED;
+      }
+    }
+    instance = appInstanceRepository.instantiated(instanceId, acknowledgementRequest.getNeeded_scopes(),
+        acknowledgementRequest.destruction_uri, acknowledgementRequest.destruction_secret, instanceStatus);
     if (instance == null) {
       return ResponseFactory.notFound("Pending instance not found");
     }
@@ -130,11 +142,12 @@ public class InstanceRegistrationEndpoint {
         scope.computeId();
         scopeRepository.createOrUpdateScope(scope);
       }
+
+      Service.Status serviceStatus = Service.Status.forAppInstanceStatus(instance.getStatus());
       for (Service service : acknowledgementRequest.getServices()) {
         service.setInstance_id(instanceId);
         service.setProvider_id(instance.getProvider_id());
-        // As the instance is freshly instantiated, all the services related to it are made available
-        service.setStatus(Service.Status.AVAILABLE);
+        service.setStatus(serviceStatus);
         service = serviceRepository.createService(service);
         acknowledgementResponse.put(service.getLocal_id(), service.getId());
 
