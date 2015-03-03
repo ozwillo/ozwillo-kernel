@@ -14,6 +14,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Strings;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
@@ -50,7 +51,7 @@ public class AccessControlEntryEndpoint {
       response = AccessControlEntry.class
   )
   public Response get() {
-    AccessControlEntry ace = accessControlRepository.getAccessControlEntry(ace_id);
+    final AccessControlEntry ace = accessControlRepository.getAccessControlEntry(ace_id);
     if (ace == null) {
       return ResponseFactory.NOT_FOUND;
     }
@@ -59,7 +60,14 @@ public class AccessControlEntryEndpoint {
     }
     return Response.ok()
         .tag(etagService.getEtag(ace))
-        .entity(ace)
+        .entity(new AccessControlEntry(ace) {
+          {
+            setId(ace.getId());
+          }
+
+          // TODO: add app_admin and make app_user conditional to… being an app_user.
+          @JsonProperty boolean app_user = true;
+        })
         .build();
   }
 
