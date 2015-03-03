@@ -97,6 +97,11 @@
         <target>Annuler</target>
         <note priority="1" from="description">Button to cancel (and return error to the app)</note>
       </trans-unit>
+      <trans-unit id="2163351121824977439" datatype="html">
+        <source>Your unsubscription of the application <x id="APP_INSTANCE_NAME"/> has been registered, you have a week to cancel the operation before its uninstalling.</source>
+        <target>Votre désinscription de l'application <x id="APP_INSTANCE_NAME"/> a bien été enregistrée, vous avez une semaine pour annuler l'opération avant sa désinstallation.</target>
+        <note priority="1" from="description">Stopped application instance owner notification message</note>
+      </trans-unit>
       <trans-unit id="2336550011721758066" datatype="html">
         <source>Log in</source>
         <target>Se connecter</target>
@@ -152,6 +157,11 @@
         <target>Un compte avec cette adresse email existe déjà.</target>
         <note priority="1" from="description">Error message during sign-up</note>
       </trans-unit>
+      <trans-unit id="3498554815912326299" datatype="html">
+        <source>The application <x id="APP_INSTANCE_NAME"/> has been restored.</source>
+        <target>L'application <x id="APP_INSTANCE_NAME"/> a été restaurée.</target>
+        <note priority="1" from="description">Stopped application instance user notification message</note>
+      </trans-unit>
       <trans-unit id="3510526964471104374" datatype="html">
         <source>Cancel and log me back in</source>
         <target>Annuler et me connecter à nouveau</target>
@@ -186,6 +196,11 @@
         <source>Some required fields are not filled.</source>
         <target>Certains champs requis sont vides.</target>
         <note priority="1" from="description">Error message during account recovery</note>
+      </trans-unit>
+      <trans-unit id="4608187185425458597" datatype="html">
+        <source><x id="REQUESTER_NAME"/> unsubscribed of the application <x id="APP_INSTANCE_NAME"/>, uninstalling will be effective in a week.</source>
+        <target><x id="REQUESTER_NAME"/> a demandé la suppression de l'application <x id="APP_INSTANCE_NAME"/>, elle sera effective dans une semaine.</target>
+        <note priority="1" from="description">Stopped application instance user notification message</note>
       </trans-unit>
       <trans-unit id="4764082581244349761" datatype="html">
         <source>An account with that email address already exists. Did you <x id="START_LINK"/>forgot your password?<x id="END_LINK"/></source>
@@ -336,6 +351,11 @@
         <source>Your password has been changed</source>
         <target>Votre mot de passe a été modifié</target>
         <note priority="1" from="description">Password changed confirmation (heading)</note>
+      </trans-unit>
+      <trans-unit id="8476704704239774311" datatype="html">
+        <source>Manage my applications</source>
+        <target>Gérer mes applications</target>
+        <note priority="1" from="description">Stopped app-instance notification action label</note>
       </trans-unit>
       <trans-unit id="8506870940393194390" datatype="html">
         <source>Go!</source>

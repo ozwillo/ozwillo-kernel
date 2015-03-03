@@ -33,6 +33,7 @@ import com.ibm.icu.util.ULocale;
 
 import oasis.model.applications.v2.CatalogEntry;
 import oasis.model.applications.v2.CatalogEntryRepository;
+import oasis.model.applications.v2.Service;
 import oasis.model.i18n.LocalizableString;
 
 @Value.Nested
@@ -86,6 +87,8 @@ public class JongoCatalogEntryRepository implements CatalogEntryRepository {
       addIfNotEmpty(request.category_id(), "category_ids", queryParts, params);
       // TODO: return entries with visible:false but which are visible to the current user
       queryParts.add("visible: true");
+      queryParts.add("status: { $ne: # } }");
+      params.add(Service.Status.NOT_AVAILABLE);
 
       ImmutableMap.Builder<String, Integer> fields = ImmutableMap.builder();
       if (request.displayLocale().isPresent()) {

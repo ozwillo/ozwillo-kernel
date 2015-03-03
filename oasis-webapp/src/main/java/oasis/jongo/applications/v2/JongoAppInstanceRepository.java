@@ -1,11 +1,15 @@
 package oasis.jongo.applications.v2;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
 
+import org.joda.time.Instant;
 import org.jongo.Jongo;
 import org.jongo.MongoCollection;
 import org.slf4j.Logger;
@@ -91,6 +95,27 @@ public class JongoAppInstanceRepository implements AppInstanceRepository, JongoB
     return (Iterable<AppInstance>) (Iterable<?>) getAppInstancesCollection()
         .find("{ instantiator_id: #, status: #, provider_id: { $exists: 0 } }", userId, instantiationStatus)
         .as(JongoAppInstance.class);
+  }
+
+  @Override
+  public AppInstance updateStatus(String instanceId, AppInstance.InstantiationStatus newStatus, String statusChangeRequesterId, long[] versions)
+      throws InvalidVersionException {
+    checkArgument(checkNotNull(newStatus) != AppInstance.InstantiationStatus.PENDING);
+
+    Instant now = Instant.now();
+    JongoAppInstance appInstance = getAppInstancesCollection()
+        // let's ensure that the updated app instance is not pending
+        .findAndModify("{ id: #, status: { $ne: # }, modified: { $in: # } }", instanceId, AppInstance.InstantiationStatus.PENDING, Longs.asList(versions))
+        .returnNew()
+        .with("{ $set: { status: #, status_changed: #, status_change_requester_id: #, modified: # } }", newStatus, now.toDate(), statusChangeRequesterId, now.getMillis())
+        .as(JongoAppInstance.class);
+
+    if (appInstance == null) {
+      if (getAppInstancesCollection().count("{ id: #, status: { $ne: # } }", instanceId, AppInstance.InstantiationStatus.PENDING) > 0) {
+        throw new InvalidVersionException("app-instance", instanceId);
+      }
+    }
+    return appInstance;
   }
 
   @Override

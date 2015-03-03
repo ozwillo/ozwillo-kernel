@@ -6,7 +6,6 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
@@ -21,8 +20,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Function;
-import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.wordnik.swagger.annotations.Api;
@@ -34,7 +33,9 @@ import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.ServiceRepository;
 import oasis.services.authz.AppAdminHelper;
 import oasis.services.etag.EtagService;
-import oasis.usecases.DeleteAppInstance;
+import oasis.urls.Urls;
+import oasis.usecases.ChangeAppInstanceStatus;
+import oasis.usecases.ImmutableChangeAppInstanceStatus;
 import oasis.usecases.ServiceValidator;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
@@ -49,11 +50,12 @@ import oasis.web.utils.ResponseFactory;
 @Api(value = "app-instances", description = "Application instances")
 public class AppInstanceEndpoint {
   @Inject AppInstanceRepository appInstanceRepository;
-  @Inject AppAdminHelper appAdminHelper;
   @Inject ServiceRepository serviceRepository;
+  @Inject AppAdminHelper appAdminHelper;
   @Inject EtagService etagService;
-  @Inject DeleteAppInstance deleteAppInstance;
   @Inject Provider<ServiceValidator> serviceValidatorProvider;
+  @Inject Urls urls;
+  @Inject ChangeAppInstanceStatus changeAppInstanceStatus;
 
   @Context SecurityContext securityContext;
 
@@ -142,6 +144,9 @@ public class AppInstanceEndpoint {
 
     service.setInstance_id(instanceId);
     service.setProvider_id(instance.getProvider_id());
+    // The instance could be STOPPED
+    Service.Status serviceStatus = Service.Status.forAppInstanceStatus(instance.getStatus());
+    service.setStatus(serviceStatus);
     service = serviceRepository.createService(service);
     if (service == null) {
       if (appInstanceRepository.getAppInstance(instanceId) == null) {
@@ -158,15 +163,20 @@ public class AppInstanceEndpoint {
         .build();
   }
 
-  @DELETE
-  @ApiOperation("Detroys the application instance")
-  public Response destroy(
-      @HeaderParam(HttpHeaders.IF_MATCH) String ifMatch
+  @POST
+  @ApiOperation("Change the status of the application instance")
+  public Response changeStatus(
+      @HeaderParam(HttpHeaders.IF_MATCH) String ifMatch,
+      ModifyStatusRequest request
   ) {
     if (Strings.isNullOrEmpty(ifMatch)) {
       return ResponseFactory.preconditionRequiredIfMatch();
     }
 
+    Response error = request.checkStatus();
+    if (error != null) {
+      return error;
+    }
     AppInstance instance = appInstanceRepository.getAppInstance(instanceId);
     if (instance == null) {
       return ResponseFactory.NOT_FOUND;
@@ -176,24 +186,44 @@ public class AppInstanceEndpoint {
       return ResponseFactory.forbidden("Current user is not an app_admin for the instance");
     }
 
-    DeleteAppInstance.Request request = new DeleteAppInstance.Request(instanceId);
-    request.callProvider = true;
-    request.checkStatus = Optional.absent();
-    request.checkVersions = Optional.of(etagService.parseEtag(ifMatch));
-    DeleteAppInstance.Status status = deleteAppInstance.deleteInstance(request, new DeleteAppInstance.Stats());
+    ChangeAppInstanceStatus.Request changeAppInstanceStatusRequest = ImmutableChangeAppInstanceStatus.Request.builder()
+        .appInstance(instance)
+        .requesterId(userId)
+        .newStatus(request.status)
+        .ifMatch(etagService.parseEtag(ifMatch))
+        .build();
+    ChangeAppInstanceStatus.Response changeAppInstanceStatusResponse = changeAppInstanceStatus.updateStatus(changeAppInstanceStatusRequest);
 
-    switch (status) {
-      case PROVIDER_CALL_ERROR:
-      case PROVIDER_STATUS_ERROR:
-        return Response.status(Response.Status.BAD_GATEWAY).build();
-      case DELETED_LEFTOVERS:
-      case NOTHING_TO_DELETE:
-        // race condition?
+    switch (changeAppInstanceStatusResponse.responseStatus()) {
+      case SUCCESS:
+      case NOTHING_TO_MODIFY:
+        return Response.ok(changeAppInstanceStatusResponse.appInstance())
+            .tag(etagService.getEtag(changeAppInstanceStatusResponse.appInstance()))
+            .build();
+      case VERSION_CONFLICT:
+        return ResponseFactory.preconditionRequired("Invalid version for app-instance " + instanceId);
+      case NOT_FOUND:
         return ResponseFactory.NOT_FOUND;
-      case DELETED_INSTANCE:
-        return Response.ok().build();
       default:
-        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        return Response.serverError().build();
+    }
+  }
+
+  public static class ModifyStatusRequest {
+    @JsonProperty AppInstance.InstantiationStatus status;
+
+    @Nullable protected Response checkStatus() {
+      if (status == null) {
+        return ResponseFactory.unprocessableEntity("Instantiation status must be provided.");
+      }
+      switch (status) {
+        case RUNNING:
+        case STOPPED:
+          break;
+        default:
+          return ResponseFactory.unprocessableEntity("Instantiation status not allowed: " + status.name());
+      }
+      return null;
     }
   }
 }

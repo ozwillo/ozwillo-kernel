@@ -216,6 +216,7 @@ public class Bootstrap extends CommandLineTool {
     service.setLocal_id("front");
     service.setInstance_id(instance.getId());
     service.setVisible(true); // we don't want filtering by ACL, portal will be filtered out by Market search
+    service.setStatus(Service.Status.AVAILABLE);
     service.getName().set(ULocale.ROOT, "OASIS Portal");
     service.getRedirect_uris().add(portalRedirectUri);
     service.getPost_logout_redirect_uris().add(portalPostLogoutRedirectUri);

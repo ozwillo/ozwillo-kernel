@@ -1,0 +1,44 @@
+{namespace oasis.notification autoescape="strict"}
+
+/**
+ * Stopped application instance notification message for admins.
+ */
+{template .stoppedAppInstanceMessageForAdmins kind="text"}
+{@param  requesterName:           string} /** Requester name. */
+{@param  appInstanceName:         string} /** Application instance name. */
+
+{msg desc="Stopped application instance user notification message"}
+  {$requesterName} unsubscribed of the application {$appInstanceName}, uninstalling will be effective in a week.
+{/msg}
+{/template}
+
+/**
+ * Stopped application instance notification message for the requester.
+ */
+{template .stoppedAppInstanceMessageForRequester kind="text"}
+{@param  appInstanceName:         string} /** Application instance name. */
+
+{msg desc="Stopped application instance owner notification message"}
+  Your unsubscription of the application {$appInstanceName} has been registered, you have a week to cancel the operation before its uninstalling.
+{/msg}
+{/template}
+
+/**
+ * Stopped application instance action label.
+ */
+{template .stoppedAppInstanceAction kind="text"}
+{msg desc="Stopped app-instance notification action label"}
+  Manage my applications
+{/msg}
+{/template}
+
+/**
+ * Restored application instance notification message.
+ */
+{template .restoredAppInstanceMessage kind="text"}
+{@param  appInstanceName:         string} /** Application instance name. */
+
+{msg desc="Stopped application instance user notification message"}
+  The application {$appInstanceName} has been restored.
+{/msg}
+{/template}

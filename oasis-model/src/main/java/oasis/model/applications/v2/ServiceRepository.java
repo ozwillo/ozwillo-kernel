@@ -18,4 +18,6 @@ public interface ServiceRepository {
   Service updateService(Service service, long[] versions) throws InvalidVersionException;
 
   int deleteServicesOfInstance(String instanceId);
+
+  int changeServicesStatusForInstance(String instanceId, Service.Status status);
 }

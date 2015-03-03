@@ -116,6 +116,9 @@ public class ServiceEndpoint {
       return ResponseFactory.unprocessableEntity(error);
     }
 
+    // Make sure that the status will not be changed after the update
+    service.setStatus(updatedService.getStatus());
+
     try {
       service = serviceRepository.updateService(service, etagService.parseEtag(ifMatch));
     } catch (InvalidVersionException e) {

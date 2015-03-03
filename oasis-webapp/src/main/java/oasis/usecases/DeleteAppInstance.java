@@ -93,6 +93,7 @@ public class DeleteAppInstance {
     String endpoint, secret;
     switch (appInstance.getStatus()) {
       case RUNNING:
+      case STOPPED:
         endpoint = appInstance.getDestruction_uri();
         secret = appInstance.getDestruction_secret();
         break;

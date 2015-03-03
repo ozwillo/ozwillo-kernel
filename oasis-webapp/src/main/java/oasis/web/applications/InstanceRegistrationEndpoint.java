@@ -133,6 +133,8 @@ public class InstanceRegistrationEndpoint {
       for (Service service : acknowledgementRequest.getServices()) {
         service.setInstance_id(instanceId);
         service.setProvider_id(instance.getProvider_id());
+        // As the instance is freshly instantiated, all the services related to it are made available
+        service.setStatus(Service.Status.AVAILABLE);
         service = serviceRepository.createService(service);
         acknowledgementResponse.put(service.getLocal_id(), service.getId());
 

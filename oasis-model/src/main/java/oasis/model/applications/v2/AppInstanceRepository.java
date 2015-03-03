@@ -20,6 +20,9 @@ public interface AppInstanceRepository {
 
   Iterable<AppInstance> findPersonalInstancesByUserIdAndStatus(String userId, AppInstance.InstantiationStatus instantiationStatus);
 
+  AppInstance updateStatus(String instanceId, AppInstance.InstantiationStatus newStatus, String statusChangeRequesterId, long[] versions)
+      throws InvalidVersionException;
+
   AppInstance instantiated(String instanceId, List<AppInstance.NeededScope> neededScopes, String destruction_uri, String destruction_secret);
 
   AppInstance backToPending(String instanceId);

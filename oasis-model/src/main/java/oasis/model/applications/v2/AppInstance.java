@@ -3,6 +3,8 @@ package oasis.model.applications.v2;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import org.joda.time.Instant;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -13,6 +15,8 @@ public class AppInstance extends CommonProperties {
   @Id private String id;
   private String application_id;
   private InstantiationStatus status;
+  private Instant status_changed;
+  private String status_change_requester_id;
   /** ID of the user who created the instance. */
   private String instantiator_id;
   private Set<NeededScope> needed_scopes;
@@ -34,6 +38,8 @@ public class AppInstance extends CommonProperties {
     super(other);
     application_id = other.getApplication_id();
     status = other.getStatus();
+    status_changed = other.getStatus_changed();
+    status_change_requester_id = other.getStatus_change_requester_id();
     instantiator_id = other.getInstantiator_id();
     needed_scopes = new LinkedHashSet<>(other.getNeeded_scopes().size());
     for (NeededScope scope : other.getNeeded_scopes()) {
@@ -66,6 +72,22 @@ public class AppInstance extends CommonProperties {
 
   public void setStatus(InstantiationStatus status) {
     this.status = status;
+  }
+
+  public Instant getStatus_changed() {
+    return status_changed;
+  }
+
+  public void setStatus_changed(Instant status_changed) {
+    this.status_changed = status_changed;
+  }
+
+  public String getStatus_change_requester_id() {
+    return status_change_requester_id;
+  }
+
+  public void setStatus_change_requester_id(String status_change_requester_id) {
+    this.status_change_requester_id = status_change_requester_id;
   }
 
   public String getInstantiator_id() {
@@ -140,6 +162,6 @@ public class AppInstance extends CommonProperties {
   }
 
   public enum InstantiationStatus {
-    PENDING, RUNNING
+    PENDING, RUNNING, STOPPED
   }
 }

@@ -131,6 +131,12 @@ public class AuthorizationEndpointTest {
     setProvider_id("organizationId");
     setStatus(InstantiationStatus.RUNNING);
   }};
+  private static final AppInstance stoppedAppInstance = new AppInstance() {{
+    setId("stoppedAppInstance");
+    setName(new LocalizableString("Test Stopped Application Instance"));
+    setProvider_id("organizationId");
+    setStatus(InstantiationStatus.STOPPED);
+  }};
 
   private static final Service service = new Service() {{
     setId("public-service");
@@ -209,6 +215,7 @@ public class AuthorizationEndpointTest {
     when(accountRepository.getUserAccountById(account.getId())).thenReturn(account);
 
     when(appInstanceRepository.getAppInstance(appInstance.getId())).thenReturn(appInstance);
+    when(appInstanceRepository.getAppInstance(stoppedAppInstance.getId())).thenReturn(stoppedAppInstance);
     when(serviceRepository.getServiceByRedirectUri(appInstance.getId(), Iterables.getOnlyElement(service.getRedirect_uris()))).thenReturn(service);
     when(serviceRepository.getServiceByRedirectUri(appInstance.getId(), Iterables.getOnlyElement(privateService.getRedirect_uris()))).thenReturn(privateService);
 
@@ -420,6 +427,19 @@ public class AuthorizationEndpointTest {
         .request().get();
 
     assertRedirectError(response, service, "consent_required", null);
+  }
+
+  @Test public void testStoppedClient() {
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+        .queryParam("client_id", stoppedAppInstance.getId())
+        .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
+        .queryParam("state", encodedState)
+        .queryParam("response_type", "code")
+        .queryParam("scope", openidScope.getId())
+        .request().get();
+
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
+    assertThat(response.readEntity(String.class)).contains("access_denied");
   }
 
   @Test public void testUnknownClient() {

@@ -18,6 +18,7 @@ public class Service extends CatalogEntry {
   private Set<String> post_logout_redirect_uris;
   private String subscription_uri;
   private String subscription_secret;
+  private Status status;
 
   public Service() {
     redirect_uris = new LinkedHashSet<>();
@@ -40,6 +41,7 @@ public class Service extends CatalogEntry {
     post_logout_redirect_uris = new LinkedHashSet<>(other.getPost_logout_redirect_uris());
     subscription_uri = other.getSubscription_uri();
     subscription_secret = other.getSubscription_secret();
+    status = other.getStatus();
   }
 
   public String getLocal_id() {
@@ -128,5 +130,29 @@ public class Service extends CatalogEntry {
 
   public void setInstance_id(String instance_id) {
     this.instance_id = instance_id;
+  }
+
+  public Status getStatus() {
+    return status;
+  }
+
+  public void setStatus(Status status) {
+    this.status = status;
+  }
+
+  public static enum Status {
+    AVAILABLE, NOT_AVAILABLE;
+
+    public static Status forAppInstanceStatus(AppInstance.InstantiationStatus instantiationStatus) {
+      switch (instantiationStatus) {
+        case RUNNING:
+          return AVAILABLE;
+        case PENDING:
+          throw new IllegalArgumentException("Pending app-instance shouldn't have services...");
+        case STOPPED:
+        default:
+          return NOT_AVAILABLE;
+      }
+    }
   }
 }
