@@ -165,6 +165,8 @@ public class InstanceRegistrationEndpoint {
     } catch (Throwable t) {
       appInstanceRepository.backToPending(instanceId);
       cleanupAppInstance.cleanupInstance(instanceId, new DeleteAppInstance.Stats());
+      logger.error("Error while creating services of newly instantiated instance {}", instance.getId(), t);
+      return Response.serverError().build();
     }
 
     // If everything's OK, notify the instantiator
