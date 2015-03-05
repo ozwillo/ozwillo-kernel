@@ -143,7 +143,7 @@ public class InstanceRegistrationEndpoint {
         scopeRepository.createOrUpdateScope(scope);
       }
 
-      Service.Status serviceStatus = Service.Status.forAppInstanceStatus(instance.getStatus());
+      Service.Status serviceStatus = Service.Status.forAppInstanceStatus(instanceStatus);
       for (Service service : acknowledgementRequest.getServices()) {
         service.setInstance_id(instanceId);
         service.setProvider_id(instance.getProvider_id());
