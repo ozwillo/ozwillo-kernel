@@ -18,8 +18,6 @@ public abstract class Token {
   @Id
   private String id;
   @JsonProperty
-  private String accountId;
-  @JsonProperty
   private byte[] hash;
   @JsonProperty
   private byte[] salt;
@@ -36,14 +34,6 @@ public abstract class Token {
 
   public void setId(String id) {
     this.id = id;
-  }
-
-  public String getAccountId() {
-    return accountId;
-  }
-
-  public void setAccountId(String accountId) {
-    this.accountId = accountId;
   }
 
   public byte[] getHash() {
@@ -101,5 +91,9 @@ public abstract class Token {
         throw new IllegalStateException("Cannot compute expiration time from duration; creation time has not been set.");
       }
       setExpirationTime(getCreationTime().plus(duration));
+  }
+
+  public void checkValidity() {
+    // valid by default
   }
 }

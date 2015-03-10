@@ -19,6 +19,7 @@ import oasis.jongo.JongoBootstrapper;
 import oasis.model.authn.Token;
 import oasis.model.authn.TokenRepository;
 import oasis.auth.AuthModule;
+import oasis.model.authn.AbstractAccountToken;
 
 public class JongoTokenRepository implements TokenRepository, JongoBootstrapper {
   private final Jongo jongo;
@@ -41,7 +42,7 @@ public class JongoTokenRepository implements TokenRepository, JongoBootstrapper 
   }
 
   public boolean registerToken(Token token) {
-    checkArgument(!Strings.isNullOrEmpty(token.getAccountId()));
+    token.checkValidity();
 
     try {
       this.getTokensCollection()

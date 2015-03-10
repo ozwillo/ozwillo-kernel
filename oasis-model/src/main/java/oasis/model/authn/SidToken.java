@@ -4,7 +4,7 @@ import org.joda.time.Instant;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class SidToken extends Token {
+public class SidToken extends AbstractAccountToken {
   @JsonProperty
   private Instant authenticationTime;
 

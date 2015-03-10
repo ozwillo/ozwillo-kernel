@@ -7,7 +7,7 @@ import java.util.Set;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
-public abstract class AbstractOAuthToken extends Token {
+public abstract class AbstractOAuthToken extends AbstractAccountToken {
   @JsonProperty
   @ApiModelProperty
   private String serviceProviderId;

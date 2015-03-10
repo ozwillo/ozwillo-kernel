@@ -6,7 +6,7 @@ import javax.annotation.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class AccountActivationToken extends Token {
+public class AccountActivationToken extends AbstractAccountToken {
   @JsonProperty @Nullable
   private URI continueUrl;
 
