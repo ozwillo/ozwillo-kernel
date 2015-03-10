@@ -15,6 +15,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import org.joda.time.Instant;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
@@ -107,8 +109,8 @@ public class OrganizationMembershipEndpoint {
       response = OrganizationMembership.class
   )
   public Response post(MembershipRequest request) {
-    OrganizationMembership ownerMembership = organizationMembershipRepository
-        .getOrganizationMembership(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId(), organizationId);
+    String requesterId = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId();
+    OrganizationMembership ownerMembership = organizationMembershipRepository.getOrganizationMembership(requesterId, organizationId);
     if (ownerMembership == null || !ownerMembership.isAdmin()) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
@@ -128,6 +130,8 @@ public class OrganizationMembershipEndpoint {
     }
     // TODO: notify user for approval
     membership.setAdmin(request.admin);
+    membership.setCreated(Instant.now());
+    membership.setCreator_id(requesterId);
     membership = organizationMembershipRepository.createOrganizationMembership(membership);
     if (membership == null) {
       return Response.status(Response.Status.CONFLICT).build();
