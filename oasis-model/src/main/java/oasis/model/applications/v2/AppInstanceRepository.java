@@ -30,7 +30,7 @@ public interface AppInstanceRepository {
       throws InvalidVersionException;
 
   AppInstance instantiated(String instanceId, List<AppInstance.NeededScope> neededScopes, String destruction_uri, String destruction_secret,
-      AppInstance.InstantiationStatus status);
+      String status_changed_uri, String status_changed_secret, AppInstance.InstantiationStatus status);
 
   AppInstance backToPending(String instanceId);
 

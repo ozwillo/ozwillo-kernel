@@ -1,14 +1,21 @@
 package oasis.usecases;
 
 import javax.inject.Inject;
+import javax.inject.Provider;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.InvocationCallback;
+import javax.ws.rs.core.Response;
 
 import org.immutables.value.Value;
 import org.joda.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Functions;
 import com.google.common.base.Optional;
+import com.google.common.base.Strings;
 import com.google.template.soy.data.SanitizedContent;
 import com.google.template.soy.data.SoyMapData;
 import com.ibm.icu.util.ULocale;
@@ -32,6 +39,7 @@ import oasis.soy.templates.ChangedAppInstanceStatusSoyInfo.StoppedAppInstanceMes
 import oasis.soy.templates.ChangedAppInstanceStatusSoyInfo.StoppedAppInstanceMessageForRequesterSoyTemplateInfo;
 import oasis.urls.Urls;
 import oasis.web.i18n.LocaleHelper;
+import oasis.web.webhooks.WebhookSignatureFilter;
 
 @Value.Nested
 public class ChangeAppInstanceStatus {
@@ -45,8 +53,9 @@ public class ChangeAppInstanceStatus {
   @Inject AppAdminHelper appAdminHelper;
   @Inject SoyTemplateRenderer templateRenderer;
   @Inject Urls urls;
+  @Inject Provider<Client> clientProvider;
 
-  public Response updateStatus(Request request) {
+  public Response updateStatus(final Request request) {
     ImmutableChangeAppInstanceStatus.Response.Builder responseBuilder = ImmutableChangeAppInstanceStatus.Response.builder();
 
     // Do nothing if the requested status is the same than the actual one
@@ -89,6 +98,36 @@ public class ChangeAppInstanceStatus {
         logger.error("Error notifying app admins after the user {} has stopped the instance {}", request.requesterId(),
             instance.getName().get(ULocale.ROOT), e);
       }
+    }
+
+    // XXX: Call provider depending on a request parameter?
+    if (!Strings.isNullOrEmpty(instance.getStatus_changed_uri())) {
+      ImmutableChangeAppInstanceStatus.ProviderRequest providerRequest = ImmutableChangeAppInstanceStatus.ProviderRequest.builder()
+          .instance_id(instance.getId())
+          .status(request.newStatus())
+          .build();
+      // It doesn't matter if this request has failed or not, the provider is just notified
+      // He is the only one who should care about the final result
+      clientProvider.get()
+          .target(instance.getStatus_changed_uri())
+          .register(new WebhookSignatureFilter(instance.getStatus_changed_secret()))
+          .request()
+          .async()
+          .post(Entity.json(providerRequest), new InvocationCallback<javax.ws.rs.core.Response>() {
+            @Override
+            public void completed(javax.ws.rs.core.Response response) {
+              try {
+                logger.trace("App-instance {} notified of status changed to {}.", instance.getId(), request.newStatus());
+              } finally {
+                response.close();
+              }
+            }
+
+            @Override
+            public void failed(Throwable throwable) {
+              logger.error("Error when notifying app-instance {} of status changed to {}", instance.getId(), request.newStatus(), throwable);
+            }
+          });
     }
 
     return responseBuilder.appInstance(instance)
@@ -246,6 +285,13 @@ public class ChangeAppInstanceStatus {
     AppInstance appInstance();
 
     ResponseStatus responseStatus();
+  }
+
+  @Value.Immutable
+  public static interface ProviderRequest {
+    @JsonProperty String instance_id();
+
+    @JsonProperty AppInstance.InstantiationStatus status();
   }
 
   public static enum ResponseStatus {

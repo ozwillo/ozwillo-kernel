@@ -22,6 +22,8 @@ public class AppInstance extends CommonProperties {
   private Set<NeededScope> needed_scopes;
   private String destruction_uri;
   private String destruction_secret;
+  private String status_changed_uri;
+  private String status_changed_secret;
   @JsonProperty private Boolean redirect_uri_validation_disabled;
 
   public AppInstance() {
@@ -47,6 +49,8 @@ public class AppInstance extends CommonProperties {
     }
     destruction_uri = other.getDestruction_uri();
     destruction_secret = other.getDestruction_secret();
+    status_changed_uri = other.getStatus_changed_uri();
+    status_changed_secret = other.getStatus_changed_secret();
     redirect_uri_validation_disabled = other.redirect_uri_validation_disabled;
   }
 
@@ -120,6 +124,22 @@ public class AppInstance extends CommonProperties {
 
   public void setDestruction_secret(String destruction_secret) {
     this.destruction_secret = destruction_secret;
+  }
+
+  public String getStatus_changed_uri() {
+    return status_changed_uri;
+  }
+
+  public void setStatus_changed_uri(String status_changed_uri) {
+    this.status_changed_uri = status_changed_uri;
+  }
+
+  public String getStatus_changed_secret() {
+    return status_changed_secret;
+  }
+
+  public void setStatus_changed_secret(String status_changed_secret) {
+    this.status_changed_secret = status_changed_secret;
   }
 
   @JsonIgnore

@@ -106,6 +106,9 @@ public class InstanceRegistrationEndpoint {
     if (acknowledgementRequest.destruction_uri != null && Strings.isNullOrEmpty(acknowledgementRequest.destruction_secret)) {
       return ResponseFactory.unprocessableEntity("Missing destruction_secret");
     }
+    if (acknowledgementRequest.status_changed_uri != null && Strings.isNullOrEmpty(acknowledgementRequest.status_changed_secret)) {
+      return ResponseFactory.unprocessableEntity("Missing status_changed_secret");
+    }
     @Nullable Response error = acknowledgementRequest.checkScopes(instanceId);
     if (error != null) {
       return error;
@@ -129,7 +132,8 @@ public class InstanceRegistrationEndpoint {
       }
     }
     instance = appInstanceRepository.instantiated(instanceId, acknowledgementRequest.getNeeded_scopes(),
-        acknowledgementRequest.destruction_uri, acknowledgementRequest.destruction_secret, instanceStatus);
+        acknowledgementRequest.destruction_uri, acknowledgementRequest.destruction_secret, acknowledgementRequest.status_changed_uri,
+        acknowledgementRequest.status_changed_secret, instanceStatus);
     if (instance == null) {
       return ResponseFactory.notFound("Pending instance not found");
     }
@@ -240,6 +244,8 @@ public class InstanceRegistrationEndpoint {
     @JsonProperty List<NeededScope> needed_scopes;
     @JsonProperty String destruction_uri;
     @JsonProperty String destruction_secret;
+    @JsonProperty String status_changed_uri;
+    @JsonProperty String status_changed_secret;
 
     public String getInstance_id() {
       return instance_id;
