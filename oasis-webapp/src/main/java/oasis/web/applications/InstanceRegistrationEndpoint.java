@@ -102,8 +102,10 @@ public class InstanceRegistrationEndpoint {
       return ResponseFactory.unprocessableEntity("instance_id doesn't match URL");
     }
 
-    // FIXME: don't mandate a destruction_uri yet, but error out if provided without a destruction_secret.
-    if (acknowledgementRequest.destruction_uri != null && Strings.isNullOrEmpty(acknowledgementRequest.destruction_secret)) {
+    if (Strings.isNullOrEmpty(acknowledgementRequest.destruction_uri)) {
+      return ResponseFactory.unprocessableEntity("Missing destruction_uri");
+    }
+    if (Strings.isNullOrEmpty(acknowledgementRequest.destruction_secret)) {
       return ResponseFactory.unprocessableEntity("Missing destruction_secret");
     }
     if (acknowledgementRequest.status_changed_uri != null && Strings.isNullOrEmpty(acknowledgementRequest.status_changed_secret)) {
