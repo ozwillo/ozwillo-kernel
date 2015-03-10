@@ -55,7 +55,8 @@ public class AccessControlEntryEndpoint {
     if (ace == null) {
       return ResponseFactory.NOT_FOUND;
     }
-    if (!isAppAdmin(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId(), ace.getInstance_id())) {
+    final String userId = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId();
+    if (!isAppAdmin(userId, ace.getInstance_id())) {
       return ResponseFactory.forbidden("Current user is not an app_admin for the application instance");
     }
     return Response.ok()
@@ -63,10 +64,17 @@ public class AccessControlEntryEndpoint {
         .entity(new AccessControlEntry(ace) {
           {
             setId(ace.getId());
+
+            if (userId.equals(ace.getUser_id())) {
+              app_admin = true; // already checked above
+            } else if (isAppAdmin(ace.getUser_id(), ace.getInstance_id())) {
+              app_admin = true;
+            }
           }
 
-          // TODO: add app_admin and make app_user conditional to… being an app_user.
+          // TODO: make app_user conditional to… being an app_user (when we'll have that information)
           @JsonProperty boolean app_user = true;
+          @JsonProperty Boolean app_admin;
         })
         .build();
   }
