@@ -101,7 +101,7 @@ public class JongoModule extends AbstractModule {
     bind(CatalogEntryRepository.class).to(JongoCatalogEntryRepository.class);
     bind(ApplicationRepository.class).to(JongoApplicationRepository.class);
     bind(AppInstanceRepository.class).to(JongoAppInstanceRepository.class);
-    bind(ServiceRepository.class).to(JongoServiceRepository.class);
+    // ServiceRepository is bound in CatalogModule
     bind(ScopeRepository.class).to(JongoScopeRepository.class);
     bind(UserSubscriptionRepository.class).to(JongoUserSubscriptionRepository.class);
     bind(AccessControlRepository.class).to(JongoAccessControlRepository.class);

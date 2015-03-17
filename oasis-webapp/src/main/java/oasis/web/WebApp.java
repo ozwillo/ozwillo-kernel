@@ -16,6 +16,7 @@ import com.wordnik.swagger.reader.ClassReaders;
 import oasis.auditlog.log4j.Log4JAuditLogModule;
 import oasis.auditlog.noop.NoopAuditLogModule;
 import oasis.auth.AuthModule;
+import oasis.catalog.CatalogModule;
 import oasis.elasticsearch.ElasticsearchModule;
 import oasis.http.HttpClientModule;
 import oasis.http.HttpServer;
@@ -51,6 +52,7 @@ public class WebApp extends CommandLineTool {
         HttpServerModule.create(config.getConfig("oasis.http")),
         ElasticsearchModule.create(config.getConfig("oasis.elasticsearch")),
         new JestModule(),
+        new CatalogModule(),
         // TODO: store PKIs in DB to use a single subtree of the config
         AuthModule.create(config.getConfig("oasis.auth")
             .withFallback(config.withOnlyPath("oasis.conf-dir"))),

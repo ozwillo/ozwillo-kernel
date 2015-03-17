@@ -14,7 +14,10 @@ import com.google.inject.Injector;
 import com.typesafe.config.Config;
 
 import oasis.auth.AuthModule;
+import oasis.catalog.CatalogModule;
+import oasis.elasticsearch.ElasticsearchModule;
 import oasis.http.HttpClientModule;
+import oasis.jest.guice.JestModule;
 import oasis.jongo.JongoService;
 import oasis.jongo.guice.JongoModule;
 import oasis.model.applications.v2.AppInstance;
@@ -66,6 +69,9 @@ public class DeleteAppInstance extends CommandLineTool {
     final Injector injector = Guice.createInjector(
         JongoModule.create(config.getConfig("oasis.mongo")),
         new HttpClientModule(),
+        ElasticsearchModule.create(config.getConfig("oasis.elasticsearch")),
+        new JestModule(),
+        new CatalogModule(),
         // TODO: store PKIs in DB to use a single subtree of the config
         AuthModule.create(config.getConfig("oasis.auth")
             .withFallback(config.withOnlyPath("oasis.conf-dir")))
