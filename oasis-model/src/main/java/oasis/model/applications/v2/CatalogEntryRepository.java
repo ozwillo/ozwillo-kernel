@@ -18,8 +18,7 @@ public interface CatalogEntryRepository {
     Optional<ULocale> displayLocale();
     int start();
     int limit();
-    // TODO: handle full-text search
-    // Optional<String> query();
+    Optional<String> query();
     List<ULocale> supported_locale();
     Set<URI> geographical_area();
     Set<URI> restricted_area();

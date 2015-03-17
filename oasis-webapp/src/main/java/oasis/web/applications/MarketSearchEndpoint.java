@@ -24,6 +24,7 @@ import javax.ws.rs.core.SecurityContext;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Predicates;
+import com.google.common.base.Strings;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
 import com.ibm.icu.util.ULocale;
@@ -60,7 +61,7 @@ public class MarketSearchEndpoint {
       @DefaultValue("0") @QueryParam("start") int start,
       @DefaultValue("25") @QueryParam("limit") int limit,
       // TODO: handle full-text search
-      // @Nullable @QueryParam("q") String query,
+      @Nullable @QueryParam("q") String query,
       @Nullable @QueryParam("supported_locale") List<ULocale> supported_locale,
       @Nullable @QueryParam("geographical_areas") Set<URI> geographical_areas,
       @Nullable @QueryParam("restricted_areas") Set<URI> restricted_areas,
@@ -68,7 +69,7 @@ public class MarketSearchEndpoint {
       @Nullable @QueryParam("payment_option") Set<CatalogEntry.PaymentOption> payment_option,
       @Nullable @QueryParam("category_id") Set<String> category_id
   ) {
-    return post(locale, start, limit, supported_locale, geographical_areas, restricted_areas, target_audience, payment_option, category_id);
+    return post(locale, start, limit, query, supported_locale, geographical_areas, restricted_areas, target_audience, payment_option, category_id);
   }
 
   @POST
@@ -78,7 +79,7 @@ public class MarketSearchEndpoint {
       @DefaultValue("0") @FormParam("start") int start,
       @DefaultValue("25") @FormParam("limit") int limit,
       // TODO: handle full-text search
-      // @Nullable @FormParam("q") String query,
+      @Nullable @FormParam("q") String query,
       @Nullable @QueryParam("supported_locale") List<ULocale> supported_locale,
       @Nullable @QueryParam("geographical_area") Set<URI> geographical_area,
       @Nullable @QueryParam("restricted_area") Set<URI> restricted_area,
@@ -91,12 +92,18 @@ public class MarketSearchEndpoint {
       UserAccount account = accountRepository.getUserAccountById(accountId);
       locale = account.getLocale();
     }
-    // TODO: use ElasticSearch
+
+    String trimmedQuery = query;
+    if (query != null) {
+      trimmedQuery = Strings.emptyToNull(query.trim());
+    }
+
     // TODO: add information about apps the user has already "bought"
     CatalogEntryRepository.SearchRequest request = ImmutableCatalogEntryRepository.SearchRequest.builder()
         .displayLocale(Optional.fromNullable(locale))
         .start(start)
         .limit(limit)
+        .query(Optional.fromNullable(trimmedQuery))
         .addAllSupported_locale(preProcess(supported_locale))
         .addAllGeographical_area(preProcess(geographical_area))
         .addAllRestricted_area(preProcess(restricted_area))

@@ -15,7 +15,6 @@ import oasis.jongo.accounts.JongoAccountRepository;
 import oasis.jongo.applications.v2.JongoAccessControlRepository;
 import oasis.jongo.applications.v2.JongoAppInstanceRepository;
 import oasis.jongo.applications.v2.JongoApplicationRepository;
-import oasis.jongo.applications.v2.JongoCatalogEntryRepository;
 import oasis.jongo.applications.v2.JongoScopeRepository;
 import oasis.jongo.applications.v2.JongoServiceRepository;
 import oasis.jongo.applications.v2.JongoUserSubscriptionRepository;
@@ -31,7 +30,6 @@ import oasis.model.accounts.AccountRepository;
 import oasis.model.applications.v2.AccessControlRepository;
 import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.applications.v2.ApplicationRepository;
-import oasis.model.applications.v2.CatalogEntryRepository;
 import oasis.model.applications.v2.ScopeRepository;
 import oasis.model.applications.v2.ServiceRepository;
 import oasis.model.applications.v2.UserSubscriptionRepository;
@@ -98,7 +96,7 @@ public class JongoModule extends AbstractModule {
     bind(DirectoryRepository.class).to(JongoDirectoryRepository.class);
     bind(OrganizationMembershipRepository.class).to(JongoOrganizationMembershipRepository.class);
     bind(NotificationRepository.class).to(JongoNotificationRepository.class);
-    bind(CatalogEntryRepository.class).to(JongoCatalogEntryRepository.class);
+    // CatalogEntryRepository is bound in CatalogModule
     bind(ApplicationRepository.class).to(JongoApplicationRepository.class);
     bind(AppInstanceRepository.class).to(JongoAppInstanceRepository.class);
     // ServiceRepository is bound in CatalogModule

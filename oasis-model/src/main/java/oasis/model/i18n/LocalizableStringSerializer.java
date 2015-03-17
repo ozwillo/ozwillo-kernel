@@ -56,27 +56,13 @@ class LocalizableStringSerializer extends JsonSerializer<LocalizableString> impl
   @Override
   public void serialize(LocalizableString value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException {
     for (Map.Entry<Locale, String> entry : value.values.entrySet()) {
-      Locale locale = entry.getKey();
       String localizedValue = entry.getValue();
 
       if (localizedValue == null || localizedValue.isEmpty()) {
         continue;
       }
 
-      String key;
-      if (Locale.ROOT.equals(locale)) {
-        if (propertyName == null || propertyName.isEmpty()) {
-          key = "_";
-        } else {
-          key = propertyName;
-        }
-      } else {
-        if (propertyName == null || propertyName.isEmpty()) {
-          key = locale.toLanguageTag();
-        } else {
-          key = propertyName + "#" + locale.toLanguageTag();
-        }
-      }
+      String key = LocalizableStringHelper.serializeKey(propertyName, entry.getKey());
       jgen.writeStringField(key, localizedValue);
     }
   }
