@@ -31,6 +31,12 @@ public class JongoApplicationRepository implements ApplicationRepository, JongoB
         .as(JongoApplication.class);
   }
 
+  public Iterable<JongoApplication> getAllInCatalog() {
+    return getApplicationsCollection()
+        .find("{ visible: true }")
+        .as(JongoApplication.class);
+  }
+
   @Override
   public Application createApplication(Application application) {
     application = new JongoApplication(application);

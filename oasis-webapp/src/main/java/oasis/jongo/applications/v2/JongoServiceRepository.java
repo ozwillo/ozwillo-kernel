@@ -55,6 +55,12 @@ public class JongoServiceRepository implements ServiceRepository, JongoBootstrap
         .as(JongoService.class);
   }
 
+  public Iterable<JongoService> getAllInCatalog() {
+    return getServicesCollection()
+        .find("{ visible: true, status: { $ne: # } }", Service.Status.NOT_AVAILABLE)
+        .as(JongoService.class);
+  }
+
   @Override
   @SuppressWarnings("unchecked")
   public Iterable<Service> getServicesOfInstance(String instanceId) {
