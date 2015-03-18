@@ -6,8 +6,6 @@ import java.util.Set;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import oasis.model.annotations.Id;
-
 public class Service extends CatalogEntry {
   private String local_id;
   private String instance_id;

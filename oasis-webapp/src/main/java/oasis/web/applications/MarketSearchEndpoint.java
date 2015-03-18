@@ -35,6 +35,7 @@ import oasis.model.accounts.UserAccount;
 import oasis.model.applications.v2.CatalogEntry;
 import oasis.model.applications.v2.CatalogEntryRepository;
 import oasis.model.applications.v2.ImmutableCatalogEntryRepository;
+import oasis.model.applications.v2.SimpleCatalogEntry;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
 
@@ -104,7 +105,7 @@ public class MarketSearchEndpoint {
         .addAllCategory_id(preProcessStr(category_id))
         .build();
     return Response.ok()
-        .entity(new GenericEntity<Iterable<CatalogEntry>>(
+        .entity(new GenericEntity<Iterable<SimpleCatalogEntry>>(
             catalogEntryRepository.search(request)
         ) {})
         .build();

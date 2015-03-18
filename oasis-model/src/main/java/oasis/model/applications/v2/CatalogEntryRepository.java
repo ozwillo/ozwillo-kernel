@@ -11,7 +11,7 @@ import com.ibm.icu.util.ULocale;
 
 @Value.Nested
 public interface CatalogEntryRepository {
-  Iterable<CatalogEntry> search(SearchRequest request);
+  Iterable<SimpleCatalogEntry> search(SearchRequest request);
 
   @Value.Immutable
   interface SearchRequest {

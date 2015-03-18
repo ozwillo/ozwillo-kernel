@@ -31,10 +31,10 @@ import com.ibm.icu.util.LocaleMatcher;
 import com.ibm.icu.util.LocalePriorityList;
 import com.ibm.icu.util.ULocale;
 
+import oasis.model.applications.v2.SimpleCatalogEntry;
 import oasis.model.applications.v2.CatalogEntry;
 import oasis.model.applications.v2.CatalogEntryRepository;
 import oasis.model.applications.v2.Service;
-import oasis.model.i18n.LocalizableString;
 
 @Value.Nested
 public class JongoCatalogEntryRepository implements CatalogEntryRepository {
@@ -55,7 +55,7 @@ public class JongoCatalogEntryRepository implements CatalogEntryRepository {
   }
 
   @Override
-  public Iterable<CatalogEntry> search(final SearchRequest request) {
+  public Iterable<SimpleCatalogEntry> search(final SearchRequest request) {
     final FindHelper findHelper = FindHelper.create(request);
     return FluentIterable.from(
         Iterables.mergeSorted(
@@ -121,7 +121,7 @@ public class JongoCatalogEntryRepository implements CatalogEntryRepository {
       } else {
         // Exclude all application- and service-specific fields.
         // TODO: compute from model classes instead of hard-coding the list.
-        // Note: we cannot list all CatalogEntry fields because of localized fields.
+        // Note: we cannot list all IndexedCatalogEntry fields because of localized fields.
         fields.put("instantiation_uri", 0);
         fields.put("instantiation_secret", 0);
         fields.put("cancellation_uri", 0);
@@ -165,9 +165,9 @@ public class JongoCatalogEntryRepository implements CatalogEntryRepository {
     private final String query;
     private final Object[] queryParams;
     private final ImmutableMap<String, Integer> fields;
-    private final Comparator<CatalogEntry> comparator;
-    private final Predicate<CatalogEntry> supportedLocalesPredicate;
-    private final Function<CatalogEntry, CatalogEntry> displayLocaleFunction;
+    private final Comparator<SimpleCatalogEntry> comparator;
+    private final Predicate<SimpleCatalogEntry> supportedLocalesPredicate;
+    private final Function<SimpleCatalogEntry, SimpleCatalogEntry> displayLocaleFunction;
 
     private FindHelper(String query, Object[] queryParams, ImmutableMap<String, Integer> fields,
         final Optional<LocalePriorityList> supportedLocales, final Optional<ULocale> displayLocale) {
@@ -176,23 +176,23 @@ public class JongoCatalogEntryRepository implements CatalogEntryRepository {
       this.fields = fields;
       // XXX: we can't sort on the server due to https://jira.mongodb.org/browse/SERVER-1920,
       // so we're forced to load and then sort everything here, in memory!
-      this.comparator = new Comparator<CatalogEntry>() {
+      this.comparator = new Comparator<SimpleCatalogEntry>() {
         final ULocale locale = displayLocale.or(ULocale.ROOT);
         final Collator collator = Collator.getInstance(locale);
 
         @Override
-        public int compare(CatalogEntry o1, CatalogEntry o2) {
+        public int compare(SimpleCatalogEntry o1, SimpleCatalogEntry o2) {
           return ComparisonChain.start()
               .compare(o1.getName().get(locale), o2.getName().get(locale), collator)
               .result();
         }
       };
       this.supportedLocalesPredicate = supportedLocales.isPresent()
-          ? new Predicate<CatalogEntry>() {
+          ? new Predicate<SimpleCatalogEntry>() {
               final LocalePriorityList requestedLocales = supportedLocales.get();
 
               @Override
-              public boolean apply(CatalogEntry input) {
+              public boolean apply(SimpleCatalogEntry input) {
                 if (input.getSupported_locales() == null || input.getSupported_locales().isEmpty()) {
                   // Entries without supported_locales are NOT listed at all when filtering on that field!
                   return false;
@@ -209,48 +209,44 @@ public class JongoCatalogEntryRepository implements CatalogEntryRepository {
                     new LocaleMatcher(entrySupportedLocales.build()).getBestMatch(this.requestedLocales));
               }
             }
-          : Predicates.<CatalogEntry>alwaysTrue();
+          : Predicates.<SimpleCatalogEntry>alwaysTrue();
       this.displayLocaleFunction = displayLocale.isPresent()
-          ? new Function<CatalogEntry, CatalogEntry>() {
+          ? new Function<SimpleCatalogEntry, SimpleCatalogEntry>() {
               final ULocale locale = displayLocale.get();
 
               @Override
-              public CatalogEntry apply(CatalogEntry input) {
-                input.setName(new LocalizableString(input.getName().get(locale)));
-                input.setDescription(new LocalizableString(input.getDescription().get(locale)));
-                input.setIcon(new LocalizableString(input.getIcon().get(locale)));
-                input.setTos_uri(new LocalizableString(input.getTos_uri().get(locale)));
-                input.setPolicy_uri(new LocalizableString(input.getPolicy_uri().get(locale)));
-                return input;
+              public SimpleCatalogEntry apply(SimpleCatalogEntry catalogEntry) {
+                catalogEntry.restrictLocale(locale);
+                return catalogEntry;
               }
             }
-          : Functions.<CatalogEntry>identity();
+          : Functions.<SimpleCatalogEntry>identity();
     }
 
-    public Comparator<CatalogEntry> getComparator() {
+    public Comparator<SimpleCatalogEntry> getComparator() {
       return comparator;
     }
 
-    public Predicate<CatalogEntry> getSupportedLocalesPredicate() {
+    public Predicate<SimpleCatalogEntry> getSupportedLocalesPredicate() {
       return supportedLocalesPredicate;
     }
 
-    public Function<CatalogEntry, CatalogEntry> getDisplayLocaleFunction() {
+    public Function<SimpleCatalogEntry, SimpleCatalogEntry> getDisplayLocaleFunction() {
       return displayLocaleFunction;
     }
 
-    public Iterable<CatalogEntry> findAll(MongoCollection collection, final CatalogEntry.EntryType type) {
-      ArrayList<JongoCatalogEntry> results = Lists.newArrayList(collection
+    public Iterable<SimpleCatalogEntry> findAll(MongoCollection collection, final CatalogEntry.EntryType type) {
+      ArrayList<SimpleCatalogEntry> results = Lists.newArrayList(collection
           .find(query, queryParams)
           .projection("#", fields)
-          .as(JongoCatalogEntry.class)
+          .as(SimpleCatalogEntry.class)
           .iterator());
       Collections.sort(results, comparator);
       // Now return the results while setting the entry type (lazily).
       return FluentIterable.from(results)
-          .transform(new Function<JongoCatalogEntry, CatalogEntry>() {
+          .transform(new Function<SimpleCatalogEntry, SimpleCatalogEntry>() {
             @Override
-            public CatalogEntry apply(JongoCatalogEntry input) {
+            public SimpleCatalogEntry apply(SimpleCatalogEntry input) {
               input.setType(type);
               return input;
             }
