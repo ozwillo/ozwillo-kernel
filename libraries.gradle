@@ -2,6 +2,13 @@ subprojects {
   repositories {
     mavenCentral()
   }
+  dependencies {
+    modules {
+      module("javassist:javassist") {
+        replacedBy("org.javassist:javassist")
+      }
+    }
+  }
 }
 
 def guiceVersion = '4.0-beta5'
@@ -42,11 +49,14 @@ ext.libs = [
       dependencies.create("org.jboss.resteasy:resteasy-netty:$resteasyVersion") {
         exclude module: 'slf4j-simple'
         exclude module: 'resteasy-jackson2-provider'
+        exclude module: 'scannotation'
       },
       'io.netty:netty:3.9.5.Final',
     ],
 
-  resteasy_client:     "org.jboss.resteasy:resteasy-client:$resteasyVersion",
+  resteasy_client:     dependencies.create("org.jboss.resteasy:resteasy-client:$resteasyVersion") {
+      exclude module: 'scannotation'
+    },
 
   closure_templates_standalone: [
       'com.google.template:soy:2015-02-10',
