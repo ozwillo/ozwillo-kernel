@@ -2,6 +2,7 @@ package oasis.services.authn;
 
 import static com.google.common.base.Preconditions.*;
 
+import java.net.URI;
 import java.security.SecureRandom;
 import java.util.Set;
 
@@ -49,10 +50,11 @@ public class TokenHandler {
     return BASE_ENCODING.encode(bytes);
   }
 
-  public AccountActivationToken createAccountActivationToken(String accountId, String pass) {
+  public AccountActivationToken createAccountActivationToken(String accountId, @Nullable URI continueUrl, String pass) {
     AccountActivationToken accountActivationToken = new AccountActivationToken();
     accountActivationToken.setAccountId(accountId);
     accountActivationToken.expiresIn(authSettings.accountActivationTokenDuration);
+    accountActivationToken.setContinueUrl(continueUrl);
 
     secureToken(accountActivationToken, pass);
 

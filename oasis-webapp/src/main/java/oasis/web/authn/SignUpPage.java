@@ -1,6 +1,8 @@
 package oasis.web.authn;
 
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.List;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -12,11 +14,13 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import org.jboss.resteasy.spi.ResteasyUriInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +35,8 @@ import oasis.mail.MailModule;
 import oasis.mail.MailSender;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
+import oasis.model.applications.v2.Service;
+import oasis.model.applications.v2.ServiceRepository;
 import oasis.model.authn.AccountActivationToken;
 import oasis.model.authn.ClientType;
 import oasis.model.authn.CredentialsRepository;
@@ -63,6 +69,7 @@ public class SignUpPage {
   @Inject @Nullable MailSender mailSender;
   @Inject LocaleHelper localeHelper;
   @Inject AuthModule.Settings authSettings;
+  @Inject ServiceRepository serviceRepository;
 
   @Context SecurityContext securityContext;
   @Context UriInfo uriInfo;
@@ -114,7 +121,7 @@ public class SignUpPage {
       // TODO: send email asynchronously
       try {
         String pass = tokenHandler.generateRandom();
-        AccountActivationToken accountActivationToken = tokenHandler.createAccountActivationToken(account.getId(), pass);
+        AccountActivationToken accountActivationToken = tokenHandler.createAccountActivationToken(account.getId(), extractContinueUrl(continueUrl), pass);
         URI activationLink = Resteasy1099.getBaseUriBuilder(uriInfo)
             .path(ActivateAccountPage.class)
             .queryParam(LoginPage.LOCALE_PARAM, account.getLocale().toLanguageTag())
@@ -144,6 +151,29 @@ public class SignUpPage {
       byte[] fingerprint = fingerprinter.fingerprint(headers);
       // XXX: automatically sign the user in when mail is disabled
       return LoginPage.authenticate(email, account, continueUrl, fingerprint, tokenHandler, auditLogService, securityContext);
+    }
+  }
+
+  @Nullable
+  private URI extractContinueUrl(URI continueUrl) {
+    // FIXME: Quick and dirty hack for https://github.com/pole-numerique/oasis/issues/103
+    MultivaluedMap<String, String> params = new ResteasyUriInfo(continueUrl).getQueryParameters();
+    if (params.isEmpty() || !params.containsKey("client_id") || !params.containsKey("redirect_uri")) {
+      return null;
+    }
+    List<String> client_id = params.get("client_id");
+    List<String> redirect_uri = params.get("redirect_uri");
+    if (client_id.size() != 1 || redirect_uri.size() != 1) {
+      return null;
+    }
+    Service service = serviceRepository.getServiceByRedirectUri(client_id.get(0), redirect_uri.get(0));
+    if (service == null || service.getService_uri() == null) {
+      return null;
+    }
+    try {
+      return new URI(service.getService_uri());
+    } catch (URISyntaxException e) {
+      return null;
     }
   }
 }

@@ -18,6 +18,7 @@ import javax.ws.rs.core.UriInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.MoreObjects;
 import com.google.template.soy.data.SoyMapData;
 import com.ibm.icu.util.ULocale;
 
@@ -79,6 +80,8 @@ public class ActivateAccountPage {
       logger.error("Error sending welcome email", e);
       // fall through: it's unfortunate but not critical.
     }
-    return Response.seeOther(portalUrl).build();
+
+    URI continueUrl = MoreObjects.firstNonNull(accountActivationToken.getContinueUrl(), portalUrl);
+    return Response.seeOther(continueUrl).build();
   }
 }
