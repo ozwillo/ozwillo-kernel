@@ -10,6 +10,7 @@ dependencies {
   compile libs.google_http_client
   compile libs.guice
   compile libs.jongo
+  compile libs.elasticsearch
   compile libs.joda_time
   compile libs.icu4j
   compile libs.galimatias

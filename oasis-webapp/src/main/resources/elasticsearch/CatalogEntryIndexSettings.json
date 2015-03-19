@@ -1,0 +1,147 @@
+{
+  "settings": {
+    "number_of_shards": 1
+  },
+  "mappings": {
+    "_default_": {
+      "properties": {
+        "supported_locales": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "geographical_areas": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "restricted_areas": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "target_audience": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "payment_option": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "category_ids": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "instance_id": {
+          "type": "string",
+          "index": "not_analyzed"
+        }
+      },
+      "dynamic_templates": [
+        {
+          "english": {
+            "match": "^(name|description)(#en(-.+)?)?$",
+            "match_pattern": "regex",
+            "match_mapping_type": "string",
+            "mapping": {
+              "type": "string",
+              "analyzer": "english",
+              "index": "analyzed"
+            }
+          }
+        },
+        {
+          "french": {
+            "match": "^(name|description)#fr(-.+)?$",
+            "match_pattern": "regex",
+            "match_mapping_type": "string",
+            "mapping": {
+              "type": "string",
+              "analyzer": "french",
+              "index": "analyzed"
+            }
+          }
+        },
+        {
+          "italian": {
+            "match": "^(name|description)#it(-.+)?$",
+            "match_pattern": "regex",
+            "match_mapping_type": "string",
+            "mapping": {
+              "type": "string",
+              "analyzer": "italian",
+              "index": "analyzed"
+            }
+          }
+        },
+        {
+          "bulgarian": {
+            "match": "^(name|description)#bg(-.+)?$",
+            "match_pattern": "regex",
+            "match_mapping_type": "string",
+            "mapping": {
+              "type": "string",
+              "analyzer": "bulgarian",
+              "index": "analyzed"
+            }
+          }
+        },
+        {
+          "catalan": {
+            "match": "^(name|description)#ca(-.+)?$",
+            "match_pattern": "regex",
+            "match_mapping_type": "string",
+            "mapping": {
+              "type": "string",
+              "analyzer": "catalan",
+              "index": "analyzed"
+            }
+          }
+        },
+        {
+          "spanish": {
+            "match": "^(name|description)#es(-.+)?$",
+            "match_pattern": "regex",
+            "match_mapping_type": "string",
+            "mapping": {
+              "type": "string",
+              "analyzer": "spanish",
+              "index": "analyzed"
+            }
+          }
+        },
+        {
+          "turkish": {
+            "match": "^(name|description)#tr(-.+)?$",
+            "match_pattern": "regex",
+            "match_mapping_type": "string",
+            "mapping": {
+              "type": "string",
+              "analyzer": "turkish",
+              "index": "analyzed"
+            }
+          }
+        },
+        {
+          "unmatched_languages": {
+            "match": "^(name|description)#.+$",
+            "match_pattern": "regex",
+            "match_mapping_type": "string",
+            "mapping": {
+              "type": "string",
+              "analyzer": "standard",
+              "index": "analyzed"
+            }
+          }
+        },
+        {
+          "other_properties": {
+            "match": "*",
+            "match_mapping_type": "string",
+            "mapping": {
+              "type": "string",
+              "index": "no"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

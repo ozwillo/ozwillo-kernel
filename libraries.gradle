@@ -66,6 +66,11 @@ ext.libs = [
       'org.mongodb:mongo-java-driver:2.13.0',
     ],
 
+  elasticsearch:       [
+      'org.elasticsearch:elasticsearch:1.4.4',
+      'io.searchbox:jest:0.1.5'
+    ],
+
   resteasy_netty:      [
       dependencies.create("org.jboss.resteasy:resteasy-netty:$resteasyVersion") {
         exclude module: 'slf4j-simple'

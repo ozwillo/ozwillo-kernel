@@ -20,6 +20,8 @@ import oasis.elasticsearch.ElasticsearchModule;
 import oasis.http.HttpClientModule;
 import oasis.http.HttpServer;
 import oasis.http.HttpServerModule;
+import oasis.jest.JestService;
+import oasis.jest.guice.JestModule;
 import oasis.jongo.JongoService;
 import oasis.jongo.guice.JongoModule;
 import oasis.mail.MailModule;
@@ -48,6 +50,7 @@ public class WebApp extends CommandLineTool {
         new HttpClientModule(),
         HttpServerModule.create(config.getConfig("oasis.http")),
         ElasticsearchModule.create(config.getConfig("oasis.elasticsearch")),
+        new JestModule(),
         // TODO: store PKIs in DB to use a single subtree of the config
         AuthModule.create(config.getConfig("oasis.auth")
             .withFallback(config.withOnlyPath("oasis.conf-dir"))),
@@ -57,6 +60,7 @@ public class WebApp extends CommandLineTool {
 
     final HttpServer server = injector.getInstance(HttpServer.class);
     final JongoService jongo = injector.getInstance(JongoService.class);
+    final JestService jest = injector.getInstance(JestService.class);
 
     initSwagger(config);
 
@@ -64,11 +68,13 @@ public class WebApp extends CommandLineTool {
       @Override
       public void run() {
         server.stop();
+        jest.stop();
         jongo.stop();
       }
     });
 
     jongo.start();
+    jest.start();
     server.start();
   }
 
