@@ -18,7 +18,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
-import org.assertj.core.api.StringAssert;
+import org.assertj.core.api.AbstractCharSequenceAssert;
 import org.joda.time.Duration;
 import org.jukito.JukitoModule;
 import org.jukito.JukitoRunner;
@@ -218,7 +218,7 @@ public class LoginPageTest {
         .matches(reauthUser(someUserAccount.getEmail_address()));
   }
 
-  private StringAssert assertLoginForm(Response response) {
+  private AbstractCharSequenceAssert<?, String> assertLoginForm(Response response) {
     assertThat(response.getMediaType().toString()).startsWith(MediaType.TEXT_HTML);
     // XXX: this is really poor-man's checking. We should use the DOM (through Cucumber/Capybara, or an HTML5 parser)
     return assertThat(response.readEntity(String.class))

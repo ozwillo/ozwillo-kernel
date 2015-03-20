@@ -12,7 +12,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
-import org.assertj.core.api.StringAssert;
+import org.assertj.core.api.AbstractCharSequenceAssert;
 import org.jukito.JukitoModule;
 import org.jukito.JukitoRunner;
 import org.junit.Before;
@@ -290,7 +290,7 @@ public class LogoutPageTest {
     }
   }
 
-  private StringAssert assertLogoutPage(Response response) {
+  private AbstractCharSequenceAssert<?, String> assertLogoutPage(Response response) {
     assertThat(response.getMediaType().toString()).startsWith(MediaType.TEXT_HTML);
     // XXX: this is really poor-man's checking. We should use the DOM (through Cucumber/Capybara, or an HTML5 parser)
     return assertThat(response.readEntity(String.class))
