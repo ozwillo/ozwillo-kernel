@@ -121,9 +121,6 @@ public class OrganizationEndpoint {
       return ResponseFactory.forbidden("Current user is not an admin of the organization");
     }
 
-    // FIXME: what should we do about the organization's applications/instances/services?
-
-    // TODO: Create a usecase object
     Organization organization = directory.getOrganization(organizationId);
     if (organization == null) {
       return ResponseFactory.notFound("The requested organization does not exist");

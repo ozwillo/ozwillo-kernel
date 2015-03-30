@@ -60,7 +60,6 @@ public class MarketSearchEndpoint {
       @Nullable @QueryParam("hl") ULocale locale,
       @DefaultValue("0") @QueryParam("start") int start,
       @DefaultValue("25") @QueryParam("limit") int limit,
-      // TODO: handle full-text search
       @Nullable @QueryParam("q") String query,
       @Nullable @QueryParam("supported_locale") List<ULocale> supported_locale,
       @Nullable @QueryParam("geographical_areas") Set<URI> geographical_areas,
@@ -78,7 +77,6 @@ public class MarketSearchEndpoint {
       @Nullable @FormParam("hl") ULocale locale,
       @DefaultValue("0") @FormParam("start") int start,
       @DefaultValue("25") @FormParam("limit") int limit,
-      // TODO: handle full-text search
       @Nullable @FormParam("q") String query,
       @Nullable @QueryParam("supported_locale") List<ULocale> supported_locale,
       @Nullable @QueryParam("geographical_area") Set<URI> geographical_area,
