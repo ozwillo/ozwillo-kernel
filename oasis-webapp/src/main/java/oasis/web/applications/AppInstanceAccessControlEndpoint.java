@@ -29,7 +29,9 @@ import oasis.model.applications.v2.AccessControlEntry;
 import oasis.model.applications.v2.AccessControlRepository;
 import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstanceRepository;
+import oasis.model.authn.AccessToken;
 import oasis.model.authz.Scopes;
+import oasis.model.bootstrap.ClientIds;
 import oasis.services.authz.AppAdminHelper;
 import oasis.services.etag.EtagService;
 import oasis.web.authn.Authenticated;
@@ -67,7 +69,12 @@ public class AppInstanceAccessControlEndpoint {
     if (instance == null) {
       return ResponseFactory.NOT_FOUND;
     }
-    if (!appAdminHelper.isAdmin(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId(), instance)) {
+
+    AccessToken accessToken = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken();
+    if (!instance_id.equals(accessToken.getServiceProviderId()) && !ClientIds.PORTAL.equals(accessToken.getServiceProviderId())) {
+      return ResponseFactory.forbidden("Cannot read the access control list of another instance");
+    }
+    if (!appAdminHelper.isAdmin(accessToken.getAccountId(), instance)) {
       return ResponseFactory.forbidden("Current user is not an app_admin for the application instance");
     }
 

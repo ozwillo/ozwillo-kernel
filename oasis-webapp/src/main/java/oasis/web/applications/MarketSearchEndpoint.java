@@ -96,7 +96,7 @@ public class MarketSearchEndpoint {
       trimmedQuery = Strings.emptyToNull(query.trim());
     }
 
-    // TODO: add information about apps the user has already "bought"
+    // TODO: add information about apps the user has already "bought" (XXX: limit to client_id=portal! to avoid leaking data)
     CatalogEntryRepository.SearchRequest request = ImmutableCatalogEntryRepository.SearchRequest.builder()
         .displayLocale(Optional.fromNullable(locale))
         .start(start)

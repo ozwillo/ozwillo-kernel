@@ -25,7 +25,9 @@ import oasis.model.applications.v2.AccessControlRepository;
 import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.ServiceRepository;
+import oasis.model.authn.AccessToken;
 import oasis.model.authz.Scopes;
+import oasis.model.bootstrap.ClientIds;
 import oasis.services.authz.AppAdminHelper;
 import oasis.services.etag.EtagService;
 import oasis.usecases.DeleteService;
@@ -68,11 +70,16 @@ public class ServiceEndpoint {
 
     if (!service.isVisible()) {
       // only the admins or designated users should be able to see the service if it's "hidden"
+      // and only through the "portal" app
       OAuthPrincipal principal = (OAuthPrincipal) securityContext.getUserPrincipal();
       if (principal == null) {
         return OAuthAuthenticationFilter.challengeResponse();
       }
-      String userId = principal.getAccessToken().getAccountId();
+      AccessToken accessToken = principal.getAccessToken();
+      if (!ClientIds.PORTAL.equals(accessToken.getServiceProviderId())) {
+        return Response.status(Response.Status.FORBIDDEN).build();
+      }
+      String userId = accessToken.getAccountId();
       boolean isAppUser = accessControlRepository.getAccessControlEntry(service.getInstance_id(), userId) != null;
       if (!isAppUser && !isAppAdmin(userId, service)) {
         return ResponseFactory.forbidden("Current user is neither an app_admin or app_user for the service");

@@ -23,7 +23,9 @@ import oasis.model.InvalidVersionException;
 import oasis.model.applications.v2.AccessControlEntry;
 import oasis.model.applications.v2.AccessControlRepository;
 import oasis.model.applications.v2.AppInstanceRepository;
+import oasis.model.authn.AccessToken;
 import oasis.model.authz.Scopes;
+import oasis.model.bootstrap.ClientIds;
 import oasis.services.authz.AppAdminHelper;
 import oasis.services.etag.EtagService;
 import oasis.web.authn.Authenticated;
@@ -57,10 +59,16 @@ public class AccessControlEntryEndpoint {
     if (ace == null) {
       return ResponseFactory.NOT_FOUND;
     }
-    final String userId = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId();
+
+    AccessToken accessToken = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken();
+    if (!ace.getInstance_id().equals(accessToken.getServiceProviderId()) && !ClientIds.PORTAL.equals(accessToken.getServiceProviderId())) {
+      return ResponseFactory.forbidden("Cannot read an access control entry about another instance");
+    }
+    final String userId = accessToken.getAccountId();
     if (!isAppAdmin(userId, ace.getInstance_id())) {
       return ResponseFactory.forbidden("Current user is not an app_admin for the application instance");
     }
+
     return Response.ok()
         .tag(etagService.getEtag(ace))
         .entity(new AccessControlEntry(ace) {

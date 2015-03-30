@@ -16,6 +16,8 @@ import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.applications.v2.Application;
 import oasis.model.applications.v2.ApplicationRepository;
+import oasis.model.authn.AccessToken;
+import oasis.model.bootstrap.ClientIds;
 import oasis.model.directory.OrganizationMembership;
 import oasis.model.directory.OrganizationMembershipRepository;
 import oasis.web.authn.OAuth;
@@ -48,12 +50,16 @@ public class ApplicationEndpoint {
 
     if (!application.isVisible()) {
       // only the application admins should be able to see it if it's "hidden"
+      // and only through the "portal" app
       OAuthPrincipal principal = (OAuthPrincipal) securityContext.getUserPrincipal();
       if (principal == null) {
         return OAuthAuthenticationFilter.challengeResponse();
       }
-      String userId = principal.getAccessToken().getAccountId();
-      OrganizationMembership organizationMembership = organizationMembershipRepository.getOrganizationMembership(userId, application.getProvider_id());
+      AccessToken accessToken = principal.getAccessToken();
+      if (!ClientIds.PORTAL.equals(accessToken.getServiceProviderId())) {
+        return Response.status(Response.Status.FORBIDDEN).build();
+      }
+      OrganizationMembership organizationMembership = organizationMembershipRepository.getOrganizationMembership(accessToken.getAccountId(), application.getProvider_id());
       if (organizationMembership == null) {
         return ResponseFactory.forbidden("Current user is not a member of the application's provider organization");
       }

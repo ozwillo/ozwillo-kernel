@@ -31,7 +31,9 @@ import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.ServiceRepository;
+import oasis.model.authn.AccessToken;
 import oasis.model.authz.Scopes;
+import oasis.model.bootstrap.ClientIds;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Organization;
 import oasis.services.authz.AppAdminHelper;
@@ -59,7 +61,6 @@ public class AppInstanceEndpoint {
   @Inject AppAdminHelper appAdminHelper;
   @Inject EtagService etagService;
   @Inject Provider<ServiceValidator> serviceValidatorProvider;
-  @Inject Urls urls;
   @Inject ChangeAppInstanceStatus changeAppInstanceStatus;
 
   @Context SecurityContext securityContext;
@@ -78,8 +79,11 @@ public class AppInstanceEndpoint {
       return ResponseFactory.notFound("Application instance not found");
     }
 
-    String userId = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId();
-    if (!appAdminHelper.isAdmin(userId, instance)) {
+    AccessToken accessToken = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken();
+    if (!instanceId.equals(accessToken.getServiceProviderId()) && !ClientIds.PORTAL.equals(accessToken.getServiceProviderId())) {
+      return ResponseFactory.forbidden("Cannot read information about another instance");
+    }
+    if (!appAdminHelper.isAdmin(accessToken.getAccountId(), instance)) {
       return ResponseFactory.forbidden("Current user is not an app_admin for the instance");
     }
 
@@ -107,8 +111,12 @@ public class AppInstanceEndpoint {
     if (instance == null) {
       return ResponseFactory.NOT_FOUND;
     }
-    String userId = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId();
-    if (!appAdminHelper.isAdmin(userId, instance)) {
+
+    AccessToken accessToken = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken();
+    if (!instanceId.equals(accessToken.getServiceProviderId()) && !ClientIds.PORTAL.equals(accessToken.getServiceProviderId())) {
+      return ResponseFactory.forbidden("Cannot list services of another instance");
+    }
+    if (!appAdminHelper.isAdmin(accessToken.getAccountId(), instance)) {
       return ResponseFactory.forbidden("Current user is not an app_admin for the instance");
     }
 
@@ -138,8 +146,12 @@ public class AppInstanceEndpoint {
     if (instance == null) {
       return ResponseFactory.NOT_FOUND;
     }
-    String userId = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId();
-    if (!appAdminHelper.isAdmin(userId, instance)) {
+
+    AccessToken accessToken = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken();
+    if (!instanceId.equals(accessToken.getServiceProviderId()) && !ClientIds.PORTAL.equals(accessToken.getServiceProviderId())) {
+      return ResponseFactory.forbidden("Cannot create service in another instance");
+    }
+    if (!appAdminHelper.isAdmin(accessToken.getAccountId(), instance)) {
       return ResponseFactory.forbidden("Current user is not an app_admin for the instance");
     }
 
