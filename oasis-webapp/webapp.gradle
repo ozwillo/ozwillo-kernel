@@ -20,6 +20,7 @@ dependencies {
   compile libs.config
   compile libs.resteasy_netty
   compile libs.resteasy_client
+  compile libs.okhttp
   compile libs.closure_templates
   compile libs.swagger_jaxrs
 

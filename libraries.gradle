@@ -84,6 +84,8 @@ ext.libs = [
       exclude module: 'scannotation'
     },
 
+  okhttp:             'com.squareup.okhttp:okhttp:2.3.0',
+
   closure_templates_standalone: [
       'com.google.template:soy:2015-03-06',
       'args4j:args4j:2.0.31',
