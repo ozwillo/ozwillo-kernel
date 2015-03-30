@@ -25,6 +25,7 @@ import com.wordnik.swagger.annotations.ApiParam;
 
 import oasis.model.InvalidVersionException;
 import oasis.model.applications.v2.ApplicationRepository;
+import oasis.model.authz.Scopes;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Organization;
 import oasis.model.directory.OrganizationMembership;
@@ -35,6 +36,7 @@ import oasis.usecases.ImmutableChangeOrganizationStatus;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
+import oasis.web.authn.WithScopes;
 import oasis.web.resteasy.Resteasy1099;
 import oasis.web.utils.ResponseFactory;
 
@@ -70,6 +72,7 @@ public class OrganizationEndpoint {
 
   @PUT
   @Authenticated @OAuth
+  @WithScopes(Scopes.PORTAL)
   @ApiOperation(value = "Update an organization",
       response = Organization.class)
   public Response updateOrganization(
@@ -108,6 +111,7 @@ public class OrganizationEndpoint {
 
   @POST
   @Authenticated @OAuth
+  @WithScopes(Scopes.PORTAL)
   @ApiOperation(value = "Change organization status")
   public Response changeOrganizationStatus(
       @HeaderParam("If-Match") @ApiParam(required = true) String etagStr,

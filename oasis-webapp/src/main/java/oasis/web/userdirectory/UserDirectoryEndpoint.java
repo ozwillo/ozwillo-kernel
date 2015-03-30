@@ -26,6 +26,7 @@ import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiParam;
 
 import oasis.model.InvalidVersionException;
+import oasis.model.authz.Scopes;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Group;
 import oasis.model.directory.Organization;
@@ -35,11 +36,13 @@ import oasis.services.etag.EtagService;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
+import oasis.web.authn.WithScopes;
 import oasis.web.utils.ResponseFactory;
 
 @Path("/d")
 @Produces(MediaType.APPLICATION_JSON)
 @Authenticated @OAuth
+@WithScopes(Scopes.PORTAL)
 @Api(value = "/d", description = "User directory API")
 public class UserDirectoryEndpoint {
 

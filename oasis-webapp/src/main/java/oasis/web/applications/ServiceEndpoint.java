@@ -25,6 +25,7 @@ import oasis.model.applications.v2.AccessControlRepository;
 import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.ServiceRepository;
+import oasis.model.authz.Scopes;
 import oasis.services.authz.AppAdminHelper;
 import oasis.services.etag.EtagService;
 import oasis.usecases.DeleteService;
@@ -33,6 +34,7 @@ import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthAuthenticationFilter;
 import oasis.web.authn.OAuthPrincipal;
+import oasis.web.authn.WithScopes;
 import oasis.web.utils.ResponseFactory;
 
 @Path("/apps/service/{service_id}")
@@ -92,6 +94,7 @@ public class ServiceEndpoint {
       response = Service.class
   )
   @Authenticated
+  @WithScopes(Scopes.PORTAL)
   public Response update(
       @HeaderParam(HttpHeaders.IF_MATCH) String ifMatch,
       Service service
@@ -137,6 +140,7 @@ public class ServiceEndpoint {
   @DELETE
   @ApiOperation("Deletes the service")
   @Authenticated
+  @WithScopes(Scopes.PORTAL)
   public Response delete(
       @HeaderParam(HttpHeaders.IF_MATCH) String ifMatch
   ) {

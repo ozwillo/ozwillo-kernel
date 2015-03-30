@@ -29,11 +29,13 @@ import oasis.model.applications.v2.AccessControlEntry;
 import oasis.model.applications.v2.AccessControlRepository;
 import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstanceRepository;
+import oasis.model.authz.Scopes;
 import oasis.services.authz.AppAdminHelper;
 import oasis.services.etag.EtagService;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
+import oasis.web.authn.WithScopes;
 import oasis.web.resteasy.Resteasy1099;
 import oasis.web.utils.ResponseFactory;
 
@@ -128,6 +130,7 @@ public class AppInstanceAccessControlEndpoint {
       response = ACE.class,
       responseContainer = "Array"
   )
+  @WithScopes(Scopes.PORTAL)
   public Response addToList(AccessControlEntry ace) {
     if (ace.getInstance_id() != null && !instance_id.equals(ace.getInstance_id())) {
       return ResponseFactory.unprocessableEntity("instance_id doesn't match URL");

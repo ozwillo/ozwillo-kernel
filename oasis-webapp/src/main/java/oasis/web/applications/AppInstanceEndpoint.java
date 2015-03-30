@@ -31,6 +31,7 @@ import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.ServiceRepository;
+import oasis.model.authz.Scopes;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Organization;
 import oasis.services.authz.AppAdminHelper;
@@ -42,6 +43,7 @@ import oasis.usecases.ServiceValidator;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
+import oasis.web.authn.WithScopes;
 import oasis.web.resteasy.Resteasy1099;
 import oasis.web.utils.ResponseFactory;
 
@@ -169,6 +171,7 @@ public class AppInstanceEndpoint {
 
   @POST
   @ApiOperation("Change the status of the application instance")
+  @WithScopes(Scopes.PORTAL)
   public Response changeStatus(
       @HeaderParam(HttpHeaders.IF_MATCH) String ifMatch,
       ModifyStatusRequest request

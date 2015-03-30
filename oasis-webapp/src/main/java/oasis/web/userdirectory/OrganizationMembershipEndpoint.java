@@ -24,12 +24,14 @@ import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
+import oasis.model.authz.Scopes;
 import oasis.model.directory.OrganizationMembership;
 import oasis.model.directory.OrganizationMembershipRepository;
 import oasis.services.etag.EtagService;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
+import oasis.web.authn.WithScopes;
 import oasis.web.resteasy.Resteasy1099;
 import oasis.web.utils.ResponseFactory;
 
@@ -37,6 +39,7 @@ import oasis.web.utils.ResponseFactory;
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 @Authenticated @OAuth
+@WithScopes(Scopes.PORTAL)
 @Api(value = "memberships-org", description = "Organization Memberships (from the organization point of view)")
 public class OrganizationMembershipEndpoint {
   @Inject OrganizationMembershipRepository organizationMembershipRepository;

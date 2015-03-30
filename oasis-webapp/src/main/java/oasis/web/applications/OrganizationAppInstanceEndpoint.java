@@ -18,14 +18,17 @@ import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstanceRepository;
+import oasis.model.authz.Scopes;
 import oasis.model.directory.OrganizationMembership;
 import oasis.model.directory.OrganizationMembershipRepository;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
+import oasis.web.authn.WithScopes;
 import oasis.web.utils.ResponseFactory;
 
 @Authenticated @OAuth
+@WithScopes(Scopes.PORTAL)
 @Path("/apps/instance/organization/{organization_id}")
 @Api(value = "organization-instances", description = "Application instances for an organization")
 @Produces(MediaType.APPLICATION_JSON)

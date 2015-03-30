@@ -23,11 +23,13 @@ import oasis.model.InvalidVersionException;
 import oasis.model.applications.v2.AccessControlEntry;
 import oasis.model.applications.v2.AccessControlRepository;
 import oasis.model.applications.v2.AppInstanceRepository;
+import oasis.model.authz.Scopes;
 import oasis.services.authz.AppAdminHelper;
 import oasis.services.etag.EtagService;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
+import oasis.web.authn.WithScopes;
 import oasis.web.utils.ResponseFactory;
 
 @Path("/apps/acl/ace/{ace_id}")
@@ -81,6 +83,7 @@ public class AccessControlEntryEndpoint {
 
   @DELETE
   @ApiOperation("Deletes an ACE")
+  @WithScopes(Scopes.PORTAL)
   public Response revoke(@HeaderParam(HttpHeaders.IF_MATCH) String ifMatch) {
     if (Strings.isNullOrEmpty(ifMatch)) {
       return ResponseFactory.preconditionRequiredIfMatch();

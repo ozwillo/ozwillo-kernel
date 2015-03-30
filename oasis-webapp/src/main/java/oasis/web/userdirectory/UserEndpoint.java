@@ -21,11 +21,13 @@ import com.wordnik.swagger.annotations.ApiOperation;
 import oasis.model.InvalidVersionException;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
+import oasis.model.authz.Scopes;
 import oasis.model.bootstrap.ClientIds;
 import oasis.services.etag.EtagService;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
+import oasis.web.authn.WithScopes;
 import oasis.web.utils.ResponseFactory;
 
 @Path("/d/user/{user_id}")
@@ -73,15 +75,12 @@ public class UserEndpoint {
       value = "Updates the user's profile",
       response = UserAccount.class
   )
+  @WithScopes(Scopes.PORTAL)
   public Response replace(
       @HeaderParam(HttpHeaders.IF_MATCH) String ifMatch,
       UserAccount account
   ) {
     if (!user_id.equals(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId())) {
-      return Response.status(Response.Status.FORBIDDEN).build();
-    }
-    // FIXME: temporarily limit updates to the portal only; we need a specific scope for updates (and possibly support partial updates)
-    if (!ClientIds.PORTAL.equals(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getServiceProviderId())) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
 

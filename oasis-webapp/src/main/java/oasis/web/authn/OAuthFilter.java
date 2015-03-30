@@ -20,8 +20,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableSet;
 
 import oasis.model.authn.AccessToken;
+import oasis.model.authz.Scopes;
+import oasis.model.bootstrap.ClientIds;
 import oasis.services.authn.TokenHandler;
 
 /**
@@ -67,6 +70,14 @@ public class OAuthFilter implements ContainerRequestFilter {
     if (accessToken == null) {
       invalidToken(requestContext);
       return;
+    }
+
+    // Automatically grant "portal" scope to "portal" app
+    if (ClientIds.PORTAL.equals(accessToken.getServiceProviderId())) {
+      accessToken.setScopeIds(ImmutableSet.<String>builder()
+          .addAll(accessToken.getScopeIds())
+          .add(Scopes.PORTAL)
+          .build());
     }
 
     /** Check if the resource have an annotation {@link WithScopes} **/

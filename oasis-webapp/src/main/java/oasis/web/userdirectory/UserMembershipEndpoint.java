@@ -23,6 +23,7 @@ import com.google.common.collect.Iterables;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
+import oasis.model.authz.Scopes;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Organization;
 import oasis.model.directory.OrganizationMembership;
@@ -31,12 +32,14 @@ import oasis.services.etag.EtagService;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
+import oasis.web.authn.WithScopes;
 import oasis.web.resteasy.Resteasy1099;
 
 @Path("/d/memberships/user/{user_id}")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 @Authenticated @OAuth
+@WithScopes(Scopes.PORTAL)
 @Api(value = "memberships-user", description = "Organization Memberships (from the user point of view)")
 public class UserMembershipEndpoint {
   @Inject OrganizationMembershipRepository organizationMembershipRepository;

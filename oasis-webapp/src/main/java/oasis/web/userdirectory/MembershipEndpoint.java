@@ -33,6 +33,7 @@ import com.wordnik.swagger.annotations.ApiOperation;
 import oasis.model.InvalidVersionException;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
+import oasis.model.authz.Scopes;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Organization;
 import oasis.model.directory.OrganizationMembership;
@@ -46,6 +47,7 @@ import oasis.soy.templates.DeletedOrganizationMembershipSoyInfo;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
+import oasis.web.authn.WithScopes;
 import oasis.web.i18n.LocaleHelper;
 import oasis.web.utils.ResponseFactory;
 
@@ -53,6 +55,7 @@ import oasis.web.utils.ResponseFactory;
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 @Authenticated @OAuth
+@WithScopes(Scopes.PORTAL)
 @Api(value = "memberships", description = "Organization membership")
 public class MembershipEndpoint {
   private static final Logger logger = LoggerFactory.getLogger(MembershipEndpoint.class);

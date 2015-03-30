@@ -39,6 +39,7 @@ import oasis.model.applications.v2.Application;
 import oasis.model.applications.v2.ApplicationRepository;
 import oasis.model.applications.v2.CatalogEntry;
 import oasis.model.authn.ClientType;
+import oasis.model.authz.Scopes;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Organization;
 import oasis.services.authn.CredentialsService;
@@ -48,6 +49,7 @@ import oasis.usecases.ImmutableDeleteAppInstance;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
+import oasis.web.authn.WithScopes;
 import oasis.web.resteasy.Resteasy1099;
 import oasis.web.utils.ResponseFactory;
 import oasis.web.webhooks.WebhookSignatureFilter;
@@ -79,6 +81,7 @@ public class MarketBuyEndpoint {
       value = "Instantiates an application",
       response = AppInstance.class
   )
+  @WithScopes(Scopes.PORTAL)
   public Response instantiate(AppInstance instance) {
     Application application = applicationRepository.getApplication(applicationId);
     if (application == null) {
