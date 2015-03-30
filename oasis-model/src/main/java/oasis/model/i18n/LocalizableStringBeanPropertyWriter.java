@@ -38,7 +38,7 @@ public class LocalizableStringBeanPropertyWriter extends BeanPropertyWriter {
     // and then see if we must suppress certain values (default, empty)
     if (_suppressableValue != null) {
       if (MARKER_FOR_EMPTY == _suppressableValue) {
-        if (ser.isEmpty(value)) {
+        if (ser.isEmpty(prov, value)) {
           return;
         }
       } else if (_suppressableValue.equals(value)) {

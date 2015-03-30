@@ -26,7 +26,7 @@ class LocalizableStringSerializer extends JsonSerializer<LocalizableString> impl
     this.propertyName = propertyName;
   }
 
-  @Override
+  @Override @Deprecated
   public boolean isEmpty(LocalizableString value) {
     if (value == null || value.values.isEmpty()) {
       return true;
@@ -37,6 +37,11 @@ class LocalizableStringSerializer extends JsonSerializer<LocalizableString> impl
       }
     }
     return true;
+  }
+
+  @Override
+  public boolean isEmpty(SerializerProvider provider, LocalizableString value) {
+    return isEmpty(value);
   }
 
   @Override

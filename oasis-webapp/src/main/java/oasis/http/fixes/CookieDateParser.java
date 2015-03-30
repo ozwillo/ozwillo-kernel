@@ -115,6 +115,7 @@ class CookieDateParser {
     return result;
   }
 
+  @SuppressWarnings("deprecation") // Date.UTC
   public Date parse() {
     parseTokens();
 

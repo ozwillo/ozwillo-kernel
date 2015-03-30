@@ -58,6 +58,7 @@ public class JongoDirectoryRepository implements DirectoryRepository, JongoBoots
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public Iterable<Organization> getOrganizations() {
     return (Iterable<Organization>) (Iterable<?>) getOrganizationCollection().find().projection(ORGANIZATION_PROJECTION)
         .as(JongoOrganization.class);
@@ -176,6 +177,7 @@ public class JongoDirectoryRepository implements DirectoryRepository, JongoBoots
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public Collection<Group> getGroups(String organizationId) {
     JongoOrganization organization = getOrganizationCollection()
         .findOne("{ id: # }", organizationId)
@@ -262,6 +264,7 @@ public class JongoDirectoryRepository implements DirectoryRepository, JongoBoots
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public Collection<Group> getGroupsForAgent(final String agentId) {
     JongoOrganization organization = getOrganizationCollection()
         .findOne("{ groups.agentIds : # }", agentId)
