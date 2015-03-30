@@ -22,6 +22,7 @@ import oasis.model.authn.SidToken;
 import oasis.model.authn.Token;
 import oasis.model.authn.TokenRepository;
 import oasis.auth.AuthModule;
+import oasis.model.authz.Scopes;
 import oasis.services.authn.login.PasswordHasher;
 
 public class TokenHandler {
@@ -132,7 +133,7 @@ public class TokenHandler {
     authorizationCode.setServiceProviderId(serviceProviderId);
     authorizationCode.setNonce(nonce);
     authorizationCode.setRedirectUri(redirectUri);
-    if (!scopeIds.contains("offline_access")) {
+    if (!scopeIds.contains(Scopes.OFFLINE_ACCESS)) {
       authorizationCode.setParent(sidToken);
     }
 

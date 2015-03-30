@@ -31,6 +31,7 @@ import oasis.model.accounts.UserAccount;
 import oasis.model.applications.v2.Scope;
 import oasis.model.applications.v2.ScopeRepository;
 import oasis.model.authn.AccessToken;
+import oasis.model.authz.Scopes;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authz.GroupService;
 import oasis.web.authn.testing.TestClientAuthenticationFilter;
@@ -65,7 +66,7 @@ public class IntrospectionEndpointTest {
   static final AccessToken validToken = new AccessToken() {{
     setId("valid");
     setAccountId(account.getId());
-    setScopeIds(ImmutableSet.of("openid", "dp1:s1", "dp1:s3", "dp3:s1"));
+    setScopeIds(ImmutableSet.of(Scopes.OPENID, "dp1:s1", "dp1:s3", "dp3:s1"));
     expiresIn(Duration.standardDays(1));
   }};
 

@@ -49,6 +49,7 @@ import oasis.model.authn.RefreshToken;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
 import oasis.auth.AuthModule;
+import oasis.model.authz.Scopes;
 import oasis.security.KeyPairLoader;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
@@ -122,7 +123,7 @@ public class TokenEndpointTest {
     expiresIn(Duration.standardHours(2));
     setParent(sidToken);
     setServiceProviderId(appInstance.getId());
-    setScopeIds(ImmutableSet.of("offline_access", "dp1s1", "dp1s3", "dp3s1"));
+    setScopeIds(ImmutableSet.of(Scopes.OFFLINE_ACCESS, "dp1s1", "dp1s3", "dp3s1"));
     setRedirectUri("http://sp.example.com/callback");
     setNonce("nonce");
   }};
@@ -403,7 +404,7 @@ public class TokenEndpointTest {
     assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.OK);
     IdTokenResponse response = jsonFactory.fromInputStream(resp.readEntity(InputStream.class), StandardCharsets.UTF_8, IdTokenResponse.class);
     assertThat(response.getTokenType()).isEqualTo("Bearer");
-    assertThat(response.getScope().split(" ")).containsOnly("offline_access", "dp1s1", "dp1s3", "dp3s1");
+    assertThat(response.getScope().split(" ")).containsOnly(Scopes.OFFLINE_ACCESS, "dp1s1", "dp1s3", "dp3s1");
     assertThat(response.getExpiresInSeconds())
         .isEqualTo(new Duration(new Instant(clock.currentTimeMillis()), accessTokenWithOfflineAccess.getExpirationTime()).getStandardSeconds());
     assertThat(response.getAccessToken()).isEqualTo(TokenSerializer.serialize(accessTokenWithOfflineAccess, "pass"));

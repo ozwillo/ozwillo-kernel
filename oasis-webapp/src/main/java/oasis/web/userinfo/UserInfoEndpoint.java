@@ -31,8 +31,7 @@ import com.wordnik.swagger.annotations.ApiOperation;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.authn.AccessToken;
-import oasis.model.directory.OrganizationMembership;
-import oasis.model.directory.OrganizationMembershipRepository;
+import oasis.model.authz.Scopes;
 import oasis.auth.AuthModule;
 import oasis.urls.Urls;
 import oasis.web.authn.Authenticated;
@@ -42,7 +41,7 @@ import oasis.web.authn.WithScopes;
 import oasis.web.authz.KeysEndpoint;
 import oasis.web.resteasy.Resteasy1099;
 
-@Authenticated @OAuth @WithScopes("openid")
+@Authenticated @OAuth @WithScopes(Scopes.OPENID)
 @Path("/a/userinfo")
 @Api(value = "/a/userinfo", description = "UserInfo Endpoint")
 public class UserInfoEndpoint {
@@ -51,10 +50,6 @@ public class UserInfoEndpoint {
       .setAlgorithm("RS256")
       .setKeyId(KeysEndpoint.JSONWEBKEY_PK_ID);
   private static final DateTimeFormatter BIRTHDATE_FORMATTER = ISODateTimeFormat.date().withDefaultYear(0);
-  private static final String EMAIL_SCOPE = "email";
-  private static final String PROFILE_SCOPE = "profile";
-  private static final String PHONE_SCOPE = "phone";
-  private static final String ADDRESS_SCOPE = "address";
   /** Note: we'd prefer JWT, but OpenID Connect wants us to prefer JSON, so using qs&lt;1.0 here. */
   private static final String APPLICATION_JWT = "application/jwt; qs=0.99";
 
@@ -64,7 +59,6 @@ public class UserInfoEndpoint {
   @Inject AuthModule.Settings settings;
   @Inject JsonFactory jsonFactory;
   @Inject AccountRepository accountRepository;
-  @Inject OrganizationMembershipRepository organizationMembershipRepository;
   @Inject Urls urls;
 
   @GET
@@ -153,7 +147,7 @@ public class UserInfoEndpoint {
   private UserInfo getUserInfo(UserAccount userAccount, Set<String> scopeIds) {
     UserInfo userInfo = new UserInfo();
 
-    if (scopeIds.contains(PROFILE_SCOPE)) {
+    if (scopeIds.contains(Scopes.PROFILE)) {
       String birthDate = userAccount.getBirthdate() != null ? userAccount.getBirthdate().toString(BIRTHDATE_FORMATTER) : null;
       userInfo.setName(userAccount.getName())
           .setFamilyName(userAccount.getFamily_name())
@@ -167,12 +161,12 @@ public class UserInfoEndpoint {
           .setLocale(userAccount.getLocale() == null ? null : userAccount.getLocale().toLanguageTag());
     }
 
-    if (scopeIds.contains(EMAIL_SCOPE) && userAccount.getEmail_address() != null) {
+    if (scopeIds.contains(Scopes.EMAIL) && userAccount.getEmail_address() != null) {
       userInfo.setEmail(userAccount.getEmail_address());
       userInfo.setEmailVerified(userAccount.getEmail_verified());
     }
 
-    if (scopeIds.contains(ADDRESS_SCOPE) && userAccount.getAddress() != null) {
+    if (scopeIds.contains(Scopes.ADDRESS) && userAccount.getAddress() != null) {
       UserInfo.Address address = new UserInfo.Address()
           .setStreetAddress(userAccount.getAddress().getStreet_address())
           .setLocality(userAccount.getAddress().getLocality())
@@ -182,7 +176,7 @@ public class UserInfoEndpoint {
       userInfo.setAddress(address);
     }
 
-    if (scopeIds.contains(PHONE_SCOPE) && userAccount.getPhone_number() != null) {
+    if (scopeIds.contains(Scopes.PHONE) && userAccount.getPhone_number() != null) {
       userInfo.setPhone_number(userAccount.getPhone_number());
       userInfo.setPhone_number_verified(Boolean.TRUE.equals(userAccount.getPhone_number_verified()));
     }

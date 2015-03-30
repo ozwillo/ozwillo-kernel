@@ -30,6 +30,7 @@ import oasis.model.applications.v2.ScopeRepository;
 import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.ServiceRepository;
 import oasis.model.authn.ClientType;
+import oasis.model.authz.Scopes;
 import oasis.model.bootstrap.ClientIds;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Organization;
@@ -119,39 +120,39 @@ public class Bootstrap extends CommandLineTool {
 
     // TODO: I18N
     Scope openid = new Scope();
-    openid.setLocal_id("openid");
+    openid.setLocal_id(Scopes.OPENID);
     openid.computeId();
     openid.getName().set(ULocale.ROOT, "Sign you in with your OASIS account");
     openid.getDescription().set(ULocale.ROOT, "The application will only know your account's internal identifier, no personal information will be shared.");
     scopeRepository.createOrUpdateScope(openid);
 
     Scope profile = new Scope();
-    profile.setLocal_id("profile");
+    profile.setLocal_id(Scopes.PROFILE);
     profile.computeId();
     profile.getName().set(ULocale.ROOT, "Basic information about your profile");
     profile.getDescription().set(ULocale.ROOT, "This information includes your name, gender, birth date and picture.");
     scopeRepository.createOrUpdateScope(profile);
 
     Scope email = new Scope();
-    email.setLocal_id("email");
+    email.setLocal_id(Scopes.EMAIL);
     email.computeId();
     email.getName().set(ULocale.ROOT, "Your email address");
     scopeRepository.createOrUpdateScope(email);
 
     Scope address = new Scope();
-    address.setLocal_id("address");
+    address.setLocal_id(Scopes.ADDRESS);
     address.computeId();
     address.getName().set(ULocale.ROOT, "Your postal address");
     scopeRepository.createOrUpdateScope(address);
 
     Scope phone = new Scope();
-    phone.setLocal_id("phone");
+    phone.setLocal_id(Scopes.PHONE);
     phone.computeId();
     phone.getName().set(ULocale.ROOT, "Your phone number");
     scopeRepository.createOrUpdateScope(phone);
 
     Scope offline = new Scope();
-    offline.setLocal_id("offline_access");
+    offline.setLocal_id(Scopes.OFFLINE_ACCESS);
     offline.computeId();
     offline.getName().set(ULocale.ROOT, "Accessing all this information while you're not connected");
     offline.getDescription().set(ULocale.ROOT, "The application will be able to access your data even after you log out of OASIS.");
@@ -203,7 +204,7 @@ public class Bootstrap extends CommandLineTool {
     instance.setApplication_id(app.getId());
     instance.setStatus(AppInstance.InstantiationStatus.RUNNING);
     instance.setInstantiator_id(adminAccountId);
-    for (String scopeId : new String[] { "openid", "profile", "email", "address", "phone" }) {
+    for (String scopeId : new String[] { Scopes.OPENID, Scopes.PROFILE, Scopes.EMAIL, Scopes.ADDRESS, Scopes.PHONE, "datacore" }) {
       AppInstance.NeededScope neededScope = new AppInstance.NeededScope();
       neededScope.setScope_id(scopeId);
       instance.getNeeded_scopes().add(neededScope);

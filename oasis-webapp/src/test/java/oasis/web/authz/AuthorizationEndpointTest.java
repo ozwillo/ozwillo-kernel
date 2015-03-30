@@ -63,6 +63,7 @@ import oasis.model.authn.AuthorizationCode;
 import oasis.model.authn.SidToken;
 import oasis.model.authz.AuthorizationRepository;
 import oasis.model.authz.AuthorizedScopes;
+import oasis.model.authz.Scopes;
 import oasis.model.bootstrap.ClientIds;
 import oasis.model.i18n.LocalizableString;
 import oasis.security.KeyPairLoader;
@@ -159,10 +160,10 @@ public class AuthorizationEndpointTest {
   // NOTE: scopes are supposed to have a title and description, we're indirectly
   // testing our resistance to missing data here by not setting them.
   private static final Scope openidScope = new Scope() {{
-    setLocal_id("openid");
+    setLocal_id(Scopes.OPENID);
   }};
   private static final Scope profileScope = new Scope() {{
-    setLocal_id("profile");
+    setLocal_id(Scopes.PROFILE);
   }};
   private static final Scope authorizedScope = new Scope() {{
     setInstance_id("other-app");
@@ -173,7 +174,7 @@ public class AuthorizationEndpointTest {
     setLocal_id("unauthorized");
   }};
   private static final Scope offlineAccessScope = new Scope() {{
-    setLocal_id("offline_access");
+    setLocal_id(Scopes.OFFLINE_ACCESS);
   }};
 
   private static final AuthorizationCode authorizationCode = new AuthorizationCode() {{

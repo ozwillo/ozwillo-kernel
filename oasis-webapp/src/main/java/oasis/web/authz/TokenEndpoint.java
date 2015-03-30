@@ -55,6 +55,7 @@ import oasis.model.authn.RefreshToken;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.Token;
 import oasis.model.authn.TokenRepository;
+import oasis.model.authz.Scopes;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.services.authz.AppAdminHelper;
@@ -199,7 +200,7 @@ public class TokenEndpoint {
 
     AccessToken accessToken;
     final String pass = tokenHandler.generateRandom();
-    if (authorizationCode.getScopeIds().contains("offline_access")) {
+    if (authorizationCode.getScopeIds().contains(Scopes.OFFLINE_ACCESS)) {
       String refreshPass = tokenHandler.generateRandom();
       RefreshToken refreshToken = tokenHandler.createRefreshToken(authorizationCode, refreshPass);
 

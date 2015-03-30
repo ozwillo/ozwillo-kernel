@@ -59,6 +59,7 @@ import oasis.model.authn.AuthorizationCode;
 import oasis.model.authn.SidToken;
 import oasis.model.authz.AuthorizationRepository;
 import oasis.model.authz.AuthorizedScopes;
+import oasis.model.authz.Scopes;
 import oasis.model.bootstrap.ClientIds;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
@@ -187,8 +188,8 @@ public class AuthorizationEndpoint {
     }
 
     // Ignore offline_access without prompt=consent
-    if (scopeIds.contains("offline_access") && !prompt.consent) {
-      scopeIds.remove("offline_access");
+    if (scopeIds.contains(Scopes.OFFLINE_ACCESS) && !prompt.consent) {
+      scopeIds.remove(Scopes.OFFLINE_ACCESS);
     }
 
     final SidToken sidToken = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken();
@@ -405,8 +406,8 @@ public class AuthorizationEndpoint {
   }
 
   private Set<String> validateScopeIds(Set<String> scopeIds) {
-    if (!scopeIds.contains("openid")) {
-      throw error("invalid_scope", "You must include 'openid'");
+    if (!scopeIds.contains(Scopes.OPENID)) {
+      throw error("invalid_scope", "You must include '" + Scopes.OPENID + "'");
     }
     return scopeIds;
   }

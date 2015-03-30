@@ -25,6 +25,7 @@ import oasis.http.testing.InProcessResteasy;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.authn.AccessToken;
+import oasis.model.authz.Scopes;
 import oasis.security.KeyPairLoader;
 import oasis.urls.ImmutableUrls;
 import oasis.urls.Urls;
@@ -68,7 +69,7 @@ public class UserInfoEndpointTest {
   @Test public void testJsonByDefault() {
     resteasy.getDeployment().getProviderFactory().register(new TestOAuthFilter(new AccessToken() {{
       setAccountId(citizenAccount.getId());
-      setScopeIds(Sets.newHashSet("openid", "profile"));
+      setScopeIds(Sets.newHashSet(Scopes.OPENID, Scopes.PROFILE));
     }}));
 
     Response response = resteasy.getClient().target(UriBuilder.fromResource(UserInfoEndpoint.class)).request().get();
