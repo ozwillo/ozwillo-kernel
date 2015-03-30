@@ -34,8 +34,8 @@ public class StatusEndpoint {
     Status status = new Status();
 
     Future<Response> esStatus = client
-        .target(UriBuilder.fromUri(esSettings.url()).path("_nodes"))
-        .request().async().get();
+        .target(esSettings.url())
+        .request().async().head();
 
     try {
       status.mongodb = jongo.getDatabase()
