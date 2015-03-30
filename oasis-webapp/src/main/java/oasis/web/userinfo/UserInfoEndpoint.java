@@ -192,12 +192,6 @@ public class UserInfoEndpoint {
       userInfo.setUpdatedAt(TimeUnit.MILLISECONDS.toSeconds(updatedAt));
     }
 
-    OrganizationMembership membership = organizationMembershipRepository.getOrganizationForUserIfUnique(userAccount.getId());
-    if (membership != null) {
-      userInfo.setOrganization_admin(membership.isAdmin());
-      userInfo.setOrganization_id(membership.getOrganizationId());
-    }
-
     return userInfo;
   }
 
@@ -230,10 +224,6 @@ public class UserInfoEndpoint {
     // Phone
     @Key private String phone_number;
     @Key private Boolean phone_number_verified;
-
-    // Agent information
-    @Key private Boolean organization_admin;
-    @Key private String organization_id;
 
     public String getName() {
       return name;
@@ -377,22 +367,6 @@ public class UserInfoEndpoint {
     public UserInfo setPhone_number_verified(Boolean phone_verified) {
       this.phone_number_verified = phone_verified;
       return this;
-    }
-
-    public Boolean isOrganization_admin() {
-      return organization_admin;
-    }
-
-    public void setOrganization_admin(Boolean isAdmin) {
-      this.organization_admin = isAdmin;
-    }
-
-    public String getOrganization_id() {
-      return organization_id;
-    }
-
-    public void setOrganization_id(String organizationId) {
-      this.organization_id = organizationId;
     }
 
     @Override

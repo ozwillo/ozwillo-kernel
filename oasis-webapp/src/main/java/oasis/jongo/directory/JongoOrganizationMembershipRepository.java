@@ -170,17 +170,6 @@ public class JongoOrganizationMembershipRepository implements OrganizationMember
         .as(JongoOrganizationMembership.class);
   }
 
-  @Nullable
-  @Override
-  public OrganizationMembership getOrganizationForUserIfUnique(String userId) {
-    Iterable<OrganizationMembership> memberships = getOrganizationsForUser(userId, 0, 2);
-    try {
-      return Iterables.getOnlyElement(memberships);
-    } catch (NoSuchElementException | IllegalArgumentException e) {
-      return null;
-    }
-  }
-
   @Override
   public boolean deleteMembershipsInOrganization(String organizationId) {
     return getOrganizationMembershipsCollection()
