@@ -83,7 +83,7 @@ public class InitializeCatalogIndex extends CommandLineTool {
               .get();
           success = true;
         } catch (Exception e) {
-          logger().error("Error when indexing {} {}", catalogEntry.getType(), catalogEntry.getId());
+          logger().error("Error when indexing {} {}", catalogEntry.getType(), catalogEntry.getId(), e);
           success = false;
         }
         if (success) {
