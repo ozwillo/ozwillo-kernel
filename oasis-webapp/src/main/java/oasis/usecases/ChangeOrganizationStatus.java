@@ -1,8 +1,5 @@
 package oasis.usecases;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.inject.Inject;
 
 import org.immutables.value.Value;
@@ -11,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Functions;
-import com.google.common.base.MoreObjects;
 import com.google.template.soy.data.SanitizedContent;
 import com.google.template.soy.data.SoyMapData;
 import com.ibm.icu.util.ULocale;
@@ -19,8 +15,8 @@ import com.ibm.icu.util.ULocale;
 import oasis.model.InvalidVersionException;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
-import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstanceRepository;
+import oasis.model.applications.v2.ApplicationRepository;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Organization;
 import oasis.model.directory.OrganizationMembership;
@@ -41,11 +37,11 @@ public class ChangeOrganizationStatus {
   private static final Logger logger = LoggerFactory.getLogger(ChangeOrganizationStatus.class);
 
   @Inject AccountRepository accountRepository;
+  @Inject ApplicationRepository applicationRepository;
   @Inject AppInstanceRepository appInstanceRepository;
   @Inject DirectoryRepository directoryRepository;
   @Inject NotificationRepository notificationRepository;
   @Inject OrganizationMembershipRepository organizationMembershipRepository;
-  @Inject ChangeAppInstanceStatus changeAppInstanceStatus;
   @Inject SoyTemplateRenderer templateRenderer;
   @Inject Urls urls;
 
@@ -60,6 +56,19 @@ public class ChangeOrganizationStatus {
           .build();
     }
 
+    if (applicationRepository.getCountByProvider(request.organization().getId()) > 0) {
+      return responseBuilder
+          .organization(request.organization())
+          .responseStatus(ResponseStatus.ORGANIZATION_PROVIDES_APPLICATIONS)
+          .build();
+    }
+    if (appInstanceRepository.getNonStoppedCountByOrganizationId(request.organization().getId()) > 0) {
+      return responseBuilder
+          .organization(request.organization())
+          .responseStatus(ResponseStatus.ORGANIZATION_HAS_APPLICATION_INSTANCES)
+          .build();
+    }
+
     Organization updatedOrganization;
     try {
       updatedOrganization = directoryRepository.changeOrganizationStatus(request.organization().getId(), request.newStatus(), request.requesterId(), request.ifMatch());
@@ -68,44 +77,6 @@ public class ChangeOrganizationStatus {
           .organization(request.organization())
           .responseStatus(ResponseStatus.VERSION_CONFLICT)
           .build();
-    }
-
-    if (request.newStatus() == Organization.Status.DELETED) {
-      // PENDING instances are not STOPPED directly.
-      // They will be set to stopped when they're provisioned
-      // So we only update RUNNING instances
-      Iterable<AppInstance> appInstances = appInstanceRepository.findByOrganizationIdAndStatus(updatedOrganization.getId(), AppInstance.InstantiationStatus.RUNNING);
-      List<AppInstance> stoppedInstances = new ArrayList<>();
-      try {
-        for (AppInstance appInstance : appInstances) {
-          ChangeAppInstanceStatus.Response changeAppStatusResponse = stopInstance(appInstance, request.requesterId());
-
-          switch (changeAppStatusResponse.responseStatus()) {
-            case SUCCESS:
-              stoppedInstances.add(changeAppStatusResponse.appInstance());
-              break;
-            case NOTHING_TO_MODIFY:
-            case NOT_FOUND:
-              break;
-            case VERSION_CONFLICT:
-              logger.error("Error while stopping app-instances.");
-              updatedOrganization = rollbackProcess(request, stoppedInstances);
-              return responseBuilder
-                  .organization(updatedOrganization)
-                  .responseStatus(ResponseStatus.CHANGE_APP_INSTANCE_STATUS_ERROR)
-                  .build();
-            default:
-              throw new IllegalStateException();
-          }
-        }
-      } catch (Exception e) {
-        logger.error("Error while stopping app-instances.", e);
-        updatedOrganization = rollbackProcess(request, stoppedInstances);
-        return responseBuilder
-            .organization(updatedOrganization)
-            .responseStatus(ResponseStatus.CHANGE_APP_INSTANCE_STATUS_ERROR)
-            .build();
-      }
     }
 
     try {
@@ -120,50 +91,6 @@ public class ChangeOrganizationStatus {
         .organization(updatedOrganization)
         .responseStatus(ResponseStatus.SUCCESS)
         .build();
-  }
-
-  private Organization rollbackProcess(Request request, List<AppInstance> stoppedInstances) {
-    Organization updatedOrganization = request.organization();
-    try {
-      updatedOrganization = directoryRepository.changeOrganizationStatus(request.organization().getId(), request.newStatus(), request.requesterId());
-    } catch (Exception e) {
-      logger.error("Error while trying to rollback organization status.", e);
-    }
-    for (AppInstance stoppedInstance : stoppedInstances) {
-      try {
-        ImmutableChangeAppInstanceStatus.Request r = ImmutableChangeAppInstanceStatus.Request.builder()
-            .appInstance(stoppedInstance)
-            .newStatus(AppInstance.InstantiationStatus.RUNNING)
-            .requesterId(MoreObjects.firstNonNull(stoppedInstance.getStatus_change_requester_id(), request.requesterId()))
-            .notifyAdmins(false)
-            .build();
-        ChangeAppInstanceStatus.Response response = changeAppInstanceStatus.updateStatus(r);
-        switch (response.responseStatus()) {
-          case SUCCESS:
-          case NOTHING_TO_MODIFY:
-            break;
-          case NOT_FOUND:
-            logger.error("Error rolling app-instance {} back to running status.", stoppedInstance.getId());
-            break;
-          case VERSION_CONFLICT:
-          default:
-            throw new AssertionError();
-        }
-      } catch (Exception e) {
-        logger.error("Error rolling app-instance {} back to running status.", stoppedInstance.getId(), e);
-      }
-    }
-    return updatedOrganization;
-  }
-
-  private ChangeAppInstanceStatus.Response stopInstance(AppInstance appInstance, String requesterId) {
-    ImmutableChangeAppInstanceStatus.Request request = ImmutableChangeAppInstanceStatus.Request.builder()
-        .appInstance(appInstance)
-        .newStatus(AppInstance.InstantiationStatus.STOPPED)
-        .requesterId(requesterId)
-        .notifyAdmins(false)
-        .build();
-    return changeAppInstanceStatus.updateStatus(request);
   }
 
   private void notifyOrganizationAdmins(String requesterId, Organization organization, Organization.Status newStatus) {
@@ -300,6 +227,7 @@ public class ChangeOrganizationStatus {
     NOTHING_TO_MODIFY,
     SUCCESS,
     VERSION_CONFLICT,
-    CHANGE_APP_INSTANCE_STATUS_ERROR
+    ORGANIZATION_PROVIDES_APPLICATIONS,
+    ORGANIZATION_HAS_APPLICATION_INSTANCES,
   }
 }

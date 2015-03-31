@@ -99,6 +99,12 @@ public class JongoAppInstanceRepository implements AppInstanceRepository, JongoB
   }
 
   @Override
+  public long getNonStoppedCountByOrganizationId(String organizationId) {
+    return getAppInstancesCollection()
+        .count("{ provider_id: #, status: { $ne: # } }", organizationId, AppInstance.InstantiationStatus.STOPPED);
+  }
+
+  @Override
   @SuppressWarnings("unchecked")
   public Iterable<AppInstance> findStoppedBefore(Instant stoppedBefore) {
     return (Iterable<AppInstance>) (Iterable<?>) getAppInstancesCollection()

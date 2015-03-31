@@ -22,6 +22,8 @@ public interface AppInstanceRepository {
 
   Iterable<AppInstance> findPersonalInstancesByUserIdAndStatus(String userId, AppInstance.InstantiationStatus instantiationStatus);
 
+  long getNonStoppedCountByOrganizationId(String organizationId);
+
   Iterable<AppInstance> findStoppedBefore(Instant stoppedBefore);
 
   AppInstance updateStatus(String instanceId, AppInstance.InstantiationStatus newStatus, String statusChangeRequesterId);

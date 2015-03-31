@@ -24,7 +24,6 @@ import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiParam;
 
 import oasis.model.InvalidVersionException;
-import oasis.model.applications.v2.ApplicationRepository;
 import oasis.model.authz.Scopes;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Organization;
@@ -45,7 +44,6 @@ import oasis.web.utils.ResponseFactory;
 @Api(value = "organization", description = "Organization")
 public class OrganizationEndpoint {
 
-  @Inject ApplicationRepository applicationRepository;
   @Inject DirectoryRepository directory;
   @Inject OrganizationMembershipRepository organizationMembershipRepository;
   @Inject ChangeOrganizationStatus changeOrganizationStatus;
@@ -135,10 +133,6 @@ public class OrganizationEndpoint {
       return error;
     }
 
-    if (applicationRepository.getCountByProvider(organizationId) > 0) {
-      return ResponseFactory.conflict("Can't remove organization related to an application");
-    }
-
     ImmutableChangeOrganizationStatus.Request changeOrganizationStatusRequest = ImmutableChangeOrganizationStatus.Request.builder()
         .organization(organization)
         .requesterId(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId())
@@ -155,10 +149,12 @@ public class OrganizationEndpoint {
             .build();
       case VERSION_CONFLICT:
         return ResponseFactory.preconditionFailed("Invalid version for organization " + organizationId);
-      case CHANGE_APP_INSTANCE_STATUS_ERROR:
-        return Response.serverError()
-            .entity("Error while stopping related app-instances.")
-            .build();
+      case ORGANIZATION_PROVIDES_APPLICATIONS:
+        // TODO: I18N
+        return ResponseFactory.forbidden("Organization provides an application.");
+      case ORGANIZATION_HAS_APPLICATION_INSTANCES:
+        // TODO: I18N
+        return ResponseFactory.forbidden("Organization has running (or pending) application instances.");
       default:
         return Response.serverError().build();
     }
