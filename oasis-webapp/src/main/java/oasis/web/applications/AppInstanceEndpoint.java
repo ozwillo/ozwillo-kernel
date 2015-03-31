@@ -6,6 +6,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
@@ -40,7 +41,9 @@ import oasis.services.authz.AppAdminHelper;
 import oasis.services.etag.EtagService;
 import oasis.urls.Urls;
 import oasis.usecases.ChangeAppInstanceStatus;
+import oasis.usecases.DeleteAppInstance;
 import oasis.usecases.ImmutableChangeAppInstanceStatus;
+import oasis.usecases.ImmutableDeleteAppInstance;
 import oasis.usecases.ServiceValidator;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
@@ -61,7 +64,8 @@ public class AppInstanceEndpoint {
   @Inject AppAdminHelper appAdminHelper;
   @Inject EtagService etagService;
   @Inject Provider<ServiceValidator> serviceValidatorProvider;
-  @Inject ChangeAppInstanceStatus changeAppInstanceStatus;
+  @Inject Provider<ChangeAppInstanceStatus> changeAppInstanceStatus;
+  @Inject Provider<DeleteAppInstance> deleteAppInstance;
 
   @Context SecurityContext securityContext;
 
@@ -218,7 +222,7 @@ public class AppInstanceEndpoint {
         .ifMatch(etagService.parseEtag(ifMatch))
         .notifyAdmins(true)
         .build();
-    ChangeAppInstanceStatus.Response changeAppInstanceStatusResponse = changeAppInstanceStatus.updateStatus(changeAppInstanceStatusRequest);
+    ChangeAppInstanceStatus.Response changeAppInstanceStatusResponse = changeAppInstanceStatus.get().updateStatus(changeAppInstanceStatusRequest);
 
     switch (changeAppInstanceStatusResponse.responseStatus()) {
       case SUCCESS:
@@ -229,6 +233,42 @@ public class AppInstanceEndpoint {
       case VERSION_CONFLICT:
         return ResponseFactory.preconditionFailed("Invalid version for app-instance " + instanceId);
       case NOT_FOUND:
+        return ResponseFactory.NOT_FOUND;
+      default:
+        return Response.serverError().build();
+    }
+  }
+
+  @DELETE
+  @ApiOperation("Deletes a pending instance")
+  @WithScopes(Scopes.PORTAL)
+  public Response deleteInstance(
+      @HeaderParam(HttpHeaders.IF_MATCH) String ifMatch
+  ) {
+    if (Strings.isNullOrEmpty(ifMatch)) {
+      return ResponseFactory.preconditionRequiredIfMatch();
+    }
+
+    DeleteAppInstance.Request request = ImmutableDeleteAppInstance.Request.builder()
+        .instanceId(instanceId)
+        .callProvider(true)
+        .checkStatus(AppInstance.InstantiationStatus.PENDING)
+        .checkVersions(etagService.parseEtag(ifMatch))
+        .notifyAdmins(false)
+        .build();
+    DeleteAppInstance.Status status = deleteAppInstance.get().deleteInstance(request, new DeleteAppInstance.Stats());
+    switch (status) {
+      case BAD_INSTANCE_VERSION:
+        return ResponseFactory.preconditionFailed("Invalid version for app-instance " + instanceId);
+      case BAD_INSTANCE_STATUS:
+        return ResponseFactory.forbidden("Cannot delete a running or stopped instance");
+      case PROVIDER_CALL_ERROR:
+      case PROVIDER_STATUS_ERROR:
+        return ResponseFactory.build(Response.Status.BAD_GATEWAY, "Application factory failed");
+      case DELETED_INSTANCE:
+        return ResponseFactory.NO_CONTENT;
+      case DELETED_LEFTOVERS:
+      case NOTHING_TO_DELETE:
         return ResponseFactory.NOT_FOUND;
       default:
         return Response.serverError().build();
