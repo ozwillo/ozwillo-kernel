@@ -227,7 +227,7 @@ public class AppInstanceEndpoint {
             .tag(etagService.getEtag(changeAppInstanceStatusResponse.appInstance()))
             .build();
       case VERSION_CONFLICT:
-        return ResponseFactory.preconditionRequired("Invalid version for app-instance " + instanceId);
+        return ResponseFactory.preconditionFailed("Invalid version for app-instance " + instanceId);
       case NOT_FOUND:
         return ResponseFactory.NOT_FOUND;
       default:
