@@ -21,5 +21,7 @@ public interface TokenRepository {
 
   int revokeTokensForScopes(Collection<String> scopeIds);
 
+  int revokeInvitationTokensForOrganizationMembership(String organizationMembershipId);
+
   Collection<String> getAllClientsForSession(String sidTokenId);
 }

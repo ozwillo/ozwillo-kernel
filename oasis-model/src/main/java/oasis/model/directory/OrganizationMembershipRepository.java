@@ -23,6 +23,10 @@ public interface OrganizationMembershipRepository {
 
   boolean deletePendingOrganizationMembership(String id);
 
+  boolean deletePendingOrganizationMembership(String id, long[] versions) throws InvalidVersionException;
+
+  Iterable<OrganizationMembership> getPendingMembersOfOrganization(String organizationId, int start, int limit);
+
   Iterable<OrganizationMembership> getMembersOfOrganization(String organizationId, int start, int limit);
 
   Iterable<OrganizationMembership> getAdminsOfOrganization(String organizationId);

@@ -166,6 +166,31 @@ public class JongoOrganizationMembershipRepository implements OrganizationMember
   }
 
   @Override
+  public boolean deletePendingOrganizationMembership(String id, long[] versions) throws InvalidVersionException {
+    int n = getOrganizationMembershipsCollection()
+        .remove("{id: #, modified: { $in: # }, status: # }", id, Longs.asList(versions), OrganizationMembership.Status.PENDING)
+        .getN();
+    if (n == 0) {
+      if (getOrganizationMembershipsCollection().count("{ id: #, status: # }", id, OrganizationMembership.Status.PENDING) != 0) {
+        throw new InvalidVersionException("organization", id);
+      }
+      return false;
+    }
+
+    return true;
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public Iterable<OrganizationMembership> getPendingMembersOfOrganization(String organizationId, int start, int limit) {
+    return (Iterable<OrganizationMembership>) (Iterable<?>) getOrganizationMembershipsCollection()
+        .find("{ organizationId: #, status: # }", organizationId, OrganizationMembership.Status.PENDING)
+        .skip(start)
+        .limit(limit)
+        .as(JongoOrganizationMembership.class);
+  }
+
+  @Override
   @SuppressWarnings("unchecked")
   public Iterable<OrganizationMembership> getMembersOfOrganization(String organizationId, int start, int limit) {
     return (Iterable<OrganizationMembership>) (Iterable<?>) getOrganizationMembershipsCollection()

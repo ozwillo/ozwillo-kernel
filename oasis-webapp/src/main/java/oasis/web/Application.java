@@ -53,6 +53,8 @@ import oasis.web.userdirectory.MembershipEndpoint;
 import oasis.web.userdirectory.MembershipInvitationPage;
 import oasis.web.userdirectory.OrganizationEndpoint;
 import oasis.web.userdirectory.OrganizationMembershipEndpoint;
+import oasis.web.userdirectory.OrganizationPendingMembershipEndpoint;
+import oasis.web.userdirectory.PendingMembershipEndpoint;
 import oasis.web.userdirectory.UserDirectoryEndpoint;
 import oasis.web.userdirectory.UserEndpoint;
 import oasis.web.userdirectory.UserMembershipEndpoint;
@@ -132,7 +134,9 @@ public class Application extends javax.ws.rs.core.Application {
         UserAppInstanceEndpoint.class,
         AccessControlEntryEndpoint.class,
         AppInstanceAccessControlEndpoint.class,
-        MembershipInvitationPage.class
+        MembershipInvitationPage.class,
+        OrganizationPendingMembershipEndpoint.class,
+        PendingMembershipEndpoint.class
         );
   }
 }

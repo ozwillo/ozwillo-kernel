@@ -126,6 +126,15 @@ public class JongoTokenRepository implements TokenRepository, JongoBootstrapper 
   }
 
   @Override
+  public int revokeInvitationTokensForOrganizationMembership(String organizationMembershipId) {
+    checkArgument(!Strings.isNullOrEmpty(organizationMembershipId));
+
+    return this.getTokensCollection()
+        .remove("{ organizationMembershipId: # }", organizationMembershipId)
+        .getN();
+  }
+
+  @Override
   public Collection<String> getAllClientsForSession(String sidTokenId) {
     checkArgument(!Strings.isNullOrEmpty(sidTokenId));
     return getTokensCollection()
