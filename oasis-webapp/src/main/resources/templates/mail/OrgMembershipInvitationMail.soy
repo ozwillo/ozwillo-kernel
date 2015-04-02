@@ -1,0 +1,34 @@
+{namespace oasis.notification autoescape="strict"}
+
+/**
+ * New organization membership invitation email subject.
+ */
+{template .newMembershipInvitationSubject kind="text"}
+{@param requesterName:    string} /** Requester name. */
+{@param organizationName: string} /** Organization name. */
+
+{msg desc="Organization membership invitation email subject"}
+{$requesterName} has invited you to join the {$organizationName} organization
+{/msg}
+{/template}
+
+/**
+ * New organization membership invitation email body.
+ */
+{template .newMembershipInvitationBody}
+{@param requesterName:           string} /** Requester name. */
+{@param organizationName:        string} /** Organization name. */
+{@param membershipInvitationUrl: string} /** Link to the membership invitation page. */
+
+<!DOCTYPE html>
+<html>
+<body>
+{msg desc="Organization membership invitation email body"}
+  <p>{$requesterName} has invited you to join the {$organizationName} organization on Ozwillo.
+  <p>To accept or reject the invitation, follow this link: <a href="{$membershipInvitationUrl}">{$membershipInvitationUrl}</a>.
+  <p>If you were not expecting this invitation, you can ignore this email.
+  <p>The Ozwillo team
+{/msg}
+</body>
+</html>
+{/template}

@@ -28,6 +28,7 @@ import oasis.jongo.guice.JongoModule;
 import oasis.mail.MailModule;
 import oasis.tools.CommandLineTool;
 import oasis.urls.UrlsModule;
+import oasis.userdirectory.UserDirectoryModule;
 import oasis.web.guice.OasisGuiceModule;
 
 public class WebApp extends CommandLineTool {
@@ -57,7 +58,8 @@ public class WebApp extends CommandLineTool {
         AuthModule.create(config.getConfig("oasis.auth")
             .withFallback(config.withOnlyPath("oasis.conf-dir"))),
         UrlsModule.create(config.getConfig("oasis.urls")),
-        MailModule.create(config.getConfig("oasis.mail"))
+        MailModule.create(config.getConfig("oasis.mail")),
+        UserDirectoryModule.create(config.getConfig("oasis.userdirectory"))
     );
 
     final HttpServer server = injector.getInstance(HttpServer.class);

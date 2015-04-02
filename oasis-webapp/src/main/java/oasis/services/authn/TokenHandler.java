@@ -17,6 +17,7 @@ import oasis.model.authn.AccessToken;
 import oasis.model.authn.AccountActivationToken;
 import oasis.model.authn.AuthorizationCode;
 import oasis.model.authn.ChangePasswordToken;
+import oasis.model.authn.MembershipInvitationToken;
 import oasis.model.authn.RefreshToken;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.Token;
@@ -24,6 +25,7 @@ import oasis.model.authn.TokenRepository;
 import oasis.auth.AuthModule;
 import oasis.model.authz.Scopes;
 import oasis.services.authn.login.PasswordHasher;
+import oasis.userdirectory.UserDirectoryModule;
 
 public class TokenHandler {
   private static final BaseEncoding BASE_ENCODING = BaseEncoding.base64Url().omitPadding();
@@ -32,14 +34,17 @@ public class TokenHandler {
 
   private final TokenRepository tokenRepository;
   private final AuthModule.Settings authSettings;
+  private final UserDirectoryModule.Settings userDirectorySettings;
   private final PasswordHasher passwordHasher;
   private final SecureRandom secureRandom;
   private final Clock clock;
 
   @Inject TokenHandler(TokenRepository tokenRepository, AuthModule.Settings oidcSettings,
-      PasswordHasher passwordHasher, SecureRandom secureRandom, Clock clock) {
+      UserDirectoryModule.Settings userDirectorySettings, PasswordHasher passwordHasher,
+      SecureRandom secureRandom, Clock clock) {
     this.tokenRepository = tokenRepository;
     this.authSettings = oidcSettings;
+    this.userDirectorySettings = userDirectorySettings;
     this.passwordHasher = passwordHasher;
     this.secureRandom = secureRandom;
     this.clock = clock;
@@ -190,6 +195,22 @@ public class TokenHandler {
     }
 
     return sidToken;
+  }
+
+  public MembershipInvitationToken createInvitationToken(String organizationMembershipId, String pass) {
+    checkArgument(!Strings.isNullOrEmpty(organizationMembershipId));
+
+    MembershipInvitationToken invitationToken = new MembershipInvitationToken();
+    invitationToken.setOrganizationMembershipId(organizationMembershipId);
+    invitationToken.expiresIn(userDirectorySettings.invitationTokenDuration());
+
+    secureToken(invitationToken, pass);
+
+    if (!tokenRepository.registerToken(invitationToken)) {
+      return null;
+    }
+
+    return invitationToken;
   }
 
   private <T extends Token> T getCheckedToken(TokenInfo tokenInfo, Class<T> tokenClass) {

@@ -186,6 +186,7 @@ public class Bootstrap extends CommandLineTool {
     membership.setAccountId(adminAccountId);
     membership.setOrganizationId(oasis.getId());
     membership.setAdmin(true);
+    membership.setStatus(OrganizationMembership.Status.ACCEPTED);
     organizationMembershipRepositoryProvider.get().createOrganizationMembership(membership);
 
     return oasis.getId();

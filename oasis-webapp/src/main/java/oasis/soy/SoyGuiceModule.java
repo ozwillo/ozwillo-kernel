@@ -24,14 +24,17 @@ public class SoyGuiceModule extends AbstractModule {
         .add(getClass().getResource("/templates/Logout.soy"))
         .add(getClass().getResource("/templates/Authorize.soy"))
         .add(getClass().getResource("/templates/ChangePassword.soy"))
+        .add(getClass().getResource("/templates/OrgMembershipInvitation.soy"))
         .add(getClass().getResource("/templates/mail/SignUp.soy"))
         .add(getClass().getResource("/templates/mail/RecoverMail.soy"))
+        .add(getClass().getResource("/templates/mail/OrgMembershipInvitationMail.soy"))
         .add(getClass().getResource("/templates/notification/AppProvisioning.soy"))
         .add(getClass().getResource("/templates/notification/DeletedOrganizationMembership.soy"))
         .add(getClass().getResource("/templates/notification/ChangedAppInstanceStatus.soy"))
         .add(getClass().getResource("/templates/notification/ChangedOrganizationStatus.soy"))
         .add(getClass().getResource("/templates/notification/DeletedAppInstance.soy"))
         .add(getClass().getResource("/templates/notification/DeletedOrganization.soy"))
+        .add(getClass().getResource("/templates/notification/OrgMembershipInvitationNotification.soy"))
         .build()
         .compileToTofu();
   }

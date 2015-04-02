@@ -1,0 +1,64 @@
+{namespace oasis.notification autoescape="strict"}
+
+/**
+ * New organization membership invitation message notification message for admins.
+ */
+{template .newMembershipInvitationAdminMessage kind="text"}
+{@param invitedUserEmail: string} /** User email. */
+{@param requesterName:    string} /** Requester name. */
+{@param organizationName: string} /** Organization name. */
+
+{msg desc="New organization membership invitation notification message for admins"}
+{$requesterName} has invited {$invitedUserEmail} to join the {$organizationName} organization.
+{/msg}
+{/template}
+
+/**
+ * Accepted organization membership invitation message notification message for admins.
+ */
+{template .acceptedMembershipInvitationAdminMessage kind="text"}
+{@param invitedUserEmail: string} /** User email. */
+{@param requesterName:    string} /** Requester name. */
+{@param organizationName: string} /** Organization name. */
+
+{msg desc="Accepted organization membership invitation notification message for admins"}
+{$invitedUserEmail} has accepted {$requesterName} invitation to join the {$organizationName} organization.
+{/msg}
+{/template}
+
+/**
+ * Accepted organization membership invitation message notification message for the requester.
+ */
+{template .acceptedMembershipInvitationRequesterMessage kind="text"}
+{@param invitedUserEmail: string} /** User email. */
+{@param organizationName: string} /** Organization name. */
+
+{msg desc="Accepted organization membership invitation notification message for the requester"}
+{$invitedUserEmail} has accepted your invitation to join the {$organizationName} organization.
+{/msg}
+{/template}
+
+/**
+ * Rejected
+ */
+{template .rejectedMembershipInvitationAdminMessage kind="text"}
+{@param invitedUserEmail: string} /** User email. */
+{@param requesterName:    string} /** Requester name. */
+{@param organizationName: string} /** Organization name. */
+
+{msg desc="Rejected organization membership invitation notification message for admins"}
+{$invitedUserEmail} has rejected {$requesterName} invitation to join the {$organizationName} organization.
+{/msg}
+{/template}
+
+/**
+ * Rejected
+ */
+{template .rejectedMembershipInvitationRequesterMessage kind="text"}
+{@param invitedUserEmail: string} /** User email. */
+{@param organizationName: string} /** Organization name. */
+
+{msg desc="Rejected organization membership invitation notification message for the requester"}
+{$invitedUserEmail} has rejected your invitation to join the {$organizationName} organization.
+{/msg}
+{/template}

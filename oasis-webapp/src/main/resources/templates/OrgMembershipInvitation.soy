@@ -1,0 +1,73 @@
+{namespace oasis autoescape="strict"}
+
+/**
+ * Membership invitation page.
+ */
+{template .membershipInvitation}
+{@param  requesterName:    string} /** Requester name. */
+{@param  organizationName: string} /** Organization name. */
+{@param  acceptFormAction: string} /** URL to post the accept form to. */
+{@param  refuseFormAction: string} /** URL to post the refuse form to. */
+
+{call .header}
+  {param title kind="text"}{msg desc="membership invitation page"}Accept or refuse membership invitation{/msg}{/param}
+{/call}
+
+<style>{literal}
+main { text-align: center; }
+h1 { font-weight: lighter; font-size: 1.8em; }
+button {
+  background: #6e418e; color: white;
+  margin: 5px 1em;
+  padding: .5em 2em;
+  border: 1px solid #6e418e;
+  border-radius: 10px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+form {
+  display: inline-block;
+}
+{/literal}</style>
+
+{let $requesterNameBold kind="html"}
+  <b>{$requesterName}</b>
+{/let}
+{let $organizationNameBold kind="html"}
+  <b>{$organizationName}</b>
+{/let}
+<h1>{msg desc="membership invitation description"}{$requesterNameBold} has invited you to join the {$organizationNameBold} organization.{/msg}</h1>
+<div>
+  <form method="POST" action="{$acceptFormAction}">
+    <button type="submit">{msg desc="Accept membership invitation form submit button"}Accept{/msg}</button>
+  </form>
+  <form method="POST" action="{$refuseFormAction}">
+    <button type="submit">{msg desc="Reject membership invitation form submit button"}Reject{/msg}</button>
+  </form>
+</div>
+
+{call .footer /}
+{/template}
+
+
+/**
+ * Membership invitation page token error.
+ */
+{template .membershipInvitationTokenError}
+
+{call .header}
+  {param title kind="text"}{msg desc="membership invitation page error"}Expired invitation{/msg}{/param}
+{/call}
+
+<style>{literal}
+main { text-align: center; }
+h1 { font-weight: lighter; font-size: 1.8em; }
+{/literal}</style>
+
+<h1>{msg desc="membership invitation error title"}Your invitation is expired{/msg}</h1>
+
+<p>{msg desc="membership invitation error description"}Please contact an administrator of the organization related to the invitation.{/msg}</p>
+
+{call .footer /}
+{/template}

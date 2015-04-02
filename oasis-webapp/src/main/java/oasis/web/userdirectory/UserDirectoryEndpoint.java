@@ -68,6 +68,7 @@ public class UserDirectoryEndpoint {
     membership.setOrganizationId(organization.getId());
     membership.setAccountId(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId());
     membership.setAdmin(true);
+    membership.setStatus(OrganizationMembership.Status.ACCEPTED);
     organizationMembershipRepository.createOrganizationMembership(membership);
 
     // XXX: add link to org membership that we just created?

@@ -50,6 +50,7 @@ import oasis.web.security.SecureFilter;
 import oasis.web.security.StrictRefererFilter;
 import oasis.web.status.StatusEndpoint;
 import oasis.web.userdirectory.MembershipEndpoint;
+import oasis.web.userdirectory.MembershipInvitationPage;
 import oasis.web.userdirectory.OrganizationEndpoint;
 import oasis.web.userdirectory.OrganizationMembershipEndpoint;
 import oasis.web.userdirectory.UserDirectoryEndpoint;
@@ -130,7 +131,8 @@ public class Application extends javax.ws.rs.core.Application {
         OrganizationAppInstanceEndpoint.class,
         UserAppInstanceEndpoint.class,
         AccessControlEntryEndpoint.class,
-        AppInstanceAccessControlEndpoint.class
+        AppInstanceAccessControlEndpoint.class,
+        MembershipInvitationPage.class
         );
   }
 }

@@ -7,6 +7,11 @@
         <target>https://www.ozwillo.com/fr/cgu</target>
         <note priority="1" from="description">terms of use URL</note>
       </trans-unit>
+      <trans-unit id="112067034614295505" datatype="html">
+        <source><x id="INVITED_USER_EMAIL"/> has accepted your invitation to join the <x id="ORGANIZATION_NAME"/> organization.</source>
+        <target><x id="INVITED_USER_EMAIL"/> a accepté votre invitation à rejoindre l'organisation <x id="ORGANIZATION_NAME"/>.</target>
+        <note priority="1" from="description">Accepted organization membership invitation notification message for the requester</note>
+      </trans-unit>
       <trans-unit id="153573648835304242" datatype="html">
         <source>Account Access Attempted</source>
         <target>Tentative d'accès à un compte Ozwillo</target>
@@ -31,6 +36,16 @@
         <source>Ozwillo password reset</source>
         <target>Réinitialisation de mot de passe Ozwillo</target>
         <note priority="1" from="description">Forgot-password email subject, for an existing account</note>
+      </trans-unit>
+      <trans-unit id="865768820644927420" datatype="html">
+        <source>Please contact an administrator of the organization related to the invitation.</source>
+        <target>Contactez un administrateur de l'organisation à laquelle vous avez été invité.</target>
+        <note priority="1" from="description">membership invitation error description</note>
+      </trans-unit>
+      <trans-unit id="882782820458660907" datatype="html">
+        <source>Expired invitation</source>
+        <target>Invitation expirée</target>
+        <note priority="1" from="description">membership invitation page error</note>
       </trans-unit>
       <trans-unit id="896282919376501263" datatype="html">
         <source>An error occurred. That's all we know.</source>
@@ -85,6 +100,11 @@
       <trans-unit id="1702605619572199250" datatype="html">
         <source>The organization <x id="ORGANIZATION_NAME"/> has been restored.</source>
         <note priority="1" from="description">Restored organization requester notification message</note>
+      </trans-unit>
+      <trans-unit id="1725174351395785101" datatype="html">
+        <source><x id="REQUESTER_NAME"/> has invited you to join the <x id="ORGANIZATION_NAME"/> organization</source>
+        <target><x id="REQUESTER_NAME"/> vous invite à rejoindre l'organisation <x id="ORGANIZATION_NAME"/></target>
+        <note priority="1" from="description">Organization membership invitation email subject</note>
       </trans-unit>
       <trans-unit id="1905705329717211043" datatype="html">
         <source>The application <x id="APP_INSTANCE_NAME"/> was uninstalled successfully.</source>
@@ -211,6 +231,11 @@
         <target>Votre adresse email :</target>
         <note priority="1" from="description">Email field label for account recovery</note>
       </trans-unit>
+      <trans-unit id="4234642644438435485" datatype="html">
+        <source>Accept or refuse membership invitation</source>
+        <target>Accepter ou refuser l'invitation pour une organisation</target>
+        <note priority="1" from="description">membership invitation page</note>
+      </trans-unit>
       <trans-unit id="4503676110666500451" datatype="html">
         <source>Some required fields are not filled.</source>
         <target>Certains champs requis sont vides.</target>
@@ -291,6 +316,11 @@
         <target>Nouveau mot de passe :</target>
         <note priority="1" from="description">New password (when changing password)</note>
       </trans-unit>
+      <trans-unit id="6255851471461697144" datatype="html">
+        <source><x id="REQUESTER_NAME"/> has invited <x id="INVITED_USER_EMAIL"/> to join the <x id="ORGANIZATION_NAME"/> organization.</source>
+        <target><x id="REQUESTER_NAME"/> a invité <x id="INVITED_USER_EMAIL"/> à rejoindre l'organization <x id="ORGANIZATION_NAME"/>.</target>
+        <note priority="1" from="description">New organization membership invitation notification message for admins</note>
+      </trans-unit>
       <trans-unit id="6263536566459432245" datatype="html">
         <source>Activate your Ozwillo account</source>
         <target>Activez votre compte Ozwillo</target>
@@ -316,6 +346,11 @@
         <target>Ce lien a expiré. Essayez à nouveau ci-dessous.</target>
         <note priority="1" from="description">Error message during account recovery</note>
       </trans-unit>
+      <trans-unit id="6958276782575850559" datatype="html">
+        <source><x id="INVITED_USER_EMAIL"/> has rejected <x id="REQUESTER_NAME"/> invitation to join the <x id="ORGANIZATION_NAME"/> organization.</source>
+        <target><x id="INVITED_USER_EMAIL"/> a refusé l'invitation de <x id="REQUESTER_NAME"/> à rejoindre l'organization <x id="ORGANIZATION_NAME"/>.</target>
+        <note priority="1" from="description">Rejected organization membership invitation notification message for admins</note>
+      </trans-unit>
       <trans-unit id="7028204981963450021" datatype="html">
         <source>Sign up</source>
         <target>S'inscrire</target>
@@ -326,10 +361,20 @@
         <target>Gérer mon réseau.</target>
         <note priority="1" from="description">Soflty deleted organization notification action label</note>
       </trans-unit>
+      <trans-unit id="7378878529334768232" datatype="html">
+        <source>Reject</source>
+        <target>Refuser</target>
+        <note priority="1" from="description">Reject membership invitation form submit button</note>
+      </trans-unit>
       <trans-unit id="7418322490061402095" datatype="html">
         <source>Account pending activation</source>
         <target>Compte en attente d'activation</target>
         <note priority="1" from="description">activation pending title</note>
+      </trans-unit>
+      <trans-unit id="7584118525039558774" datatype="html">
+        <source><x id="INVITED_USER_EMAIL"/> has accepted <x id="REQUESTER_NAME"/> invitation to join the <x id="ORGANIZATION_NAME"/> organization.</source>
+        <target><x id="INVITED_USER_EMAIL"/> a accepté l'invitation de <x id="REQUESTER_NAME"/> à rejoindre l'organization <x id="ORGANIZATION_NAME"/>.</target>
+        <note priority="1" from="description">Accepted organization membership invitation notification message for admins</note>
       </trans-unit>
       <trans-unit id="7601564290921092628" datatype="html">
         <source><x id="START_PARAGRAPH"/>You (or someone else) entered this email address when trying to change the password of an Ozwillo account.<x id="START_PARAGRAPH"/>To continue with the password reset process, please proceed to:<x id="START_BREAK"/><x id="START_LINK"/><x id="RESET_PASSWORD_LINK"/><x id="END_LINK"/><x id="START_PARAGRAPH"/>The Ozwillo team</source>
@@ -371,10 +416,25 @@
         <target>Mot de passe actuel :</target>
         <note priority="1" from="description">Current password when changing password</note>
       </trans-unit>
+      <trans-unit id="8175006045572546420" datatype="html">
+        <source><x id="START_PARAGRAPH"/><x id="REQUESTER_NAME"/> has invited you to join the <x id="ORGANIZATION_NAME"/> organization on Ozwillo.<x id="START_PARAGRAPH"/>To accept or reject the invitation, follow this link: <x id="START_LINK"/><x id="MEMBERSHIP_INVITATION_URL"/><x id="END_LINK"/>.<x id="START_PARAGRAPH"/>If you were not expecting this invitation, you can ignore this email.<x id="START_PARAGRAPH"/>The Ozwillo team</source>
+        <target><x id="START_PARAGRAPH"/><x id="REQUESTER_NAME"/> vous a invité à rejoindre l'organisation <x id="ORGANIZATION_NAME"/> sur Ozwillo.<x id="START_PARAGRAPH"/>Pour accepter ou refuser l'invitation, suivez ce lien: <x id="START_LINK"/><x id="MEMBERSHIP_INVITATION_URL"/><x id="END_LINK"/>.<x id="START_PARAGRAPH"/>Si vous n'attendiez pas cette invitation, vous pouvez ignorer cet e-mail.<x id="START_PARAGRAPH"/>L'équipe Ozwillo</target>
+        <note priority="1" from="description">Organization membership invitation email body</note>
+      </trans-unit>
       <trans-unit id="8264044238565501678" datatype="html">
         <source>Forgot password</source>
         <target>Mot de passe oublié</target>
         <note priority="1" from="description">Forgot password page title</note>
+      </trans-unit>
+      <trans-unit id="8337413809318495209" datatype="html">
+        <source>Your invitation is expired</source>
+        <target>Votre invitation a expiré</target>
+        <note priority="1" from="description">membership invitation error title</note>
+      </trans-unit>
+      <trans-unit id="8403676796644890469" datatype="html">
+        <source><x id="INVITED_USER_EMAIL"/> has rejected your invitation to join the <x id="ORGANIZATION_NAME"/> organization.</source>
+        <target><x id="INVITED_USER_EMAIL"/> a refusé votre invitation à rejoindre l'organization <x id="ORGANIZATION_NAME"/>.</target>
+        <note priority="1" from="description">Rejected organization membership invitation notification message for the requester</note>
       </trans-unit>
       <trans-unit id="8450994523775212991" datatype="html">
         <source>Your password has been changed</source>
@@ -405,6 +465,16 @@
         <source>You've signed out of <x id="START_BOLD"/><x id="APP_NAME"/><x id="END_BOLD"/></source>
         <target>Vous vous êtes déconnecté de <x id="START_BOLD"/><x id="APP_NAME"/><x id="END_BOLD"/></target>
         <note priority="1" from="description">successful sign-out from specific app</note>
+      </trans-unit>
+      <trans-unit id="8905995985388209337" datatype="html">
+        <source>Accept</source>
+        <target>Accepter</target>
+        <note priority="1" from="description">Accept membership invitation form submit button</note>
+      </trans-unit>
+      <trans-unit id="9037092558215129061" datatype="html">
+        <source><x id="REQUESTER_NAME_BOLD"/> has invited you to join the <x id="ORGANIZATION_NAME_BOLD"/> organization.</source>
+        <target><x id="REQUESTER_NAME_BOLD"/> vous invite à rejoindre l'organization <x id="ORGANIZATION_NAME_BOLD"/>.</target>
+        <note priority="1" from="description">membership invitation description</note>
       </trans-unit>
       <trans-unit id="9118307257372703426" datatype="html">
         <source>Choose your new password</source>

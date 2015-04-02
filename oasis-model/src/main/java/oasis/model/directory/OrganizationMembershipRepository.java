@@ -7,13 +7,21 @@ import oasis.model.InvalidVersionException;
 public interface OrganizationMembershipRepository {
   @Nullable OrganizationMembership createOrganizationMembership(OrganizationMembership membership);
 
+  @Nullable OrganizationMembership createPendingOrganizationMembership(OrganizationMembership membership);
+
   @Nullable OrganizationMembership getOrganizationMembership(String id);
+
+  @Nullable OrganizationMembership getPendingOrganizationMembership(String id);
 
   @Nullable OrganizationMembership getOrganizationMembership(String userId, String organizationId);
 
   @Nullable OrganizationMembership updateOrganizationMembership(OrganizationMembership membership, long[] versions) throws InvalidVersionException;
 
+  @Nullable OrganizationMembership acceptPendingOrganizationMembership(String membershipId, String accountId);
+
   boolean deleteOrganizationMembership(String id, long[] versions) throws InvalidVersionException;
+
+  boolean deletePendingOrganizationMembership(String id);
 
   Iterable<OrganizationMembership> getMembersOfOrganization(String organizationId, int start, int limit);
 
