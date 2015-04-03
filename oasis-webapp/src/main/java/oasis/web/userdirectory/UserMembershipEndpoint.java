@@ -5,7 +5,6 @@ import java.util.Objects;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -81,42 +80,12 @@ public class UserMembershipEndpoint {
         .build();
   }
 
-  @POST
-  @ApiOperation(
-      value = "Creates a membership",
-      response = OrganizationMembership.class
-  )
-  public Response post(MembershipRequest request) {
-    if (!Objects.equals(userId, ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId())) {
-      return Response.status(Response.Status.FORBIDDEN).build();
-    }
-    OrganizationMembership membership = new OrganizationMembership();
-    membership.setAccountId(userId);
-    // TODO: check existence of the organization
-    membership.setOrganizationId(request.organisation_id);
-    membership.setAdmin(request.admin);
-    // TODO: notify org admins for approval
-    membership = organizationMembershipRepository.createOrganizationMembership(membership);
-    if (membership == null) {
-      return Response.status(Response.Status.CONFLICT).build();
-    }
-    return Response.created(Resteasy1099.getBaseUriBuilder(uriInfo).path(MembershipEndpoint.class).build(membership.getId()))
-        .tag(etagService.getEtag(membership))
-        .entity(membership)
-        .build();
-  }
-
   static class UserMembership {
     @JsonProperty String id;
     @JsonProperty String membership_uri;
     @JsonProperty String membership_etag;
     @JsonProperty String organization_id;
     @JsonProperty String organization_name;
-    @JsonProperty boolean admin;
-  }
-
-  static class MembershipRequest {
-    @JsonProperty String organisation_id;
     @JsonProperty boolean admin;
   }
 }
