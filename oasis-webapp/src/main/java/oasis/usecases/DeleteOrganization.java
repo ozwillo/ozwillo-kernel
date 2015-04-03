@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
 import com.google.template.soy.data.SanitizedContent;
 import com.google.template.soy.data.SoyMapData;
 import com.ibm.icu.util.ULocale;
@@ -49,6 +50,9 @@ public class DeleteOrganization {
       directoryRepository.deleteOrganization(request.organization().getId());
     }
 
+    // Save list of admins, to notify them afterwards.
+    ImmutableList<OrganizationMembership> admins = ImmutableList.copyOf(organizationMembershipRepository.getAdminsOfOrganization(request.organization().getId()));
+
     organizationMembershipRepository.deleteMembershipsInOrganization(request.organization().getId());
 
     ResponseStatus responseStatus = ResponseStatus.SUCCESS;
@@ -80,7 +84,7 @@ public class DeleteOrganization {
     }
 
     try {
-      notifyAdmins(request.organization());
+      notifyAdmins(request.organization(), admins);
     } catch (Exception e) {
       // Don't fail if we can't notify
       logger.error("Error notifying admins after deleting the organization {}", request.organization().getId(), e);
@@ -89,7 +93,7 @@ public class DeleteOrganization {
     return responseStatus;
   }
 
-  private void notifyAdmins(Organization organization) {
+  private void notifyAdmins(Organization organization, ImmutableList<OrganizationMembership> admins) {
     Notification notificationPrototype = new Notification();
     SoyMapData data = new SoyMapData();
     data.put(DeletedOrganizationMessageSoyTemplateInfo.ORGANIZATION_NAME, organization.getName());
@@ -102,7 +106,6 @@ public class DeleteOrganization {
           DeletedOrganizationSoyInfo.DELETED_ORGANIZATION_MESSAGE, locale, SanitizedContent.ContentKind.TEXT, data)));
     }
 
-    Iterable<OrganizationMembership> admins = organizationMembershipRepository.getAdminsOfOrganization(organization.getId());
     for (OrganizationMembership admin : admins) {
       try {
         Notification notification = new Notification(notificationPrototype);
