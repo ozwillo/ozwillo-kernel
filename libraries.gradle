@@ -1,4 +1,4 @@
-allprojects {
+subprojects {
   repositories {
     mavenCentral()
   }
@@ -6,27 +6,6 @@ allprojects {
     modules {
       module("javassist:javassist") {
         replacedBy("org.javassist:javassist")
-      }
-    }
-  }
-  configurations.all {
-    resolutionStrategy {
-      // AGPL-compatible alternatives (mostly Apache v2)
-      def replacements = [
-        'org.jboss.spec.javax.annotation:jboss-annotations-api_1.1_spec': 'org.apache.geronimo.specs:geronimo-annotation_1.1_spec:1.0.1',
-        'javax.activation:activation': 'org.apache.geronimo.specs:geronimo-activation_1.1_spec:1.1',
-        // Use an Apache-licensed clean-room reimplementation of JCIP Annotations.
-        // The original JCIP Annotations are under Creative Commons Attribution License
-        // which is not recommended for software, and incompatible with AGPL.
-        // https://wiki.creativecommons.org/Frequently_Asked_Questions#Can_I_apply_a_Creative_Commons_license_to_software.3F
-        'net.jcip:jcip-annotations': 'com.github.stephenc.jcip:jcip-annotations:1.0-1',
-      ]
-      eachDependency { DependencyResolveDetails details ->
-        def key = details.requested.group + ':' + details.requested.name
-        def replacement = replacements[key]
-        if (replacement) {
-          details.useTarget(replacement)
-        }
       }
     }
   }
@@ -115,7 +94,7 @@ ext.libs = [
 
   galimatias:          'io.mola.galimatias:galimatias:0.2.1',
 
-  mail:                'org.apache.geronimo.javamail:geronimo-javamail_1.4_mail:1.8.4',
+  mail:                'com.sun.mail:javax.mail:1.5.2',
 
   // Keep version in sync with the one implemented by log4j-slf4j-impl, or it'll fail at runtime
   slf4j:               'org.slf4j:slf4j-api:1.7.7',
@@ -134,7 +113,7 @@ ext.libs = [
         exclude module: 'jsr311-api'  // conflicts with org.jboss.resteasy:jaxrs-api
         exclude module: 'mockito-all' // conflicts with mockito-core
       },
-      'org.apache.geronimo.specs:geronimo-servlet_2.5_spec:1.2'
+      'javax.servlet:servlet-api:2.5'
     ],
   swagger_ui:          'org.webjars:swagger-ui:2.0.17',
 
@@ -157,3 +136,4 @@ ext.libs = [
       'org.assertj:assertj-joda-time:1.1.0',
     ],
 ]
+

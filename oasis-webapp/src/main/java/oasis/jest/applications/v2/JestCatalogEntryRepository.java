@@ -200,12 +200,13 @@ public class JestCatalogEntryRepository implements CatalogEntryRepository, JestB
     checkArgument(catalogEntry.isVisible());
     checkNotNull(catalogEntry.getId());
 
+    // Note: we don't copy the ID, we set it as the ES document ID, and we'll inject it back into the result on search.
     SimpleCatalogEntry indexableCatalogEntry = new SimpleCatalogEntry(catalogEntry);
     try {
       Index indexAction = new Index.Builder(OBJECT_MAPPER.writeValueAsString(indexableCatalogEntry))
           .index(INDEX_NAME)
           .type(catalogEntry.getType().name())
-          .id(indexableCatalogEntry.getId())
+          .id(catalogEntry.getId())
           .build();
       return executeAsync(indexAction);
     } catch (Exception e) {
