@@ -15,6 +15,7 @@ def guiceVersion = '4.0-beta5'
 def immutablesVersion = '1.1.3'
 def jacksonVersion = '2.5.1'
 def log4jVersion = '2.2'
+def okhttpVersion = '2.3.0'
 def resteasyVersion = '3.0.6.Final'
 def swaggerVersion = '1.3.5'
 
@@ -63,7 +64,8 @@ ext.libs = [
       exclude module: 'scannotation'
     },
 
-  okhttp:             'com.squareup.okhttp:okhttp:2.3.0',
+  okhttp:             "com.squareup.okhttp:okhttp:${okhttpVersion}",
+  okhttp_mockserver:  "com.squareup.okhttp:mockwebserver:${okhttpVersion}",
 
   closure_templates_standalone: [
       'com.google.template:soy:2015-03-06',

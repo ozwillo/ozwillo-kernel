@@ -25,6 +25,7 @@ import javax.inject.Inject;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.ws.rs.ProcessingException;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.jboss.resteasy.client.jaxrs.ClientHttpEngine;
@@ -39,6 +40,7 @@ import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
 
+import okio.Buffer;
 import okio.BufferedSink;
 
 /**
@@ -100,10 +102,24 @@ public class OkHttpClientEngine implements ClientHttpEngine {
       return null;
     }
 
+    // NOTE: this will invoke WriterInterceptors which can possibly change the request,
+    // so it must be done first, before reading any header.
+    final Buffer buffer = new Buffer();
+    try {
+      request.writeRequestBody(buffer.outputStream());
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+
     javax.ws.rs.core.MediaType mediaType = request.getHeaders().getMediaType();
     final MediaType contentType = (mediaType == null) ? null : MediaType.parse(mediaType.toString());
 
     return new RequestBody() {
+      @Override
+      public long contentLength() throws IOException {
+        return buffer.size();
+      }
+
       @Override
       public MediaType contentType() {
         return contentType;
@@ -111,7 +127,7 @@ public class OkHttpClientEngine implements ClientHttpEngine {
 
       @Override
       public void writeTo(BufferedSink sink) throws IOException {
-        request.writeRequestBody(sink.outputStream());
+        sink.write(buffer, buffer.size());
       }
     };
   }

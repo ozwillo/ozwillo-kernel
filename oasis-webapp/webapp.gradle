@@ -36,6 +36,7 @@ dependencies {
   testCompile libs.mockito
   testCompile libs.jukito
   testCompile libs.assertj
+  testCompile libs.okhttp_mockserver
 }
 
 configurations {

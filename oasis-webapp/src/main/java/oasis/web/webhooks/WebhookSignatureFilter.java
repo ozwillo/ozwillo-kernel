@@ -31,7 +31,7 @@ import com.google.common.io.BaseEncoding;
 @Priority(Priorities.HEADER_DECORATOR)
 public class WebhookSignatureFilter implements WriterInterceptor {
   private static final String ALGORITHM = "HmacSHA1";
-  @VisibleForTesting static final String HEADER = "X-Hub-Signature";
+  @VisibleForTesting public static final String HEADER = "X-Hub-Signature";
 
   private final String secret;
 
