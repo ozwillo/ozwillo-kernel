@@ -24,6 +24,7 @@ import oasis.jongo.guice.JongoModule;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Organization;
 import oasis.soy.SoyGuiceModule;
+import oasis.urls.UrlsModule;
 import oasis.usecases.DeleteOrganization;
 import oasis.usecases.ImmutableDeleteOrganization;
 
@@ -54,6 +55,7 @@ public class PurgeDeletedOrganization extends CommandLineTool {
     }
 
     final Injector injector = Guice.createInjector(
+        UrlsModule.create(config.getConfig("oasis.urls")),
         new SoyGuiceModule(),
         JongoModule.create(config.getConfig("oasis.mongo")),
         new HttpClientModule(),

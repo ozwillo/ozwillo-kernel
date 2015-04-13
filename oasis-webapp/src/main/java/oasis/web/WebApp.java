@@ -26,6 +26,7 @@ import oasis.jest.guice.JestModule;
 import oasis.jongo.JongoService;
 import oasis.jongo.guice.JongoModule;
 import oasis.mail.MailModule;
+import oasis.soy.SoyGuiceModule;
 import oasis.tools.CommandLineTool;
 import oasis.urls.UrlsModule;
 import oasis.userdirectory.UserDirectoryModule;
@@ -53,6 +54,7 @@ public class WebApp extends CommandLineTool {
         HttpServerModule.create(config.getConfig("oasis.http")),
         ElasticsearchModule.create(config.getConfig("oasis.elasticsearch")),
         new JestModule(),
+        new SoyGuiceModule(),
         new CatalogModule(),
         // TODO: store PKIs in DB to use a single subtree of the config
         AuthModule.create(config.getConfig("oasis.auth")

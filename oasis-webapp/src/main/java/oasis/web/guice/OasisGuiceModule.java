@@ -16,7 +16,5 @@ public class OasisGuiceModule extends AbstractModule {
     bind(Clock.class).toInstance(Clock.SYSTEM);
 
     bind(PasswordHasher.class).to(SCryptPasswordHasher.class);
-
-    install(new SoyGuiceModule());
   }
 }

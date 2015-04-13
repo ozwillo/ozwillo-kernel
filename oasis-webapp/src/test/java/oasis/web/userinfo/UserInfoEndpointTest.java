@@ -29,6 +29,7 @@ import oasis.model.authz.Scopes;
 import oasis.security.KeyPairLoader;
 import oasis.urls.ImmutableUrls;
 import oasis.urls.Urls;
+import oasis.urls.UrlsModule;
 import oasis.web.authn.testing.TestOAuthFilter;
 
 @RunWith(JukitoRunner.class)
@@ -38,12 +39,13 @@ public class UserInfoEndpointTest {
     protected void configureTest() {
       bind(UserInfoEndpoint.class);
 
+      install(new UrlsModule(ImmutableUrls.builder().build()));
+
       bind(JsonFactory.class).to(JacksonFactory.class);
 
       bind(AuthModule.Settings.class).toInstance(AuthModule.Settings.builder()
           .setKeyPair(KeyPairLoader.generateRandomKeyPair())
           .build());
-      bind(Urls.class).toInstance(ImmutableUrls.builder().build());
     }
   }
 

@@ -24,6 +24,7 @@ import oasis.model.applications.v2.CatalogEntry;
 import oasis.model.applications.v2.Application;
 import oasis.model.applications.v2.ApplicationRepository;
 import oasis.soy.SoyGuiceModule;
+import oasis.urls.UrlsModule;
 
 public class IndexApplication extends CommandLineTool {
   public static void main(String[] args) throws Exception {
@@ -49,6 +50,7 @@ public class IndexApplication extends CommandLineTool {
     }
 
     final Injector injector = Guice.createInjector(
+        UrlsModule.create(config.getConfig("oasis.urls")),
         new SoyGuiceModule(),
         JongoModule.create(config.getConfig("oasis.mongo")),
         ElasticsearchModule.create(config.getConfig("oasis.elasticsearch")),

@@ -45,6 +45,7 @@ import oasis.security.KeyPairLoader;
 import oasis.soy.TestingSoyGuiceModule;
 import oasis.urls.ImmutableUrls;
 import oasis.urls.Urls;
+import oasis.urls.UrlsModule;
 import oasis.web.authn.testing.TestUserFilter;
 import oasis.web.authz.KeysEndpoint;
 import oasis.web.view.SoyTemplateBodyWriter;
@@ -58,15 +59,15 @@ public class LogoutPageTest {
       bind(LogoutPage.class);
 
       install(new TestingSoyGuiceModule());
+      install(new UrlsModule(ImmutableUrls.builder()
+          .landingPage(URI.create("https://oasis/landing-page"))
+          .build()));
 
       bind(JsonFactory.class).to(JacksonFactory.class);
 
       bind(AuthModule.Settings.class).toInstance(AuthModule.Settings.builder()
           .setKeyPair(KeyPairLoader.generateRandomKeyPair())
           .build());
-      bind(Urls.class).toInstance(ImmutableUrls.builder()
-        .landingPage(URI.create("https://oasis/landing-page"))
-        .build());
     }
   }
 

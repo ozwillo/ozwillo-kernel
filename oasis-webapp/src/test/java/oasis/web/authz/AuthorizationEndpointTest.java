@@ -73,6 +73,7 @@ import oasis.services.authz.AppAdminHelper;
 import oasis.soy.TestingSoyGuiceModule;
 import oasis.urls.ImmutableUrls;
 import oasis.urls.Urls;
+import oasis.urls.UrlsModule;
 import oasis.web.authn.LoginPage;
 import oasis.web.authn.testing.TestUserFilter;
 import oasis.web.view.SoyTemplateBodyWriter;
@@ -86,6 +87,7 @@ public class AuthorizationEndpointTest {
       bind(AuthorizationEndpoint.class);
 
       install(new TestingSoyGuiceModule());
+      install(new UrlsModule(ImmutableUrls.builder().build()));
 
       bind(JsonFactory.class).to(JacksonFactory.class);
       bind(Clock.class).to(FixedClock.class);
@@ -104,7 +106,6 @@ public class AuthorizationEndpointTest {
       bind(AuthModule.Settings.class).toInstance(AuthModule.Settings.builder()
           .setKeyPair(KeyPairLoader.generateRandomKeyPair())
           .build());
-      bind(Urls.class).toInstance(ImmutableUrls.builder().build());
     }
 
     @Provides FixedClock provideFixedClock() {

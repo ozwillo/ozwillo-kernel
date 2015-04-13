@@ -24,6 +24,7 @@ import oasis.http.testing.InProcessResteasy;
 import oasis.auth.AuthModule;
 import oasis.urls.ImmutableUrls;
 import oasis.urls.Urls;
+import oasis.urls.UrlsModule;
 
 @RunWith(JukitoRunner.class)
 public class UserCanonicalBaseUriFilterTest {
@@ -33,9 +34,9 @@ public class UserCanonicalBaseUriFilterTest {
     protected void configureTest() {
       bind(UserCanonicalBaseUriFilter.class);
 
-      bind(Urls.class).toInstance(ImmutableUrls.builder()
+      install(new UrlsModule(ImmutableUrls.builder()
           .canonicalBaseUri(URI.create("http://example.com/somepath/"))
-          .build());
+          .build()));
     }
   }
 

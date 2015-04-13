@@ -56,6 +56,7 @@ import oasis.services.authn.TokenSerializer;
 import oasis.services.authz.AppAdminHelper;
 import oasis.urls.ImmutableUrls;
 import oasis.urls.Urls;
+import oasis.urls.UrlsModule;
 import oasis.web.authn.testing.TestClientAuthenticationFilter;
 
 @RunWith(JukitoRunner.class)
@@ -67,6 +68,7 @@ public class TokenEndpointTest {
       bind(TokenEndpoint.class);
 
       install(new NoopAuditLogModule());
+      install(new UrlsModule(ImmutableUrls.builder().build()));
 
       bindMock(TokenHandler.class).in(TestSingleton.class);
       bindMock(AppAdminHelper.class).in(TestSingleton.class);
@@ -78,7 +80,6 @@ public class TokenEndpointTest {
           .setIdTokenDuration(Duration.standardMinutes(1))
           .setKeyPair(KeyPairLoader.generateRandomKeyPair())
           .build());
-      bind(Urls.class).toInstance(ImmutableUrls.builder().build());
     }
 
     @Provides @TestSingleton FixedClock providesFixedClock() {

@@ -8,11 +8,15 @@ import com.google.template.soy.SoyModule;
 import com.google.template.soy.tofu.SoyTofu;
 import com.google.template.soy.xliffmsgplugin.XliffMsgPluginModule;
 
+import oasis.urls.Urls;
+
 public class SoyGuiceModule extends AbstractModule {
   @Override
   protected void configure() {
     install(new SoyModule());
     install(new XliffMsgPluginModule());
+
+    requireBinding(Urls.class);
   }
 
   @Provides @Singleton SoyTofu provideSoyTofu(SoyFileSet.Builder builder) {
