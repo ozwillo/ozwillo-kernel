@@ -137,7 +137,7 @@ public class JongoOrganizationMembershipRepository implements OrganizationMember
     return getOrganizationMembershipsCollection()
         .findAndModify("{ id: #, status: # }", membershipId, OrganizationMembership.Status.PENDING)
         .returnNew()
-        .with("{ $set: { status: #, accountId: #, accepted: # } }", OrganizationMembership.Status.PENDING, accountId, System.currentTimeMillis())
+        .with("{ $set: { status: #, accountId: #, accepted: # } }", OrganizationMembership.Status.ACCEPTED, accountId, System.currentTimeMillis())
         .as(JongoOrganizationMembership.class);
   }
 
