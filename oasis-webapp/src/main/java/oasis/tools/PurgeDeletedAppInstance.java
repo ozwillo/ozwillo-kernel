@@ -18,6 +18,7 @@ import oasis.auth.AuthModule;
 import oasis.catalog.CatalogModule;
 import oasis.elasticsearch.ElasticsearchModule;
 import oasis.http.HttpClientModule;
+import oasis.jest.JestService;
 import oasis.jest.guice.JestModule;
 import oasis.jongo.JongoService;
 import oasis.jongo.guice.JongoModule;
@@ -39,6 +40,7 @@ public class PurgeDeletedAppInstance extends CommandLineTool {
   private boolean dryRun;
 
   @Inject JongoService jongoService;
+  @Inject JestService jestService;
   @Inject Provider<oasis.usecases.DeleteAppInstance> usecaseProvider;
   @Inject Provider<AppInstanceRepository> appInstanceRepositoryProvider;
 
@@ -70,11 +72,13 @@ public class PurgeDeletedAppInstance extends CommandLineTool {
     injector.injectMembers(this);
 
     jongoService.start();
+    jestService.start();
     try {
       logger().info("Deleting stopped instances for {} days", APP_INSTANCE_EXPIRATION_DURATION.getStandardDays());
       int n = deleteStoppedInstances();
       logger().info("  Deleted {} instances.", n);
     } finally {
+      jestService.stop();
       jongoService.stop();
     }
   }

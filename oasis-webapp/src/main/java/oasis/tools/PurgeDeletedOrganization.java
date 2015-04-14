@@ -18,6 +18,7 @@ import oasis.auth.AuthModule;
 import oasis.catalog.CatalogModule;
 import oasis.elasticsearch.ElasticsearchModule;
 import oasis.http.HttpClientModule;
+import oasis.jest.JestService;
 import oasis.jest.guice.JestModule;
 import oasis.jongo.JongoService;
 import oasis.jongo.guice.JongoModule;
@@ -39,6 +40,7 @@ public class PurgeDeletedOrganization extends CommandLineTool {
   private boolean dryRun;
 
   @Inject JongoService jongoService;
+  @Inject JestService jestService;
   @Inject Provider<DeleteOrganization> usecaseProvider;
   @Inject Provider<DirectoryRepository> directoryRepositoryProvider;
 
@@ -70,11 +72,13 @@ public class PurgeDeletedOrganization extends CommandLineTool {
     injector.injectMembers(this);
 
     jongoService.start();
+    jestService.start();
     try {
       logger().info("Hard-deleting the organizations softly-deleted for {} days", ORGANIZATION_EXPIRATION_DURATION.getStandardDays());
       int n = deleteStoppedOrganizations();
       logger().info("  Deleted {} organizations.", n);
     } finally {
+      jestService.stop();
       jongoService.stop();
     }
   }
