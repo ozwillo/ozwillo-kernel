@@ -36,8 +36,7 @@ public class JongoOrganizationMembershipRepository implements OrganizationMember
   @Override
   public void bootstrap() {
     getOrganizationMembershipsCollection().ensureIndex("{ id: 1 }", "{ unique: 1 }");
-    getOrganizationMembershipsCollection().ensureIndex("{ accountId: 1, organizationId: 1 }", "{ unique: 1 }");
-    // XXX: Index on ("{ email: 1, organizationId: 1 }", "{ unique: 1 }"); ???
+    getOrganizationMembershipsCollection().ensureIndex("{ organizationId: 1, email: 1, accountId: 1 }", "{ unique: 1 }");
   }
 
   @Override
@@ -45,6 +44,7 @@ public class JongoOrganizationMembershipRepository implements OrganizationMember
     checkArgument(!Strings.isNullOrEmpty(membership.getAccountId()));
     checkArgument(!Strings.isNullOrEmpty(membership.getOrganizationId()));
     checkArgument(membership.getStatus() == OrganizationMembership.Status.ACCEPTED);
+    checkArgument(Strings.isNullOrEmpty(membership.getEmail()));
 
     JongoOrganizationMembership member = new JongoOrganizationMembership(membership);
     member.initCreated();
@@ -61,6 +61,7 @@ public class JongoOrganizationMembershipRepository implements OrganizationMember
     checkArgument(!Strings.isNullOrEmpty(membership.getEmail()));
     checkArgument(!Strings.isNullOrEmpty(membership.getOrganizationId()));
     checkArgument(membership.getStatus() == OrganizationMembership.Status.PENDING);
+    checkArgument(Strings.isNullOrEmpty(membership.getAccountId()));
 
     JongoOrganizationMembership member = new JongoOrganizationMembership(membership);
     member.initCreated();
@@ -137,7 +138,8 @@ public class JongoOrganizationMembershipRepository implements OrganizationMember
     return getOrganizationMembershipsCollection()
         .findAndModify("{ id: #, status: # }", membershipId, OrganizationMembership.Status.PENDING)
         .returnNew()
-        .with("{ $set: { status: #, accountId: #, accepted: # } }", OrganizationMembership.Status.ACCEPTED, accountId, System.currentTimeMillis())
+        .with("{ $set: { status: #, accountId: #, accepted: # }, $unset: { email: '' } }",
+            OrganizationMembership.Status.ACCEPTED, accountId, System.currentTimeMillis())
         .as(JongoOrganizationMembership.class);
   }
 
