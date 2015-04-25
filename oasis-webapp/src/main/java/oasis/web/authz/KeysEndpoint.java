@@ -25,6 +25,9 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 
+import org.jose4j.jwk.JsonWebKeySet;
+import org.jose4j.jwk.RsaJsonWebKey;
+
 import com.google.common.io.BaseEncoding;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
@@ -49,12 +52,10 @@ public class KeysEndpoint {
     RSAPublicKey publicKey = (RSAPublicKey) settings.keyPair.getPublic();
 
     JsonWebKeySet jsonWebKeySet = new JsonWebKeySet();
-    RsaJsonWebKey rsaJsonWebKey = new RsaJsonWebKey();
-    rsaJsonWebKey.modulus = BASE64_ENCODING.encode(publicKey.getModulus().toByteArray());
-    rsaJsonWebKey.exponent = BASE64_ENCODING.encode(publicKey.getPublicExponent().toByteArray());
-    rsaJsonWebKey.keyId = JSONWEBKEY_PK_ID;
-    jsonWebKeySet.rsaJsonWebKeys = new RsaJsonWebKey[]{rsaJsonWebKey};
+    RsaJsonWebKey rsaJsonWebKey = new RsaJsonWebKey(publicKey);
+    rsaJsonWebKey.setKeyId(JSONWEBKEY_PK_ID);
+    jsonWebKeySet.addJsonWebKey(rsaJsonWebKey);
 
-    return Response.ok().entity(jsonWebKeySet).build();
+    return Response.ok().entity(jsonWebKeySet.toJson()).build();
   }
 }
