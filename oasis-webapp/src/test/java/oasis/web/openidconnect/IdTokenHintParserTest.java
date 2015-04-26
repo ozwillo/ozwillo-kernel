@@ -15,12 +15,12 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package oasis.web.authn;
-
-import static org.assertj.core.api.Assertions.*;
+package oasis.web.openidconnect;
 
 import java.security.KeyPair;
 
+import org.assertj.core.api.Assertions;
+import org.jose4j.jwt.JwtClaims;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -28,16 +28,10 @@ import com.google.api.client.auth.openidconnect.IdToken;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 
-import oasis.model.authn.SidToken;
 import oasis.security.KeyPairLoader;
 import oasis.web.authz.KeysEndpoint;
 
-public class LogoutPageParseIdTokenHintTest {
-
-  private static final SidToken sidToken = new SidToken() {{
-    setId("sessionId");
-    setAccountId("accountId");
-  }};
+public class IdTokenHintParserTest {
 
   private static final String ISSUER = "https://issuer.org";
   private static final String SERVICE_PROVIDER = "service provider";
@@ -58,20 +52,21 @@ public class LogoutPageParseIdTokenHintTest {
             .setKeyId(KeysEndpoint.JSONWEBKEY_PK_ID),
         new IdToken.Payload()
             .setIssuer(ISSUER)
-            .setSubject(sidToken.getAccountId())
+            .setSubject("accountId")
             .setAudience(SERVICE_PROVIDER)
     );
 
-    String audience = LogoutPage.parseIdTokenHint(keyPair.getPublic(), ISSUER, idToken, sidToken);
+    JwtClaims claims = IdTokenHintParser.parseIdTokenHint(idToken, keyPair.getPublic(), ISSUER, "accountId");
 
-    assertThat(audience).isNotNull();
+    Assertions.assertThat(claims).isNotNull();
   }
 
   @Test
   public void testBadIdTokenHint() throws Throwable {
-    String audience = LogoutPage.parseIdTokenHint(keyPair.getPublic(), ISSUER, "invalid id_token_hint", sidToken);
+    JwtClaims claims = IdTokenHintParser.parseIdTokenHint("invalid id_token_hint", keyPair.getPublic(), ISSUER,
+        "accountId");
 
-    assertThat(audience).isNull();
+    Assertions.assertThat(claims).isNull();
   }
 
   @Test public void testParseIdTokenHint_badSignature() throws Throwable {
@@ -84,13 +79,13 @@ public class LogoutPageParseIdTokenHintTest {
             .setKeyId(KeysEndpoint.JSONWEBKEY_PK_ID),
         new IdToken.Payload()
             .setIssuer(ISSUER)
-            .setSubject(sidToken.getAccountId())
+            .setSubject("accountId")
             .setAudience(SERVICE_PROVIDER)
     );
 
-    String audience = LogoutPage.parseIdTokenHint(keyPair.getPublic(), ISSUER, idToken, sidToken);
+    JwtClaims claims = IdTokenHintParser.parseIdTokenHint(idToken, keyPair.getPublic(), ISSUER, "accountId");
 
-    assertThat(audience).isNull();
+    Assertions.assertThat(claims).isNull();
   }
 
   @Test public void testParseIdTokenHint_badIssuer() throws Throwable {
@@ -101,13 +96,13 @@ public class LogoutPageParseIdTokenHintTest {
             .setKeyId(KeysEndpoint.JSONWEBKEY_PK_ID),
         new IdToken.Payload()
             .setIssuer("https://example.com")
-            .setSubject(sidToken.getAccountId())
+            .setSubject("accountId")
             .setAudience(SERVICE_PROVIDER)
     );
 
-    String audience = LogoutPage.parseIdTokenHint(keyPair.getPublic(), ISSUER, idToken, sidToken);
+    JwtClaims claims = IdTokenHintParser.parseIdTokenHint(idToken, keyPair.getPublic(), ISSUER, "accountId");
 
-    assertThat(audience).isNull();
+    Assertions.assertThat(claims).isNull();
   }
 
   @Test public void testParseIdTokenHint_badSubject() throws Throwable {
@@ -122,12 +117,12 @@ public class LogoutPageParseIdTokenHintTest {
             .setAudience(SERVICE_PROVIDER)
     );
 
-    String audience = LogoutPage.parseIdTokenHint(keyPair.getPublic(), ISSUER, idToken, sidToken);
+    JwtClaims claims = IdTokenHintParser.parseIdTokenHint(idToken, keyPair.getPublic(), ISSUER, "accountId");
 
-    assertThat(audience).isNull();
+    Assertions.assertThat(claims).isNull();
   }
 
-  @Test public void testParseIdTokenHint_subjectIgnoredIfNoSidToken() throws Throwable {
+  @Test public void testParseIdTokenHint_subjectIgnoredIfNoExpectedSubject() throws Throwable {
     String idToken = IdToken.signUsingRsaSha256(keyPair.getPrivate(), jsonFactory,
         new IdToken.Header()
             .setType("JWS")
@@ -139,12 +134,12 @@ public class LogoutPageParseIdTokenHintTest {
             .setAudience(SERVICE_PROVIDER)
     );
 
-    String audience = LogoutPage.parseIdTokenHint(keyPair.getPublic(), ISSUER, idToken, null);
+    JwtClaims claims = IdTokenHintParser.parseIdTokenHint(idToken, keyPair.getPublic(), ISSUER, null);
 
-    assertThat(audience).isNotNull();
+    Assertions.assertThat(claims).isNotNull();
   }
 
-  @Test public void testParseIdTokenHint_badAudience() throws Throwable {
+  @Test public void testParseIdTokenHintGetSubject_missingSubject() throws Throwable {
     String idToken = IdToken.signUsingRsaSha256(keyPair.getPrivate(), jsonFactory,
         new IdToken.Header()
             .setType("JWS")
@@ -152,12 +147,29 @@ public class LogoutPageParseIdTokenHintTest {
             .setKeyId(KeysEndpoint.JSONWEBKEY_PK_ID),
         new IdToken.Payload()
             .setIssuer(ISSUER)
-            .setSubject(sidToken.getAccountId())
+            .setSubject(null)
+            .setAudience(SERVICE_PROVIDER)
+    );
+
+    String subject = IdTokenHintParser.parseIdTokenHintGetSubject(idToken, keyPair.getPublic(), ISSUER);
+
+    Assertions.assertThat(subject).isNull();
+  }
+
+  @Test public void testParseIdTokenHintGetAudience_missingAudience() throws Throwable {
+    String idToken = IdToken.signUsingRsaSha256(keyPair.getPrivate(), jsonFactory,
+        new IdToken.Header()
+            .setType("JWS")
+            .setAlgorithm("RS256")
+            .setKeyId(KeysEndpoint.JSONWEBKEY_PK_ID),
+        new IdToken.Payload()
+            .setIssuer(ISSUER)
+            .setSubject("accountId")
             .setAudience(null)
     );
 
-    String audience = LogoutPage.parseIdTokenHint(keyPair.getPublic(), ISSUER, idToken, sidToken);
+    String audience = IdTokenHintParser.parseIdTokenHintGetAudience(idToken, keyPair.getPublic(), ISSUER, "accountId");
 
-    assertThat(audience).isNull();
+    Assertions.assertThat(audience).isNull();
   }
 }

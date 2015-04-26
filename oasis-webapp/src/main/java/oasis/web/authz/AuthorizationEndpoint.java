@@ -17,8 +17,6 @@
  */
 package oasis.web.authz;
 
-import static org.jose4j.jwa.AlgorithmConstraints.ConstraintType.*;
-
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collections;
@@ -50,11 +48,6 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
 import org.joda.time.DateTimeUtils;
-import org.jose4j.jwa.AlgorithmConstraints;
-import org.jose4j.jws.AlgorithmIdentifiers;
-import org.jose4j.jwt.MalformedClaimException;
-import org.jose4j.jwt.consumer.InvalidJwtException;
-import org.jose4j.jwt.consumer.JwtConsumerBuilder;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -96,6 +89,7 @@ import oasis.web.authn.User;
 import oasis.web.authn.UserAuthenticationFilter;
 import oasis.web.authn.UserSessionPrincipal;
 import oasis.web.i18n.LocaleHelper;
+import oasis.web.openidconnect.IdTokenHintParser;
 import oasis.web.resteasy.Resteasy1099;
 import oasis.web.security.StrictReferer;
 
@@ -461,22 +455,11 @@ public class AuthorizationEndpoint {
     if (id_token_hint == null) {
       return;
     }
-    String subject;
-    try {
-      subject = new JwtConsumerBuilder()
-          .setJwsAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, AlgorithmIdentifiers.RSA_USING_SHA256))
-          .setVerificationKey(settings.keyPair.getPublic())
-          .setExpectedIssuer(getIssuer(uriInfo))
-          .setSkipDefaultAudienceValidation()
-          .setAllowedClockSkewInSeconds(Integer.MAX_VALUE)  // We don't want to validate the time
-          .setRequireSubject()
-          .build()
-          .processToClaims(id_token_hint)
-          .getSubject();
-    } catch (MalformedClaimException | InvalidJwtException e) {
+    String subject = IdTokenHintParser.parseIdTokenHintGetSubject(id_token_hint, settings.keyPair.getPublic(), getIssuer(uriInfo));
+    if (subject == null) {
       throw invalidParam("id_token_hint");
     }
-    if (!sidToken.getAccountId().equals(subject)) {
+    if (!subject.equals(sidToken.getAccountId())) {
       // See https://bitbucket.org/openid/connect/issue/878/messages-2111-define-negative-response-for
       // for a discussion of the error to use here.
       throw error("login_required", null);

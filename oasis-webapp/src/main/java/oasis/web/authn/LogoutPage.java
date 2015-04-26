@@ -17,13 +17,9 @@
  */
 package oasis.web.authn;
 
-import static org.jose4j.jwa.AlgorithmConstraints.ConstraintType.*;
-
 import java.net.URI;
-import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -40,23 +36,10 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
-import org.jose4j.jwa.AlgorithmConstraints;
-import org.jose4j.jws.AlgorithmIdentifiers;
-import org.jose4j.jwt.JwtClaims;
-import org.jose4j.jwt.MalformedClaimException;
-import org.jose4j.jwt.NumericDate;
-import org.jose4j.jwt.consumer.InvalidJwtException;
-import org.jose4j.jwt.consumer.InvalidJwtSignatureException;
-import org.jose4j.jwt.consumer.JwtConsumerBuilder;
-import org.jose4j.jwt.consumer.JwtContext;
-import org.jose4j.jwt.consumer.Validator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
-import com.google.common.collect.Iterables;
 import com.google.template.soy.data.SoyListData;
 import com.google.template.soy.data.SoyMapData;
 import com.ibm.icu.text.Collator;
@@ -79,6 +62,7 @@ import oasis.soy.templates.LogoutSoyInfo.LogoutSoyTemplateInfo;
 import oasis.urls.Urls;
 import oasis.web.resteasy.Resteasy1099;
 import oasis.web.security.StrictReferer;
+import oasis.web.openidconnect.IdTokenHintParser;
 
 @User
 @Path("/a/logout")
@@ -192,10 +176,12 @@ public class LogoutPage {
     return Response.seeOther(continueUrl).build();
   }
 
-  @VisibleForTesting
   @Nullable
   private String parseIdTokenHint(@Nullable String idTokenHint, @Nullable SidToken sidToken) {
-    return parseIdTokenHint(settings.keyPair.getPublic(), getIssuer(), idTokenHint, sidToken);
+    if (idTokenHint == null) {
+      return null;
+    }
+    return IdTokenHintParser.parseIdTokenHintGetAudience(idTokenHint, settings.keyPair.getPublic(), getIssuer(), sidToken == null ? null : sidToken.getAccountId());
   }
 
   private String getIssuer() {
@@ -203,41 +189,6 @@ public class LogoutPage {
       return urls.canonicalBaseUri().get().toString();
     }
     return Resteasy1099.getBaseUri(uriInfo).toString();
-  }
-
-  @VisibleForTesting
-  @Nullable
-  static String parseIdTokenHint(PublicKey publicKey, String issuer,
-      @Nullable String idTokenHint, @Nullable final SidToken sidToken) {
-    if (idTokenHint == null) {
-      return null;
-    }
-    List<String> audience;
-    try {
-      audience = new JwtConsumerBuilder()
-          .setJwsAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, AlgorithmIdentifiers.RSA_USING_SHA256))
-          .setVerificationKey(publicKey)
-          .setExpectedIssuer(issuer)
-          .setSkipDefaultAudienceValidation()
-          .setAllowedClockSkewInSeconds(Integer.MAX_VALUE)                        // We don't want to validate the time
-          .setExpectedSubject(sidToken == null ? null : sidToken.getAccountId())  // setExpectedSubject calls setRequireSubject even if the expected subject is null
-          .build()
-          .processToClaims(idTokenHint)
-          .getAudience();
-    } catch (InvalidJwtSignatureException e) {
-      logger.debug("Bad signature for id_token_hint: {}", idTokenHint);
-      return null;
-    } catch (MalformedClaimException e) {
-      logger.debug("Malformed claim in id_token_hint: {}", idTokenHint, e);
-      return null;
-    } catch (InvalidJwtException e) {
-      logger.debug("Invalid id_token_hint: {}", idTokenHint, e);
-      return null;
-    }
-    if (audience == null || audience.isEmpty()) {
-      return null;
-    }
-    return audience.get(0);
   }
 
   @POST
