@@ -20,13 +20,11 @@ package oasis.web.openidconnect;
 import java.security.KeyPair;
 
 import org.assertj.core.api.Assertions;
+import org.jose4j.jws.AlgorithmIdentifiers;
+import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.jwt.JwtClaims;
 import org.junit.Before;
 import org.junit.Test;
-
-import com.google.api.client.auth.openidconnect.IdToken;
-import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson2.JacksonFactory;
 
 import oasis.security.KeyPairLoader;
 import oasis.web.authz.KeysEndpoint;
@@ -37,7 +35,6 @@ public class IdTokenHintParserTest {
   private static final String SERVICE_PROVIDER = "service provider";
 
   private KeyPair keyPair;
-  private JsonFactory jsonFactory = new JacksonFactory();
 
   @Before public void setUp() {
     keyPair = KeyPairLoader.generateRandomKeyPair();
@@ -45,20 +42,20 @@ public class IdTokenHintParserTest {
 
   @Test
   public void testValidIdTokenHint() throws Throwable {
-    String idToken = IdToken.signUsingRsaSha256(keyPair.getPrivate(), jsonFactory,
-        new IdToken.Header()
-            .setType("JWS")
-            .setAlgorithm("RS256")
-            .setKeyId(KeysEndpoint.JSONWEBKEY_PK_ID),
-        new IdToken.Payload()
-            .setIssuer(ISSUER)
-            .setSubject("accountId")
-            .setAudience(SERVICE_PROVIDER)
-    );
+    JwtClaims claims = new JwtClaims();
+    claims.setIssuer(ISSUER);
+    claims.setSubject("accountId");
+    claims.setAudience(SERVICE_PROVIDER);
+    JsonWebSignature jws = new JsonWebSignature();
+    jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
+    jws.setKeyIdHeaderValue(KeysEndpoint.JSONWEBKEY_PK_ID);
+    jws.setPayload(claims.toJson());
+    jws.setKey(keyPair.getPrivate());
+    String idToken = jws.getCompactSerialization();
 
-    JwtClaims claims = IdTokenHintParser.parseIdTokenHint(idToken, keyPair.getPublic(), ISSUER, "accountId");
+    JwtClaims parsedClaims = IdTokenHintParser.parseIdTokenHint(idToken, keyPair.getPublic(), ISSUER, "accountId");
 
-    Assertions.assertThat(claims).isNotNull();
+    Assertions.assertThat(parsedClaims).isNotNull();
   }
 
   @Test
@@ -70,86 +67,83 @@ public class IdTokenHintParserTest {
   }
 
   @Test public void testParseIdTokenHint_badSignature() throws Throwable {
-    String idToken = IdToken.signUsingRsaSha256(
-        KeyPairLoader.generateRandomKeyPair().getPrivate(),
-        jsonFactory,
-        new IdToken.Header()
-            .setType("JWS")
-            .setAlgorithm("RS256")
-            .setKeyId(KeysEndpoint.JSONWEBKEY_PK_ID),
-        new IdToken.Payload()
-            .setIssuer(ISSUER)
-            .setSubject("accountId")
-            .setAudience(SERVICE_PROVIDER)
-    );
+    JwtClaims claims = new JwtClaims();
+    claims.setIssuer(ISSUER);
+    claims.setSubject("accountId");
+    claims.setAudience(SERVICE_PROVIDER);
+    JsonWebSignature jws = new JsonWebSignature();
+    jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
+    jws.setKeyIdHeaderValue(KeysEndpoint.JSONWEBKEY_PK_ID);
+    jws.setPayload(claims.toJson());
+    jws.setKey(KeyPairLoader.generateRandomKeyPair().getPrivate());
+    String idToken = jws.getCompactSerialization();
 
-    JwtClaims claims = IdTokenHintParser.parseIdTokenHint(idToken, keyPair.getPublic(), ISSUER, "accountId");
+    JwtClaims parsedClaims = IdTokenHintParser.parseIdTokenHint(idToken, keyPair.getPublic(), ISSUER, "accountId");
 
-    Assertions.assertThat(claims).isNull();
+    Assertions.assertThat(parsedClaims).isNull();
   }
 
   @Test public void testParseIdTokenHint_badIssuer() throws Throwable {
-    String idToken = IdToken.signUsingRsaSha256(keyPair.getPrivate(), jsonFactory,
-        new IdToken.Header()
-            .setType("JWS")
-            .setAlgorithm("RS256")
-            .setKeyId(KeysEndpoint.JSONWEBKEY_PK_ID),
-        new IdToken.Payload()
-            .setIssuer("https://example.com")
-            .setSubject("accountId")
-            .setAudience(SERVICE_PROVIDER)
-    );
+    JwtClaims claims = new JwtClaims();
+    claims.setIssuer("https://example.com");
+    claims.setSubject("accountId");
+    claims.setAudience(SERVICE_PROVIDER);
+    JsonWebSignature jws = new JsonWebSignature();
+    jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
+    jws.setKeyIdHeaderValue(KeysEndpoint.JSONWEBKEY_PK_ID);
+    jws.setPayload(claims.toJson());
+    jws.setKey(keyPair.getPrivate());
+    String idToken = jws.getCompactSerialization();
 
-    JwtClaims claims = IdTokenHintParser.parseIdTokenHint(idToken, keyPair.getPublic(), ISSUER, "accountId");
+    JwtClaims parsedClaims = IdTokenHintParser.parseIdTokenHint(idToken, keyPair.getPublic(), ISSUER, "accountId");
 
-    Assertions.assertThat(claims).isNull();
+    Assertions.assertThat(parsedClaims).isNull();
   }
 
   @Test public void testParseIdTokenHint_badSubject() throws Throwable {
-    String idToken = IdToken.signUsingRsaSha256(keyPair.getPrivate(), jsonFactory,
-        new IdToken.Header()
-            .setType("JWS")
-            .setAlgorithm("RS256")
-            .setKeyId(KeysEndpoint.JSONWEBKEY_PK_ID),
-        new IdToken.Payload()
-            .setIssuer(ISSUER)
-            .setSubject("foo")
-            .setAudience(SERVICE_PROVIDER)
-    );
+    JwtClaims claims = new JwtClaims();
+    claims.setIssuer(ISSUER);
+    claims.setSubject("foo");
+    claims.setAudience(SERVICE_PROVIDER);
+    JsonWebSignature jws = new JsonWebSignature();
+    jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
+    jws.setKeyIdHeaderValue(KeysEndpoint.JSONWEBKEY_PK_ID);
+    jws.setPayload(claims.toJson());
+    jws.setKey(keyPair.getPrivate());
+    String idToken = jws.getCompactSerialization();
 
-    JwtClaims claims = IdTokenHintParser.parseIdTokenHint(idToken, keyPair.getPublic(), ISSUER, "accountId");
+    JwtClaims parsedClaims = IdTokenHintParser.parseIdTokenHint(idToken, keyPair.getPublic(), ISSUER, "accountId");
 
-    Assertions.assertThat(claims).isNull();
+    Assertions.assertThat(parsedClaims).isNull();
   }
 
   @Test public void testParseIdTokenHint_subjectIgnoredIfNoExpectedSubject() throws Throwable {
-    String idToken = IdToken.signUsingRsaSha256(keyPair.getPrivate(), jsonFactory,
-        new IdToken.Header()
-            .setType("JWS")
-            .setAlgorithm("RS256")
-            .setKeyId(KeysEndpoint.JSONWEBKEY_PK_ID),
-        new IdToken.Payload()
-            .setIssuer(ISSUER)
-            .setSubject("foo")
-            .setAudience(SERVICE_PROVIDER)
-    );
+    JwtClaims claims = new JwtClaims();
+    claims.setIssuer(ISSUER);
+    claims.setSubject("foo");
+    claims.setAudience(SERVICE_PROVIDER);
+    JsonWebSignature jws = new JsonWebSignature();
+    jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
+    jws.setKeyIdHeaderValue(KeysEndpoint.JSONWEBKEY_PK_ID);
+    jws.setPayload(claims.toJson());
+    jws.setKey(keyPair.getPrivate());
+    String idToken = jws.getCompactSerialization();
 
-    JwtClaims claims = IdTokenHintParser.parseIdTokenHint(idToken, keyPair.getPublic(), ISSUER, null);
+    JwtClaims parsedClaims = IdTokenHintParser.parseIdTokenHint(idToken, keyPair.getPublic(), ISSUER, null);
 
-    Assertions.assertThat(claims).isNotNull();
+    Assertions.assertThat(parsedClaims).isNotNull();
   }
 
   @Test public void testParseIdTokenHintGetSubject_missingSubject() throws Throwable {
-    String idToken = IdToken.signUsingRsaSha256(keyPair.getPrivate(), jsonFactory,
-        new IdToken.Header()
-            .setType("JWS")
-            .setAlgorithm("RS256")
-            .setKeyId(KeysEndpoint.JSONWEBKEY_PK_ID),
-        new IdToken.Payload()
-            .setIssuer(ISSUER)
-            .setSubject(null)
-            .setAudience(SERVICE_PROVIDER)
-    );
+    JwtClaims claims = new JwtClaims();
+    claims.setIssuer(ISSUER);
+    claims.setAudience(SERVICE_PROVIDER);
+    JsonWebSignature jws = new JsonWebSignature();
+    jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
+    jws.setKeyIdHeaderValue(KeysEndpoint.JSONWEBKEY_PK_ID);
+    jws.setPayload(claims.toJson());
+    jws.setKey(keyPair.getPrivate());
+    String idToken = jws.getCompactSerialization();
 
     String subject = IdTokenHintParser.parseIdTokenHintGetSubject(idToken, keyPair.getPublic(), ISSUER);
 
@@ -157,16 +151,16 @@ public class IdTokenHintParserTest {
   }
 
   @Test public void testParseIdTokenHintGetAudience_missingAudience() throws Throwable {
-    String idToken = IdToken.signUsingRsaSha256(keyPair.getPrivate(), jsonFactory,
-        new IdToken.Header()
-            .setType("JWS")
-            .setAlgorithm("RS256")
-            .setKeyId(KeysEndpoint.JSONWEBKEY_PK_ID),
-        new IdToken.Payload()
-            .setIssuer(ISSUER)
-            .setSubject("accountId")
-            .setAudience(null)
-    );
+    JwtClaims claims = new JwtClaims();
+    claims.setIssuer(ISSUER);
+    claims.setSubject("accountId");
+    JsonWebSignature jws = new JsonWebSignature();
+    jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
+    jws.setKeyIdHeaderValue(KeysEndpoint.JSONWEBKEY_PK_ID);
+    jws.setPayload(claims.toJson());
+    jws.setKey(keyPair.getPrivate());
+    String idToken = jws.getCompactSerialization();
+
 
     String audience = IdTokenHintParser.parseIdTokenHintGetAudience(idToken, keyPair.getPublic(), ISSUER, "accountId");
 

@@ -30,6 +30,9 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
 import org.assertj.core.api.AbstractCharSequenceAssert;
+import org.jose4j.jws.AlgorithmIdentifiers;
+import org.jose4j.jws.JsonWebSignature;
+import org.jose4j.jwt.JwtClaims;
 import org.jukito.JukitoModule;
 import org.jukito.JukitoRunner;
 import org.junit.Before;
@@ -37,9 +40,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import com.google.api.client.auth.openidconnect.IdToken;
-import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.common.collect.Iterables;
 import com.google.common.html.HtmlEscapers;
 import com.google.common.net.UrlEscapers;
@@ -79,8 +79,6 @@ public class LogoutPageTest {
       install(new UrlsModule(ImmutableUrls.builder()
           .landingPage(URI.create("https://oasis/landing-page"))
           .build()));
-
-      bind(JsonFactory.class).to(JacksonFactory.class);
 
       bind(AuthModule.Settings.class).toInstance(AuthModule.Settings.builder()
           .setKeyPair(KeyPairLoader.generateRandomKeyPair())
@@ -157,20 +155,20 @@ public class LogoutPageTest {
     verify(tokenRepository, never()).revokeToken(sidToken.getId());
   }
 
-  @Test public void testGet_loggedIn_withIdTokenHint(TokenRepository tokenRepository,
-      AuthModule.Settings settings, JsonFactory jsonFactory) throws Throwable {
+  @Test public void testGet_loggedIn_withIdTokenHint(TokenRepository tokenRepository, AuthModule.Settings settings) throws Throwable {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
-    String idToken = IdToken.signUsingRsaSha256(settings.keyPair.getPrivate(), jsonFactory,
-        new IdToken.Header()
-            .setType("JWS")
-            .setAlgorithm("RS256")
-            .setKeyId(KeysEndpoint.JSONWEBKEY_PK_ID),
-        new IdToken.Payload()
-            .setIssuer(InProcessResteasy.BASE_URI.toString())
-            .setSubject(sidToken.getAccountId())
-            .setAudience(appInstance.getId())
-    );
+    JwtClaims claims = new JwtClaims();
+    claims.setIssuer(InProcessResteasy.BASE_URI.toString());
+    claims.setSubject(sidToken.getAccountId());
+    claims.setAudience(appInstance.getId());
+    JsonWebSignature jws = new JsonWebSignature();
+    jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
+    jws.setKeyIdHeaderValue(KeysEndpoint.JSONWEBKEY_PK_ID);
+    jws.setPayload(claims.toJson());
+    jws.setKey(settings.keyPair.getPrivate());
+    String idToken = jws.getCompactSerialization();
+
     Response response = resteasy.getClient().target(UriBuilder.fromResource(LogoutPage.class))
         .queryParam("id_token_hint", idToken)
         .queryParam("post_logout_redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getPost_logout_redirect_uris())))
@@ -193,19 +191,20 @@ public class LogoutPageTest {
   }
 
   @Test public void testGet_loggedIn_withIdTokenHintAndBadPostLogoutRedirectUri(TokenRepository tokenRepository,
-      AuthModule.Settings settings, JsonFactory jsonFactory) throws Throwable {
+      AuthModule.Settings settings) throws Throwable {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
-    String idToken = IdToken.signUsingRsaSha256(settings.keyPair.getPrivate(), jsonFactory,
-        new IdToken.Header()
-            .setType("JWS")
-            .setAlgorithm("RS256")
-            .setKeyId(KeysEndpoint.JSONWEBKEY_PK_ID),
-        new IdToken.Payload()
-            .setIssuer(InProcessResteasy.BASE_URI.toString())
-            .setSubject(sidToken.getAccountId())
-            .setAudience(appInstance.getId())
-    );
+    JwtClaims claims = new JwtClaims();
+    claims.setIssuer(InProcessResteasy.BASE_URI.toString());
+    claims.setSubject(sidToken.getAccountId());
+    claims.setAudience(appInstance.getId());
+    JsonWebSignature jws = new JsonWebSignature();
+    jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
+    jws.setKeyIdHeaderValue(KeysEndpoint.JSONWEBKEY_PK_ID);
+    jws.setPayload(claims.toJson());
+    jws.setKey(settings.keyPair.getPrivate());
+    String idToken = jws.getCompactSerialization();
+
     Response response = resteasy.getClient().target(UriBuilder.fromResource(LogoutPage.class))
         .queryParam("id_token_hint", idToken)
         .queryParam("post_logout_redirect_uri", "https://unregistered")
@@ -259,17 +258,18 @@ public class LogoutPageTest {
     }
   }
 
-  @Test public void testGet_notLoggedIn_withIdTokenHint(AuthModule.Settings settings, JsonFactory jsonFactory) throws Throwable {
-    String idToken = IdToken.signUsingRsaSha256(settings.keyPair.getPrivate(), jsonFactory,
-        new IdToken.Header()
-            .setType("JWS")
-            .setAlgorithm("RS256")
-            .setKeyId(KeysEndpoint.JSONWEBKEY_PK_ID),
-        new IdToken.Payload()
-            .setIssuer(InProcessResteasy.BASE_URI.toString())
-            .setSubject(sidToken.getAccountId())
-            .setAudience(appInstance.getId())
-    );
+  @Test public void testGet_notLoggedIn_withIdTokenHint(AuthModule.Settings settings) throws Throwable {
+    JwtClaims claims = new JwtClaims();
+    claims.setIssuer(InProcessResteasy.BASE_URI.toString());
+    claims.setSubject(sidToken.getAccountId());
+    claims.setAudience(appInstance.getId());
+    JsonWebSignature jws = new JsonWebSignature();
+    jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
+    jws.setKeyIdHeaderValue(KeysEndpoint.JSONWEBKEY_PK_ID);
+    jws.setPayload(claims.toJson());
+    jws.setKey(settings.keyPair.getPrivate());
+    String idToken = jws.getCompactSerialization();
+
     Response response = resteasy.getClient().target(UriBuilder.fromResource(LogoutPage.class))
         .queryParam("id_token_hint", idToken)
         .queryParam("post_logout_redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getPost_logout_redirect_uris())))
@@ -283,18 +283,18 @@ public class LogoutPageTest {
     }
   }
 
-  @Test public void testGet_notLoggedIn_withIdTokenHintAndBadPostLogoutRedirectUri(
-      AuthModule.Settings settings, JsonFactory jsonFactory) throws Throwable {
-    String idToken = IdToken.signUsingRsaSha256(settings.keyPair.getPrivate(), jsonFactory,
-        new IdToken.Header()
-            .setType("JWS")
-            .setAlgorithm("RS256")
-            .setKeyId(KeysEndpoint.JSONWEBKEY_PK_ID),
-        new IdToken.Payload()
-            .setIssuer(InProcessResteasy.BASE_URI.toString())
-            .setSubject(sidToken.getAccountId())
-            .setAudience(appInstance.getId())
-    );
+  @Test public void testGet_notLoggedIn_withIdTokenHintAndBadPostLogoutRedirectUri(AuthModule.Settings settings) throws Throwable {
+    JwtClaims claims = new JwtClaims();
+    claims.setIssuer(InProcessResteasy.BASE_URI.toString());
+    claims.setSubject(sidToken.getAccountId());
+    claims.setAudience(appInstance.getId());
+    JsonWebSignature jws = new JsonWebSignature();
+    jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
+    jws.setKeyIdHeaderValue(KeysEndpoint.JSONWEBKEY_PK_ID);
+    jws.setPayload(claims.toJson());
+    jws.setKey(settings.keyPair.getPrivate());
+    String idToken = jws.getCompactSerialization();
+
     Response response = resteasy.getClient().target(UriBuilder.fromResource(LogoutPage.class))
         .queryParam("id_token_hint", idToken)
         .queryParam("post_logout_redirect_uri", "https://unregistered")

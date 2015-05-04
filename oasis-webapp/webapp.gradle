@@ -37,8 +37,6 @@ dependencies {
   testCompile libs.jukito
   testCompile libs.assertj
   testCompile libs.okhttp_mockserver
-  testCompile libs.google_oauth_client
-  testCompile libs.google_http_client
 }
 
 configurations {

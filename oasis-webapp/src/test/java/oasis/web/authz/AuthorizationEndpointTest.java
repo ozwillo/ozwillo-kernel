@@ -40,6 +40,9 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeUtils;
 import org.joda.time.Duration;
 import org.joda.time.Instant;
+import org.jose4j.jws.AlgorithmIdentifiers;
+import org.jose4j.jws.JsonWebSignature;
+import org.jose4j.jwt.JwtClaims;
 import org.jukito.All;
 import org.jukito.JukitoModule;
 import org.jukito.JukitoRunner;
@@ -51,18 +54,11 @@ import org.junit.runner.RunWith;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import com.google.api.client.auth.openidconnect.IdToken;
-import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.api.client.json.webtoken.JsonWebSignature;
-import com.google.api.client.testing.http.FixedClock;
-import com.google.api.client.util.Clock;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.common.net.UrlEscapers;
 import com.google.inject.Inject;
-import com.google.inject.Provides;
 import com.ibm.icu.util.ULocale;
 
 import oasis.auth.AuthModule;
@@ -106,9 +102,6 @@ public class AuthorizationEndpointTest {
       install(new TestingSoyGuiceModule());
       install(new UrlsModule(ImmutableUrls.builder().build()));
 
-      bind(JsonFactory.class).to(JacksonFactory.class);
-      bind(Clock.class).to(FixedClock.class);
-
       bind(DateTimeUtils.MillisProvider.class).toInstance(new DateTimeUtils.MillisProvider() {
         @Override
         public long getMillis() {
@@ -130,10 +123,6 @@ public class AuthorizationEndpointTest {
       bind(AuthModule.Settings.class).toInstance(AuthModule.Settings.builder()
           .setKeyPair(KeyPairLoader.generateRandomKeyPair())
           .build());
-    }
-
-    @Provides FixedClock provideFixedClock() {
-      return new FixedClock(now.getMillis());
     }
   }
 
@@ -682,8 +671,18 @@ public class AuthorizationEndpointTest {
     assertRedirectError(response, service, "request_uri_not_supported", null);
   }
 
-  @Test public void testIdTokenHint(AuthModule.Settings settings, JsonFactory jsonFactory) throws Throwable {
+  @Test public void testIdTokenHint(AuthModule.Settings settings) throws Throwable {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+    JwtClaims claims = new JwtClaims();
+    claims.setIssuer(InProcessResteasy.BASE_URI.toString());
+    claims.setSubject(sidToken.getAccountId());
+    JsonWebSignature jws = new JsonWebSignature();
+    jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
+    jws.setKeyIdHeaderValue(KeysEndpoint.JSONWEBKEY_PK_ID);
+    jws.setPayload(claims.toJson());
+    jws.setKey(settings.keyPair.getPrivate());
+    String idToken = jws.getCompactSerialization();
 
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())
@@ -691,14 +690,7 @@ public class AuthorizationEndpointTest {
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
         .queryParam("scope", openidScope.getId())
-        .queryParam("id_token_hint", IdToken.signUsingRsaSha256(settings.keyPair.getPrivate(),
-            jsonFactory,
-            new JsonWebSignature.Header()
-                .setType("JWS")
-                .setAlgorithm("RS256"),
-            new IdToken.Payload()
-                .setIssuer(InProcessResteasy.BASE_URI.toString())
-                .setSubject(sidToken.getAccountId())))
+        .queryParam("id_token_hint", idToken)
         .request().get();
 
     assertRedirectToApplication(response, service);
@@ -719,8 +711,18 @@ public class AuthorizationEndpointTest {
     assertRedirectError(response, service, "invalid_request", "id_token_hint");
   }
 
-  @Test public void testIdTokenHint_badSignature(JsonFactory jsonFactory) throws Throwable {
+  @Test public void testIdTokenHint_badSignature() throws Throwable {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+    JwtClaims claims = new JwtClaims();
+    claims.setIssuer(InProcessResteasy.BASE_URI.toString());
+    claims.setSubject(sidToken.getAccountId());
+    JsonWebSignature jws = new JsonWebSignature();
+    jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
+    jws.setKeyIdHeaderValue(KeysEndpoint.JSONWEBKEY_PK_ID);
+    jws.setPayload(claims.toJson());
+    jws.setKey(KeyPairLoader.generateRandomKeyPair().getPrivate());
+    String idToken = jws.getCompactSerialization();
 
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())
@@ -728,22 +730,25 @@ public class AuthorizationEndpointTest {
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
         .queryParam("scope", openidScope.getId())
-        .queryParam("id_token_hint", IdToken.signUsingRsaSha256(
-            KeyPairLoader.generateRandomKeyPair().getPrivate(),
-            jsonFactory,
-            new JsonWebSignature.Header()
-                .setType("JWS")
-                .setAlgorithm("RS256"),
-            new IdToken.Payload()
-                .setIssuer(InProcessResteasy.BASE_URI.toString())
-                .setSubject(sidToken.getAccountId())))
+        .queryParam("id_token_hint", idToken)
         .request().get();
 
     assertRedirectError(response, service, "invalid_request", "id_token_hint");
   }
 
-  @Test public void testIdTokenHint_badIssuer(AuthModule.Settings settings, JsonFactory jsonFactory) throws Throwable {
+  @Test public void testIdTokenHint_badIssuer(AuthModule.Settings settings) throws Throwable {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+
+    JwtClaims claims = new JwtClaims();
+    claims.setIssuer("https://invalid-issuer.example.com");
+    claims.setSubject(sidToken.getAccountId());
+    JsonWebSignature jws = new JsonWebSignature();
+    jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
+    jws.setKeyIdHeaderValue(KeysEndpoint.JSONWEBKEY_PK_ID);
+    jws.setPayload(claims.toJson());
+    jws.setKey(settings.keyPair.getPrivate());
+    String idToken = jws.getCompactSerialization();
 
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())
@@ -751,22 +756,25 @@ public class AuthorizationEndpointTest {
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
         .queryParam("scope", openidScope.getId())
-        .queryParam("id_token_hint", IdToken.signUsingRsaSha256(
-            settings.keyPair.getPrivate(),
-            jsonFactory,
-            new JsonWebSignature.Header()
-                .setType("JWS")
-                .setAlgorithm("RS256"),
-            new IdToken.Payload()
-                .setIssuer("https://invalid-issuer.example.com")
-                .setSubject(sidToken.getAccountId())))
+        .queryParam("id_token_hint", idToken)
         .request().get();
 
     assertRedirectError(response, service, "invalid_request", "id_token_hint");
   }
 
-  @Test public void testIdTokenHint_mismatchingSub(AuthModule.Settings settings, JsonFactory jsonFactory) throws Throwable {
+  @Test public void testIdTokenHint_mismatchingSub(AuthModule.Settings settings) throws Throwable {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+
+    JwtClaims claims = new JwtClaims();
+    claims.setIssuer(InProcessResteasy.BASE_URI.toString());
+    claims.setSubject("invalidSub");
+    JsonWebSignature jws = new JsonWebSignature();
+    jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
+    jws.setKeyIdHeaderValue(KeysEndpoint.JSONWEBKEY_PK_ID);
+    jws.setPayload(claims.toJson());
+    jws.setKey(settings.keyPair.getPrivate());
+    String idToken = jws.getCompactSerialization();
 
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())
@@ -774,15 +782,7 @@ public class AuthorizationEndpointTest {
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
         .queryParam("scope", openidScope.getId())
-        .queryParam("id_token_hint", IdToken.signUsingRsaSha256(
-            settings.keyPair.getPrivate(),
-            jsonFactory,
-            new JsonWebSignature.Header()
-                .setType("JWS")
-                .setAlgorithm("RS256"),
-            new IdToken.Payload()
-                .setIssuer(InProcessResteasy.BASE_URI.toString())
-                .setSubject("invalidSub")))
+        .queryParam("id_token_hint", idToken)
         .request().get();
 
     assertRedirectError(response, service, "login_required", null);

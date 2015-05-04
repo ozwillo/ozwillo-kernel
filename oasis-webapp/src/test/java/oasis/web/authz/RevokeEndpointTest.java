@@ -20,9 +20,6 @@ package oasis.web.authz;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.Response;
@@ -36,9 +33,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import com.google.api.client.auth.oauth2.TokenErrorResponse;
-import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.inject.Inject;
 
 import oasis.http.testing.InProcessResteasy;
@@ -46,6 +40,7 @@ import oasis.model.authn.AccessToken;
 import oasis.model.authn.TokenRepository;
 import oasis.services.authn.TokenHandler;
 import oasis.web.authn.testing.TestClientAuthenticationFilter;
+import oasis.web.openidconnect.ErrorResponse;
 
 @RunWith(JukitoRunner.class)
 public class RevokeEndpointTest {
@@ -55,8 +50,6 @@ public class RevokeEndpointTest {
       bind(RevokeEndpoint.class);
 
       bindMock(TokenHandler.class).in(TestSingleton.class);
-
-      bind(JsonFactory.class).to(JacksonFactory.class);
     }
   }
 
@@ -86,18 +79,18 @@ public class RevokeEndpointTest {
     assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.OK);
   }
 
-  @Test public void testMissingToken(TokenRepository tokenRepository, JsonFactory jsonFactory) throws Throwable {
+  @Test public void testMissingToken(TokenRepository tokenRepository) throws Throwable {
     // when
     Response resp = revoke(new Form());
 
     // then
     verify(tokenRepository, never()).revokeToken(anyString());
     assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
-    TokenErrorResponse response = jsonFactory.fromInputStream(resp.readEntity(InputStream.class), StandardCharsets.UTF_8, TokenErrorResponse.class);
+    ErrorResponse response = resp.readEntity(ErrorResponse.class);
     assertThat(response.getError()).isEqualTo("invalid_request");
   }
 
-  @Test public void testMultipleTokens(TokenRepository tokenRepository, JsonFactory jsonFactory) throws Throwable {
+  @Test public void testMultipleTokens(TokenRepository tokenRepository) throws Throwable {
     // when
     Response resp = revoke(new Form()
       .param("token", "first")
@@ -106,7 +99,7 @@ public class RevokeEndpointTest {
     // then
     verify(tokenRepository, never()).revokeToken(anyString());
     assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
-    TokenErrorResponse response = jsonFactory.fromInputStream(resp.readEntity(InputStream.class), StandardCharsets.UTF_8, TokenErrorResponse.class);
+    ErrorResponse response = resp.readEntity(ErrorResponse.class);
     assertThat(response.getError()).isEqualTo("invalid_request");
   }
 
@@ -122,7 +115,7 @@ public class RevokeEndpointTest {
     assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.OK);
   }
 
-  @Test public void testBadClient(TokenRepository tokenRepository, JsonFactory jsonFactory) throws Throwable {
+  @Test public void testBadClient(TokenRepository tokenRepository) throws Throwable {
     // given
     resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter("dp"));
 
@@ -132,7 +125,7 @@ public class RevokeEndpointTest {
     // then
     verify(tokenRepository, never()).revokeToken(anyString());
     assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
-    TokenErrorResponse response = jsonFactory.fromInputStream(resp.readEntity(InputStream.class), StandardCharsets.UTF_8, TokenErrorResponse.class);
+    ErrorResponse response = resp.readEntity(ErrorResponse.class);
     assertThat(response.getError()).isEqualTo("unauthorized_client");
   }
 

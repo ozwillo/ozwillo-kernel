@@ -31,8 +31,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.ibm.icu.util.ULocale;
@@ -45,7 +43,6 @@ import oasis.model.authn.AccessToken;
 import oasis.model.authz.Scopes;
 import oasis.security.KeyPairLoader;
 import oasis.urls.ImmutableUrls;
-import oasis.urls.Urls;
 import oasis.urls.UrlsModule;
 import oasis.web.authn.testing.TestOAuthFilter;
 
@@ -57,8 +54,6 @@ public class UserInfoEndpointTest {
       bind(UserInfoEndpoint.class);
 
       install(new UrlsModule(ImmutableUrls.builder().build()));
-
-      bind(JsonFactory.class).to(JacksonFactory.class);
 
       bind(AuthModule.Settings.class).toInstance(AuthModule.Settings.builder()
           .setKeyPair(KeyPairLoader.generateRandomKeyPair())

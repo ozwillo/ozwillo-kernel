@@ -18,10 +18,9 @@
 package oasis.web.authz;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.jose4j.jwa.AlgorithmConstraints.ConstraintType.WHITELIST;
 import static org.mockito.Mockito.*;
 
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 
 import javax.ws.rs.client.Entity;
@@ -33,6 +32,11 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeUtils;
 import org.joda.time.Duration;
 import org.joda.time.Instant;
+import org.jose4j.jwa.AlgorithmConstraints;
+import org.jose4j.jws.AlgorithmIdentifiers;
+import org.jose4j.jwt.JwtClaims;
+import org.jose4j.jwt.NumericDate;
+import org.jose4j.jwt.consumer.JwtConsumerBuilder;
 import org.jukito.JukitoModule;
 import org.jukito.JukitoRunner;
 import org.jukito.TestSingleton;
@@ -41,18 +45,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import com.google.api.client.auth.oauth2.TokenErrorResponse;
-import com.google.api.client.auth.oauth2.TokenResponse;
-import com.google.api.client.auth.openidconnect.IdToken;
-import com.google.api.client.auth.openidconnect.IdTokenResponse;
-import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.api.client.testing.http.FixedClock;
-import com.google.api.client.util.Clock;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
-import com.google.inject.Provides;
 
 import oasis.auditlog.noop.NoopAuditLogModule;
 import oasis.auth.AuthModule;
@@ -76,6 +71,8 @@ import oasis.services.authz.AppAdminHelper;
 import oasis.urls.ImmutableUrls;
 import oasis.urls.UrlsModule;
 import oasis.web.authn.testing.TestClientAuthenticationFilter;
+import oasis.web.authz.TokenEndpoint.TokenResponse;
+import oasis.web.openidconnect.ErrorResponse;
 
 @RunWith(JukitoRunner.class)
 public class TokenEndpointTest {
@@ -91,9 +88,6 @@ public class TokenEndpointTest {
       bindMock(TokenHandler.class).in(TestSingleton.class);
       bindMock(AppAdminHelper.class).in(TestSingleton.class);
 
-      bind(JsonFactory.class).to(JacksonFactory.class);
-      bind(Clock.class).to(FixedClock.class);
-
       bind(DateTimeUtils.MillisProvider.class).toInstance(new DateTimeUtils.MillisProvider() {
         @Override
         public long getMillis() {
@@ -105,10 +99,6 @@ public class TokenEndpointTest {
           .setIdTokenDuration(Duration.standardMinutes(1))
           .setKeyPair(KeyPairLoader.generateRandomKeyPair())
           .build());
-    }
-
-    @Provides @TestSingleton FixedClock providesFixedClock() {
-      return new FixedClock(now.getMillis());
     }
   }
 
@@ -219,7 +209,7 @@ public class TokenEndpointTest {
     resteasy.getDeployment().getRegistry().addPerRequestResource(TokenEndpoint.class);
   }
 
-  @Test public void testUnsupportedGrantType(JsonFactory jsonFactory) throws Throwable {
+  @Test public void testUnsupportedGrantType() throws Throwable {
     // given
     resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
 
@@ -229,11 +219,11 @@ public class TokenEndpointTest {
 
     // then
     assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
-    TokenErrorResponse response = jsonFactory.fromString(resp.readEntity(String.class), TokenErrorResponse.class);
+    ErrorResponse response = resp.readEntity(ErrorResponse.class);
     assertThat(response.getError()).isEqualTo("unsupported_grant_type");
   }
 
-  @Test public void testMissingGrantType(JsonFactory jsonFactory) throws Throwable {
+  @Test public void testMissingGrantType() throws Throwable {
     // given
     resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
 
@@ -243,12 +233,12 @@ public class TokenEndpointTest {
 
     // then
     assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
-    TokenErrorResponse response = jsonFactory.fromString(resp.readEntity(String.class), TokenErrorResponse.class);
+    ErrorResponse response = resp.readEntity(ErrorResponse.class);
     assertThat(response.getError()).isEqualTo("invalid_request");
-    assertThat(response.getErrorDescription()).contains("grant_type");
+    assertThat(response.getError_description()).contains("grant_type");
   }
 
-  @Test public void testDuplicateGrantType(JsonFactory jsonFactory) throws Throwable {
+  @Test public void testDuplicateGrantType() throws Throwable {
     // given
     resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
 
@@ -261,12 +251,12 @@ public class TokenEndpointTest {
 
     // then
     assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
-    TokenErrorResponse response = jsonFactory.fromString(resp.readEntity(String.class), TokenErrorResponse.class);
+    ErrorResponse response = resp.readEntity(ErrorResponse.class);
     assertThat(response.getError()).isEqualTo("invalid_request");
-    assertThat(response.getErrorDescription()).contains("grant_type");
+    assertThat(response.getError_description()).contains("grant_type");
   }
 
-  @Test public void testInvalidAuthCode(JsonFactory jsonFactory) throws Throwable {
+  @Test public void testInvalidAuthCode() throws Throwable {
     // given
     resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
 
@@ -275,11 +265,11 @@ public class TokenEndpointTest {
 
     // then
     assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
-    TokenErrorResponse response = jsonFactory.fromString(resp.readEntity(String.class), TokenErrorResponse.class);
+    ErrorResponse response = resp.readEntity(ErrorResponse.class);
     assertThat(response.getError()).isEqualTo("invalid_grant");
   }
 
-  @Test public void testAuthCodeMismatchingRedirectUri(JsonFactory jsonFactory) throws Throwable {
+  @Test public void testAuthCodeMismatchingRedirectUri() throws Throwable {
     // given
     resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
 
@@ -288,12 +278,12 @@ public class TokenEndpointTest {
 
     // then
     assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
-    TokenErrorResponse response = jsonFactory.fromString(resp.readEntity(String.class), TokenErrorResponse.class);
+    ErrorResponse response = resp.readEntity(ErrorResponse.class);
     assertThat(response.getError()).isEqualTo("invalid_grant");
-    assertThat(response.getErrorDescription()).contains("redirect_uri");
+    assertThat(response.getError_description()).contains("redirect_uri");
   }
 
-  @Test public void testStolenAuthCode(JsonFactory jsonFactory) throws Throwable {
+  @Test public void testStolenAuthCode() throws Throwable {
     // given
     resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter("sp2"));
 
@@ -302,11 +292,11 @@ public class TokenEndpointTest {
 
     // then
     assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
-    TokenErrorResponse response = jsonFactory.fromString(resp.readEntity(String.class), TokenErrorResponse.class);
+    ErrorResponse response = resp.readEntity(ErrorResponse.class);
     assertThat(response.getError()).isEqualTo("invalid_grant");
   }
 
-  @Test public void testValidAuthCode(JsonFactory jsonFactory, AuthModule.Settings settings, Clock clock) throws Throwable {
+  @Test public void testValidAuthCode(AuthModule.Settings settings) throws Throwable {
     // given
     resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
 
@@ -315,35 +305,40 @@ public class TokenEndpointTest {
 
     // then
     assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.OK);
-    IdTokenResponse response = jsonFactory.fromInputStream(resp.readEntity(InputStream.class), StandardCharsets.UTF_8, IdTokenResponse.class);
-    assertThat(response.getTokenType()).isEqualTo("Bearer");
-    assertThat(response.getScope().split(" ")).containsOnly("dp1s1", "dp1s3", "dp3s1");
-    assertThat(response.getExpiresInSeconds())
-        .isEqualTo(new Duration(new Instant(clock.currentTimeMillis()), accessToken.getExpirationTime()).getStandardSeconds());
-    assertThat(response.getAccessToken()).isEqualTo(TokenSerializer.serialize(accessToken, "pass"));
-    assertThat(response.getRefreshToken()).isNullOrEmpty();
+    TokenResponse response = resp.readEntity(TokenResponse.class);
+    assertThat(response.token_type).isEqualTo("Bearer");
+    assertThat(response.scope.split(" ")).containsOnly("dp1s1", "dp1s3", "dp3s1");
+    assertThat(response.expires_in).isEqualTo(new Duration(now, accessToken.getExpirationTime()).getStandardSeconds());
+    assertThat(response.access_token).isEqualTo(TokenSerializer.serialize(accessToken, "pass"));
+    assertThat(response.refresh_token).isNullOrEmpty();
+    assertThat(response.id_token).isNotEmpty();
 
-    IdToken idToken = response.parseIdToken();
-    assertThat(idToken.verifySignature(settings.keyPair.getPublic())).isTrue();
+    JwtClaims claims = new JwtConsumerBuilder()
+        .setJwsAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, AlgorithmIdentifiers.RSA_USING_SHA256))
+        .setVerificationKey(settings.keyPair.getPublic())
+        .setExpectedIssuer(InProcessResteasy.BASE_URI.toString())
+        .setExpectedSubject(account.getId())
+        .setExpectedAudience(appInstance.getId())
+        .setRequireIssuedAt()
+        .setRequireExpirationTime()
+        .setEvaluationTime(NumericDate.fromMilliseconds(now.getMillis()))
+        .build()
+        .processToClaims(response.id_token);
 
-    IdToken.Payload payload = idToken.getPayload();
-    assertThat(payload.getIssuer()).isEqualTo(InProcessResteasy.BASE_URI.toString());
-    assertThat(payload.getSubject()).isEqualTo(account.getId());
-    assertThat(payload.getAudience()).isEqualTo(appInstance.getId());
-    assertThat(payload.getIssuedAtTimeSeconds()).isEqualTo(TimeUnit.MILLISECONDS.toSeconds(clock.currentTimeMillis()));
-    assertThat(payload.getExpirationTimeSeconds()).isEqualTo(payload.getIssuedAtTimeSeconds() + settings.idTokenDuration.getStandardSeconds());
-    assertThat(payload.getNonce()).isEqualTo("nonce");
-    assertThat(payload.getAuthorizationTimeSeconds()).isEqualTo(TimeUnit.MILLISECONDS.toSeconds(sidToken.getAuthenticationTime().getMillis()));
-    if (payload.containsKey("app_user")) {
-      assertThat(payload.get("app_user")).isEqualTo(Boolean.FALSE);
+    assertThat(claims.getIssuedAt().getValue()).isEqualTo(TimeUnit.MILLISECONDS.toSeconds(now.getMillis()));
+    assertThat(claims.getExpirationTime().getValue()).isEqualTo(claims.getIssuedAt().getValue() + settings.idTokenDuration.getStandardSeconds());
+    assertThat(claims.getStringClaimValue("nonce")).isEqualTo("nonce");
+    assertThat(claims.getNumericDateClaimValue("auth_time").getValue()).isEqualTo(
+        TimeUnit.MILLISECONDS.toSeconds(sidToken.getAuthenticationTime().getMillis()));
+    if (claims.hasClaim("app_user")) {
+      assertThat(claims.getClaimValue("app_user")).isEqualTo(Boolean.FALSE);
     }
-    if (payload.containsKey("app_admin")) {
-      assertThat(payload.get("app_admin")).isEqualTo(Boolean.FALSE);
+    if (claims.hasClaim("app_admin")) {
+      assertThat(claims.getClaimValue("app_admin")).isEqualTo(Boolean.FALSE);
     }
   }
 
-  @Test public void testValidAuthCodeWithAppUser(JsonFactory jsonFactory, AuthModule.Settings settings, Clock clock,
-      AccessControlRepository accessControlRepository) throws Throwable {
+  @Test public void testValidAuthCodeWithAppUser(AuthModule.Settings settings, AccessControlRepository accessControlRepository) throws Throwable {
     // given
     resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
     when(accessControlRepository.getAccessControlEntry(appInstance.getId(), account.getId())).thenReturn(
@@ -358,32 +353,38 @@ public class TokenEndpointTest {
 
     // then
     assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.OK);
-    IdTokenResponse response = jsonFactory.fromInputStream(resp.readEntity(InputStream.class), StandardCharsets.UTF_8, IdTokenResponse.class);
-    assertThat(response.getTokenType()).isEqualTo("Bearer");
-    assertThat(response.getScope().split(" ")).containsOnly("dp1s1", "dp1s3", "dp3s1");
-    assertThat(response.getExpiresInSeconds())
-        .isEqualTo(new Duration(new Instant(clock.currentTimeMillis()), accessToken.getExpirationTime()).getStandardSeconds());
-    assertThat(response.getAccessToken()).isEqualTo(TokenSerializer.serialize(accessToken, "pass"));
-    assertThat(response.getRefreshToken()).isNullOrEmpty();
+    TokenResponse response = resp.readEntity(TokenResponse.class);
+    assertThat(response.token_type).isEqualTo("Bearer");
+    assertThat(response.scope.split(" ")).containsOnly("dp1s1", "dp1s3", "dp3s1");
+    assertThat(response.expires_in).isEqualTo(new Duration(now, accessToken.getExpirationTime()).getStandardSeconds());
+    assertThat(response.access_token).isEqualTo(TokenSerializer.serialize(accessToken, "pass"));
+    assertThat(response.refresh_token).isNullOrEmpty();
 
-    IdToken idToken = response.parseIdToken();
-    assertThat(idToken.verifySignature(settings.keyPair.getPublic())).isTrue();
+    JwtClaims claims = new JwtConsumerBuilder()
+        .setJwsAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, AlgorithmIdentifiers.RSA_USING_SHA256))
+        .setVerificationKey(settings.keyPair.getPublic())
+        .setExpectedIssuer(InProcessResteasy.BASE_URI.toString())
+        .setExpectedSubject(account.getId())
+        .setExpectedAudience(appInstance.getId())
+        .setRequireIssuedAt()
+        .setRequireExpirationTime()
+        .setEvaluationTime(NumericDate.fromMilliseconds(now.getMillis()))
+        .build()
+        .processToClaims(response.id_token);
 
-    IdToken.Payload payload = idToken.getPayload();
-    assertThat(payload.getIssuer()).isEqualTo(InProcessResteasy.BASE_URI.toString());
-    assertThat(payload.getSubject()).isEqualTo(account.getId());
-    assertThat(payload.getAudience()).isEqualTo(appInstance.getId());
-    assertThat(payload.getIssuedAtTimeSeconds()).isEqualTo(TimeUnit.MILLISECONDS.toSeconds(clock.currentTimeMillis()));
-    assertThat(payload.getExpirationTimeSeconds()).isEqualTo(payload.getIssuedAtTimeSeconds() + settings.idTokenDuration.getStandardSeconds());
-    assertThat(payload.getNonce()).isEqualTo("nonce");
-    assertThat(payload.getAuthorizationTimeSeconds()).isEqualTo(TimeUnit.MILLISECONDS.toSeconds(sidToken.getAuthenticationTime().getMillis()));
-    assertThat(payload.get("app_user")).isEqualTo(Boolean.TRUE);
-    if (payload.containsKey("app_admin")) {
-      assertThat(payload.get("app_admin")).isEqualTo(Boolean.FALSE);
+    assertThat(claims.getIssuedAt().getValue()).isEqualTo(TimeUnit.MILLISECONDS.toSeconds(now.getMillis()));
+    assertThat(claims.getExpirationTime().getValue()).isEqualTo(claims.getIssuedAt().getValue() + settings.idTokenDuration.getStandardSeconds());
+    assertThat(claims.getStringClaimValue("nonce")).isEqualTo("nonce");
+    assertThat(claims.getNumericDateClaimValue("auth_time").getValue()).isEqualTo(
+        TimeUnit.MILLISECONDS.toSeconds(sidToken.getAuthenticationTime().getMillis()));
+    assertThat(claims.getClaimValue("app_user")).isEqualTo(Boolean.TRUE);
+    if (claims.hasClaim("app_admin")) {
+      assertThat(claims.getClaimValue("app_admin")).isEqualTo(Boolean.FALSE);
     }
+
   }
 
-  @Test public void testValidAuthCodeWithAppAdmin(JsonFactory jsonFactory, AuthModule.Settings settings, Clock clock,
+  @Test public void testValidAuthCodeWithAppAdmin(AuthModule.Settings settings,
       AppAdminHelper appAdminHelper) throws Throwable {
     // given
     resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
@@ -394,32 +395,37 @@ public class TokenEndpointTest {
 
     // then
     assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.OK);
-    IdTokenResponse response = jsonFactory.fromInputStream(resp.readEntity(InputStream.class), StandardCharsets.UTF_8, IdTokenResponse.class);
-    assertThat(response.getTokenType()).isEqualTo("Bearer");
-    assertThat(response.getScope().split(" ")).containsOnly("dp1s1", "dp1s3", "dp3s1");
-    assertThat(response.getExpiresInSeconds())
-        .isEqualTo(new Duration(new Instant(clock.currentTimeMillis()), accessToken.getExpirationTime()).getStandardSeconds());
-    assertThat(response.getAccessToken()).isEqualTo(TokenSerializer.serialize(accessToken, "pass"));
-    assertThat(response.getRefreshToken()).isNullOrEmpty();
+    TokenResponse response = resp.readEntity(TokenResponse.class);
+    assertThat(response.token_type).isEqualTo("Bearer");
+    assertThat(response.scope.split(" ")).containsOnly("dp1s1", "dp1s3", "dp3s1");
+    assertThat(response.expires_in).isEqualTo(new Duration(now, accessToken.getExpirationTime()).getStandardSeconds());
+    assertThat(response.access_token).isEqualTo(TokenSerializer.serialize(accessToken, "pass"));
+    assertThat(response.refresh_token).isNullOrEmpty();
 
-    IdToken idToken = response.parseIdToken();
-    assertThat(idToken.verifySignature(settings.keyPair.getPublic())).isTrue();
+    JwtClaims claims = new JwtConsumerBuilder()
+        .setJwsAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, AlgorithmIdentifiers.RSA_USING_SHA256))
+        .setVerificationKey(settings.keyPair.getPublic())
+        .setExpectedIssuer(InProcessResteasy.BASE_URI.toString())
+        .setExpectedSubject(account.getId())
+        .setExpectedAudience(appInstance.getId())
+        .setRequireIssuedAt()
+        .setRequireExpirationTime()
+        .setEvaluationTime(NumericDate.fromMilliseconds(now.getMillis()))
+        .build()
+        .processToClaims(response.id_token);
 
-    IdToken.Payload payload = idToken.getPayload();
-    assertThat(payload.getIssuer()).isEqualTo(InProcessResteasy.BASE_URI.toString());
-    assertThat(payload.getSubject()).isEqualTo(account.getId());
-    assertThat(payload.getAudience()).isEqualTo(appInstance.getId());
-    assertThat(payload.getIssuedAtTimeSeconds()).isEqualTo(TimeUnit.MILLISECONDS.toSeconds(clock.currentTimeMillis()));
-    assertThat(payload.getExpirationTimeSeconds()).isEqualTo(payload.getIssuedAtTimeSeconds() + settings.idTokenDuration.getStandardSeconds());
-    assertThat(payload.getNonce()).isEqualTo("nonce");
-    assertThat(payload.getAuthorizationTimeSeconds()).isEqualTo(TimeUnit.MILLISECONDS.toSeconds(sidToken.getAuthenticationTime().getMillis()));
-    if (payload.containsKey("app_user")) {
-      assertThat(payload.get("app_user")).isEqualTo(Boolean.FALSE);
+    assertThat(claims.getIssuedAt().getValue()).isEqualTo(TimeUnit.MILLISECONDS.toSeconds(now.getMillis()));
+    assertThat(claims.getExpirationTime().getValue()).isEqualTo(claims.getIssuedAt().getValue() + settings.idTokenDuration.getStandardSeconds());
+    assertThat(claims.getStringClaimValue("nonce")).isEqualTo("nonce");
+    assertThat(claims.getNumericDateClaimValue("auth_time").getValue()).isEqualTo(
+        TimeUnit.MILLISECONDS.toSeconds(sidToken.getAuthenticationTime().getMillis()));
+    if (claims.hasClaim("app_user")) {
+      assertThat(claims.getClaimValue("app_user")).isEqualTo(Boolean.FALSE);
     }
-    assertThat(payload.get("app_admin")).isEqualTo(Boolean.TRUE);
+    assertThat(claims.getClaimValue("app_admin")).isEqualTo(Boolean.TRUE);
   }
 
-  @Test public void testValidAuthCodeWithOfflineAccess(JsonFactory jsonFactory, AuthModule.Settings settings, Clock clock) throws Throwable {
+  @Test public void testValidAuthCodeWithOfflineAccess(AuthModule.Settings settings) throws Throwable {
     // given
     resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
 
@@ -428,24 +434,29 @@ public class TokenEndpointTest {
 
     // then
     assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.OK);
-    IdTokenResponse response = jsonFactory.fromInputStream(resp.readEntity(InputStream.class), StandardCharsets.UTF_8, IdTokenResponse.class);
-    assertThat(response.getTokenType()).isEqualTo("Bearer");
-    assertThat(response.getScope().split(" ")).containsOnly(Scopes.OFFLINE_ACCESS, "dp1s1", "dp1s3", "dp3s1");
-    assertThat(response.getExpiresInSeconds())
-        .isEqualTo(new Duration(new Instant(clock.currentTimeMillis()), accessTokenWithOfflineAccess.getExpirationTime()).getStandardSeconds());
-    assertThat(response.getAccessToken()).isEqualTo(TokenSerializer.serialize(accessTokenWithOfflineAccess, "pass"));
-    assertThat(response.getRefreshToken()).isEqualTo(TokenSerializer.serialize(refreshToken, "pass"));
+    TokenResponse response = resp.readEntity(TokenResponse.class);
+    assertThat(response.token_type).isEqualTo("Bearer");
+    assertThat(response.scope.split(" ")).containsOnly(Scopes.OFFLINE_ACCESS, "dp1s1", "dp1s3", "dp3s1");
+    assertThat(response.expires_in).isEqualTo(
+        new Duration(now, accessTokenWithOfflineAccess.getExpirationTime()).getStandardSeconds());
+    assertThat(response.access_token).isEqualTo(TokenSerializer.serialize(accessTokenWithOfflineAccess, "pass"));
+    assertThat(response.refresh_token).isEqualTo(TokenSerializer.serialize(refreshToken, "pass"));
 
-    IdToken idToken = response.parseIdToken();
-    assertThat(idToken.verifySignature(settings.keyPair.getPublic())).isTrue();
+    JwtClaims claims = new JwtConsumerBuilder()
+        .setJwsAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, AlgorithmIdentifiers.RSA_USING_SHA256))
+        .setVerificationKey(settings.keyPair.getPublic())
+        .setExpectedIssuer(InProcessResteasy.BASE_URI.toString())
+        .setExpectedSubject(account.getId())
+        .setExpectedAudience(appInstance.getId())
+        .setRequireIssuedAt()
+        .setRequireExpirationTime()
+        .setEvaluationTime(NumericDate.fromMilliseconds(now.getMillis()))
+        .build()
+        .processToClaims(response.id_token);
 
-    IdToken.Payload payload = idToken.getPayload();
-    assertThat(payload.getIssuer()).isEqualTo(InProcessResteasy.BASE_URI.toString());
-    assertThat(payload.getSubject()).isEqualTo(account.getId());
-    assertThat(payload.getAudience()).isEqualTo(appInstance.getId());
-    assertThat(payload.getIssuedAtTimeSeconds()).isEqualTo(TimeUnit.MILLISECONDS.toSeconds(clock.currentTimeMillis()));
-    assertThat(payload.getExpirationTimeSeconds()).isEqualTo(payload.getIssuedAtTimeSeconds() + settings.idTokenDuration.getStandardSeconds());
-    assertThat(payload.getNonce()).isEqualTo("nonce");
+    assertThat(claims.getIssuedAt().getValue()).isEqualTo(TimeUnit.MILLISECONDS.toSeconds(now.getMillis()));
+    assertThat(claims.getExpirationTime().getValue()).isEqualTo(claims.getIssuedAt().getValue() + settings.idTokenDuration.getStandardSeconds());
+    assertThat(claims.getStringClaimValue("nonce")).isEqualTo("nonce");
   }
 
   private Response authCode(String authorizationCode, String redirectUri) {
@@ -456,7 +467,7 @@ public class TokenEndpointTest {
             .param("redirect_uri", redirectUri)));
   }
 
-  @Test public void testInvalidRefreshToken(JsonFactory jsonFactory) throws Throwable {
+  @Test public void testInvalidRefreshToken() throws Throwable {
     // given
     resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
 
@@ -465,13 +476,12 @@ public class TokenEndpointTest {
 
     // then
     assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
-    TokenErrorResponse response = jsonFactory.fromString(resp.readEntity(String.class), TokenErrorResponse.class);
+    ErrorResponse response = resp.readEntity(ErrorResponse.class);
     assertThat(response.getError()).isEqualTo("invalid_token");
   }
 
-  @Test public void testRefreshTokenMismatchingScopes(JsonFactory jsonFactory, FixedClock clock) throws Throwable {
+  @Test public void testRefreshTokenMismatchingScopes() throws Throwable {
     // given
-    clock.setTime(tomorrow.getMillis());
     resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
 
     // when
@@ -479,13 +489,12 @@ public class TokenEndpointTest {
 
     // then
     assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
-    TokenErrorResponse response = jsonFactory.fromString(resp.readEntity(String.class), TokenErrorResponse.class);
+    ErrorResponse response = resp.readEntity(ErrorResponse.class);
     assertThat(response.getError()).isEqualTo("invalid_scope");
   }
 
-  @Test public void testStolenRefreshToken(JsonFactory jsonFactory, FixedClock clock) throws Throwable {
+  @Test public void testStolenRefreshToken() throws Throwable {
     // given
-    clock.setTime(tomorrow.getMillis());
     resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter("sp2"));
 
     // when
@@ -493,13 +502,12 @@ public class TokenEndpointTest {
 
     // then
     assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
-    TokenErrorResponse response = jsonFactory.fromString(resp.readEntity(String.class), TokenErrorResponse.class);
+    ErrorResponse response = resp.readEntity(ErrorResponse.class);
     assertThat(response.getError()).isEqualTo("invalid_token");
   }
 
-  @Test public void testValidRefreshToken(JsonFactory jsonFactory, FixedClock clock) throws Throwable {
+  @Test public void testValidRefreshToken() throws Throwable {
     // given
-    clock.setTime(tomorrow.getMillis());
     resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
 
     // when
@@ -507,13 +515,12 @@ public class TokenEndpointTest {
 
     // then
     assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.OK);
-    TokenResponse response = jsonFactory.fromInputStream(resp.readEntity(InputStream.class), StandardCharsets.UTF_8, TokenResponse.class);
-    assertThat(response.getTokenType()).isEqualTo("Bearer");
-    assertThat(response.getScope().split(" ")).containsOnly("dp1s1", "dp3s1");
-    assertThat(response.getExpiresInSeconds())
-        .isEqualTo(new Duration(new Instant(clock.currentTimeMillis()), refreshedAccessToken.getExpirationTime()).getStandardSeconds());
-    assertThat(response.getAccessToken()).isEqualTo(TokenSerializer.serialize(refreshedAccessToken, "pass"));
-    assertThat(response.getRefreshToken()).isNullOrEmpty();
+    TokenResponse response = resp.readEntity(TokenResponse.class);
+    assertThat(response.token_type).isEqualTo("Bearer");
+    assertThat(response.scope.split(" ")).containsOnly("dp1s1", "dp3s1");
+    assertThat(response.expires_in).isEqualTo(new Duration(tomorrow, refreshedAccessToken.getExpirationTime()).getStandardSeconds());
+    assertThat(response.access_token).isEqualTo(TokenSerializer.serialize(refreshedAccessToken, "pass"));
+    assertThat(response.refresh_token).isNullOrEmpty();
   }
 
   private Response refreshToken(String refreshToken, String scope) {
