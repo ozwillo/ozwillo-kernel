@@ -134,7 +134,6 @@ public abstract class MailModule extends AbstractModule {
     @Provides @Singleton Session provideSession() {
       String protocol = settings.server.getProtocol();
       Properties props = new Properties();
-      props.setProperty("mail.transport.protocol.rfc822", protocol);
       props.setProperty("mail." + protocol + ".starttls.enable", settings.useStartTls ? "true" : "false");
       // TODO: add a require-StartTLS config option
       props.setProperty("mail." + protocol + ".host", settings.server.getHost());
@@ -154,7 +153,9 @@ public abstract class MailModule extends AbstractModule {
       } else {
         authenticator = null;
       }
-      return Session.getInstance(props, authenticator);
+      Session session = Session.getInstance(props, authenticator);
+      session.setProtocolForAddress("rfc822", protocol);
+      return session;
     }
   }
 }
