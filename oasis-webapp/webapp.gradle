@@ -79,6 +79,9 @@ sourceSets.main.java {
   srcDir generateSoyParseInfo.outputDir
 }
 compileJava.dependsOn generateSoyParseInfo
+licenseMain {
+  source = sourceSets.main.allSource.minus(fileTree(generateSoyParseInfo.outputDir))
+}
 
 task run(type: JavaExec, dependsOn: classes) {
   main = 'oasis.web.WebApp'

@@ -111,3 +111,7 @@ task deb(dependsOn: [explodedDir, debControl]) {
   }
 }
 assemble.dependsOn deb
+
+downloadLicenses {
+  dependencyConfiguration = 'distLib'
+}

@@ -6,6 +6,34 @@ version = 'git describe --long'.execute(null, rootDir).text.trim() - ~'^v'
 ext.versionlessOutputs = project.hasProperty("versionlessOutputs") ? Boolean.parseBoolean(project.property("versionlessOutputs")) : false;
 
 subprojects {
+  apply plugin: 'com.github.hierynomus.license'
+  license {
+    header = rootProject.file('LICENSE.header')
+    skipExistingHeaders = true
+    include '**/*.java'
+    include '**/*.soy'
+    mapping soy: 'JAVADOC_STYLE'
+
+    ext.year = Calendar.getInstance().get(Calendar.YEAR)
+    ext.name = 'Atol Conseils & Développements'
+  }
+  downloadLicenses {
+    ext.apacheTwo = license('Apache License, Version 2.0', 'https://www.apache.org/licenses/LICENSE-2.0')
+    ext.bsd = license('BSD License', 'http://www.opensource.org/licenses/bsd-license.php')
+    ext.mit = license('MIT License', 'http://www.opensource.org/licenses/mit-license.php')
+
+    licenses = [
+      // libraries under several licenses: pick one
+      (group('org.javassist')):   apacheTwo,
+      (group('org.reflections')): bsd,
+    ]
+    aliases = [
+      (apacheTwo): [ 'Apache License, Version 2.0', 'The Apache Software License, Version 2.0', 'ASL', 'Apache 2', 'Apache 2.0', 'Apache License 2.0' ],
+      (bsd):       [ 'The New BSD License', 'BSD-like', 'BSD', 'BSD licence'/*sic!*/ ],
+      (mit):       [ 'Bouncy Castle Licence', 'ICU License', 'MIT License' ],
+    ]
+  }
+
   apply plugin: 'net.ltgt.apt'
 
   apply plugin: 'net.ltgt.errorprone'
@@ -43,6 +71,7 @@ buildscript {
   dependencies {
     classpath 'net.ltgt.gradle:gradle-errorprone-plugin:0.0.7'
     classpath 'net.ltgt.gradle:gradle-apt-plugin:0.3'
+    classpath 'nl.javadude.gradle.plugins:license-gradle-plugin:0.11.0'
   }
 }
 
