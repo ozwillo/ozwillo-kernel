@@ -231,6 +231,11 @@
         <target>Votre adresse email :</target>
         <note priority="1" from="description">Email field label for account recovery</note>
       </trans-unit>
+      <trans-unit id="3993555713179203402" datatype="html">
+        <source>This application is now available and ready to use.</source>
+        <target>Cette application est disponible et prête à l'emploi.</target>
+        <note priority="1" from="description">App-instance provisioning notification message</note>
+      </trans-unit>
       <trans-unit id="4234642644438435485" datatype="html">
         <source>Accept or refuse membership invitation</source>
         <target>Accepter ou refuser l'invitation pour une organisation</target>
@@ -260,6 +265,11 @@
         <source><x id="APP_NAME"/> needs some authorizations</source>
         <target><x id="APP_NAME"/> a besoin d'autorisations</target>
         <note priority="1" from="description">Some app needs authorizations</note>
+      </trans-unit>
+      <trans-unit id="4930506384627295710" datatype="html">
+        <source>Settings</source>
+        <source>Paramètres</source>
+        <note priority="1" from="description">App-instance provisioning notification action label</note>
       </trans-unit>
       <trans-unit id="5108418000757845610" datatype="html">
         <source>Password changed</source>

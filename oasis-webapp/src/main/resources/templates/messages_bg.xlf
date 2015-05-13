@@ -7,6 +7,11 @@
         <target>https://www.ozwillo.com/bg/uslovia</target>
         <note priority="1" from="description">terms of use URL</note>
       </trans-unit>
+      <trans-unit id="112067034614295505" datatype="html">
+        <source><x id="INVITED_USER_EMAIL"/> has accepted your invitation to join the <x id="ORGANIZATION_NAME"/> organization.</source>
+        <target><x id="INVITED_USER_EMAIL"/> прие вашата покана да се присъедини към организация <x id="ORGANIZATION_NAME"/>.</target>
+        <note priority="1" from="description">Accepted organization membership invitation notification message for the requester</note>
+      </trans-unit>
       <trans-unit id="153573648835304242" datatype="html">
         <source>Account Access Attempted</source>
         <target>Опит за достъп до акаунта</target>
@@ -22,10 +27,25 @@
         <target>С приключването на вашата регистрация Вие декларирате, че сте започнати с <x id="START_LINK"/>Условията за ползване<x id="END_LINK"/> и ги приемате.</target>
         <note priority="1" from="description">Accept terms of use when signing up</note>
       </trans-unit>
+      <trans-unit id="667496017372169371" datatype="html">
+        <source>Password must be at least <x id="PWD_MIN_LENGTH"/> characters long.</source>
+        <target>Паролата трябва да бъде поне <x id="PWD_MIN_LENGTH"/> символа.</target>
+        <note priority="1" from="description">Password too short; when changing password</note>
+      </trans-unit>
       <trans-unit id="706458367103369348" datatype="html">
         <source>Ozwillo password reset</source>
         <target>Възстановяване на парола в Ozwillo</target>
         <note priority="1" from="description">Forgot-password email subject, for an existing account</note>
+      </trans-unit>
+      <trans-unit id="865768820644927420" datatype="html">
+        <source>Please contact an administrator of the organization related to the invitation.</source>
+        <target>Моля, свържете се с администратора на организацията, от чието име е отправена поканата.</target>
+        <note priority="1" from="description">membership invitation error description</note>
+      </trans-unit>
+      <trans-unit id="882782820458660907" datatype="html">
+        <source>Expired invitation</source>
+        <target>Изтекла покана</target>
+        <note priority="1" from="description">membership invitation page error</note>
       </trans-unit>
       <trans-unit id="896282919376501263" datatype="html">
         <source>An error occurred. That's all we know.</source>
@@ -77,15 +97,45 @@
         <target>Прекратихме всички ваши сесии на всичките ви устройства.</target>
         <note priority="1" from="description">Password successfully changed: immediate consequences</note>
       </trans-unit>
+      <trans-unit id="1702605619572199250" datatype="html">
+        <source>The organization <x id="ORGANIZATION_NAME"/> has been restored.</source>
+        <target>Организация <x id="ORGANIZATION_NAME"/> е възстановена.</target>
+        <note priority="1" from="description">Restored organization requester notification message</note>
+      </trans-unit>
+      <trans-unit id="1725174351395785101" datatype="html">
+        <source><x id="REQUESTER_NAME"/> has invited you to join the <x id="ORGANIZATION_NAME"/> organization</source>
+        <target><x id="REQUESTER_NAME"/> ви покани да се присъедините към организация <x id="ORGANIZATION_NAME"/></target>
+        <note priority="1" from="description">Organization membership invitation email subject</note>
+      </trans-unit>
+      <trans-unit id="1905705329717211043" datatype="html">
+        <source>The application <x id="APP_INSTANCE_NAME"/> was uninstalled successfully.</source>
+        <target>Приложение <x id="APP_INSTANCE_NAME"/> беше успешно деинсталирано.</target>
+        <note priority="1" from="description">Stopped application instance user notification message</note>
+      </trans-unit>
       <trans-unit id="2012659005494284050" datatype="html">
         <source>Forgot your password?</source>
         <target>Забравили сте паролата си?</target>
         <note priority="1" from="description">forgot password page heading</note>
       </trans-unit>
+      <trans-unit id="2138735712130224013" datatype="html">
+        <source><x id="USER_NAME"/> left the organization <x id="ORGANIZATION_NAME"/>.</source>
+        <target><x id="USER_NAME"/> напусна организация <x id="ORGANIZATION_NAME"/>.</target>
+        <note priority="1" from="description">Deleted organization membership notification message</note>
+      </trans-unit>
       <trans-unit id="2159130950882492111" datatype="html">
         <source>Cancel</source>
         <target>Отказ</target>
         <note priority="1" from="description">Button to cancel (and return error to the app)</note>
+      </trans-unit>
+      <trans-unit id="2163351121824977439" datatype="html">
+        <source>Your unsubscription of the application <x id="APP_INSTANCE_NAME"/> has been registered, you have a week to cancel the operation before its uninstalling.</source>
+        <target>Вашето отписване от приложение <x id="APP_INSTANCE_NAME"/> беше регистрирано. Имате една седмица да отмените операцията преди деинсталирането му.</target>
+        <note priority="1" from="description">Stopped application instance owner notification message</note>
+      </trans-unit>
+      <trans-unit id="2336550011721758066" datatype="html">
+        <source>Log in</source>
+        <target>Вход</target>
+        <note priority="1" from="description">Form submit button</note>
       </trans-unit>
       <trans-unit id="2454050363478003966" datatype="html">
         <source>Login</source>
@@ -112,10 +162,20 @@
         <target>Преглед</target>
         <note priority="1" from="description">Overview link on sign-up page</note>
       </trans-unit>
+      <trans-unit id="2637452443915953032" datatype="html">
+        <source><x id="REQUESTER_NAME"/> requested the deletion of the organization <x id="ORGANIZATION_NAME"/>, deletion will be effective in a week.</source>
+        <target><x id="REQUESTER_NAME"/> поиска изтриване на организация <x id="ORGANIZATION_NAME"/>. Изтриването ще се извърши след една седмица.</target>
+        <note priority="1" from="description">Soflty deleted organization admin notification message</note>
+      </trans-unit>
       <trans-unit id="2904061631873939197" datatype="html">
         <source>Go back to My Ozwillo</source>
         <target>Обратно към My Ozwillo</target>
         <note priority="1" from="description">Cancel changing password</note>
+      </trans-unit>
+      <trans-unit id="2912423960746840762" datatype="html">
+        <source>Your request to remove the organization <x id="ORGANIZATION_NAME"/> has been registered, you have a week to cancel the operation before its deletion.</source>
+        <target>Вашето искане за изтриване на организация <x id="ORGANIZATION_NAME"/> беше регистрирано. Имате една седмица да отмените операциятапреди нейното изтриване.</target>
+        <note priority="1" from="description">Soflty deleted organization requester notification message</note>
       </trans-unit>
       <trans-unit id="2949848596707725099" datatype="html">
         <source>Sign out</source>
@@ -136,6 +196,11 @@
         <source>An account with that email address already exists.</source>
         <target>Акаунт с този имейл адрес вече съществува.</target>
         <note priority="1" from="description">Error message during sign-up</note>
+      </trans-unit>
+      <trans-unit id="3498554815912326299" datatype="html">
+        <source>The application <x id="APP_INSTANCE_NAME"/> has been restored.</source>
+        <target>Приложение <x id="APP_INSTANCE_NAME"/> беше възстановено.</target>
+        <note priority="1" from="description">Stopped application instance user notification message</note>
       </trans-unit>
       <trans-unit id="3510526964471104374" datatype="html">
         <source>Cancel and log me back in</source>
@@ -167,10 +232,25 @@
         <target>Вашият имейл адрес:</target>
         <note priority="1" from="description">Email field label for account recovery</note>
       </trans-unit>
+      <trans-unit id="3993555713179203402" datatype="html">
+        <source>This application is now available and ready to use.</source>
+        <target>Приложението вече е достъпно и готово за ползване.</target>
+        <note priority="1" from="description">App-instance provisioning notification message</note>
+      </trans-unit>
+      <trans-unit id="4234642644438435485" datatype="html">
+        <source>Accept or refuse membership invitation</source>
+        <target>Приемете или откажете поканата за членство.</target>
+        <note priority="1" from="description">membership invitation page</note>
+      </trans-unit>
       <trans-unit id="4503676110666500451" datatype="html">
         <source>Some required fields are not filled.</source>
         <target>Някои задължителни полета не са попълнени.</target>
         <note priority="1" from="description">Error message during account recovery</note>
+      </trans-unit>
+      <trans-unit id="4608187185425458597" datatype="html">
+        <source><x id="REQUESTER_NAME"/> unsubscribed of the application <x id="APP_INSTANCE_NAME"/>, uninstalling will be effective in a week.</source>
+        <target><x id="REQUESTER_NAME"/> се отписа от приложение <x id="APP_INSTANCE_NAME"/>, деинсталирането ще се извърши след една седмица.</target>
+        <note priority="1" from="description">Stopped application instance user notification message</note>
       </trans-unit>
       <trans-unit id="4764082581244349761" datatype="html">
         <source>An account with that email address already exists. Did you <x id="START_LINK"/>forgot your password?<x id="END_LINK"/></source>
@@ -186,6 +266,11 @@
         <source><x id="APP_NAME"/> needs some authorizations</source>
         <target><x id="APP_NAME"/> се нуждае от малко разрешения</target>
         <note priority="1" from="description">Some app needs authorizations</note>
+      </trans-unit>
+      <trans-unit id="4930506384627295710" datatype="html">
+        <source>Settings</source>
+        <target>Настройки</target>
+        <note priority="1" from="description">App-instance provisioning notification action label</note>
       </trans-unit>
       <trans-unit id="5108418000757845610" datatype="html">
         <source>Password changed</source>
@@ -212,6 +297,11 @@
         <target>Псевдоним</target>
         <note priority="1" from="description">Nickname field label (for sign-up)</note>
       </trans-unit>
+      <trans-unit id="5580292871018316143" datatype="html">
+        <source>The administrator <x id="USER_NAME"/> left the organization <x id="ORGANIZATION_NAME"/>.</source>
+        <target>Администраторът <x id="USER_NAME"/> напусна организация <x id="ORGANIZATION_NAME"/>.</target>
+        <note priority="1" from="description">Deleted organization administrator notification message</note>
+      </trans-unit>
       <trans-unit id="5606277844100248611" datatype="html">
         <source>You have already authorized <x id="APP_NAME"/> to:</source>
         <target>Вече сте разрешили на <x id="APP_NAME"/> да:</target>
@@ -222,6 +312,11 @@
         <target><x id="START_PARAGRAPH"/>Вие (или някой друг) въведе този имейл адрес, когато се опитваше да промени паролата на Ozwillo акаунт.<x id="START_PARAGRAPH"/>Обаче този имейл адрес не е в нашата база данни от регистрирани потребители и затова опитът за смяна на паролата се провали.<x id="START_PARAGRAPH"/>Ако имате Ozwillo акаунт и очаквахте този имейл, моля, опитайте отново използвайки имейл адреса, с който сте дали при създаването на акаунта.<x id="START_PARAGRAPH"/>Ако нямате Ozwillo акаунт, моля, игнорирайте този имейл.<x id="START_PARAGRAPH"/>Екип на Ozwillo</target>
         <note priority="1" from="description">Forgot-password email body, for an unknown account</note>
       </trans-unit>
+      <trans-unit id="5905477645089564482" datatype="html">
+        <source>The organization <x id="ORGANIZATION_NAME"/> was deleted successfully.</source>
+        <target>Организация <x id="ORGANIZATION_NAME"/> беше успешно изтрита.</target>
+        <note priority="1" from="description">Deleted organization notification message</note>
+      </trans-unit>
       <trans-unit id="5962776201852038125" datatype="html">
         <source><x id="START_PARAGRAPH"/>You are also logged in to these Ozwillo services:<x id="END_PARAGRAPH"/><x id="APPS"/><x id="START_PARAGRAPH"/>Signing out of Ozwillo will sign you out of these.<x id="END_PARAGRAPH"/></source>
         <target><x id="START_PARAGRAPH"/>Вие също така сте влезли в следните услуги на Ozwillo:<x id="END_PARAGRAPH"/><x id="APPS"/><x id="START_PARAGRAPH"/>Изходът от Ozwillo ще ви изведе от тях.<x id="END_PARAGRAPH"/></target>
@@ -231,6 +326,11 @@
         <source>New password:</source>
         <target>Нова парола:</target>
         <note priority="1" from="description">New password (when changing password)</note>
+      </trans-unit>
+      <trans-unit id="6255851471461697144" datatype="html">
+        <source><x id="REQUESTER_NAME"/> has invited <x id="INVITED_USER_EMAIL"/> to join the <x id="ORGANIZATION_NAME"/> organization.</source>
+        <target><x id="REQUESTER_NAME"/> покани <x id="INVITED_USER_EMAIL"/> да се присъедини към организация <x id="ORGANIZATION_NAME"/>.</target>
+        <note priority="1" from="description">New organization membership invitation notification message for admins</note>
       </trans-unit>
       <trans-unit id="6263536566459432245" datatype="html">
         <source>Activate your Ozwillo account</source>
@@ -257,10 +357,35 @@
         <target>Тази връзка е изтекла. Опитайте отново по-долу.</target>
         <note priority="1" from="description">Error message during account recovery</note>
       </trans-unit>
+      <trans-unit id="6958276782575850559" datatype="html">
+        <source><x id="INVITED_USER_EMAIL"/> has rejected <x id="REQUESTER_NAME"/> invitation to join the <x id="ORGANIZATION_NAME"/> organization.</source>
+        <target><x id="INVITED_USER_EMAIL"/> отхвърли поканата на <x id="REQUESTER_NAME"/> да се присаедини към организация <x id="ORGANIZATION_NAME"/>.</target>
+        <note priority="1" from="description">Rejected organization membership invitation notification message for admins</note>
+      </trans-unit>
+      <trans-unit id="7028204981963450021" datatype="html">
+        <source>Sign up</source>
+        <target>Изход</target>
+        <note priority="1" from="description">Form submit button</note>
+      </trans-unit>
+      <trans-unit id="7155351833114954148" datatype="html">
+        <source>Manage my network</source>
+        <target>Управление на моята мрежа</target>
+        <note priority="1" from="description">Soflty deleted organization notification action label</note>
+      </trans-unit>
+      <trans-unit id="7378878529334768232" datatype="html">
+        <source>Reject</source>
+        <target>Отхвърляне</target>
+        <note priority="1" from="description">Reject membership invitation form submit button</note>
+      </trans-unit>
       <trans-unit id="7418322490061402095" datatype="html">
         <source>Account pending activation</source>
         <target>Акаунт очакващ активация</target>
         <note priority="1" from="description">activation pending title</note>
+      </trans-unit>
+      <trans-unit id="7584118525039558774" datatype="html">
+        <source><x id="INVITED_USER_EMAIL"/> has accepted <x id="REQUESTER_NAME"/> invitation to join the <x id="ORGANIZATION_NAME"/> organization.</source>
+        <target><x id="INVITED_USER_EMAIL"/> прие поканата на <x id="REQUESTER_NAME"/> да се присъедини към организация <x id="ORGANIZATION_NAME"/>.</target>
+        <note priority="1" from="description">Accepted organization membership invitation notification message for admins</note>
       </trans-unit>
       <trans-unit id="7601564290921092628" datatype="html">
         <source><x id="START_PARAGRAPH"/>You (or someone else) entered this email address when trying to change the password of an Ozwillo account.<x id="START_PARAGRAPH"/>To continue with the password reset process, please proceed to:<x id="START_BREAK"/><x id="START_LINK"/><x id="RESET_PASSWORD_LINK"/><x id="END_LINK"/><x id="START_PARAGRAPH"/>The Ozwillo team</source>
@@ -302,15 +427,35 @@
         <target>Текуща парола:</target>
         <note priority="1" from="description">Current password when changing password</note>
       </trans-unit>
+      <trans-unit id="8175006045572546420" datatype="html">
+        <source><x id="START_PARAGRAPH"/><x id="REQUESTER_NAME"/> has invited you to join the <x id="ORGANIZATION_NAME"/> organization on Ozwillo.<x id="START_PARAGRAPH"/>To accept or reject the invitation, follow this link: <x id="START_LINK"/><x id="MEMBERSHIP_INVITATION_URL"/><x id="END_LINK"/>.<x id="START_PARAGRAPH"/>If you were not expecting this invitation, you can ignore this email.<x id="START_PARAGRAPH"/>The Ozwillo team</source>
+        <target><x id="START_PARAGRAPH"/><x id="REQUESTER_NAME"/> ви покани да се присъедините към организация <x id="ORGANIZATION_NAME"/> в Ozwillo.<x id="START_PARAGRAPH"/>За да приемете или отхвърлите поканата, последвайте следния линк: <x id="START_LINK"/><x id="MEMBERSHIP_INVITATION_URL"/><x id="END_LINK"/>.<x id="START_PARAGRAPH"/>Ако не сте очаквали тази покана можете да игнорирате това съобщение.<x id="START_PARAGRAPH"/>Екипът на Ozwillo </target>
+        <note priority="1" from="description">Organization membership invitation email body</note>
+      </trans-unit>
       <trans-unit id="8264044238565501678" datatype="html">
         <source>Forgot password</source>
         <target>Забравена парола</target>
         <note priority="1" from="description">Forgot password page title</note>
       </trans-unit>
+      <trans-unit id="8337413809318495209" datatype="html">
+        <source>Your invitation is expired</source>
+        <target>Вашата покана е изтекла</target>
+        <note priority="1" from="description">membership invitation error title</note>
+      </trans-unit>
+      <trans-unit id="8403676796644890469" datatype="html">
+        <source><x id="INVITED_USER_EMAIL"/> has rejected your invitation to join the <x id="ORGANIZATION_NAME"/> organization.</source>
+        <target><x id="INVITED_USER_EMAIL"/> отхвърли поканата ви да се присъедини към организация <x id="ORGANIZATION_NAME"/>.</target>
+        <note priority="1" from="description">Rejected organization membership invitation notification message for the requester</note>
+      </trans-unit>
       <trans-unit id="8450994523775212991" datatype="html">
         <source>Your password has been changed</source>
         <target>Вашата парола беше променена</target>
         <note priority="1" from="description">Password changed confirmation (heading)</note>
+      </trans-unit>
+      <trans-unit id="8476704704239774311" datatype="html">
+        <source>Manage my applications</source>
+        <target>Управление на моите приложения</target>
+        <note priority="1" from="description">Stopped app-instance notification action label</note>
       </trans-unit>
       <trans-unit id="8506870940393194390" datatype="html">
         <source>Go!</source>
@@ -331,6 +476,16 @@
         <source>You've signed out of <x id="START_BOLD"/><x id="APP_NAME"/><x id="END_BOLD"/></source>
         <target>Излязохте от <x id="START_BOLD"/><x id="APP_NAME"/><x id="END_BOLD"/></target>
         <note priority="1" from="description">successful sign-out from specific app</note>
+      </trans-unit>
+      <trans-unit id="8905995985388209337" datatype="html">
+        <source>Accept</source>
+        <target>Приемане</target>
+        <note priority="1" from="description">Accept membership invitation form submit button</note>
+      </trans-unit>
+      <trans-unit id="9037092558215129061" datatype="html">
+        <source><x id="REQUESTER_NAME_BOLD"/> has invited you to join the <x id="ORGANIZATION_NAME_BOLD"/> organization.</source>
+        <target><x id="REQUESTER_NAME_BOLD"/> ви покани да се присъедините към организация <x id="ORGANIZATION_NAME_BOLD"/>.</target>
+        <note priority="1" from="description">membership invitation description</note>
       </trans-unit>
       <trans-unit id="9118307257372703426" datatype="html">
         <source>Choose your new password</source>
