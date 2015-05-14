@@ -6,26 +6,17 @@ version = 'git describe --long'.execute(null, rootDir).text.trim() - ~'^v'
 ext.versionlessOutputs = project.hasProperty("versionlessOutputs") ? Boolean.parseBoolean(project.property("versionlessOutputs")) : false;
 
 subprojects {
-  apply plugin: 'errorprone'
+  apply plugin: 'net.ltgt.apt'
+
+  apply plugin: 'net.ltgt.errorprone'
   configurations.errorprone {
     resolutionStrategy.force 'com.google.errorprone:error_prone_core:2.0.1'
   }
 
   apply plugin: 'idea' // IDEA needs extra configuration for generated sources *sigh*
-  idea {
-    module {
-      // un-exclude $buildDir, then exclude all non-'generated-sources' subdir of $buildDir
-      excludeDirs -= file(buildDir)
-      buildDir.listFiles({ d , f -> f != 'generated-sources' } as FilenameFilter).each { excludeDirs += it }
-    }
-  }
 
   group = rootProject.group
   version = rootProject.version
-
-  configurations {
-    apt
-  }
 
   plugins.withType(JavaPlugin).whenPluginAdded {
     sourceCompatibility = 1.7
@@ -33,20 +24,6 @@ subprojects {
 
     tasks.withType(JavaCompile) {
       options.encoding = 'UTF-8'
-    }
-
-    afterEvaluate {
-      if (!configurations.apt.empty) {
-        def aptOutput = new File(project.buildDir, "generated-sources/apt")
-        project.compileJava.options.compilerArgs += [
-            '-processorpath', configurations.apt.asPath,
-            '-s', aptOutput
-        ]
-        project.compileJava.doFirst {
-          aptOutput.mkdirs()
-        }
-        idea.module.sourceDirs += aptOutput
-      }
     }
 
     if (versionlessOutputs) {
@@ -59,10 +36,13 @@ subprojects {
 
 buildscript {
   repositories {
-    mavenCentral()
+    maven {
+      url 'https://plugins.gradle.org/m2'
+    }
   }
   dependencies {
     classpath 'net.ltgt.gradle:gradle-errorprone-plugin:0.0.6'
+    classpath 'net.ltgt.gradle:gradle-apt-plugin:0.3'
   }
 }
 
