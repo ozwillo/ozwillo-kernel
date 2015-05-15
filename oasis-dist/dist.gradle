@@ -111,5 +111,3 @@ task deb(dependsOn: [explodedDir, debControl]) {
   }
 }
 assemble.dependsOn deb
-
-task build(dependsOn: assemble, group: BasePlugin.BUILD_GROUP)
