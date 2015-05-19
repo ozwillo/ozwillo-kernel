@@ -78,7 +78,7 @@ public class Bootstrap extends CommandLineTool {
   private String portalRedirectUri;
 
   @Option(name = "-plr", aliases = "--post-logout-redirect-uri", required = true,
-      usage = "Portal's post_ogout_redirect_uri")
+      usage = "Portal's post_logout_redirect_uri")
   private String portalPostLogoutRedirectUri;
 
   @Inject JongoService jongoService;
@@ -134,45 +134,122 @@ public class Bootstrap extends CommandLineTool {
 
   private void createOpenIdConnectScopes() {
     ScopeRepository scopeRepository = scopeRepositoryProvider.get();
+    createOrUpdateOpenIdConnectScopes(scopeRepository);
+  }
 
-    // TODO: I18N
+  static void createOrUpdateOpenIdConnectScopes(ScopeRepository scopeRepository) {
     Scope openid = new Scope();
     openid.setLocal_id(Scopes.OPENID);
     openid.computeId();
-    openid.getName().set(ULocale.ROOT, "Sign you in with your OASIS account");
-    openid.getDescription().set(ULocale.ROOT, "The application will only know your account's internal identifier, no personal information will be shared.");
+    openid.getName().set(ULocale.ROOT, "Sign you in with Ozwillo");
+    openid.getName().set(ULocale.FRANCE, "Vous connecter avec Ozwillo");
+    openid.getName().set(ULocale.ITALY, "Registrati in Ozwillo");
+    openid.getName().set(ULocale.forLanguageTag("bg-BG"), "Влезте с Ozwillo");
+    openid.getName().set(ULocale.forLanguageTag("ca-ES"), "Connectar-se a Ozwillo");
+    openid.getName().set(ULocale.forLanguageTag("es-ES"), "Conectarse con Ozwillo");
+    openid.getName().set(ULocale.forLanguageTag("tr-TR"), "Sizin için Ozwillo ile oturum başlatma");
+    openid.getDescription().set(ULocale.ROOT, "No personal information will be shared through sign in.");
+    openid.getDescription().set(ULocale.FRANCE, "Aucune information personnelle n'est partagée lors de la connexion");
+    openid.getDescription().set(ULocale.ITALY, "Nessuna informazione personale verrà condivisa registrandosi");
+    openid.getDescription().set(ULocale.forLanguageTag("bg-BG"), "Никакви лични данни няма да бъдат споделяни при влизане");
+    openid.getDescription().set(ULocale.forLanguageTag("ca-ES"), "No hi ha informació personal a ser compartida a través del registre");
+    openid.getDescription().set(ULocale.forLanguageTag("es-ES"), "No hay información personal a ser compartida a través del registro");
+    openid.getDescription().set(ULocale.forLanguageTag("tr-TR"), "Oturum başlatma esnasında kişisel hiçbir veri paylaşılmayacaktır.");
     scopeRepository.createOrUpdateScope(openid);
 
     Scope profile = new Scope();
     profile.setLocal_id(Scopes.PROFILE);
     profile.computeId();
-    profile.getName().set(ULocale.ROOT, "Basic information about your profile");
+    profile.getName().set(ULocale.ROOT, "View your basic profile info");
+    profile.getName().set(ULocale.FRANCE, "Connaître les informations de base de votre profil");
+    profile.getName().set(ULocale.ITALY, "Guarda le informazioni base del tuo profilo");
+    profile.getName().set(ULocale.forLanguageTag("bg-BG"), "Преглед на основната информация във вашия профил");
+    profile.getName().set(ULocale.forLanguageTag("ca-ES"), "Veure la informació bàsica de perfil");
+    profile.getName().set(ULocale.forLanguageTag("es-ES"), "Ver la información básica de perfil");
+    profile.getName().set(ULocale.forLanguageTag("tr-TR"), "Temel profil bilgilerinizi görüntüleme");
     profile.getDescription().set(ULocale.ROOT, "This information includes your name, gender, birth date and picture.");
+    profile.getDescription().set(ULocale.FRANCE, "Accéder à vos nom, sexe, date de naissance, photo de profil");
+    profile.getDescription().set(ULocale.ITALY, "Queste informazioni includono il tuo nome, sesso, data di nascita e foto");
+    profile.getDescription().set(ULocale.forLanguageTag("bg-BG"), "Тази информация вклюва вашето име, пол, дата на раждане и изображение");
+    profile.getDescription().set(ULocale.forLanguageTag("ca-ES"), "Aquesta informació inclou el seu nom, sexe, data de naixement i imatge");
+    profile.getDescription().set(ULocale.forLanguageTag("es-ES"), "Esta información incluye su nombre, sexo, fecha de nacimiento e imagen");
+    profile.getDescription().set(ULocale.forLanguageTag("tr-TR"), "Bu bilgiler, isminizi, cinsiyetinizi, doğum tarihinizi ve resminizi içerir.");
     scopeRepository.createOrUpdateScope(profile);
 
     Scope email = new Scope();
     email.setLocal_id(Scopes.EMAIL);
     email.computeId();
-    email.getName().set(ULocale.ROOT, "Your email address");
+    email.getName().set(ULocale.ROOT, "View your email address");
+    email.getName().set(ULocale.FRANCE, "Connaître votre adresse e-mail");
+    email.getName().set(ULocale.ITALY, "Guarda il tuo indirizo email");
+    email.getName().set(ULocale.forLanguageTag("bg-BG"), "Преглед на собствения имейл-адрес");
+    email.getName().set(ULocale.forLanguageTag("ca-ES"), "Veure el seu correu electrònic");
+    email.getName().set(ULocale.forLanguageTag("es-ES"), "Ver su correo electrónico");
+    email.getName().set(ULocale.forLanguageTag("tr-TR"), "eposta adresinizi görüntüleme");
+    email.getDescription().set(ULocale.ROOT, "View the email address associated with your account.");
+    email.getDescription().set(ULocale.FRANCE, "Accéder à l'adresse e-mail associée à votre compte");
+    email.getDescription().set(ULocale.ITALY, "Guarda l'indirizzo email associato al tuo account");
+    email.getDescription().set(ULocale.forLanguageTag("bg-BG"), "Преглед на свързания с вашия акаунт имейл адрес");
+    email.getDescription().set(ULocale.forLanguageTag("ca-ES"), "Veure el correu electrònic associat amb el seu compte");
+    email.getDescription().set(ULocale.forLanguageTag("es-ES"), "Ver el correo electrónico asociado a su cuenta");
+    email.getDescription().set(ULocale.forLanguageTag("tr-TR"), "Hesabınız ile ilişkilendirilmiş olan eposta adresinizi görüntüleme");
     scopeRepository.createOrUpdateScope(email);
 
     Scope address = new Scope();
     address.setLocal_id(Scopes.ADDRESS);
     address.computeId();
-    address.getName().set(ULocale.ROOT, "Your postal address");
+    address.getName().set(ULocale.ROOT, "View your postal address");
+    address.getName().set(ULocale.FRANCE, "Connaître votre adresse postale");
+    address.getName().set(ULocale.ITALY, "Guarda il tuo indirizzo postale");
+    address.getName().set(ULocale.forLanguageTag("bg-BG"), "Преглед на вашия пощенски адрес");
+    address.getName().set(ULocale.forLanguageTag("ca-ES"), "Veure la seva adreça");
+    address.getName().set(ULocale.forLanguageTag("es-ES"), "Ver su dirección");
+    address.getName().set(ULocale.forLanguageTag("tr-TR"), "Posta adresinizi görüntüleme");
+    address.getDescription().set(ULocale.ROOT, "View the postal address associated with your account.");
+    address.getDescription().set(ULocale.FRANCE, "Accéder à l'adresse postale associée à votre compte");
+    address.getDescription().set(ULocale.ITALY, "Guarda l'indirizzo postale associato al il tuo account");
+    address.getDescription().set(ULocale.forLanguageTag("bg-BG"), "Преглед на пощенския адрес, свързан с вашия акаунт");
+    address.getDescription().set(ULocale.forLanguageTag("ca-ES"), "Veure l’adreça associada amb el seu compte");
+    address.getDescription().set(ULocale.forLanguageTag("es-ES"), "Ver la dirección asociada a su cuenta");
+    address.getDescription().set(ULocale.forLanguageTag("tr-TR"), "Hesabınız ile ilişkilendirilmiş posta adresinizi görüntüleme");
     scopeRepository.createOrUpdateScope(address);
 
     Scope phone = new Scope();
     phone.setLocal_id(Scopes.PHONE);
     phone.computeId();
-    phone.getName().set(ULocale.ROOT, "Your phone number");
+    phone.getName().set(ULocale.ROOT, "View your phone number");
+    phone.getName().set(ULocale.FRANCE, "Connaître votre numéro de téléphone");
+    phone.getName().set(ULocale.ITALY, "Guarda il tuo numero di telefono");
+    phone.getName().set(ULocale.forLanguageTag("bg-BG"), "Преглед на вашия телефонен номер");
+    phone.getName().set(ULocale.forLanguageTag("ca-ES"), "Veure el seu número de telèfon");
+    phone.getName().set(ULocale.forLanguageTag("es-ES"), "Ver su número de teléfono");
+    phone.getName().set(ULocale.forLanguageTag("tr-TR"), "Telefon numaranızı görüntüleme");
+    phone.getDescription().set(ULocale.ROOT, "View the phone number associated with your account.");
+    phone.getDescription().set(ULocale.FRANCE, "Accéder au numéro de téléphone associé à votre compte");
+    phone.getDescription().set(ULocale.ITALY, "Guarda il numero di telefono associato al tuo account");
+    phone.getDescription().set(ULocale.forLanguageTag("bg-BG"), "Преглед на телефонния номер, свързан с вашия акаунт");
+    phone.getDescription().set(ULocale.forLanguageTag("ca-ES"), "Veure el número de telèfon associat amb el seu compte");
+    phone.getDescription().set(ULocale.forLanguageTag("es-ES"), "Ver el número de teléfono asociado a su cuenta");
+    phone.getDescription().set(ULocale.forLanguageTag("tr-TR"), "Hesabınız ile ilişkilendirilmiş telefon numaranızı görüntüleme");
     scopeRepository.createOrUpdateScope(phone);
 
     Scope offline = new Scope();
     offline.setLocal_id(Scopes.OFFLINE_ACCESS);
     offline.computeId();
-    offline.getName().set(ULocale.ROOT, "Accessing all this information while you're not connected");
-    offline.getDescription().set(ULocale.ROOT, "The application will be able to access your data even after you log out of OASIS.");
+    offline.getName().set(ULocale.ROOT, "Access your data while you're not connected");
+    offline.getName().set(ULocale.FRANCE, "Accéder à vos données quand vous n'êtes pas connecté");
+    offline.getName().set(ULocale.ITALY, "Accedi ai tuoi dati quando non sei connesso");
+    offline.getName().set(ULocale.forLanguageTag("bg-BG"), "Достъп до вашите данни когато не сте свързан");
+    offline.getName().set(ULocale.forLanguageTag("ca-ES"), "Accedeixi a les seves dades tot i no estar connectat");
+    offline.getName().set(ULocale.forLanguageTag("es-ES"), "Acceda a sus datos aunque no este conectado");
+    offline.getName().set(ULocale.forLanguageTag("tr-TR"), "Bağlı olmadığınız esnada verilerinize erişebilmek");
+    offline.getDescription().set(ULocale.ROOT, "The application will be able to access your data even after you log out of Ozwillo.");
+    offline.getDescription().set(ULocale.FRANCE, "Accéder à vos données même après vous être déconnecté(e) d'Ozwillo");
+    offline.getDescription().set(ULocale.ITALY, "Accedi ai tuoi dati anche dopo la disconnessione da Ozwillo");
+    offline.getDescription().set(ULocale.forLanguageTag("bg-BG"), "Достъп до вашите данни дори и след излизането ви от Ozwillo");
+    offline.getDescription().set(ULocale.forLanguageTag("ca-ES"), "Accedeixi a les seves dades fins i tot després de tancar la sessió de Ozwillo");
+    offline.getDescription().set(ULocale.forLanguageTag("es-ES"), "Acceda a sus datos incluso después de cerrar la sesión de Ozwillo");
+    offline.getDescription().set(ULocale.forLanguageTag("tr-TR"), "Ozwillo'da oturum sonlandırma yaptıktan sonra dahi verilerinize erişebilmek");
     scopeRepository.createOrUpdateScope(offline);
   }
 
@@ -194,7 +271,7 @@ public class Bootstrap extends CommandLineTool {
 
   private String createOasisOrganization(String adminAccountId) {
     Organization oasis = new Organization();
-    oasis.setName("OASIS");
+    oasis.setName("Ozwillo");
     oasis.setType(Organization.Type.COMPANY);
     oasis.setStatus(Organization.Status.AVAILABLE);
     oasis = directoryRepositoryProvider.get().createOrganization(oasis);
@@ -211,14 +288,14 @@ public class Bootstrap extends CommandLineTool {
 
   private String createPortal(String oasisOrgId, String adminAccountId) {
     Application app = new Application();
-    app.getName().set(ULocale.ROOT, "OASIS Portal");
+    app.getName().set(ULocale.ROOT, "Ozwillo Portal");
     app.setProvider_id(oasisOrgId);
     app.setVisible(false);
     app = applicationRepositoryProvider.get().createApplication(app);
 
     JongoAppInstance instance = new JongoAppInstance();
     instance.setId(ClientIds.PORTAL);
-    instance.getName().set(ULocale.ROOT, "OASIS Portal");
+    instance.getName().set(ULocale.ROOT, "Ozwillo Portal");
     instance.setApplication_id(app.getId());
     instance.setStatus(AppInstance.InstantiationStatus.RUNNING);
     instance.setInstantiator_id(adminAccountId);
@@ -237,7 +314,7 @@ public class Bootstrap extends CommandLineTool {
     service.setInstance_id(instance.getId());
     service.setVisible(true); // we don't want filtering by ACL, portal will be filtered out by Market search
     service.setStatus(Service.Status.AVAILABLE);
-    service.getName().set(ULocale.ROOT, "OASIS Portal");
+    service.getName().set(ULocale.ROOT, "Ozwillo Portal");
     service.getRedirect_uris().add(portalRedirectUri);
     service.getPost_logout_redirect_uris().add(portalPostLogoutRedirectUri);
     serviceRepositoryProvider.get().createService(service);
@@ -247,14 +324,14 @@ public class Bootstrap extends CommandLineTool {
 
   private String createDatacore(String oasisOrgId, String adminAccountId) {
     Application app = new Application();
-    app.getName().set(ULocale.ROOT, "OASIS Datacore");
+    app.getName().set(ULocale.ROOT, "Ozwillo Datacore");
     app.setProvider_id(oasisOrgId);
     app.setVisible(false);
     app = applicationRepositoryProvider.get().createApplication(app);
 
     JongoAppInstance instance = new JongoAppInstance();
     instance.setId(ClientIds.DATACORE);
-    instance.getName().set(ULocale.ROOT, "OASIS Datacore");
+    instance.getName().set(ULocale.ROOT, "Ozwillo Datacore");
     instance.setApplication_id(app.getId());
     instance.setStatus(AppInstance.InstantiationStatus.RUNNING);
     instance.setInstantiator_id(adminAccountId);
