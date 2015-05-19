@@ -30,6 +30,7 @@ import javax.ws.rs.core.UriInfo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import oasis.model.authz.Scopes;
 import oasis.urls.Urls;
 import oasis.web.authn.LogoutPage;
 import oasis.web.authz.AuthorizationEndpoint;
@@ -77,7 +78,8 @@ public class OpenIdProviderConfigurationEndpoint {
     @JsonProperty String token_endpoint = getBaseUriBuilder().path(TokenEndpoint.class).build().toString();
     @JsonProperty String userinfo_endpoint = getBaseUriBuilder().path(UserInfoEndpoint.class).build().toString();
     @JsonProperty String jwks_uri = getBaseUriBuilder().path(KeysEndpoint.class).build().toString();
-    // registration_endpoint, scopes_supported
+    // registration_endpoint
+    @JsonProperty String[] scopes_supported = { Scopes.OPENID, Scopes.PROFILE, Scopes.EMAIL, Scopes.ADDRESS, Scopes.PHONE, Scopes.OFFLINE_ACCESS };
     /** See {@link AuthorizationEndpoint#validateResponseTypeAndMode}. */
     @JsonProperty String[] response_types_supported = { "code" };
     /** See {@link AuthorizationEndpoint#generateAuthorizationCodeAndRedirect}. */
