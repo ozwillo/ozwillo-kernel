@@ -44,11 +44,10 @@ public class Organization {
   @ApiModelProperty(required = true)
   private Type type;
   private URI territory_id;
+  private URI dc_id;
 
   private Status status;
-
   private Instant status_changed;
-
   private String status_change_requester_id;
 
   public Organization() {
@@ -63,6 +62,7 @@ public class Organization {
     this.name = other.getName();
     this.type = other.getType();
     this.territory_id = other.getTerritory_id();
+    this.dc_id = other.getDc_id();
     this.status = other.getStatus();
     this.status_changed = other.getStatus_changed();
     this.status_change_requester_id = other.getStatus_change_requester_id();
@@ -98,6 +98,15 @@ public class Organization {
 
   public void setTerritory_id(URI territory_id) {
     this.territory_id = territory_id;
+  }
+
+  public URI getDc_id() {
+    return dc_id;
+  }
+
+  public Organization setDc_id(URI dc_id) {
+    this.dc_id = dc_id;
+    return this;
   }
 
   public Status getStatus() {
