@@ -36,4 +36,10 @@ public interface Urls {
   Optional<URI> myApps();
 
   Optional<URI> myNetwork();
+
+  Optional<URI> developerDoc();
+
+  Optional<URI> privacyPolicy();
+
+  Optional<URI> termsOfService();
 }

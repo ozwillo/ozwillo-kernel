@@ -39,6 +39,9 @@ public class UrlsModule extends AbstractModule {
         .myProfile(get(config, "my-profile"))
         .myApps(get(config, "my-apps"))
         .myNetwork(get(config, "my-network"))
+        .developerDoc(get(config, "developer-doc"))
+        .privacyPolicy(get(config, "privacy-policy"))
+        .termsOfService(get(config, "terms-of-service"))
         .build());
   }
 

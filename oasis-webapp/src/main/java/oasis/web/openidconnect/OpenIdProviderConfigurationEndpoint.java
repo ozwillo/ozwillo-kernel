@@ -30,6 +30,7 @@ import javax.ws.rs.core.UriInfo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Function;
+import com.google.common.base.Functions;
 import com.google.common.collect.FluentIterable;
 import com.ibm.icu.util.ULocale;
 
@@ -113,14 +114,15 @@ public class OpenIdProviderConfigurationEndpoint {
     @JsonProperty String[] token_endpoint_auth_methods_supported = { "client_secret_basic" };
     // token_endpoint_auth_signing_alg_values_supported
     // display_values_supported, claim_types_supported, claims_supported
-    // TODO: service_documentation
+    @JsonProperty String service_documentation = urls.developerDoc().transform(Functions.toStringFunction()).orNull();
     // claims_locales_supported
     @JsonProperty String[] ui_locales_supported = UI_LOCALES_SUPPORTED;
     // This is the default value: @JsonProperty boolean claims_parameter_supported = false;
     // This is the default value: @JsonProperty boolean request_parameter_supported = false;
     @JsonProperty boolean request_uri_parameter_supported = false;
     // This is the default value: @JsonProperty boolean require_request_uri_registration = false;
-    // TODO: op_policy_uri, op_tos_uri
+    @JsonProperty String op_policy_uri = urls.privacyPolicy().transform(Functions.toStringFunction()).orNull();
+    @JsonProperty String op_tos_uri = urls.termsOfService().transform(Functions.toStringFunction()).orNull();
 
     // See http://openid.net/specs/openid-connect-session-1_0.html#EndpointDiscovery
     // TODO: check_session_iframe
