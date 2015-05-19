@@ -59,7 +59,6 @@ import oasis.services.authn.TokenHandler;
 import oasis.services.authn.UserPasswordAuthenticator;
 import oasis.soy.TestingSoyGuiceModule;
 import oasis.urls.ImmutableUrls;
-import oasis.urls.Urls;
 import oasis.urls.UrlsModule;
 import oasis.web.authn.testing.TestUserFilter;
 import oasis.web.view.SoyTemplateBodyWriter;
@@ -102,6 +101,7 @@ public class LoginPageTest {
 
   @Inject @Rule public InProcessResteasy resteasy;
 
+  @SuppressWarnings("unchecked")
   @Before public void setupMocks(UserPasswordAuthenticator userPasswordAuthenticator, TokenHandler tokenHandler,
       AccountRepository accountRepository, TokenRepository tokenRepository) throws LoginException {
     when(userPasswordAuthenticator.authenticate(someUserAccount.getEmail_address(), "password")).thenReturn(someUserAccount);

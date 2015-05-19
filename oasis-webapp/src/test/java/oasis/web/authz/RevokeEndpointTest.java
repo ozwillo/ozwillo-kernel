@@ -67,8 +67,8 @@ public class RevokeEndpointTest {
 
   @Inject @Rule public InProcessResteasy resteasy;
 
-  @Before
-  public void setUpMocks(TokenHandler tokenHandler) {
+  @SuppressWarnings("unchecked")
+  @Before public void setUpMocks(TokenHandler tokenHandler) {
     when(tokenHandler.getCheckedToken(eq("valid"), any(Class.class))).thenReturn(validToken);
     when(tokenHandler.getCheckedToken(eq("invalid"), any(Class.class))).thenReturn(null);
   }

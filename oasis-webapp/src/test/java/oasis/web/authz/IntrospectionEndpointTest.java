@@ -89,6 +89,7 @@ public class IntrospectionEndpointTest {
 
   @Inject @Rule public InProcessResteasy resteasy;
 
+  @SuppressWarnings("unchecked")
   @Before public void setUpMocks(TokenHandler tokenHandler, AccountRepository accountRepository,
       ScopeRepository scopeRepository, GroupService groupService) {
     when(tokenHandler.getCheckedToken(eq("valid"), any(Class.class))).thenReturn(validToken);
