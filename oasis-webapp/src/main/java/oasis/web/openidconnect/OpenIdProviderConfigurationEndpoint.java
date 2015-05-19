@@ -29,6 +29,9 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.Function;
+import com.google.common.collect.FluentIterable;
+import com.ibm.icu.util.ULocale;
 
 import oasis.model.authz.Scopes;
 import oasis.urls.Urls;
@@ -37,6 +40,7 @@ import oasis.web.authz.AuthorizationEndpoint;
 import oasis.web.authz.KeysEndpoint;
 import oasis.web.authz.RevokeEndpoint;
 import oasis.web.authz.TokenEndpoint;
+import oasis.web.i18n.LocaleHelper;
 import oasis.web.resteasy.Resteasy1099;
 import oasis.web.userinfo.UserInfoEndpoint;
 
@@ -45,6 +49,15 @@ import oasis.web.userinfo.UserInfoEndpoint;
  */
 @Path("/.well-known/openid-configuration")
 public class OpenIdProviderConfigurationEndpoint {
+  private static final String[] UI_LOCALES_SUPPORTED = FluentIterable.from(LocaleHelper.SUPPORTED_LOCALES)
+      .transform(new Function<ULocale, String>() {
+        @Override
+        public String apply(ULocale input) {
+          return input.toLanguageTag();
+        }
+      })
+      .toArray(String.class);
+
   @Inject Urls urls;
 
   @Context UriInfo uriInfo;
@@ -102,7 +115,7 @@ public class OpenIdProviderConfigurationEndpoint {
     // display_values_supported, claim_types_supported, claims_supported
     // TODO: service_documentation
     // claims_locales_supported
-    // TODO: ui_locales_supported
+    @JsonProperty String[] ui_locales_supported = UI_LOCALES_SUPPORTED;
     // This is the default value: @JsonProperty boolean claims_parameter_supported = false;
     // This is the default value: @JsonProperty boolean request_parameter_supported = false;
     @JsonProperty boolean request_uri_parameter_supported = false;
