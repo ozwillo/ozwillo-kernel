@@ -182,11 +182,6 @@
         <target>Desconnectar-se</target>
         <note priority="1" from="description">Form submit button; global sign-out</note>
       </trans-unit>
-      <trans-unit id="3208540886437471103" datatype="html">
-        <source><x id="APP_NAME"/> wants to:</source>
-        <target><x id="APP_NAME"/> desitja :</target>
-        <note priority="1" from="description">Introduce list of required (and not already granted) scopes</note>
-      </trans-unit>
       <trans-unit id="3342471433315777526" datatype="html">
         <source>We've sent you an email with an activation link, click on that link to activate your account.</source>
         <target>Li hem enviat un correu electrònic amb un link d’activació; cliqui sobre el link per tal d’activar el seu compte.</target>
@@ -371,6 +366,11 @@
         <source>Manage my network</source>
         <target>Gestionar la meva xarxa</target>
         <note priority="1" from="description">Soflty deleted organization notification action label</note>
+      </trans-unit>
+      <trans-unit id="7285596352322007191" datatype="html">
+        <source><x id="APP_NAME"/> would like to:</source>
+        <target><x id="APP_NAME"/> li agradaria:</target>
+        <note priority="1" from="description">Introduce list of required (and not already granted) scopes</note>
       </trans-unit>
       <trans-unit id="7378878529334768232" datatype="html">
         <source>Reject</source>
