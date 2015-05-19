@@ -1,4 +1,5 @@
 apply plugin: 'java'
+apply plugin: 'idea'
 
 dependencies {
   compile project(':oasis-model')
@@ -56,7 +57,7 @@ task generateSoyParseInfo(type: JavaExec) {
   inputs.source srcs
   inputs.files deps
 
-  ext.outputDir = "$buildDir/generated-sources/soy/"
+  ext.outputDir = "$buildDir/generated/source/soy/"
   outputs.dir outputDir
 
   doFirst {
@@ -79,6 +80,11 @@ sourceSets.main.java {
   srcDir generateSoyParseInfo.outputDir
 }
 compileJava.dependsOn generateSoyParseInfo
+idea {
+  module {
+    generatedSourceDirs += file(generateSoyParseInfo.outputDir)
+  }
+}
 licenseMain {
   source = sourceSets.main.allSource.minus(fileTree(generateSoyParseInfo.outputDir))
 }
