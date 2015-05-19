@@ -7,9 +7,10 @@ dependencies {
     compile libs.joda_time
     compile libs.jackson_joda
     compile libs.icu4j
+    compile libs.guava
 
-    compile libs.immutables
-    apt libs.immutables_compiler
+    compileOnly libs.immutables
+    apt         libs.immutables
 
     testCompile libs.junit
     testCompile libs.assertj

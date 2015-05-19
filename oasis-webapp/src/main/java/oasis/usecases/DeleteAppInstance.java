@@ -61,7 +61,7 @@ import oasis.soy.templates.DeletedAppInstanceSoyInfo.DeletedAppInstanceMessageSo
 import oasis.web.i18n.LocaleHelper;
 import oasis.web.webhooks.WebhookSignatureFilter;
 
-@Value.Nested
+@Value.Enclosing
 public class DeleteAppInstance {
   private static final Logger logger = LoggerFactory.getLogger(DeleteAppInstance.class);
 

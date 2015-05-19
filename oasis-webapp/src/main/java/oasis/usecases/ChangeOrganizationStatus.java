@@ -49,7 +49,7 @@ import oasis.soy.templates.ChangedOrganizationStatusSoyInfo.SoftlyDeletedOrganiz
 import oasis.urls.Urls;
 import oasis.web.i18n.LocaleHelper;
 
-@Value.Nested
+@Value.Enclosing
 public class ChangeOrganizationStatus {
   private static final Logger logger = LoggerFactory.getLogger(ChangeOrganizationStatus.class);
 

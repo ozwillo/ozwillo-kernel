@@ -24,8 +24,8 @@ dependencies {
   compile libs.closure_templates
   compile libs.swagger_jaxrs
 
-  compile libs.immutables
-  apt libs.immutables_compiler
+  compileOnly libs.immutables
+  apt         libs.immutables
 
   compile libs.slf4j
   runtime libs.log4j_runtime

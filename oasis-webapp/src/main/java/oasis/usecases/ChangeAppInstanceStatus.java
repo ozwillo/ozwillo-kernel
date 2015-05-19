@@ -58,7 +58,7 @@ import oasis.urls.Urls;
 import oasis.web.i18n.LocaleHelper;
 import oasis.web.webhooks.WebhookSignatureFilter;
 
-@Value.Nested
+@Value.Enclosing
 public class ChangeAppInstanceStatus {
   private static final Logger logger = LoggerFactory.getLogger(ChangeAppInstanceStatus.class);
 

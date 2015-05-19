@@ -43,7 +43,7 @@ import oasis.soy.templates.DeletedOrganizationSoyInfo;
 import oasis.soy.templates.DeletedOrganizationSoyInfo.DeletedOrganizationMessageSoyTemplateInfo;
 import oasis.web.i18n.LocaleHelper;
 
-@Value.Nested
+@Value.Enclosing
 public class DeleteOrganization {
   private static final Logger logger = LoggerFactory.getLogger(DeleteOrganization.class);
 

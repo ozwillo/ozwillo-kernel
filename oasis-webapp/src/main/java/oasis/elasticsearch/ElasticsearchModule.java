@@ -24,7 +24,7 @@ import org.immutables.value.Value;
 import com.google.inject.AbstractModule;
 import com.typesafe.config.Config;
 
-@Value.Nested
+@Value.Enclosing
 public class ElasticsearchModule extends AbstractModule {
 
   public static final String ELASTICSEARCH = "elasticsearch";

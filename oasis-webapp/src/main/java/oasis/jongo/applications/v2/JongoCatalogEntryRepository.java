@@ -53,7 +53,7 @@ import oasis.model.applications.v2.CatalogEntry;
 import oasis.model.applications.v2.CatalogEntryRepository;
 import oasis.model.applications.v2.Service;
 
-@Value.Nested
+@Value.Enclosing
 public class JongoCatalogEntryRepository implements CatalogEntryRepository {
 
   private final Jongo jongo;

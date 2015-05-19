@@ -25,7 +25,7 @@ import org.joda.time.Duration;
 import com.google.inject.AbstractModule;
 import com.typesafe.config.Config;
 
-@Value.Nested
+@Value.Enclosing
 public class UserDirectoryModule extends AbstractModule {
   @Value.Immutable
   public static interface Settings {

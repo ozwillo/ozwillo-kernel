@@ -26,7 +26,7 @@ import org.immutables.value.Value;
 import com.google.common.base.Optional;
 import com.ibm.icu.util.ULocale;
 
-@Value.Nested
+@Value.Enclosing
 public interface CatalogEntryRepository {
   Iterable<SimpleCatalogEntry> search(SearchRequest request);
 
