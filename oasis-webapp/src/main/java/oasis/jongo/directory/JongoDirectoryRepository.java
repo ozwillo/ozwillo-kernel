@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -34,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
 import com.google.common.primitives.Longs;
 import com.mongodb.DuplicateKeyException;
 import com.mongodb.WriteResult;
@@ -104,24 +106,21 @@ public class JongoDirectoryRepository implements DirectoryRepository, JongoBoots
 
   @Override
   public Organization updateOrganization(String organizationId, Organization organization, long[] versions) throws InvalidVersionException {
-    long modified = System.currentTimeMillis();
-    List<Object> updateParameters = new ArrayList<>(2);
-    StringBuilder updateObject = new StringBuilder("modified:#");
-    updateParameters.add(modified);
+    organization = new JongoOrganization(organization);
+    // Don't allow updating the status
+    organization.setStatus(null);
+    organization.setStatus_changed(null);
+    organization.setStatus_change_requester_id(null);
 
-    if (organization.getName() != null) {
-      updateObject.append(",name:#");
-      updateParameters.add(organization.getName());
-    }
-    if (organization.getType() != null) {
-      updateObject.append(",type:#");
-      updateParameters.add(organization.getType());
+    Map<String, Boolean> unsetObject = Maps.newLinkedHashMap();
+    if (organization.getTerritory_id() == null) {
+      unsetObject.put("territory_id", true);
     }
 
     JongoOrganization res = getOrganizationCollection()
         .findAndModify("{ id: #, modified: { $in: # } }", organizationId, Longs.asList(versions))
         .returnNew()
-        .with("{ $set: {" + updateObject.toString() + " } }", updateParameters.toArray())
+        .with("{ $set: #, $unset: # }", organization, unsetObject)
         .projection(ORGANIZATION_PROJECTION)
         .as(JongoOrganization.class);
 
