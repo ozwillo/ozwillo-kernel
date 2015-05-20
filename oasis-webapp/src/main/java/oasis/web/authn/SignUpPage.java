@@ -45,10 +45,8 @@ import com.google.common.base.Strings;
 import com.google.template.soy.data.SoyMapData;
 import com.ibm.icu.util.ULocale;
 
-import oasis.auditlog.AuditLogService;
 import oasis.auth.AuthModule;
 import oasis.mail.MailMessage;
-import oasis.mail.MailModule;
 import oasis.mail.MailSender;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
@@ -67,7 +65,6 @@ import oasis.urls.Urls;
 import oasis.web.i18n.LocaleHelper;
 import oasis.web.resteasy.Resteasy1099;
 import oasis.web.security.StrictReferer;
-import oasis.web.utils.UserAgentFingerprinter;
 
 @Path("/a/signup")
 public class SignUpPage {
@@ -79,11 +76,8 @@ public class SignUpPage {
   @Inject UserPasswordAuthenticator userPasswordAuthenticator;
   @Inject CredentialsRepository credentialsRepository;
   @Inject TokenHandler tokenHandler;
-  @Inject UserAgentFingerprinter fingerprinter;
-  @Inject AuditLogService auditLogService;
   @Inject Urls urls;
-  @Inject MailModule.Settings mailSettings;
-  @Inject @Nullable MailSender mailSender;
+  @Inject MailSender mailSender;
   @Inject LocaleHelper localeHelper;
   @Inject AuthModule.Settings authSettings;
   @Inject ServiceRepository serviceRepository;
@@ -109,19 +103,15 @@ public class SignUpPage {
     locale = localeHelper.selectLocale(locale, request);
 
     if (Strings.isNullOrEmpty(email) || Strings.isNullOrEmpty(password) || Strings.isNullOrEmpty(nickname)) {
-      return LoginPage.signupForm(Response.ok(), continueUrl, mailSettings, locale, authSettings, LoginPage.SignupError.MISSING_REQUIRED_FIELD);
+      return LoginPage.signupForm(Response.ok(), continueUrl, locale, authSettings, LoginPage.SignupError.MISSING_REQUIRED_FIELD);
     }
     // TODO: Verify that the password as a sufficiently strong length or even a strong entropy
     if (password.length() < authSettings.passwordMinimumLength) {
-      return LoginPage.signupForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, mailSettings, locale, authSettings, LoginPage.SignupError.PASSWORD_TOO_SHORT);
+      return LoginPage.signupForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, locale, authSettings, LoginPage.SignupError.PASSWORD_TOO_SHORT);
     }
 
     UserAccount account = new UserAccount();
     account.setEmail_address(email);
-    // XXX: Auto-verify the email address when mail is disabled (otherwise the user couldn't sign in)
-    if (!mailSettings.enabled) {
-      account.setEmail_verified(true);
-    }
     account.setNickname(nickname);
     account.setLocale(locale);
     // TODO: Use a zoneinfo "matching" the selected locale
@@ -129,45 +119,39 @@ public class SignUpPage {
     account = accountRepository.createUserAccount(account);
     if (account == null) {
       // TODO: Allow the user to retrieve their password
-      return LoginPage.signupForm(Response.ok(), continueUrl, mailSettings, locale, authSettings, LoginPage.SignupError.ACCOUNT_ALREADY_EXISTS);
+      return LoginPage.signupForm(Response.ok(), continueUrl, locale, authSettings, LoginPage.SignupError.ACCOUNT_ALREADY_EXISTS);
     } else {
       userPasswordAuthenticator.setPassword(account.getId(), password);
     }
 
-    if (mailSettings.enabled) {
-      // TODO: send email asynchronously
-      try {
-        String pass = tokenHandler.generateRandom();
-        AccountActivationToken accountActivationToken = tokenHandler.createAccountActivationToken(account.getId(), extractContinueUrl(continueUrl), pass);
-        URI activationLink = Resteasy1099.getBaseUriBuilder(uriInfo)
-            .path(ActivateAccountPage.class)
-            .queryParam(LoginPage.LOCALE_PARAM, account.getLocale().toLanguageTag())
-            .build(TokenSerializer.serialize(accountActivationToken, pass));
+    // TODO: send email asynchronously
+    try {
+      String pass = tokenHandler.generateRandom();
+      AccountActivationToken accountActivationToken = tokenHandler.createAccountActivationToken(account.getId(), extractContinueUrl(continueUrl), pass);
+      URI activationLink = Resteasy1099.getBaseUriBuilder(uriInfo)
+          .path(ActivateAccountPage.class)
+          .queryParam(LoginPage.LOCALE_PARAM, account.getLocale().toLanguageTag())
+          .build(TokenSerializer.serialize(accountActivationToken, pass));
 
-        mailSender.send(new MailMessage()
-            .setRecipient(email, nickname)
-            .setLocale(account.getLocale())
-            .setSubject(SignUpSoyInfo.ACTIVATE_ACCOUNT_SUBJECT)
-            .setBody(SignUpSoyInfo.ACTIVATE_ACCOUNT)
-            .setHtml()
-            .setData(new SoyMapData(
-                SignUpSoyInfo.ActivateAccountSoyTemplateInfo.NICKNAME, nickname,
-                SignUpSoyInfo.ActivateAccountSoyTemplateInfo.ACTIVATION_LINK, activationLink.toString()
-            )));
-        // TODO: redirect to a bookmarkable URI (with form to resend the activation mail)
-        return Response.ok()
-            .entity(new SoyTemplate(LoginSoyInfo.ACCOUNT_PENDING_ACTIVATION, account.getLocale()))
-            .build();
-      } catch (MessagingException e) {
-        logger.error("Error sending activation email", e);
-        accountRepository.deleteUserAccount(account.getId());
-        credentialsRepository.deleteCredentials(ClientType.USER, account.getId());
-        return LoginPage.signupForm(Response.ok(), continueUrl, mailSettings, locale, authSettings, LoginPage.SignupError.MESSAGING_ERROR);
-      }
-    } else {
-      byte[] fingerprint = fingerprinter.fingerprint(headers);
-      // XXX: automatically sign the user in when mail is disabled
-      return LoginPage.authenticate(email, account, continueUrl, fingerprint, tokenHandler, auditLogService, securityContext);
+      mailSender.send(new MailMessage()
+          .setRecipient(email, nickname)
+          .setLocale(account.getLocale())
+          .setSubject(SignUpSoyInfo.ACTIVATE_ACCOUNT_SUBJECT)
+          .setBody(SignUpSoyInfo.ACTIVATE_ACCOUNT)
+          .setHtml()
+          .setData(new SoyMapData(
+              SignUpSoyInfo.ActivateAccountSoyTemplateInfo.NICKNAME, nickname,
+              SignUpSoyInfo.ActivateAccountSoyTemplateInfo.ACTIVATION_LINK, activationLink.toString()
+          )));
+      // TODO: redirect to a bookmarkable URI (with form to resend the activation mail)
+      return Response.ok()
+          .entity(new SoyTemplate(LoginSoyInfo.ACCOUNT_PENDING_ACTIVATION, account.getLocale()))
+          .build();
+    } catch (MessagingException e) {
+      logger.error("Error sending activation email", e);
+      accountRepository.deleteUserAccount(account.getId());
+      credentialsRepository.deleteCredentials(ClientType.USER, account.getId());
+      return LoginPage.signupForm(Response.ok(), continueUrl, locale, authSettings, LoginPage.SignupError.MESSAGING_ERROR);
     }
   }
 

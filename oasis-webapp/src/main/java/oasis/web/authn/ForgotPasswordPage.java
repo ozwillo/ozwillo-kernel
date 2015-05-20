@@ -44,7 +44,6 @@ import com.google.template.soy.data.SoyMapData;
 import com.ibm.icu.util.ULocale;
 
 import oasis.mail.MailMessage;
-import oasis.mail.MailModule;
 import oasis.mail.MailSender;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
@@ -56,14 +55,12 @@ import oasis.soy.templates.RecoverMailSoyInfo;
 import oasis.soy.templates.RecoverSoyInfo;
 import oasis.web.i18n.LocaleHelper;
 import oasis.web.resteasy.Resteasy1099;
-import oasis.web.utils.ResponseFactory;
 
 @Path("/a/recover")
 public class ForgotPasswordPage {
   private static final Logger logger = LoggerFactory.getLogger(ForgotPasswordPage.class);
 
   @Inject AccountRepository accountRepository;
-  @Inject MailModule.Settings mailSettings;
   @Inject MailSender mailSender;
   @Inject TokenHandler tokenHandler;
   @Inject LocaleHelper localeHelper;
@@ -76,9 +73,6 @@ public class ForgotPasswordPage {
   public Response get(
       @QueryParam(LoginPage.LOCALE_PARAM) @Nullable ULocale locale
   ) {
-    if (!mailSettings.enabled) {
-      return ResponseFactory.NOT_FOUND;
-    }
     return form(Response.ok(), localeHelper.selectLocale(locale, request), null);
   }
 
@@ -87,10 +81,6 @@ public class ForgotPasswordPage {
       @FormParam(LoginPage.LOCALE_PARAM) @Nullable ULocale locale,
       @FormParam("u") String email
   ) {
-    if (!mailSettings.enabled) {
-      return ResponseFactory.NOT_FOUND;
-    }
-
     locale = localeHelper.selectLocale(locale, request);
 
     if (Strings.isNullOrEmpty(email)) {

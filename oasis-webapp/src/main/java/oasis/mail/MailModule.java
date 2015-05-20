@@ -19,7 +19,6 @@ package oasis.mail;
 
 import java.util.Properties;
 
-import javax.annotation.Nullable;
 import javax.mail.Authenticator;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
@@ -36,7 +35,7 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.typesafe.config.Config;
 
-public abstract class MailModule extends AbstractModule {
+public class MailModule extends AbstractModule {
   private static Logger logger = LoggerFactory.getLogger(MailModule.class);
 
   public static class Settings {
@@ -46,22 +45,21 @@ public abstract class MailModule extends AbstractModule {
     }
 
     public static Settings fromConfig(Config config) {
-      if (config.getBoolean("disabled")) {
-        return Settings.builder().setEnabled(false).build();
-      }
-
       InternetAddress from;
-      try {
-        from = new InternetAddress(config.getString("from"));
-      } catch (AddressException e) {
+      if (config.hasPath("from")) {
+        try {
+          from = new InternetAddress(config.getString("from"));
+        } catch (AddressException e) {
+          from = null;
+        }
+      } else {
+        logger.warn("No configured sender address, defaulting to the current user (as of javax.mail.internet.InternetAddress.getLocalAddress)");
         from = InternetAddress.getLocalAddress(null);
       }
       if (from == null) {
-        logger.warn("Unable to determine sender address, disabling mail.");
-        return Settings.builder().setEnabled(false).build();
+        throw new RuntimeException("Unable to determine sender address.");
       }
       return Settings.builder()
-          .setEnabled(true)
           .setFrom(from)
           .setServer(new URLName(config.getString("server")))
           .setUseStartTls(config.getBoolean("starttls.enable"))
@@ -70,18 +68,12 @@ public abstract class MailModule extends AbstractModule {
 
     public static class Builder {
 
-      private boolean enabled;
       private InternetAddress from;
       private URLName server;
       private boolean useStartTls;
 
       public Settings build() {
         return new Settings(this);
-      }
-
-      public Builder setEnabled(boolean enabled) {
-        this.enabled = enabled;
-        return this;
       }
 
       public Builder setFrom(InternetAddress from) {
@@ -100,13 +92,11 @@ public abstract class MailModule extends AbstractModule {
       }
     }
 
-    public final boolean enabled;
     public final InternetAddress from;
     public final URLName server;
     public final boolean useStartTls;
 
     private Settings(Builder builder) {
-      this.enabled = builder.enabled;
       this.from = builder.from;
       this.server = builder.server;
       this.useStartTls = builder.useStartTls;
@@ -115,11 +105,7 @@ public abstract class MailModule extends AbstractModule {
 
   public static MailModule create(Config config) {
     Settings settings = Settings.fromConfig(config);
-    if (settings.enabled) {
-      return new EnabledMailModule(settings);
-    } else {
-      return new DisabledMailModule(settings);
-    }
+    return new MailModule(settings);
   }
 
   protected final Settings settings;
@@ -133,46 +119,30 @@ public abstract class MailModule extends AbstractModule {
     bind(Settings.class).toInstance(settings);
   }
 
-  static class DisabledMailModule extends MailModule {
-    DisabledMailModule(Settings settings) {
-      super(settings);
+  @Provides @Singleton Session provideSession() {
+    String protocol = settings.server.getProtocol();
+    Properties props = new Properties();
+    props.setProperty("mail." + protocol + ".starttls.enable", settings.useStartTls ? "true" : "false");
+    // TODO: add a require-StartTLS config option
+    props.setProperty("mail." + protocol + ".host", settings.server.getHost());
+    if (settings.server.getPort() >= 0) {
+      props.setProperty("mail." + protocol + ".port", Integer.toString(settings.server.getPort()));
     }
-
-    @Provides @Nullable MailSender providerMailSender() {
-      return null;
+    Authenticator authenticator;
+    if (!Strings.isNullOrEmpty(settings.server.getUsername()) && !Strings.isNullOrEmpty(settings.server.getPassword())) {
+      props.setProperty("mail." + protocol + ".auth", "true");
+      props.setProperty("mail." + protocol + ".user", settings.server.getUsername());
+      authenticator = new Authenticator() {
+        @Override
+        protected PasswordAuthentication getPasswordAuthentication() {
+          return new PasswordAuthentication(settings.server.getUsername(), settings.server.getPassword());
+        }
+      };
+    } else {
+      authenticator = null;
     }
-  }
-
-  static class EnabledMailModule extends MailModule {
-    EnabledMailModule(Settings settings) {
-      super(settings);
-    }
-
-    @Provides @Singleton Session provideSession() {
-      String protocol = settings.server.getProtocol();
-      Properties props = new Properties();
-      props.setProperty("mail." + protocol + ".starttls.enable", settings.useStartTls ? "true" : "false");
-      // TODO: add a require-StartTLS config option
-      props.setProperty("mail." + protocol + ".host", settings.server.getHost());
-      if (settings.server.getPort() >= 0) {
-        props.setProperty("mail." + protocol + ".port", Integer.toString(settings.server.getPort()));
-      }
-      Authenticator authenticator;
-      if (!Strings.isNullOrEmpty(settings.server.getUsername()) && !Strings.isNullOrEmpty(settings.server.getPassword())) {
-        props.setProperty("mail." + protocol + ".auth", "true");
-        props.setProperty("mail." + protocol + ".user", settings.server.getUsername());
-        authenticator = new Authenticator() {
-          @Override
-          protected PasswordAuthentication getPasswordAuthentication() {
-            return new PasswordAuthentication(settings.server.getUsername(), settings.server.getPassword());
-          }
-        };
-      } else {
-        authenticator = null;
-      }
-      Session session = Session.getInstance(props, authenticator);
-      session.setProtocolForAddress("rfc822", protocol);
-      return session;
-    }
+    Session session = Session.getInstance(props, authenticator);
+    session.setProtocolForAddress("rfc822", protocol);
+    return session;
   }
 }

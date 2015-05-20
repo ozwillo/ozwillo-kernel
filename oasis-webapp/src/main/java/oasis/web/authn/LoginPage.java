@@ -48,7 +48,6 @@ import com.ibm.icu.util.ULocale;
 import oasis.auditlog.AuditLogEvent;
 import oasis.auditlog.AuditLogService;
 import oasis.auth.AuthModule;
-import oasis.mail.MailModule;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.authn.SidToken;
@@ -83,7 +82,6 @@ public class LoginPage {
   @Inject AccountRepository accountRepository;
   @Inject AuditLogService auditLogService;
   @Inject UserAgentFingerprinter fingerprinter;
-  @Inject MailModule.Settings mailSettings;
   @Inject Urls urls;
   @Inject LocaleHelper localeHelper;
 
@@ -136,12 +134,6 @@ public class LoginPage {
   }
 
   private Response authenticate(String userName, UserAccount account, URI continueUrl, byte[] fingerprint) {
-    return authenticate(userName, account, continueUrl, fingerprint, tokenHandler, auditLogService, securityContext);
-  }
-
-  // XXX: Pending activation email
-  static Response authenticate(String userName, UserAccount account, URI continueUrl, byte[] fingerprint, TokenHandler tokenHandler,
-      AuditLogService auditLogService, SecurityContext securityContext) {
     String pass = tokenHandler.generateRandom();
     SidToken sidToken = tokenHandler.createSidToken(account.getId(), fingerprint, pass);
     if (sidToken == null) {
@@ -188,7 +180,7 @@ public class LoginPage {
       // XXX: what if account is null?
       return reauthForm(builder, continueUrl, error, account);
     }
-    return loginForm(builder, continueUrl, mailSettings, locale, error);
+    return loginForm(builder, continueUrl, locale, error);
   }
 
   private static Response reauthForm(Response.ResponseBuilder builder, URI continueUrl, @Nullable LoginError error, UserAccount userAccount) {
@@ -202,15 +194,15 @@ public class LoginPage {
     return buildResponseFromView(builder, soyTemplate);
   }
 
-  private static Response loginForm(Response.ResponseBuilder builder, URI continueUrl, MailModule.Settings mailSettings, ULocale locale, @Nullable LoginError error) {
-    return loginAndSignupForm(builder, continueUrl, mailSettings, locale, null, error);
+  private static Response loginForm(Response.ResponseBuilder builder, URI continueUrl, ULocale locale, @Nullable LoginError error) {
+    return loginAndSignupForm(builder, continueUrl, locale, null, error);
   }
 
-  static Response signupForm(Response.ResponseBuilder builder, URI continueUrl, MailModule.Settings mailSettings, ULocale locale, AuthModule.Settings authSettings, @Nullable SignupError error) {
-    return loginAndSignupForm(builder, continueUrl, mailSettings, locale, authSettings, error);
+  static Response signupForm(Response.ResponseBuilder builder, URI continueUrl, ULocale locale, AuthModule.Settings authSettings, @Nullable SignupError error) {
+    return loginAndSignupForm(builder, continueUrl, locale, authSettings, error);
   }
 
-  private static Response loginAndSignupForm(Response.ResponseBuilder builder, URI continueUrl, MailModule.Settings mailSettings,
+  private static Response loginAndSignupForm(Response.ResponseBuilder builder, URI continueUrl,
       ULocale locale, @Nullable AuthModule.Settings authSettings, @Nullable Enum<?> error) {
     SoyMapData localeUrlMap = new SoyMapData();
     for (ULocale supportedLocale : LocaleHelper.SUPPORTED_LOCALES) {
@@ -224,7 +216,7 @@ public class LoginPage {
     SoyTemplate soyTemplate = new SoyTemplate(LoginSoyInfo.LOGIN, locale, new SoyMapData(
         LoginSoyTemplateInfo.SIGN_UP_FORM_ACTION, UriBuilder.fromResource(SignUpPage.class).build().toString(),
         LoginSoyTemplateInfo.LOGIN_FORM_ACTION, UriBuilder.fromResource(LoginPage.class).build().toString(),
-        LoginSoyTemplateInfo.FORGOT_PASSWORD, mailSettings.enabled ? UriBuilder.fromResource(ForgotPasswordPage.class).queryParam(LOCALE_PARAM, locale.toLanguageTag()).build().toString() : null,
+        LoginSoyTemplateInfo.FORGOT_PASSWORD, UriBuilder.fromResource(ForgotPasswordPage.class).queryParam(LOCALE_PARAM, locale.toLanguageTag()).build().toString(),
         LoginSoyTemplateInfo.CONTINUE, continueUrl.toString(),
         LoginSoyTemplateInfo.ERROR, error == null ? null : error.name(),
         LoginSoyTemplateInfo.LOCALE_URL_MAP, localeUrlMap,
