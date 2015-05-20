@@ -66,7 +66,7 @@ h2 { margin-bottom: 2.5em; }
 
   <form method=POST action="{$formAction}">
     <input type=hidden name=_utf8 value="&#9731;">
-    <input type="hidden" name="locale" value="{$current_locale}">
+    <input type="hidden" name="hl" value="{$current_locale}">
     <div>
       <label for=u>{msg desc="Email field label for account recovery"}Your email address:{/msg}</label>
       {sp}
@@ -147,7 +147,7 @@ h2 { margin-bottom: 2.5em; }
 
   <form method=POST action="{$formAction}">
     <input type=hidden name=_utf8 value="&#9731;">
-    <input type="hidden" name="locale" value="{$locale}">
+    <input type="hidden" name="hl" value="{$locale}">
 
     <p>{$emailAddress}</p>
     <input id=newpwd type=password name=newpwd required autofocus>

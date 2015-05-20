@@ -102,7 +102,7 @@ aside a { display: inline-block; padding: 5px 15px; font-weight: lighter; text-d
       <form method=post action="{$loginFormAction}">
         <input type="hidden" name="_utf8" value="&#9731;">
         <input type="hidden" name="continue" value="{$continue}">
-        <input type="hidden" name="locale" value="{$current_locale}">
+        <input type="hidden" name="hl" value="{$current_locale}">
         <div>
           <label for=u>{msg desc="Email field label"}Email{/msg}</label>
           <input id=u type=email name=u required autofocus>
@@ -135,7 +135,7 @@ aside a { display: inline-block; padding: 5px 15px; font-weight: lighter; text-d
       <form method=post action="{$signUpFormAction}">
         <input type="hidden" name="_utf8" value="&#9731;">
         <input type="hidden" name="continue" value="{$continue}">
-        <input type="hidden" name="locale" value="{$current_locale}">
+        <input type="hidden" name="hl" value="{$current_locale}">
         <div>
           <label for=nickname>{msg desc="Nickname field label (for sign-up)"}Nickname{/msg}</label>
           <input id=nickname name=nickname required>
@@ -229,7 +229,7 @@ h2 { margin-bottom: 2.5em; }
   <form method=POST action="{$formAction}">
     <input type=hidden name=_utf8 value="&#9731;">
     <input type=hidden name=continue value="{$continue}">
-    <input type=hidden name=locale value="{$current_locale}">
+    <input type=hidden name=hl value="{$current_locale}">
     <input type=hidden name=u value="{$reauthEmail}">
     <p>{$reauthEmail}</p>
     <input type=password name=pwd required>
