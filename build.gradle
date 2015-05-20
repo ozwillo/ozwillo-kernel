@@ -38,7 +38,7 @@ subprojects {
 
   apply plugin: 'net.ltgt.errorprone'
   configurations.errorprone {
-    resolutionStrategy.force 'com.google.errorprone:error_prone_core:2.0.1'
+    resolutionStrategy.force 'com.google.errorprone:error_prone_core:2.0.3'
   }
 
   apply plugin: 'idea' // IDEA needs extra configuration for generated sources *sigh*

@@ -32,9 +32,9 @@ allprojects {
   }
 }
 
-def guiceVersion = '4.0-beta5'
-def jacksonVersion = '2.5.1'
-def log4jVersion = '2.2'
+def guiceVersion = '4.0'
+def jacksonVersion = '2.5.3'
+def log4jVersion = '2.3'
 def okhttpVersion = '2.3.0'
 def resteasyVersion = '3.0.6.Final'
 def swaggerVersion = '1.3.12'
@@ -60,9 +60,9 @@ ext.libs = [
     ],
 
   jongo:               [
-      'org.jongo:jongo:1.1',
+      'org.jongo:jongo:1.2',
       'de.undercouch:bson4jackson:2.4.0',
-      'org.mongodb:mongo-java-driver:2.13.0',
+      'org.mongodb:mongo-java-driver:2.13.1',
     ],
 
   elasticsearch:       [
@@ -76,7 +76,7 @@ ext.libs = [
         exclude module: 'resteasy-jackson2-provider'
         exclude module: 'scannotation'
       },
-      'io.netty:netty:3.9.6.Final',
+      'io.netty:netty:3.9.8.Final',
     ],
 
   resteasy_client:     dependencies.create("org.jboss.resteasy:resteasy-client:$resteasyVersion") {
@@ -87,11 +87,11 @@ ext.libs = [
   okhttp_mockserver:  "com.squareup.okhttp:mockwebserver:${okhttpVersion}",
 
   closure_templates_standalone: [
-      'com.google.template:soy:2015-03-06',
-      'args4j:args4j:2.0.31',
+      'com.google.template:soy:2015-04-10',
+      'args4j:args4j:2.32',
     ],
   closure_templates:   [
-      'com.google.template:soy:2015-03-06',
+      'com.google.template:soy:2015-04-10',
       "com.google.inject.extensions:guice-assistedinject:$guiceVersion",
       "com.google.inject.extensions:guice-multibindings:$guiceVersion",
     ],
@@ -111,14 +111,13 @@ ext.libs = [
 
   joda_time:           'joda-time:joda-time:2.7',
 
-  icu4j:               'com.ibm.icu:icu4j:54.1.1',
+  icu4j:               'com.ibm.icu:icu4j:55.1',
 
   galimatias:          'io.mola.galimatias:galimatias:0.2.1',
 
   mail:                'org.apache.geronimo.javamail:geronimo-javamail_1.4_mail:1.8.4',
 
-  // Keep version in sync with the one implemented by log4j-slf4j-impl, or it'll fail at runtime
-  slf4j:               'org.slf4j:slf4j-api:1.7.7',
+  slf4j:               'org.slf4j:slf4j-api:1.7.12',
 
   log4j2:              "org.apache.logging.log4j:log4j-core:$log4jVersion",
 
@@ -137,7 +136,7 @@ ext.libs = [
     ],
   swagger_ui:          'org.webjars:swagger-ui:2.0.17',
 
-  args4j:              'args4j:args4j:2.0.31',
+  args4j:              'args4j:args4j:2.32',
 
   config:              'com.typesafe:config:1.2.1',
 
