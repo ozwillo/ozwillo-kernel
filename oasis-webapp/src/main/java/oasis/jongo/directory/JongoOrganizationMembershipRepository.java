@@ -238,6 +238,13 @@ public class JongoOrganizationMembershipRepository implements OrganizationMember
   }
 
   @Override
+  public Iterable<String> getOrganizationIdsForUser(String userId) {
+    return getOrganizationMembershipsCollection().distinct("organizationId")
+        .query("{ accountId: #, $or: [ { status: { $exists: 0 } }, { status: # } ] }", userId, OrganizationMembership.Status.ACCEPTED)
+        .as(String.class);
+  }
+
+  @Override
   @SuppressWarnings("unchecked")
   public Iterable<OrganizationMembership> getOrganizationsForUser(String userId, int start, int limit) {
     return (Iterable<OrganizationMembership>) (Iterable<?>) getOrganizationMembershipsCollection()

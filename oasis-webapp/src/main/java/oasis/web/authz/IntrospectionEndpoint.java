@@ -33,6 +33,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
+import com.google.api.client.util.Lists;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
@@ -41,13 +42,12 @@ import com.google.common.collect.Sets;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
-import oasis.model.accounts.AccountRepository;
-import oasis.model.accounts.UserAccount;
 import oasis.model.applications.v2.Scope;
 import oasis.model.applications.v2.ScopeRepository;
 import oasis.model.authn.AccessToken;
+import oasis.model.bootstrap.ClientIds;
+import oasis.model.directory.OrganizationMembershipRepository;
 import oasis.services.authn.TokenHandler;
-import oasis.services.authz.GroupService;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.Client;
 import oasis.web.authn.ClientPrincipal;
@@ -58,11 +58,11 @@ import oasis.web.authn.ClientPrincipal;
 public class IntrospectionEndpoint {
   private static final Joiner SCOPE_JOINER = Joiner.on(' ').skipNulls();
 
-  @Context SecurityContext securityContext;
   @Inject TokenHandler tokenHandler;
-  @Inject AccountRepository accountRepository;
   @Inject ScopeRepository scopeRepository;
-  @Inject GroupService groupService;
+  @Inject OrganizationMembershipRepository organizationMembershipRepository;
+
+  @Context SecurityContext securityContext;
 
   @POST
   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
@@ -82,8 +82,6 @@ public class IntrospectionEndpoint {
     if (accessToken == null) {
       return error();
     }
-
-    UserAccount account = accountRepository.getUserAccountById(accessToken.getAccountId());
 
     IntrospectionResponse introspectionResponse;
     long issuedAtTime = accessToken.getCreationTime().getMillis();
@@ -111,9 +109,12 @@ public class IntrospectionEndpoint {
         .setIat(TimeUnit.MILLISECONDS.toSeconds(issuedAtTime))
         .setScope(SCOPE_JOINER.join(scopeIds))
         .setClient_id(accessToken.getServiceProviderId())
-        .setSub(account.getId())
-        .setToken_type("Bearer")
-        .setSub_groups(groupService.getGroups(account));
+        .setSub(accessToken.getAccountId())
+        .setToken_type("Bearer");
+    if (ClientIds.DATACORE.equals(client_id)) {
+        introspectionResponse.setSub_groups(Lists.newArrayList(
+            organizationMembershipRepository.getOrganizationIdsForUser(accessToken.getAccountId())));
+    }
 
     return Response.ok()
         .header(HttpHeaders.CACHE_CONTROL, "no-store")

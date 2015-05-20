@@ -43,14 +43,13 @@ import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 
 import oasis.http.testing.InProcessResteasy;
-import oasis.model.accounts.AccountRepository;
-import oasis.model.accounts.UserAccount;
 import oasis.model.applications.v2.Scope;
 import oasis.model.applications.v2.ScopeRepository;
 import oasis.model.authn.AccessToken;
 import oasis.model.authz.Scopes;
+import oasis.model.bootstrap.ClientIds;
+import oasis.model.directory.OrganizationMembershipRepository;
 import oasis.services.authn.TokenHandler;
-import oasis.services.authz.GroupService;
 import oasis.web.authn.testing.TestClientAuthenticationFilter;
 
 @RunWith(JukitoRunner.class)
@@ -62,10 +61,17 @@ public class IntrospectionEndpointTest {
       bind(IntrospectionEndpoint.class);
 
       bindMock(TokenHandler.class).in(TestSingleton.class);
-      bindMock(GroupService.class).in(TestSingleton.class);
     }
   }
 
+  static final ImmutableList<Scope> datacoreScopes = ImmutableList.<Scope>of(
+      new Scope() {{
+        setLocal_id("datacore");
+        // Note: computeId must be called BEFORE setInstance_id for the scope ID to be "datacore" (and not "dc:datacore")
+        computeId();
+        setInstance_id(ClientIds.DATACORE);
+      }}
+  );
   static final ImmutableList<Scope> dp1Scopes = ImmutableList.of(
       new Scope() {{ setInstance_id("dp1"); setLocal_id("s1"); }},
       new Scope() {{ setInstance_id("dp1"); setLocal_id("s2"); }},
@@ -76,32 +82,27 @@ public class IntrospectionEndpointTest {
       new Scope() {{ setInstance_id("dp2"); setLocal_id("s2"); }}
   );
 
-  static final UserAccount account = new UserAccount() {{
-    setId("account");
-  }};
-
   static final AccessToken validToken = new AccessToken() {{
     setId("valid");
-    setAccountId(account.getId());
-    setScopeIds(ImmutableSet.of(Scopes.OPENID, "dp1:s1", "dp1:s3", "dp3:s1"));
+    setAccountId("account");
+    setScopeIds(ImmutableSet.of(Scopes.OPENID, "datacore", "dp1:s1", "dp1:s3", "dp3:s1"));
     expiresIn(Duration.standardDays(1));
   }};
 
   @Inject @Rule public InProcessResteasy resteasy;
 
   @SuppressWarnings("unchecked")
-  @Before public void setUpMocks(TokenHandler tokenHandler, AccountRepository accountRepository,
-      ScopeRepository scopeRepository, GroupService groupService) {
+  @Before public void setUpMocks(TokenHandler tokenHandler, ScopeRepository scopeRepository,
+      OrganizationMembershipRepository organizationMembershipRepository) {
     when(tokenHandler.getCheckedToken(eq("valid"), any(Class.class))).thenReturn(validToken);
     when(tokenHandler.getCheckedToken(eq("invalid"), any(Class.class))).thenReturn(null);
 
-    when(accountRepository.getUserAccountById(account.getId())).thenReturn(account);
-
     when(scopeRepository.getScopesOfAppInstance(anyString())).thenReturn(Collections.<Scope>emptyList());
+    when(scopeRepository.getScopesOfAppInstance(ClientIds.DATACORE)).thenReturn(datacoreScopes);
     when(scopeRepository.getScopesOfAppInstance("dp1")).thenReturn(dp1Scopes);
     when(scopeRepository.getScopesOfAppInstance("dp2")).thenReturn(dp2Scopes);
 
-    when(groupService.getGroups(account)).thenReturn(Arrays.asList("gp1", "gp2"));
+    when(organizationMembershipRepository.getOrganizationIdsForUser("account")).thenReturn(Arrays.asList("org1", "org2"));
   }
 
   @Before public void setUp() {
@@ -144,13 +145,31 @@ public class IntrospectionEndpointTest {
     // then
     assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.OK);
     IntrospectionResponse response = resp.readEntity(IntrospectionResponse.class);
+    assertValidResponse(response, "dp1:s1", "dp1:s3");
+    assertThat(response.getSub_groups()).isNullOrEmpty();
+  }
+
+  @Test public void testValidTokenAsDataCore() {
+    // given
+    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(ClientIds.DATACORE));
+
+    // when
+    Response resp = introspect("valid");
+
+    // then
+    assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.OK);
+    IntrospectionResponse response = resp.readEntity(IntrospectionResponse.class);
+    assertValidResponse(response, "datacore");
+    assertThat(response.getSub_groups()).containsOnly("org1", "org2");
+  }
+
+  private void assertValidResponse(IntrospectionResponse response, String... expectedScopes) {
     assertThat(response.isActive()).isTrue();
     assertThat(response.getIat()).isEqualTo((Long) TimeUnit.MILLISECONDS.toSeconds(validToken.getCreationTime().getMillis()));
     assertThat(response.getExp()).isEqualTo((Long) TimeUnit.MILLISECONDS.toSeconds(validToken.getExpirationTime().getMillis()));
     assertThat(response.getClient_id()).isEqualTo(validToken.getServiceProviderId());
-    assertThat(response.getScope().split(" ")).containsOnly("dp1:s1", "dp1:s3");
-    assertThat(response.getSub()).isEqualTo(account.getId());
-    assertThat(response.getSub_groups()).containsOnly("gp1", "gp2");
+    assertThat(response.getScope().split(" ")).containsOnly(expectedScopes);
+    assertThat(response.getSub()).isEqualTo("account");
   }
 
   @Test public void testStolenToken() {

@@ -50,6 +50,8 @@ public interface OrganizationMembershipRepository {
 
   Iterable<OrganizationMembership> getAdminsOfOrganization(String organizationId, int start, int limit);
 
+  Iterable<String> getOrganizationIdsForUser(String userId);
+
   Iterable<OrganizationMembership> getOrganizationsForUser(String userId, int start, int limit);
 
   Iterable<OrganizationMembership> getOrganizationsForAdmin(String userId);
