@@ -17,18 +17,12 @@
  */
 package oasis.model.directory;
 
-import java.util.Collection;
-
 import org.joda.time.Instant;
 
 import oasis.model.InvalidVersionException;
 
 public interface DirectoryRepository {
   Organization getOrganization(String organizationId);
-
-  Organization getOrganizationFromGroup(String groupId);
-
-  Collection<Group> getGroups(String organizationId);
 
   Organization createOrganization(Organization organization);
 
@@ -46,20 +40,4 @@ public interface DirectoryRepository {
   Iterable<Organization> getOrganizations();
 
   Iterable<Organization> findOrganizationsDeletedBefore(Instant deletedBefore);
-
-  Group getGroup(String groupId);
-
-  Collection<String> getGroupMembers(String groupId);
-
-  void addGroupMember(String groupId, String agentId);
-
-  boolean removeGroupMember(String groupId, String agentId);
-
-  Group createGroup(String organizationId, Group group);
-
-  Group updateGroup(String groupId, Group group, long[] versions) throws InvalidVersionException;
-
-  boolean deleteGroup(String groupId, long[] versions) throws InvalidVersionException;
-
-  Collection<Group> getGroupsForAgent(String agentId);
 }
