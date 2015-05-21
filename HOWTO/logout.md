@@ -23,7 +23,7 @@ automatically revoke all the tokens derived from it.
 Whichever mean the application uses to maintain the user session, it should be
 invalidated so that when the user comes back to the application (and/or if he had the
 application opened in several windows or tabs), he won't be recognized and will trigger
-the authentication process with the OASIS Kernel.
+the authentication process with the Ozwillo Kernel.
 
 In Java Servlets that could be `req.logout()` or `req.getSession().invalidate()`.
 
@@ -33,14 +33,14 @@ In PHP, that would be `session_destroy()` along with expiring the cookie with na
 3. Single Sign-Out
 ------------------
 
-If the user is still signed in on the OASIS Kernel, going back to the application will
+If the user is still signed in on the Ozwillo Kernel, going back to the application will
 (should) transparently sign-in him back. This would be a surprising behavior for the user
-so he must be given the choice to sign out from the whole OASIS platform. This is done
+so he must be given the choice to sign out from the whole Ozwillo platform. This is done
 using the _end session endpoint_ as defined by [RP-Initiated Logout in OpenID Connect
 Session Management 1.0](https://openid.net/specs/openid-connect-session-1_0.html#RPLogout).
 
 Note: in addition to the `id_token_hint` and `post_logout_redirect_uri` parameters
 defined in _draft 19_ of the _OpenID Connect Session Management 1.0_ specification, the
-OASIS Kernel allows a `state` parameter that will be echo'd back to the
+Ozwillo Kernel allows a `state` parameter that will be echo'd back to the
 `post_logout_redirect_uri` after the user signed out, as with the similarly-named request
 parameter at the _authorization endpoint_.

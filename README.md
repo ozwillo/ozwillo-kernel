@@ -1,33 +1,33 @@
-OASIS Kernel
+Ozwillo Kernel
 ============
 
-The OASIS Kernel provides
+The Ozwillo Kernel provides
 
-* OASIS Core services:
+* Ozwillo Core services:
     - Authentication and authorizations
     - Application catalog
     - User management, profile and graph
 
-* OASIS Support services:
+* Ozwillo Support services:
     - User notifications
     - Publish/Subscribe Event bus
     - Application log collector
 
-OASIS Core services
+Ozwillo Core services
 -------------------
 
-The OASIS Core services are the glue between all the applications in the OASIS ecosystem.
+The Ozwillo Core services are the glue between all the applications in the OASIS ecosystem.
 The main service, that every single application will use, is the single sign-on.
 But single sign-on requires applications to be registered first in a catalog.
 And single sign-on would be only half-baked if it didn't provide information about the user.
-OASIS goes further than just user profiles though, and provides a full graph
+Ozwillo goes further than just user profiles though, and provides a full graph
 with relations between users, organizations or groups of users.
-Finally, the promise of OASIS is to give users a total control on their data,
-so authorizations are baked directly into the OASIS Core services.
+Finally, the promise of Ozwillo is to give users a total control on their data,
+so authorizations are baked directly into the Ozwillo Core services.
 
 ### Authentication and authorizations
 
-OASIS Authentication and authorizations service is an implementation of international standards:
+Ozwillo Authentication and authorizations service is an implementation of international standards:
 
 * [OpenID Connect Core 1.0](https://openid.net/specs/openid-connect-core-1_0.html) (using the Authorization Code flow only)
 * [OpenID Connect Discovery 1.0](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfig) (provider configuration only)
@@ -35,7 +35,7 @@ OASIS Authentication and authorizations service is an implementation of internat
 * [OAuth Token Introspection](https://tools.ietf.org/html/draft-richer-oauth-introspection)
 * [OAuth Token Revocation (RFC 7009)](https://tools.ietf.org/html/rfc7009)
 
-Other standards not implemented by the OASIS Kernel but under consideration (i.e. might be implemented in the future):
+Other standards not implemented by the Ozwillo Kernel but under consideration (i.e. might be implemented in the future):
 
 * [OpenID Connect Dynamic Client Registration 1.0](https://openid.net/specs/openid-connect-registration-1_0.html)
 * [OAuth 2.0 Resource Set Registration](https://tools.ietf.org/html/draft-hardjono-oauth-resource-reg)
@@ -72,7 +72,7 @@ Oasis Support services
 ### User notification
 
 Applications can send notifications to users in the form of a short text and a URL.
-Those notifications will be displayed to the user on the OASIS Portal.
+Those notifications will be displayed to the user on the Ozwillo Portal.
 
 ### Publish/Subscribe Event bus
 
@@ -81,5 +81,5 @@ where each step of the flow is an application that doesn't know exactly which ot
 
 ### Application log collector
 
-The OASIS Kernel collects application logs to help establishing KPIs for the OASIS Platform and ecosystem.
+The Ozwillo Kernel collects application logs to help establishing KPIs for the OASIS Platform and ecosystem.
 

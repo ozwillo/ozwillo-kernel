@@ -57,7 +57,7 @@ and an `id_token` in the form of a signed Json Web Token.
 
 The `id_token`'s signature should be validated using the public key published at the _keys endpoint_.
 Its payload contains the `nonce` you initially sent in the authentication request and should match the one from the session.
-It also contains the user's identifier (`sub`) and, as an OASIS-specific extension to the specification,
+It also contains the user's identifier (`sub`) and, as an Ozwillo-specific extension to the specification,
 optional `app_user` and  `app_admin` boolean properties.
 When present and equal to `true`, `app_user` indicates that the user has been assigned the application (generaly by his IT manager).
 When present and equal to `true`, `app_admin` indicates that the user is the one who bought the application,
@@ -78,7 +78,7 @@ Your application authenticates to the Kernel using OAuth 2.0 Bearer authenticati
 The Kernel responds with a JSON document, but you can opt in for a JWT using content negotiation with an `Accept` request header.
 
 Among the information you can retrieve from the Kernel about the user are his first and last name, and his preferred locale and timezone.
-Those are important to personalize the user experience to his choices, globally stored into the Kernel and shared by all applications in the OASIS ecosystem.
+Those are important to personalize the user experience to his choices, globally stored into the Kernel and shared by all applications in the Ozwillo ecosystem.
 
 Error cases
 -----------
