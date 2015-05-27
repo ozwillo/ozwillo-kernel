@@ -155,6 +155,20 @@ public class Service extends CatalogEntry {
     this.status = status;
   }
 
+  public Visibility getVisibility() {
+    if (isRestricted()) {
+      return Visibility.NEVER_VISIBLE;
+    }
+    return isVisible() ? Visibility.VISIBLE : Visibility.HIDDEN;
+  }
+
+  public AccessControl getAccess_control() {
+    if (isRestricted()) {
+      return AccessControl.ALWAYS_RESTRICTED;
+    }
+    return isVisible() ? AccessControl.ANYONE : AccessControl.RESTRICTED;
+  }
+
   public static enum Status {
     AVAILABLE, NOT_AVAILABLE;
 
@@ -169,5 +183,17 @@ public class Service extends CatalogEntry {
           return NOT_AVAILABLE;
       }
     }
+  }
+
+  public static enum Visibility {
+    VISIBLE,
+    HIDDEN,
+    NEVER_VISIBLE;
+  }
+
+  public static enum AccessControl {
+    ANYONE,
+    RESTRICTED,
+    ALWAYS_RESTRICTED;
   }
 }
