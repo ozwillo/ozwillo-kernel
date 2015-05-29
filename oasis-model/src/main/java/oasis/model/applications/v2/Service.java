@@ -26,6 +26,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class Service extends CatalogEntry {
   private String local_id;
   private String instance_id;
+  private boolean visible;
   @JsonProperty private Boolean restricted;
   private String service_uri;
   private String notification_uri;
@@ -88,7 +89,11 @@ public class Service extends CatalogEntry {
   @Override
   public boolean isVisible() {
     // a restricted service cannot be visible.
-    return super.isVisible() && !Boolean.TRUE.equals(getRestricted());
+    return visible && !Boolean.TRUE.equals(getRestricted());
+  }
+
+  public void setVisible(boolean visible) {
+    this.visible = visible;
   }
 
   public String getService_uri() {

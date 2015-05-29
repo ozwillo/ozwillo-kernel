@@ -22,6 +22,7 @@ public class Application extends CatalogEntry {
   private String instantiation_secret;
   private String cancellation_uri;
   private String cancellation_secret;
+  private boolean visible;
 
   public Application() {
   }
@@ -37,6 +38,7 @@ public class Application extends CatalogEntry {
     instantiation_secret = other.getInstantiation_secret();
     cancellation_uri = other.getCancellation_uri();
     cancellation_secret = other.getCancellation_secret();
+    visible = other.isVisible();
   }
 
   @Override
@@ -74,5 +76,13 @@ public class Application extends CatalogEntry {
 
   public void setCancellation_secret(String cancellation_secret) {
     this.cancellation_secret = cancellation_secret;
+  }
+
+  public boolean isVisible() {
+    return visible;
+  }
+
+  public void setVisible(boolean visible) {
+    this.visible = visible;
   }
 }

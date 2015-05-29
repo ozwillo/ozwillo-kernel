@@ -23,6 +23,7 @@ import oasis.model.i18n.LocalizableString;
 
 public class SimpleCatalogEntry extends CatalogEntry {
   private EntryType type;
+  private boolean visible;
 
   public SimpleCatalogEntry() {
   }
@@ -34,6 +35,7 @@ public class SimpleCatalogEntry extends CatalogEntry {
    */
   public SimpleCatalogEntry(CatalogEntry other) {
     super(other);
+    visible = other.isVisible();
   }
 
   @Override
@@ -51,5 +53,13 @@ public class SimpleCatalogEntry extends CatalogEntry {
     setIcon(new LocalizableString(getIcon().get(locale)));
     setTos_uri(new LocalizableString(getTos_uri().get(locale)));
     setPolicy_uri(new LocalizableString(getPolicy_uri().get(locale)));
+  }
+
+  public boolean isVisible() {
+    return visible;
+  }
+
+  public void setVisible(boolean visible) {
+    this.visible = visible;
   }
 }

@@ -33,7 +33,6 @@ public abstract class CatalogEntry extends CommonProperties {
   private PaymentOption payment_option;
   private List<TargetAudience> target_audience;
   private List<String> category_ids;
-  private boolean visible;
   private LocalizableString tos_uri;
   private LocalizableString policy_uri;
   private List<String> contacts;
@@ -64,7 +63,6 @@ public abstract class CatalogEntry extends CommonProperties {
     payment_option = other.getPayment_option();
     target_audience = new ArrayList<>(other.getTarget_audience());
     category_ids = new ArrayList<>(other.getCategory_ids());
-    visible = other.isVisible();
     tos_uri = new LocalizableString(other.getTos_uri());
     policy_uri = new LocalizableString(other.getPolicy_uri());
     contacts = new ArrayList<>(other.getContacts());
@@ -108,13 +106,7 @@ public abstract class CatalogEntry extends CommonProperties {
     this.category_ids = category_ids;
   }
 
-  public boolean isVisible() {
-    return visible;
-  }
-
-  public void setVisible(boolean visible) {
-    this.visible = visible;
-  }
+  public abstract boolean isVisible();
 
   public LocalizableString getTos_uri() {
     return tos_uri;
