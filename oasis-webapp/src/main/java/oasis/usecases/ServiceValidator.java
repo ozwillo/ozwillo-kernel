@@ -73,9 +73,6 @@ public class ServiceValidator {
       return "Service missing target_audience";
     }
     // XXX: check for nulls in target_audience?
-    if (service.isVisible() && service.isRestricted()) {
-      return "Service cannot be both visible and restricted";
-    }
     if (!isValidHttpUri(service.getService_uri())) {
       return "Service missing service_uri";
     }
