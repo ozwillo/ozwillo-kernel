@@ -89,7 +89,6 @@ import oasis.services.authn.TokenSerializer;
 import oasis.services.authz.AppAdminHelper;
 import oasis.soy.TestingSoyGuiceModule;
 import oasis.urls.ImmutableUrls;
-import oasis.urls.Urls;
 import oasis.urls.UrlsModule;
 import oasis.web.authn.LoginPage;
 import oasis.web.authn.testing.TestUserFilter;
@@ -162,7 +161,7 @@ public class AuthorizationEndpointTest {
     setName(new LocalizableString("Public Service"));
     setInstance_id(appInstance.getId());
     setProvider_id("organizationId");
-    setVisible(true);
+    setAccess_control(AccessControl.ANYONE);
     // The redirect_uri contains %-encoded chars, which will need to be double-%-encoded in URLs.
     setRedirect_uris(Collections.singleton("https://application/callback?foo=bar%26baz"));
   }};
@@ -171,7 +170,7 @@ public class AuthorizationEndpointTest {
     setName(new LocalizableString("Private Service"));
     setInstance_id(appInstance.getId());
     setProvider_id("organizationId");
-    setVisible(false);
+    setAccess_control(AccessControl.RESTRICTED);
     setRedirect_uris(Collections.singleton("https://application/callback?private"));
   }};
 
@@ -218,7 +217,8 @@ public class AuthorizationEndpointTest {
     setName(new LocalizableString("Portal Service"));
     setInstance_id(portalAppInstance.getId());
     setProvider_id("organizationId");
-    setVisible(false);
+    setVisibility(Visibility.HIDDEN);
+    setAccess_control(AccessControl.ANYONE);
     setRedirect_uris(Collections.singleton("https://portal/callback"));
   }};
 
@@ -345,7 +345,7 @@ public class AuthorizationEndpointTest {
         portalAppInstance.getId(), null, Iterables.getOnlyElement(portalService.getRedirect_uris()), "pass");
   }
 
-  @Test public void testPromptForPortalForNonNeededScopes(AuthorizationRepository authorizationRepository, TokenHandler tokenHandler) {
+  @Test public void testPromptForPortalForNonNeededScopes(AuthorizationRepository authorizationRepository) {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
@@ -364,7 +364,7 @@ public class AuthorizationEndpointTest {
   }
 
   /** This is the same as {@link #testAutomaticallyAuthorizePortalsNeededScopes} except with prompt=consent. */
-  @Test public void testPromptForPortalIfPromptConsent(AuthorizationRepository authorizationRepository, TokenHandler tokenHandler) {
+  @Test public void testPromptForPortalIfPromptConsent(AuthorizationRepository authorizationRepository) {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
     Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))

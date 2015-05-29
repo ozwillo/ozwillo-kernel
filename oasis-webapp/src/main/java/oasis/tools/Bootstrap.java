@@ -312,7 +312,8 @@ public class Bootstrap extends CommandLineTool {
     Service service = new Service();
     service.setLocal_id("front");
     service.setInstance_id(instance.getId());
-    service.setVisible(true); // we don't want filtering by ACL, portal will be filtered out by Market search
+    service.setVisibility(Service.Visibility.HIDDEN);
+    service.setAccess_control(Service.AccessControl.ANYONE);
     service.setStatus(Service.Status.AVAILABLE);
     service.getName().set(ULocale.ROOT, "Ozwillo Portal");
     service.getRedirect_uris().add(portalRedirectUri);

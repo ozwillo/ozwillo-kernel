@@ -22,12 +22,15 @@ import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
 
 public class Service extends CatalogEntry {
   private String local_id;
   private String instance_id;
-  private boolean visible;
-  @JsonProperty private Boolean restricted;
+  @JsonProperty @Deprecated private Boolean visible;
+  @JsonProperty @Deprecated private Boolean restricted;
+  private Visibility visibility;
+  private AccessControl access_control;
   private String service_uri;
   private String notification_uri;
   private Set<String> redirect_uris;
@@ -46,11 +49,15 @@ public class Service extends CatalogEntry {
    * <p>
    * Does not copy {@link #id} field.
    */
+  @SuppressWarnings("deprecation")
   public Service(Service other) {
     super(other);
     local_id = other.getLocal_id();
     instance_id = other.getInstance_id();
+    visible = other.getVisible();
     restricted = other.getRestricted();
+    visibility = other.getVisibility();
+    access_control = other.getAccess_control();
     service_uri = other.getService_uri();
     notification_uri = other.getNotification_uri();
     redirect_uris = new LinkedHashSet<>(other.getRedirect_uris());
@@ -75,24 +82,56 @@ public class Service extends CatalogEntry {
 
   @JsonIgnore
   public boolean isAccessRestricted() {
-    return !isVisible();
+    switch (getAccess_control()) {
+      case ANYONE:
+        return false;
+      case RESTRICTED:
+      case ALWAYS_RESTRICTED:
+        return true;
+      default:
+        throw new AssertionError();
+    }
   }
 
+  @Deprecated
   public Boolean getRestricted() {
-    return restricted;
+    if (isUsingLegacyVisibleRestrictedProperties()) {
+      return restricted;
+    }
+    return getAccess_control() == AccessControl.ALWAYS_RESTRICTED && getVisibility() == Visibility.NEVER_VISIBLE ? Boolean.TRUE : null;
   }
 
+  @Deprecated
   public void setRestricted(Boolean restricted) {
     this.restricted = restricted;
   }
 
-  @Override
+  @JsonIgnore
   public boolean isVisible() {
-    // a restricted service cannot be visible.
-    return visible && !Boolean.TRUE.equals(getRestricted());
+    switch (getVisibility()) {
+      case VISIBLE:
+        return true;
+      case HIDDEN:
+      case NEVER_VISIBLE:
+        return false;
+      default:
+        throw new AssertionError();
+    }
   }
 
-  public void setVisible(boolean visible) {
+  @Deprecated
+  public Boolean getVisible() {
+    if (isUsingLegacyVisibleRestrictedProperties()) {
+      if (Boolean.TRUE.equals(restricted)) {
+        return null;
+      }
+      return visible;
+    }
+    return getVisibility() == Visibility.VISIBLE && getAccess_control() == AccessControl.ANYONE ? Boolean.TRUE : null;
+  }
+
+  @Deprecated
+  public void setVisible(Boolean visible) {
     this.visible = visible;
   }
 
@@ -160,18 +199,39 @@ public class Service extends CatalogEntry {
     this.status = status;
   }
 
+  @SuppressWarnings("deprecation")
   public Visibility getVisibility() {
-    if (Boolean.TRUE.equals(getRestricted())) {
-      return Visibility.NEVER_VISIBLE;
+    if (isUsingLegacyVisibleRestrictedProperties()) {
+      if (Boolean.TRUE.equals(restricted)) {
+        return Visibility.NEVER_VISIBLE;
+      }
+      return Boolean.TRUE.equals(visible) ? Visibility.VISIBLE : Visibility.HIDDEN;
     }
-    return isVisible() ? Visibility.VISIBLE : Visibility.HIDDEN;
+    return MoreObjects.firstNonNull(visibility, Visibility.HIDDEN);
   }
 
+  public void setVisibility(Visibility visibility) {
+    this.visibility = visibility;
+  }
+
+  @SuppressWarnings("deprecation")
   public AccessControl getAccess_control() {
-    if (Boolean.TRUE.equals(getRestricted())) {
-      return AccessControl.ALWAYS_RESTRICTED;
+    if (isUsingLegacyVisibleRestrictedProperties()) {
+      if (Boolean.TRUE.equals(restricted)) {
+        return AccessControl.ALWAYS_RESTRICTED;
+      }
+      return Boolean.TRUE.equals(visible) ? AccessControl.ANYONE : AccessControl.RESTRICTED;
     }
-    return isVisible() ? AccessControl.ANYONE : AccessControl.RESTRICTED;
+    return MoreObjects.firstNonNull(access_control, AccessControl.RESTRICTED);
+  }
+
+  public void setAccess_control(AccessControl access_control) {
+    this.access_control = access_control;
+  }
+
+  @SuppressWarnings("deprecation")
+  private boolean isUsingLegacyVisibleRestrictedProperties() {
+    return visible != null || restricted != null;
   }
 
   public static enum Status {

@@ -26,9 +26,11 @@ import org.junit.Test;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+@SuppressWarnings("deprecation")
 public class ServiceVisibilityAndAccessControlMigrationTest {
 
   ObjectMapper objectMapper = new ObjectMapper()
@@ -163,16 +165,28 @@ public class ServiceVisibilityAndAccessControlMigrationTest {
     assertThat(service.getAccess_control()).isEqualTo(Service.AccessControl.ALWAYS_RESTRICTED);
   }
 
-  @Test public void testNewPropertiesAreIgnored() {
+  @Test public void testNewPropertiesAreNotIgnored() {
     ObjectNode node = new ObjectNode(JsonNodeFactory.instance);
     node.put("visibility", "whatever");
+    try {
+      objectMapper.convertValue(node, Service.class);
+    } catch (IllegalArgumentException iae) {
+      assertThat(iae)
+          .hasCauseInstanceOf(InvalidFormatException.class)
+          .hasMessageContaining("whatever")
+          .hasMessageContaining(Service.Visibility.class.getName());
+    }
+
+    node = new ObjectNode(JsonNodeFactory.instance);
     node.put("access_control", "nevermind");
-    Service service = objectMapper.convertValue(node, Service.class);
-    assertThat(service.isVisible()).isFalse();
-    assertThat(service.getRestricted()).isNotEqualTo(Boolean.TRUE);
-    assertThat(service.isAccessRestricted()).isTrue();
-    assertThat(service.getVisibility()).isEqualTo(Service.Visibility.HIDDEN);
-    assertThat(service.getAccess_control()).isEqualTo(Service.AccessControl.RESTRICTED);
+    try {
+      objectMapper.convertValue(node, Service.class);
+    } catch (IllegalArgumentException iae) {
+      assertThat(iae)
+          .hasCauseInstanceOf(InvalidFormatException.class)
+          .hasMessageContaining("nevermind")
+          .hasMessageContaining(Service.AccessControl.class.getName());
+    }
   }
 
   private void assertAbsentOrFalse(JsonNode prop) {
