@@ -19,7 +19,7 @@ package oasis.model.applications.v2;
 
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assume.assumeFalse;
+import static org.junit.Assume.*;
 
 import org.junit.Test;
 
@@ -86,7 +86,10 @@ public class ServiceVisibilityAndAccessControlMigrationTest {
   @Test public void testServiceSerialization() {
     Service service = new Service();
     assumeFalse(service.isVisible());
-    assumeFalse(service.isRestricted());
+    assumeFalse(Boolean.TRUE.equals(service.getRestricted()));
+    assumeTrue(service.isAccessRestricted());
+    assumeTrue(service.getVisibility() == Service.Visibility.HIDDEN);
+    assumeTrue(service.getAccess_control() == Service.AccessControl.RESTRICTED);
     ObjectNode node = objectMapper.convertValue(service, ObjectNode.class);
     assertAbsentOrFalse(node.get("visible"));
     assertAbsentOrFalse(node.get("restricted"));
@@ -127,7 +130,8 @@ public class ServiceVisibilityAndAccessControlMigrationTest {
     assumeFalse(node.has("access_control"));
     Service service = objectMapper.convertValue(node, Service.class);
     assertThat(service.isVisible()).isFalse();
-    assertThat(service.isRestricted()).isFalse();
+    assertThat(service.getRestricted()).isNotEqualTo(Boolean.TRUE);
+    assertThat(service.isAccessRestricted()).isTrue();
     assertThat(service.getVisibility()).isEqualTo(Service.Visibility.HIDDEN);
     assertThat(service.getAccess_control()).isEqualTo(Service.AccessControl.RESTRICTED);
 
@@ -135,7 +139,8 @@ public class ServiceVisibilityAndAccessControlMigrationTest {
     node.put("restricted", false);
     service = objectMapper.convertValue(node, Service.class);
     assertThat(service.isVisible()).isTrue();
-    assertThat(service.isRestricted()).isFalse();
+    assertThat(service.getRestricted()).isNotEqualTo(Boolean.TRUE);
+    assertThat(service.isAccessRestricted()).isFalse();
     assertThat(service.getVisibility()).isEqualTo(Service.Visibility.VISIBLE);
     assertThat(service.getAccess_control()).isEqualTo(Service.AccessControl.ANYONE);
 
@@ -143,7 +148,8 @@ public class ServiceVisibilityAndAccessControlMigrationTest {
     node.put("restricted", true);
     service = objectMapper.convertValue(node, Service.class);
     assertThat(service.isVisible()).isFalse(); // restricted overrides visible
-    assertThat(service.isRestricted()).isTrue();
+    assertThat(service.getRestricted()).isEqualTo(Boolean.TRUE);
+    assertThat(service.isAccessRestricted()).isTrue();
     assertThat(service.getVisibility()).isEqualTo(Service.Visibility.NEVER_VISIBLE);
     assertThat(service.getAccess_control()).isEqualTo(Service.AccessControl.ALWAYS_RESTRICTED);
 
@@ -151,7 +157,8 @@ public class ServiceVisibilityAndAccessControlMigrationTest {
     node.put("restricted", true);
     service = objectMapper.convertValue(node, Service.class);
     assertThat(service.isVisible()).isFalse();
-    assertThat(service.isRestricted()).isTrue();
+    assertThat(service.getRestricted()).isEqualTo(Boolean.TRUE);
+    assertThat(service.isAccessRestricted()).isTrue();
     assertThat(service.getVisibility()).isEqualTo(Service.Visibility.NEVER_VISIBLE);
     assertThat(service.getAccess_control()).isEqualTo(Service.AccessControl.ALWAYS_RESTRICTED);
   }
@@ -162,7 +169,8 @@ public class ServiceVisibilityAndAccessControlMigrationTest {
     node.put("access_control", "nevermind");
     Service service = objectMapper.convertValue(node, Service.class);
     assertThat(service.isVisible()).isFalse();
-    assertThat(service.isRestricted()).isFalse();
+    assertThat(service.getRestricted()).isNotEqualTo(Boolean.TRUE);
+    assertThat(service.isAccessRestricted()).isTrue();
     assertThat(service.getVisibility()).isEqualTo(Service.Visibility.HIDDEN);
     assertThat(service.getAccess_control()).isEqualTo(Service.AccessControl.RESTRICTED);
   }

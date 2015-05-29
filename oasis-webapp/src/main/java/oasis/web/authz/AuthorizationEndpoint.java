@@ -215,7 +215,7 @@ public class AuthorizationEndpoint {
     validateIdTokenHint(uriInfo, sidToken, id_token_hint);
 
     // Check ACL if the service is "private" (unless it's the Portal)
-    if ((service != null && !service.isVisible()) && !ClientIds.PORTAL.equals(client_id)) {
+    if ((service != null && service.isAccessRestricted()) && !ClientIds.PORTAL.equals(client_id)) {
       boolean isAppUser = accessControlRepository.getAccessControlEntry(appInstance.getId(), sidToken.getAccountId()) != null;
       boolean isAppAdmin = appAdminHelper.isAdmin(sidToken.getAccountId(), appInstance);
       if (!isAppUser && !isAppAdmin) {

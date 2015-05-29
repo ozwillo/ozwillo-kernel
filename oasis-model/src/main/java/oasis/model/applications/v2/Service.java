@@ -73,8 +73,8 @@ public class Service extends CatalogEntry {
   }
 
   @JsonIgnore
-  public boolean isRestricted() {
-    return Boolean.TRUE.equals(restricted);
+  public boolean isAccessRestricted() {
+    return !isVisible();
   }
 
   public Boolean getRestricted() {
@@ -88,7 +88,7 @@ public class Service extends CatalogEntry {
   @Override
   public boolean isVisible() {
     // a restricted service cannot be visible.
-    return super.isVisible() && !isRestricted();
+    return super.isVisible() && !Boolean.TRUE.equals(getRestricted());
   }
 
   public String getService_uri() {
@@ -156,14 +156,14 @@ public class Service extends CatalogEntry {
   }
 
   public Visibility getVisibility() {
-    if (isRestricted()) {
+    if (Boolean.TRUE.equals(getRestricted())) {
       return Visibility.NEVER_VISIBLE;
     }
     return isVisible() ? Visibility.VISIBLE : Visibility.HIDDEN;
   }
 
   public AccessControl getAccess_control() {
-    if (isRestricted()) {
+    if (Boolean.TRUE.equals(getRestricted())) {
       return AccessControl.ALWAYS_RESTRICTED;
     }
     return isVisible() ? AccessControl.ANYONE : AccessControl.RESTRICTED;
