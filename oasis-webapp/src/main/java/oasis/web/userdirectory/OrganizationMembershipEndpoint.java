@@ -244,6 +244,8 @@ public class OrganizationMembershipEndpoint {
     data.put(NewMembershipInvitationAdminMessageSoyTemplateInfo.ORGANIZATION_NAME, organization.getName());
 
     Notification notificationPrototype = new Notification();
+    notificationPrototype.setTime(Instant.now());
+    notificationPrototype.setStatus(Notification.Status.UNREAD);
     for (ULocale locale : LocaleHelper.SUPPORTED_LOCALES) {
       ULocale messageLocale = locale;
       if (LocaleHelper.DEFAULT_LOCALE.equals(locale)) {

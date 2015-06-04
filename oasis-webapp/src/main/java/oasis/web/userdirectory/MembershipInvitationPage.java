@@ -34,6 +34,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import org.joda.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -273,6 +274,8 @@ public class MembershipInvitationPage {
     }
 
     Notification notificationPrototype = new Notification();
+    notificationPrototype.setTime(Instant.now());
+    notificationPrototype.setStatus(Notification.Status.UNREAD);
     for (ULocale locale : LocaleHelper.SUPPORTED_LOCALES) {
       ULocale messageLocale = locale;
       if (LocaleHelper.DEFAULT_LOCALE.equals(locale)) {
@@ -313,6 +316,8 @@ public class MembershipInvitationPage {
     }
 
     Notification notification = new Notification();
+    notification.setTime(Instant.now());
+    notification.setStatus(Notification.Status.UNREAD);
     notification.setUser_id(requesterId);
     for (ULocale locale : LocaleHelper.SUPPORTED_LOCALES) {
       ULocale messageLocale = locale;

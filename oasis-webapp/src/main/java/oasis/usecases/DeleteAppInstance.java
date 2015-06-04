@@ -33,6 +33,7 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
 
 import org.immutables.value.Value;
+import org.joda.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -183,6 +184,8 @@ public class DeleteAppInstance {
 
   private void notifyAdmins(AppInstance appInstance, Iterable<String> adminIds) {
     Notification notificationPrototype = new Notification();
+    notificationPrototype.setTime(Instant.now());
+    notificationPrototype.setStatus(Notification.Status.UNREAD);
     for (ULocale locale : LocaleHelper.SUPPORTED_LOCALES) {
       SoyMapData data = new SoyMapData();
       data.put(DeletedAppInstanceMessageSoyTemplateInfo.APP_INSTANCE_NAME, appInstance.getName().get(locale));

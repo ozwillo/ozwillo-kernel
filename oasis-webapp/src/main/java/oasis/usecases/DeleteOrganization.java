@@ -20,6 +20,7 @@ package oasis.usecases;
 import javax.inject.Inject;
 
 import org.immutables.value.Value;
+import org.joda.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -112,6 +113,8 @@ public class DeleteOrganization {
 
   private void notifyAdmins(Organization organization, ImmutableList<OrganizationMembership> admins) {
     Notification notificationPrototype = new Notification();
+    notificationPrototype.setTime(Instant.now());
+    notificationPrototype.setStatus(Notification.Status.UNREAD);
     SoyMapData data = new SoyMapData();
     data.put(DeletedOrganizationMessageSoyTemplateInfo.ORGANIZATION_NAME, organization.getName());
     for (ULocale locale : LocaleHelper.SUPPORTED_LOCALES) {

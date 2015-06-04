@@ -17,6 +17,8 @@
  */
 package oasis.jongo.notification;
 
+import static com.google.common.base.Preconditions.*;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,6 +54,9 @@ public class JongoNotificationRepository implements NotificationRepository, Jong
 
   @Override
   public Notification createNotification(Notification notification) {
+    checkNotNull(notification.getMessage());
+    checkNotNull(notification.getStatus());
+    checkNotNull(notification.getTime());
     JongoNotification jongoNotification = new JongoNotification(notification);
     try {
       getNotificationCollection().insert(jongoNotification);
@@ -65,6 +70,9 @@ public class JongoNotificationRepository implements NotificationRepository, Jong
   public List<Notification> createNotifications(List<Notification> notifications) {
     List<Notification> jongoNotifications = new ArrayList<>(notifications.size());
     for (Notification notification : notifications) {
+      checkNotNull(notification.getMessage());
+      checkNotNull(notification.getStatus());
+      checkNotNull(notification.getTime());
       jongoNotifications.add(new JongoNotification(notification));
     }
     try {
