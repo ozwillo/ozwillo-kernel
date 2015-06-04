@@ -17,6 +17,8 @@
  */
 package oasis.jongo.accounts;
 
+import java.util.Map;
+
 import javax.inject.Inject;
 
 import org.jongo.Jongo;
@@ -26,12 +28,14 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.common.collect.Maps;
 import com.google.common.primitives.Longs;
 import com.mongodb.DuplicateKeyException;
 
 import oasis.jongo.JongoBootstrapper;
 import oasis.model.InvalidVersionException;
 import oasis.model.accounts.AccountRepository;
+import oasis.model.accounts.Address;
 import oasis.model.accounts.UserAccount;
 
 public class JongoAccountRepository implements AccountRepository, JongoBootstrapper {
@@ -88,9 +92,59 @@ public class JongoAccountRepository implements AccountRepository, JongoBootstrap
     account.setEmail_verified(null);
     account.setPhone_number_verified(null);
     account.setCreated_at(null);
+    // Allow resetting fields to null/empty
+    // TODO: find a better way to do it! (leveraging Jackson)
+    Map<String, Boolean> unsetObject = Maps.newLinkedHashMap();
+    // NOTE: don't allow resetting the nickname and locale (set during account creation), and zoneinfo
+    if (account.getName() == null) {
+      unsetObject.put("name", true);
+    }
+    if (account.getFamily_name() == null) {
+      unsetObject.put("family_name", true);
+    }
+    if (account.getMiddle_name() == null) {
+      unsetObject.put("middle_name", true);
+    }
+    if (account.getGiven_name() == null) {
+      unsetObject.put("given_name", true);
+    }
+    if (account.getPicture() == null) {
+      unsetObject.put("picture", true);
+    }
+    if (account.getBirthdate() == null) {
+      unsetObject.put("birthdate", true);
+    }
+    if (account.getGender() == null) {
+      unsetObject.put("gender", true);
+    }
+    if (account.getPhone_number() == null) {
+      unsetObject.put("phone_number", true);
+    }
+    if (account.getAddress() == null) {
+      unsetObject.put("address", true);
+    } else {
+      // individual address fields
+      Address address = account.getAddress();
+      if (address.getStreet_address() == null) {
+        unsetObject.put("address.street_address", true);
+      }
+      if (address.getPostal_code() == null) {
+        unsetObject.put("address.postal_code", true);
+      }
+      if (address.getLocality() == null) {
+        unsetObject.put("address.locality", true);
+      }
+      if (address.getRegion() == null) {
+        unsetObject.put("address.region", true);
+      }
+      if (address.getCountry() == null) {
+        unsetObject.put("address.country", true);
+      }
+    }
+
     account = getAccountCollection()
         .findAndModify("{ id: #, updated_at: { $in: # } }", id, Longs.asList(versions))
-        .with("{ $set: # }", account)
+        .with("{ $set: #, $unset: # }", account, unsetObject)
         .returnNew()
         .as(JongoUserAccount.class);
     if (account == null) {
