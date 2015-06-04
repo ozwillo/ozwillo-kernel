@@ -17,6 +17,8 @@
  */
 package oasis.jongo.applications.v2;
 
+import java.util.Map;
+
 import javax.inject.Inject;
 
 import org.jongo.Jongo;
@@ -26,6 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.common.collect.Maps;
 import com.google.common.primitives.Longs;
 import com.mongodb.DuplicateKeyException;
 
@@ -41,12 +44,10 @@ public class JongoServiceRepository implements ServiceRepository, JongoBootstrap
   static final String SERVICES_COLLECTION = "services";
 
   private final Jongo jongo;
-  private final AuthModule.Settings settings;
 
   @Inject
-  JongoServiceRepository(Jongo jongo, AuthModule.Settings settings) {
+  JongoServiceRepository(Jongo jongo) {
     this.jongo = jongo;
-    this.settings = settings;
   }
 
   private MongoCollection getServicesCollection() {
@@ -120,6 +121,7 @@ public class JongoServiceRepository implements ServiceRepository, JongoBootstrap
   }
 
   @Override
+  @SuppressWarnings("deprecation")
   public Service updateService(Service service, long[] versions) throws InvalidVersionException {
     String serviceId = service.getId();
     Preconditions.checkArgument(!Strings.isNullOrEmpty(serviceId));
@@ -130,10 +132,17 @@ public class JongoServiceRepository implements ServiceRepository, JongoBootstrap
     service.setLocal_id(null);
     service.setInstance_id(null);
     service.setProvider_id(null);
-    // FIXME: allow unsetting properties
+    // FIXME: allow unsetting properties; for now only support visible/restricted
+    Map<String, Boolean> unsetObject = Maps.newLinkedHashMap();
+    if (service.getVisible() == null) {
+      unsetObject.put("visible", true);
+    }
+    if (service.getRestricted() == null) {
+      unsetObject.put("restricted", true);
+    }
     service = getServicesCollection()
         .findAndModify("{ id: #, modified: { $in: # } }", serviceId, Longs.asList(versions))
-        .with("{ $set: # }", service)
+        .with("{ $set: #, $unset: # }", service, unsetObject)
         .returnNew()
         .as(JongoService.class);
     if (service == null) {
