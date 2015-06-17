@@ -122,24 +122,6 @@ public class JongoAccountRepository implements AccountRepository, JongoBootstrap
     }
     if (account.getAddress() == null) {
       unsetObject.put("address", true);
-    } else {
-      // individual address fields
-      Address address = account.getAddress();
-      if (address.getStreet_address() == null) {
-        unsetObject.put("address.street_address", true);
-      }
-      if (address.getPostal_code() == null) {
-        unsetObject.put("address.postal_code", true);
-      }
-      if (address.getLocality() == null) {
-        unsetObject.put("address.locality", true);
-      }
-      if (address.getRegion() == null) {
-        unsetObject.put("address.region", true);
-      }
-      if (address.getCountry() == null) {
-        unsetObject.put("address.country", true);
-      }
     }
 
     account = getAccountCollection()
