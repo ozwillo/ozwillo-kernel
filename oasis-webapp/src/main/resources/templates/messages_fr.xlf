@@ -32,6 +32,11 @@
         <target>Mot de passe trop court (longueur minimale: <x id="PWD_MIN_LENGTH"/>).</target>
         <note priority="1" from="description">Password too short; when changing password</note>
       </trans-unit>
+      <trans-unit id="701551202013573405" datatype="html">
+        <source><x id="START_PARAGRAPH"/>Congratulations <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>Your Ozwillo account has been validated.<x id="START_PARAGRAPH"/>The Ozwillo team<x id="START_BREAK"/><x id="START_SMALL"/>Discover <x id="START_LINK_1"/>Ozwillo<x id="END_LINK"/><x id="END_SMALL"/><x id="START_BREAK"/><x id="START_SMALL"/>Go to <x id="START_LINK_2"/>your Ozwillo dashboard<x id="END_LINK"/></source>
+        <target><x id="START_PARAGRAPH"/>Félicitations <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>Vous venez de valider votre compte Ozwillo.<x id="START_PARAGRAPH"/>L'équipe d'Ozwillo<x id="START_BREAK"/><x id="START_SMALL"/>Découvrez <x id="START_LINK"/>Ozwillo<x id="END_LINK"/><x id="END_SMALL"/><x id="START_BREAK"/><x id="START_SMALL"/>Accédez à <x id="START_LINK_2"/>votre environnement Ozwillo<x id="END_LINK"/></target>
+        <note priority="1" from="description">Welcome email body</note>
+      </trans-unit>
       <trans-unit id="706458367103369348" datatype="html">
         <source>Ozwillo password reset</source>
         <target>Réinitialisation de mot de passe Ozwillo</target>
@@ -196,6 +201,11 @@
         <target>L'application <x id="APP_INSTANCE_NAME"/> a été restaurée.</target>
         <note priority="1" from="description">Stopped application instance user notification message</note>
       </trans-unit>
+      <trans-unit id="3509186499908180001" datatype="html">
+        <source><x id="START_PARAGRAPH"/>Hello <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>You are receiving this e-mail because you have created an Ozwillo account.<x id="START_PARAGRAPH"/>In order to activate your account, please click on the following link:<x id="START_BREAK"/><x id="START_LINK_1"/><x id="ACTIVATION_LINK"/><x id="END_LINK"/><x id="START_PARAGRAPH"/>The Ozwillo team<x id="START_BREAK"/><x id="START_SMALL"/>Discover <x id="START_LINK_2"/>Ozwillo<x id="END_LINK"/><x id="END_SMALL"/></source>
+        <target><x id="START_PARAGRAPH"/>Bonjour <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>Vous recevez ce message parce que vous avez créé un compte Ozwillo.<x id="START_PARAGRAPH"/>Pour activer votre compte, cliquez sur le lien suivant :<x id="START_BREAK"/><x id="START_LINK_1"/><x id="ACTIVATION_LINK"/><x id="END_LINK"/><x id="START_PARAGRAPH"/>L'équipe d'Ozwillo<x id="START_BREAK"/><x id="START_SMALL"/>Découvrez <x id="START_LINK_2"/>Ozwillo<x id="END_LINK"/><x id="END_SMALL"/></target>
+        <note priority="1" from="description">Sign-up email body</note>
+      </trans-unit>
       <trans-unit id="3510526964471104374" datatype="html">
         <source>Cancel and log me back in</source>
         <target>Annuler et me connecter à nouveau</target>
@@ -336,16 +346,6 @@
         <target>https://www.ozwillo.com/fr/oz/decouvrir</target>
         <note priority="1" from="description">overview URL</note>
       </trans-unit>
-      <trans-unit id="6442419536401397182" datatype="html">
-        <source><x id="START_PARAGRAPH"/>Congratulations <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>Your subscription to the <x id="START_LINK"/>Ozwillo portal<x id="END_LINK"/> has been validated.</source>
-        <target><x id="START_PARAGRAPH"/>Félicitations <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>Vous venez de valider votre inscription au <x id="START_LINK"/>portail Ozwillo<x id="END_LINK"/>.</target>
-        <note priority="1" from="description">Welcome email body</note>
-      </trans-unit>
-      <trans-unit id="6649495811083440761" datatype="html">
-        <source><x id="START_PARAGRAPH"/>Hello <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>You are receiving this e-mail because you have registered on the Ozwillo portal.<x id="START_PARAGRAPH"/>In order to confirm your subscription, please click on the following link:<x id="START_BREAK"/><x id="START_LINK"/><x id="ACTIVATION_LINK"/><x id="END_LINK"/><x id="START_PARAGRAPH"/>Wishing you a nice tour on the Ozwillo portal<x id="START_PARAGRAPH"/>The Ozwillo team</source>
-        <target><x id="START_PARAGRAPH"/>Bonjour <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>Vous recevez ce message parce que vous vous êtes inscrit sur le portail Ozwillo.<x id="START_PARAGRAPH"/>Pour confirmer votre inscription, cliquez sur le lien suivant :<x id="START_BREAK"/><x id="START_LINK"/><x id="ACTIVATION_LINK"/><x id="END_LINK"/><x id="START_PARAGRAPH"/>En vous souhaitant une bonne visite sur le portail Ozwillo<x id="START_PARAGRAPH"/>L'équipe d'Ozwillo</target>
-        <note priority="1" from="description">Sign-up email body</note>
-      </trans-unit>
       <trans-unit id="6773310109171539191" datatype="html">
         <source>This link has expired. Try again below.</source>
         <target>Ce lien a expiré. Essayez à nouveau ci-dessous.</target>
@@ -428,7 +428,7 @@
       </trans-unit>
       <trans-unit id="8175006045572546420" datatype="html">
         <source><x id="START_PARAGRAPH"/><x id="REQUESTER_NAME"/> has invited you to join the <x id="ORGANIZATION_NAME"/> organization on Ozwillo.<x id="START_PARAGRAPH"/>To accept or reject the invitation, follow this link: <x id="START_LINK"/><x id="MEMBERSHIP_INVITATION_URL"/><x id="END_LINK"/>.<x id="START_PARAGRAPH"/>If you were not expecting this invitation, you can ignore this email.<x id="START_PARAGRAPH"/>The Ozwillo team</source>
-        <target><x id="START_PARAGRAPH"/><x id="REQUESTER_NAME"/> vous a invité à rejoindre l'organisation <x id="ORGANIZATION_NAME"/> sur Ozwillo.<x id="START_PARAGRAPH"/>Pour accepter ou refuser l'invitation, suivez ce lien: <x id="START_LINK"/><x id="MEMBERSHIP_INVITATION_URL"/><x id="END_LINK"/>.<x id="START_PARAGRAPH"/>Si vous n'attendiez pas cette invitation, vous pouvez ignorer cet e-mail.<x id="START_PARAGRAPH"/>L'équipe Ozwillo</target>
+        <target><x id="START_PARAGRAPH"/><x id="REQUESTER_NAME"/> vous a invité à rejoindre l'organisation <x id="ORGANIZATION_NAME"/> sur Ozwillo.<x id="START_PARAGRAPH"/>Pour accepter ou refuser l'invitation, suivez ce lien: <x id="START_LINK"/><x id="MEMBERSHIP_INVITATION_URL"/><x id="END_LINK"/>.<x id="START_PARAGRAPH"/>Si vous n'attendiez pas cette invitation, vous pouvez ignorer cet e-mail.<x id="START_PARAGRAPH"/>L'équipe d'Ozwillo</target>
         <note priority="1" from="description">Organization membership invitation email body</note>
       </trans-unit>
       <trans-unit id="8264044238565501678" datatype="html">

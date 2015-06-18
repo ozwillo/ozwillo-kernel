@@ -91,7 +91,8 @@ public class ActivateAccountPage {
           .setHtml()
           .setData(new SoyMapData(
               SignUpSoyInfo.AccountActivatedSoyTemplateInfo.NICKNAME, userAccount.getDisplayName(),
-              SignUpSoyInfo.AccountActivatedSoyTemplateInfo.PORTAL_URL, portalUrl.toString()
+              SignUpSoyInfo.AccountActivatedSoyTemplateInfo.PORTAL_URL, LoginPage.defaultContinueUrl(urls.landingPage(), uriInfo).toString(),
+              SignUpSoyInfo.AccountActivatedSoyTemplateInfo.MY_OZWILLO_URL, portalUrl.toString()
           )));
     } catch (MessagingException e) {
       logger.error("Error sending welcome email", e);

@@ -141,7 +141,8 @@ public class SignUpPage {
           .setHtml()
           .setData(new SoyMapData(
               SignUpSoyInfo.ActivateAccountSoyTemplateInfo.NICKNAME, nickname,
-              SignUpSoyInfo.ActivateAccountSoyTemplateInfo.ACTIVATION_LINK, activationLink.toString()
+              SignUpSoyInfo.ActivateAccountSoyTemplateInfo.ACTIVATION_LINK, activationLink.toString(),
+              SignUpSoyInfo.ActivateAccountSoyTemplateInfo.PORTAL_URL, LoginPage.defaultContinueUrl(urls.landingPage(), uriInfo).toString()
           )));
       // TODO: redirect to a bookmarkable URI (with form to resend the activation mail)
       return Response.ok()

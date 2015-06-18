@@ -30,12 +30,20 @@ Activate your Ozwillo account
  * Sign-up email.
  */
 {template .activateAccount}
-{@param nickname: string} /** User's nickname */
+{@param nickname:       string} /** User's nickname */
 {@param activationLink: string} /** Link to activate account. */
+{@param portalUrl:      string} /** Portal URL. */
 <!DOCTYPE html>
 <html>
 <body>
 {msg desc="Sign-up email body"}
+<p>Hello {$nickname},
+<p>You are receiving this e-mail because you have created an Ozwillo account.
+<p>In order to activate your account, please click on the following link:<br>
+   <a rel="notrack" href="{$activationLink}">{$activationLink}</a>
+<p>The Ozwillo team<br>
+   <small>Discover <a href="{$portalUrl}">Ozwillo</a></small>
+{fallbackmsg desc="Sign-up email body"}
 <p>Hello {$nickname},
 <p>You are receiving this e-mail because you have registered on the Ozwillo portal.
 <p>In order to confirm your subscription, please click on the following link:<br>
@@ -60,12 +68,19 @@ Welcome to Ozwillo
  * Welcome email.
  */
 {template .accountActivated}
-{@param nickname:  string} /** User's nickname. */
-{@param portalUrl: string} /** Portal URL. */
+{@param nickname:     string} /** User's nickname. */
+{@param portalUrl:    string} /** Portal URL. */
+{@param myOzwilloUrl: string} /** My Ozwillo URL. */
 <!DOCTYPE html>
 <html>
 <body>
 {msg desc="Welcome email body"}
+<p>Congratulations {$nickname},
+<p>Your Ozwillo account has been validated.
+<p>The Ozwillo team<br>
+   <small>Discover <a href="{$portalUrl}">Ozwillo</a></small><br>
+   <small>Go to <a href="{$myOzwilloUrl}">your Ozwillo dashboard</a>
+{fallbackmsg desc="Welcome email body"}
 <p>Congratulations {$nickname},
 <p>Your subscription to the <a href="{$portalUrl}">Ozwillo portal</a> has been validated.
 {/msg}
