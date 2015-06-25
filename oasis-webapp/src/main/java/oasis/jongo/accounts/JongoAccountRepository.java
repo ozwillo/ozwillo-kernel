@@ -21,6 +21,7 @@ import java.util.Map;
 
 import javax.inject.Inject;
 
+import org.jongo.FindAndModify;
 import org.jongo.Jongo;
 import org.jongo.MongoCollection;
 import org.slf4j.Logger;
@@ -126,7 +127,9 @@ public class JongoAccountRepository implements AccountRepository, JongoBootstrap
 
     account = getAccountCollection()
         .findAndModify("{ id: #, updated_at: { $in: # } }", id, Longs.asList(versions))
-        .with("{ $set: #, $unset: # }", account, unsetObject)
+        // MongoDB rejects empty modifiers: https://jira.mongodb.org/browse/SERVER-12266
+        .with(unsetObject.isEmpty() ? "{ $set: # }"           : "{ $set: #, $unset: # }",
+              unsetObject.isEmpty() ? new Object[]{ account } : new Object[] { account, unsetObject })
         .returnNew()
         .as(JongoUserAccount.class);
     if (account == null) {

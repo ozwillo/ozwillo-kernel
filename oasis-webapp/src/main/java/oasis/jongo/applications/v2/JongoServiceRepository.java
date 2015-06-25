@@ -142,7 +142,9 @@ public class JongoServiceRepository implements ServiceRepository, JongoBootstrap
     }
     service = getServicesCollection()
         .findAndModify("{ id: #, modified: { $in: # } }", serviceId, Longs.asList(versions))
-        .with("{ $set: #, $unset: # }", service, unsetObject)
+        // MongoDB rejects empty modifiers: https://jira.mongodb.org/browse/SERVER-12266
+        .with(unsetObject.isEmpty() ? "{ $set: # }"           : "{ $set: #, $unset: # }",
+              unsetObject.isEmpty() ? new Object[]{ service } : new Object[] { service, unsetObject })
         .returnNew()
         .as(JongoService.class);
     if (service == null) {
