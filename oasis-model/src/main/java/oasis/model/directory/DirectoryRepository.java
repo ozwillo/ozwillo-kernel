@@ -24,6 +24,8 @@ import oasis.model.InvalidVersionException;
 public interface DirectoryRepository {
   Organization getOrganization(String organizationId);
 
+  Organization findOrganizationByDcId(String dc_id);
+
   Organization createOrganization(Organization organization);
 
   Organization updateOrganization(String organizationId, Organization organization, long[] versions) throws InvalidVersionException;

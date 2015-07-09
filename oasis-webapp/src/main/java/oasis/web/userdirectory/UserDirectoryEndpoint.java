@@ -20,9 +20,11 @@ package oasis.web.userdirectory;
 import java.net.URI;
 
 import javax.inject.Inject;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -42,6 +44,7 @@ import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
 import oasis.web.authn.WithScopes;
+import oasis.web.utils.ResponseFactory;
 
 @Path("/d")
 @Produces(MediaType.APPLICATION_JSON)
@@ -54,9 +57,19 @@ public class UserDirectoryEndpoint {
   @Inject OrganizationMembershipRepository organizationMembershipRepository;
   @Inject EtagService etagService;
 
-  /*
-   * Organization
-   */
+  @GET
+  @Path("/org")
+  public Response findOrganization(@QueryParam("dc_id") String dc_id) {
+    Organization organization = directory.findOrganizationByDcId(dc_id);
+    if (organization == null) {
+      return ResponseFactory.notFound("No organization found");
+    }
+    return Response.ok()
+        .entity(organization)
+        .tag(etagService.getEtag(organization))
+        .contentLocation(UriBuilder.fromResource(OrganizationEndpoint.class).build(organization.getId()))
+        .build();
+  }
 
   @POST
   @Path("/org")

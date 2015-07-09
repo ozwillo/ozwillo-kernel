@@ -55,6 +55,13 @@ public class JongoDirectoryRepository implements DirectoryRepository, JongoBoots
   }
 
   @Override
+  public Organization findOrganizationByDcId(String dc_id) {
+    return getOrganizationCollection()
+        .findOne("{ dc_id: # }", dc_id)
+        .as(JongoOrganization.class);
+  }
+
+  @Override
   @SuppressWarnings("unchecked")
   public Iterable<Organization> getOrganizations() {
     return (Iterable<Organization>) (Iterable<?>) getOrganizationCollection().find()
