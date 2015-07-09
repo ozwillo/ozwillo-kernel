@@ -97,7 +97,8 @@ public class JongoDirectoryRepository implements DirectoryRepository, JongoBoots
     JongoOrganization res = getOrganizationCollection()
         .findAndModify("{ id: #, modified: { $in: # } }", organizationId, Longs.asList(versions))
         .returnNew()
-        .with("{ $set: #, $unset: # }", organization, unsetObject)
+        .with(unsetObject.isEmpty() ? "{ $set: # }"                 : "{ $set: #, $unset: # }",
+              unsetObject.isEmpty() ? new Object[] { organization } : new Object[] { organization, unsetObject })
         .as(JongoOrganization.class);
 
     if (res == null) {
