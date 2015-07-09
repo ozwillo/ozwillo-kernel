@@ -40,6 +40,7 @@ import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiParam;
 
+import oasis.model.DuplicateKeyException;
 import oasis.model.InvalidVersionException;
 import oasis.model.authz.Scopes;
 import oasis.model.directory.DirectoryRepository;
@@ -106,6 +107,8 @@ public class OrganizationEndpoint {
     Organization updatedOrganization;
     try {
       updatedOrganization = directory.updateOrganization(organizationId, organization, etagService.parseEtag(etagStr));
+    } catch (DuplicateKeyException e) {
+      return Response.status(Response.Status.CONFLICT).build();
     } catch (InvalidVersionException e) {
       return ResponseFactory.preconditionFailed(e.getMessage());
     }

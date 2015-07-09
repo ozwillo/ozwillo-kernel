@@ -94,12 +94,17 @@ public class JongoDirectoryRepository implements DirectoryRepository, JongoBoots
       unsetObject.put("territory_id", true);
     }
 
-    JongoOrganization res = getOrganizationCollection()
-        .findAndModify("{ id: #, modified: { $in: # } }", organizationId, Longs.asList(versions))
-        .returnNew()
-        .with(unsetObject.isEmpty() ? "{ $set: # }"                 : "{ $set: #, $unset: # }",
-              unsetObject.isEmpty() ? new Object[] { organization } : new Object[] { organization, unsetObject })
-        .as(JongoOrganization.class);
+    JongoOrganization res;
+    try {
+      res = getOrganizationCollection()
+          .findAndModify("{ id: #, modified: { $in: # } }", organizationId, Longs.asList(versions))
+          .returnNew()
+          .with(unsetObject.isEmpty() ? "{ $set: # }"                 : "{ $set: #, $unset: # }",
+                unsetObject.isEmpty() ? new Object[] { organization } : new Object[] { organization, unsetObject })
+          .as(JongoOrganization.class);
+    } catch (DuplicateKeyException e) {
+      throw new oasis.model.DuplicateKeyException();
+    }
 
     if (res == null) {
       if (getOrganizationCollection().count("{ id: # }", organizationId) != 0) {
@@ -158,5 +163,6 @@ public class JongoDirectoryRepository implements DirectoryRepository, JongoBoots
   @Override
   public void bootstrap() {
     getOrganizationCollection().ensureIndex("{ id: 1 }", "{ unique: 1 }");
+    getOrganizationCollection().ensureIndex("{ dc_id: 1 }", "{ unique: 1, sparse: 1 }");
   }
 }
