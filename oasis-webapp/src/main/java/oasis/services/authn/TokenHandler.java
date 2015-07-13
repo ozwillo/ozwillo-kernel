@@ -28,6 +28,7 @@ import javax.inject.Inject;
 
 import com.google.api.client.util.Clock;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import com.google.common.io.BaseEncoding;
 
 import oasis.model.authn.AccessToken;
@@ -40,7 +41,6 @@ import oasis.model.authn.SidToken;
 import oasis.model.authn.Token;
 import oasis.model.authn.TokenRepository;
 import oasis.auth.AuthModule;
-import oasis.model.authz.Scopes;
 import oasis.services.authn.login.PasswordHasher;
 import oasis.userdirectory.UserDirectoryModule;
 
@@ -155,9 +155,7 @@ public class TokenHandler {
     authorizationCode.setServiceProviderId(serviceProviderId);
     authorizationCode.setNonce(nonce);
     authorizationCode.setRedirectUri(redirectUri);
-    if (!scopeIds.contains(Scopes.OFFLINE_ACCESS)) {
-      authorizationCode.setParent(sidToken);
-    }
+    authorizationCode.setParent(sidToken);
 
     secureToken(authorizationCode, pass);
 
@@ -183,7 +181,7 @@ public class TokenHandler {
     // Note: store the authorizationCode ID although it's been revoked to be able to
     // detect code reuse, and revoke all previously issued tokens based on the reused code.
     // (see http://tools.ietf.org/html/rfc6749#section-4.1.2)
-    refreshToken.setParent(authorizationCode);
+    refreshToken.setAncestorIds(ImmutableList.of(authorizationCode.getId()));
 
     secureToken(refreshToken, pass);
 

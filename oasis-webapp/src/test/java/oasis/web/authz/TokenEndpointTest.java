@@ -48,6 +48,7 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.testing.http.FixedClock;
 import com.google.api.client.util.Clock;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.google.inject.Provides;
@@ -72,7 +73,6 @@ import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.services.authz.AppAdminHelper;
 import oasis.urls.ImmutableUrls;
-import oasis.urls.Urls;
 import oasis.urls.UrlsModule;
 import oasis.web.authn.testing.TestClientAuthenticationFilter;
 
@@ -160,7 +160,7 @@ public class TokenEndpointTest {
     setAccountId(account.getId());
     setCreationTime(now);
     expiresIn(Duration.standardDays(100));
-    setParent(validAuthCodeWithOfflineAccess);
+    setAncestorIds(ImmutableList.of(validAuthCodeWithOfflineAccess.getId()));
     setServiceProviderId(validAuthCodeWithOfflineAccess.getServiceProviderId());
     setScopeIds(validAuthCodeWithOfflineAccess.getScopeIds());
   }};
