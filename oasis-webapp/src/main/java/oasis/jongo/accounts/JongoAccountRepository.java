@@ -93,32 +93,40 @@ public class JongoAccountRepository implements AccountRepository, JongoBootstrap
     account.setEmail_verified(null);
     account.setPhone_number_verified(null);
     account.setCreated_at(null);
+    // nullify address if "empty"
+    if (Strings.isNullOrEmpty(account.getAddress().getStreet_address())
+        && Strings.isNullOrEmpty(account.getAddress().getPostal_code())
+        && Strings.isNullOrEmpty(account.getAddress().getLocality())
+        && Strings.isNullOrEmpty(account.getAddress().getRegion())
+        && Strings.isNullOrEmpty(account.getAddress().getCountry())) {
+      account.setAddress(null);
+    }
     // Allow resetting fields to null/empty
     // TODO: find a better way to do it! (leveraging Jackson)
     Map<String, Boolean> unsetObject = Maps.newLinkedHashMap();
     // NOTE: don't allow resetting the nickname and locale (set during account creation), and zoneinfo
-    if (account.getName() == null) {
+    if (Strings.isNullOrEmpty(account.getName())) {
       unsetObject.put("name", true);
     }
-    if (account.getFamily_name() == null) {
+    if (Strings.isNullOrEmpty(account.getFamily_name())) {
       unsetObject.put("family_name", true);
     }
-    if (account.getMiddle_name() == null) {
+    if (Strings.isNullOrEmpty(account.getMiddle_name())) {
       unsetObject.put("middle_name", true);
     }
-    if (account.getGiven_name() == null) {
+    if (Strings.isNullOrEmpty(account.getGiven_name())) {
       unsetObject.put("given_name", true);
     }
-    if (account.getPicture() == null) {
+    if (Strings.isNullOrEmpty(account.getPicture())) {
       unsetObject.put("picture", true);
     }
     if (account.getBirthdate() == null) {
       unsetObject.put("birthdate", true);
     }
-    if (account.getGender() == null) {
+    if (Strings.isNullOrEmpty(account.getGender())) {
       unsetObject.put("gender", true);
     }
-    if (account.getPhone_number() == null) {
+    if (Strings.isNullOrEmpty(account.getPhone_number())) {
       unsetObject.put("phone_number", true);
     }
     if (account.getAddress() == null) {
