@@ -94,7 +94,8 @@ public class JongoAccountRepository implements AccountRepository, JongoBootstrap
     account.setPhone_number_verified(null);
     account.setCreated_at(null);
     // nullify address if "empty"
-    if (Strings.isNullOrEmpty(account.getAddress().getStreet_address())
+    if (account.getAddress() != null
+        && Strings.isNullOrEmpty(account.getAddress().getStreet_address())
         && Strings.isNullOrEmpty(account.getAddress().getPostal_code())
         && Strings.isNullOrEmpty(account.getAddress().getLocality())
         && Strings.isNullOrEmpty(account.getAddress().getRegion())
