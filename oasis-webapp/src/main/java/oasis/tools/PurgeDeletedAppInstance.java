@@ -19,6 +19,7 @@ package oasis.tools;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
+import javax.ws.rs.client.Client;
 
 import org.joda.time.Duration;
 import org.joda.time.Instant;
@@ -58,6 +59,7 @@ public class PurgeDeletedAppInstance extends CommandLineTool {
 
   @Inject JongoService jongoService;
   @Inject JestService jestService;
+  @Inject Client httpClient;
   @Inject Provider<oasis.usecases.DeleteAppInstance> usecaseProvider;
   @Inject Provider<AppInstanceRepository> appInstanceRepositoryProvider;
 
@@ -95,6 +97,7 @@ public class PurgeDeletedAppInstance extends CommandLineTool {
       int n = deleteStoppedInstances();
       logger().info("  Deleted {} instances.", n);
     } finally {
+      httpClient.close();
       jestService.stop();
       jongoService.stop();
     }
