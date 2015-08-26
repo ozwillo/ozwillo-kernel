@@ -40,6 +40,8 @@ import oasis.jongo.JongoService;
 import oasis.jongo.guice.JongoModule;
 import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstanceRepository;
+import oasis.soy.SoyGuiceModule;
+import oasis.urls.UrlsModule;
 import oasis.usecases.DeleteAppInstance.Stats;
 import oasis.usecases.ImmutableDeleteAppInstance;
 
@@ -86,6 +88,8 @@ public class DeleteAppInstance extends CommandLineTool {
     }
 
     final Injector injector = Guice.createInjector(
+        UrlsModule.create(config.getConfig("oasis.urls")),
+        new SoyGuiceModule(),
         JongoModule.create(config.getConfig("oasis.mongo")),
         new HttpClientModule(),
         ElasticsearchModule.create(config.getConfig("oasis.elasticsearch")),
