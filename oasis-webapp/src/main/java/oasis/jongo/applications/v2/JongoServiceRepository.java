@@ -36,7 +36,6 @@ import oasis.jongo.JongoBootstrapper;
 import oasis.model.InvalidVersionException;
 import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.ServiceRepository;
-import oasis.auth.AuthModule;
 
 public class JongoServiceRepository implements ServiceRepository, JongoBootstrapper {
   private static final Logger logger = LoggerFactory.getLogger(ServiceRepository.class);

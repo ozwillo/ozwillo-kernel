@@ -91,6 +91,8 @@ public class JongoDirectoryRepository implements DirectoryRepository, JongoBoots
   @Override
   public Organization updateOrganization(String organizationId, Organization organization, long[] versions) throws InvalidVersionException {
     organization = new JongoOrganization(organization);
+    // reset ID (not copied over) to make sure we won't generate a new one
+    organization.setId(organizationId);
     // Don't allow updating the status
     organization.setStatus(null);
     organization.setStatus_changed(null);

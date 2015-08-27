@@ -85,7 +85,7 @@ public class JongoAccountRepository implements AccountRepository, JongoBootstrap
   public UserAccount updateAccount(UserAccount account, long[] versions) throws InvalidVersionException {
     String id = account.getId();
     Preconditions.checkArgument(!Strings.isNullOrEmpty(id));
-    // Copy to get the updated_at field, and restore ID (not copied over)
+    // Copy to get the updated_at field, and reset ID (not copied over) to make sure we won't generate a new one
     account = new JongoUserAccount(account);
     account.setId(id);
     // XXX: don't allow modifying the email address, phone number verified, or created_at
@@ -154,6 +154,7 @@ public class JongoAccountRepository implements AccountRepository, JongoBootstrap
   public UserAccount verifyEmailAddress(String id) {
     // XXX: we use a JongoUserAccount to update the updated_at field
     JongoUserAccount userAccount = new JongoUserAccount();
+    // reset ID (not copied over) to make sure we won't generate a new one
     userAccount.setId(id);
     userAccount.setEmail_verified(true);
     userAccount.initActivated_at();
