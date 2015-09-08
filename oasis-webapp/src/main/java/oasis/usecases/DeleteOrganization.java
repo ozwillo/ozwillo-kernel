@@ -17,6 +17,8 @@
  */
 package oasis.usecases;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import javax.inject.Inject;
 
 import org.immutables.value.Value;
@@ -59,23 +61,25 @@ public class DeleteOrganization {
     if (request.checkStatus().isPresent()) {
       // If the status has to be checked, the deletion should occur before removing app instance and memberships to
       // prevent status conflict after removing all application instances
-      boolean deleted = directoryRepository.deleteOrganization(request.organization().getId(), request.checkStatus().get());
+      boolean deleted = directoryRepository.deleteOrganization(request.organizationId(), request.checkStatus().get());
       if (!deleted) {
-        logger.error("The organization {} wasn't in STOPPED status", request.organization().getId());
+        logger.error("The organization {} wasn't in STOPPED status", request.organizationId());
         return ResponseStatus.BAD_ORGANIZATION_STATUS;
       }
     } else {
-      directoryRepository.deleteOrganization(request.organization().getId());
+      directoryRepository.deleteOrganization(request.organizationId());
     }
 
     // Save list of admins, to notify them afterwards.
-    ImmutableList<OrganizationMembership> admins = ImmutableList.copyOf(organizationMembershipRepository.getAdminsOfOrganization(request.organization().getId()));
+    ImmutableList<OrganizationMembership> admins = request.notifyAdmins()
+        ? ImmutableList.copyOf(organizationMembershipRepository.getAdminsOfOrganization(request.organizationId()))
+        : ImmutableList.<OrganizationMembership>of();
 
-    organizationMembershipRepository.deleteMembershipsInOrganization(request.organization().getId());
+    organizationMembershipRepository.deleteMembershipsInOrganization(request.organizationId());
 
     ResponseStatus responseStatus = ResponseStatus.SUCCESS;
 
-    Iterable<AppInstance> appInstances = appInstanceRepository.findByOrganizationId(request.organization().getId());
+    Iterable<AppInstance> appInstances = appInstanceRepository.findByOrganizationId(request.organizationId());
     for (AppInstance appInstance : appInstances) {
       ImmutableDeleteAppInstance.Request deleteAppInstanceRequest = ImmutableDeleteAppInstance.Request.builder()
           .instanceId(appInstance.getId())
@@ -89,7 +93,7 @@ public class DeleteOrganization {
         case PROVIDER_CALL_ERROR:
         case PROVIDER_STATUS_ERROR:
           logger.error("The provider has returned an error while calling him after deleting the app-instances related to organization {}",
-              request.organization().getId());
+              request.organizationId());
           responseStatus = ResponseStatus.APP_INSTANCE_PROVIDER_ERROR;
           // It doesn't really matter: it will be deleted later by another cron task
           break;
@@ -101,22 +105,24 @@ public class DeleteOrganization {
       }
     }
 
-    try {
-      notifyAdmins(request.organization(), admins);
-    } catch (Exception e) {
-      // Don't fail if we can't notify
-      logger.error("Error notifying admins after deleting the organization {}", request.organization().getId(), e);
+    if (!admins.isEmpty()) {
+      try {
+        notifyAdmins(request.organizationName().get(), admins);
+      } catch (Exception e) {
+        // Don't fail if we can't notify
+        logger.error("Error notifying admins after deleting the organization {}", request.organizationId(), e);
+      }
     }
 
     return responseStatus;
   }
 
-  private void notifyAdmins(Organization organization, ImmutableList<OrganizationMembership> admins) {
+  private void notifyAdmins(String organizationName, ImmutableList<OrganizationMembership> admins) {
     Notification notificationPrototype = new Notification();
     notificationPrototype.setTime(Instant.now());
     notificationPrototype.setStatus(Notification.Status.UNREAD);
     SoyMapData data = new SoyMapData();
-    data.put(DeletedOrganizationMessageSoyTemplateInfo.ORGANIZATION_NAME, organization.getName());
+    data.put(DeletedOrganizationMessageSoyTemplateInfo.ORGANIZATION_NAME, organizationName);
     for (ULocale locale : LocaleHelper.SUPPORTED_LOCALES) {
       ULocale messageLocale = locale;
       if (LocaleHelper.DEFAULT_LOCALE.equals(locale)) {
@@ -133,16 +139,28 @@ public class DeleteOrganization {
         notificationRepository.createNotification(notification);
       } catch (Exception e) {
         // Don't fail if we can't notify
-        logger.error("Error notifying admin {} after deleting the organization {}", admin.getAccountId(), organization.getName(), e);
+        logger.error("Error notifying admin {} after deleting the organization {}", admin.getAccountId(), organizationName, e);
       }
     }
   }
 
   @Value.Immutable
-  public static interface Request {
-    Organization organization();
+  public static abstract class Request {
+    public abstract String organizationId();
 
-    Optional<Organization.Status> checkStatus();
+    /** Only used when notifying admins. */
+    public abstract Optional<String> organizationName();
+
+    public abstract Optional<Organization.Status> checkStatus();
+
+    public abstract boolean notifyAdmins();
+
+    @Value.Check
+    protected void check() {
+      if (notifyAdmins()) {
+        checkState(organizationName().isPresent());
+      }
+    }
   }
 
   public static enum ResponseStatus {

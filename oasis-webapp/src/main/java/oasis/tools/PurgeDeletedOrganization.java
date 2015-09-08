@@ -110,8 +110,10 @@ public class PurgeDeletedOrganization extends CommandLineTool {
     int deletedOrganizations = 0;
     for (Organization organization : organizations) {
       ImmutableDeleteOrganization.Request deleteOrganizationRequest = ImmutableDeleteOrganization.Request.builder()
-          .organization(organization)
+          .organizationId(organization.getId())
+          .organizationName(organization.getName())
           .checkStatus(Organization.Status.DELETED)
+          .notifyAdmins(true)
           .build();
       DeleteOrganization.ResponseStatus deleteOrganizationResponseStatus = usecaseProvider.get().deleteOrganization(deleteOrganizationRequest);
       switch (deleteOrganizationResponseStatus) {
