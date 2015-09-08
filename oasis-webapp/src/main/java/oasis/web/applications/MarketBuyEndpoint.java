@@ -191,9 +191,11 @@ public class MarketBuyEndpoint {
             .build();
         DeleteAppInstance.Status status = deleteAppInstance.deleteInstance(request, new DeleteAppInstance.Stats());
         if (status != DeleteAppInstance.Status.BAD_INSTANCE_STATUS) {
+          logger.error("Error calling App Factory for app={} and user={}: uri={}, status={}", applicationId, userId, application.getInstantiation_uri(), response.getStatusInfo());
           return ResponseFactory.build(Response.Status.BAD_GATEWAY, "Application factory failed");
         }
         // instance has been provisioned despite unsuccessful response from the App Factory; fall through.
+        logger.info("Error calling App Factory for app={} and user={} but app was provisioned successfully: status={}", applicationId, userId, application.getInstantiation_uri(), response.getStatusInfo());
       }
     } finally {
       response.close();
