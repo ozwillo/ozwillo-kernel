@@ -157,7 +157,7 @@ public class DeleteAppInstance {
     // FIXME: temporarily allow empty destruction_uri
     if (!Strings.isNullOrEmpty(endpoint)) {
       Future<Response> future = clientProvider.get()
-          .target(appInstance.getDestruction_uri())
+          .target(endpoint)
           .register(new WebhookSignatureFilter(secret))
           .request()
           .async()
