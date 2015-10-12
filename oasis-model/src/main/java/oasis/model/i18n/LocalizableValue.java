@@ -48,7 +48,7 @@ public class LocalizableValue<T> {
   }
 
   public T get(ULocale locale) {
-    for (Locale candidateLocale : control.getCandidateLocales("", locale.toLocale())) {
+    for (Locale candidateLocale : control.getCandidateLocales("", ULocale.addLikelySubtags(locale).toLocale())) {
       T value = values.get(candidateLocale);
       if (value != null) {
         return value;
