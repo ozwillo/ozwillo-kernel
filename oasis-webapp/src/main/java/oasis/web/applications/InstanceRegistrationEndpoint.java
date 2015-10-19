@@ -45,6 +45,7 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.template.soy.data.SanitizedContent;
 import com.ibm.icu.util.ULocale;
@@ -296,6 +297,7 @@ public class InstanceRegistrationEndpoint {
         return null;
       }
       Set<String> serviceIds = Sets.newHashSetWithExpectedSize(services.size());
+      Map<String, String> redirectUris = Maps.newHashMapWithExpectedSize(services.size());
       for (Service service : services) {
         @Nullable String error = serviceValidator.validateService(service, instance_id);
         if (error != null) {
@@ -303,6 +305,13 @@ public class InstanceRegistrationEndpoint {
         }
         if (!serviceIds.add(service.getLocal_id())) {
           return ResponseFactory.unprocessableEntity("Duplicate services: " + service.getLocal_id());
+        }
+        for (String redirectUri : service.getRedirect_uris()) {
+          String otherServiceId = redirectUris.put(redirectUri, service.getLocal_id());
+          if (otherServiceId != null) {
+            return ResponseFactory.unprocessableEntity("Services with duplicate redirect_uris: "
+                + service.getLocal_id() + ", " + otherServiceId + "; " + redirectUri);
+          }
         }
       }
       return null;

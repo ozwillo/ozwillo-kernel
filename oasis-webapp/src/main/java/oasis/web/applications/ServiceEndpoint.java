@@ -34,6 +34,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
 import com.google.common.base.Strings;
+import com.mongodb.DuplicateKeyException;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
@@ -148,6 +149,8 @@ public class ServiceEndpoint {
 
     try {
       service = serviceRepository.updateService(service, etagService.parseEtag(ifMatch));
+    } catch (DuplicateKeyException e) {
+      return Response.status(Response.Status.CONFLICT).build();
     } catch (InvalidVersionException e) {
       return ResponseFactory.preconditionFailed(e.getMessage());
     }
