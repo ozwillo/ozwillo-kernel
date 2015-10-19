@@ -120,7 +120,7 @@ public class OrganizationEndpoint {
     URI uri = Resteasy1099.getBaseUriBuilder(uriInfo)
         .path(OrganizationEndpoint.class)
         .build(organizationId);
-    return Response.created(uri)
+    return Response.ok(uri)
         .tag(etagService.getEtag(updatedOrganization))
         .contentLocation(uri)
         .entity(updatedOrganization)
