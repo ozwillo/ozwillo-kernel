@@ -91,6 +91,7 @@ import oasis.web.authn.UserAuthenticationFilter;
 import oasis.web.authn.UserSessionPrincipal;
 import oasis.web.i18n.LocaleHelper;
 import oasis.web.resteasy.Resteasy1099;
+import oasis.web.security.StrictReferer;
 
 @Path("/a/auth")
 @User
@@ -265,6 +266,7 @@ public class AuthorizationEndpoint {
 
   @POST
   @Authenticated
+  @StrictReferer
   @Path(APPROVE_PATH)
   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
   public Response postScopes(
@@ -275,7 +277,7 @@ public class AuthorizationEndpoint {
       @Nullable @FormParam("state") String state,
       @Nullable @FormParam("nonce") String nonce
   ) {
-    // TODO: check CSRF / XSS (check data hasn't been tampered since generation of the form, so we can skip some validations we had already done)
+    // TODO: check XSS (check data hasn't been tampered since generation of the form, so we can skip some validations we had already done)
 
     redirectUri = new RedirectUri(redirect_uri).setState(state);
 
