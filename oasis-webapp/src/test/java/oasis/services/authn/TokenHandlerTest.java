@@ -21,19 +21,16 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeUtils;
 import org.joda.time.Duration;
 import org.joda.time.Instant;
 import org.jukito.JukitoModule;
 import org.jukito.JukitoRunner;
-import org.jukito.TestSingleton;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import com.google.api.client.testing.http.FixedClock;
-import com.google.api.client.util.Clock;
 import com.google.inject.Inject;
-import com.google.inject.Provides;
 
 import oasis.model.authn.AccessToken;
 import oasis.model.authn.Token;
@@ -45,11 +42,12 @@ public class TokenHandlerTest {
   public static class Module extends JukitoModule {
     @Override
     protected void configureTest() {
-      bind(Clock.class).to(FixedClock.class);
-    }
-
-    @Provides @TestSingleton FixedClock providesFixedClock() {
-      return new FixedClock(now.getMillis());
+      bind(DateTimeUtils.MillisProvider.class).toInstance(new DateTimeUtils.MillisProvider() {
+        @Override
+        public long getMillis() {
+          return now.getMillis();
+        }
+      });
     }
   }
 

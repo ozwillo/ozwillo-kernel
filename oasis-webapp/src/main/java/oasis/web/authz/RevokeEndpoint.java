@@ -32,7 +32,6 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
-import com.google.api.client.auth.oauth2.TokenErrorResponse;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
@@ -42,6 +41,7 @@ import oasis.services.authn.TokenHandler;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.Client;
 import oasis.web.authn.ClientPrincipal;
+import oasis.web.openidconnect.ErrorResponse;
 
 @Path("/a/revoke")
 @Authenticated
@@ -126,9 +126,9 @@ public class RevokeEndpoint {
   }
 
   private Response errorResponse(String error, @Nullable String description) {
-    TokenErrorResponse response = new TokenErrorResponse()
+    ErrorResponse response = new ErrorResponse()
         .setError(error)
-        .setErrorDescription(description);
+        .setError_description(description);
     return Response.status(Response.Status.BAD_REQUEST)
         .type(MediaType.APPLICATION_JSON_TYPE)
         .entity(response)

@@ -37,6 +37,7 @@ import javax.ws.rs.core.UriInfo;
 
 import org.jboss.resteasy.spi.ResteasyUriInfo;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeUtils;
 import org.joda.time.Duration;
 import org.joda.time.Instant;
 import org.jukito.All;
@@ -107,6 +108,13 @@ public class AuthorizationEndpointTest {
 
       bind(JsonFactory.class).to(JacksonFactory.class);
       bind(Clock.class).to(FixedClock.class);
+
+      bind(DateTimeUtils.MillisProvider.class).toInstance(new DateTimeUtils.MillisProvider() {
+        @Override
+        public long getMillis() {
+          return now.getMillis();
+        }
+      });
 
       bindMock(TokenHandler.class).in(TestSingleton.class);
       bindMock(AppAdminHelper.class).in(TestSingleton.class);

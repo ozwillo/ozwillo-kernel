@@ -30,6 +30,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeUtils;
 import org.joda.time.Duration;
 import org.joda.time.Instant;
 import org.jukito.JukitoModule;
@@ -54,6 +55,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provides;
 
 import oasis.auditlog.noop.NoopAuditLogModule;
+import oasis.auth.AuthModule;
 import oasis.http.testing.InProcessResteasy;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
@@ -66,7 +68,6 @@ import oasis.model.authn.AuthorizationCode;
 import oasis.model.authn.RefreshToken;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
-import oasis.auth.AuthModule;
 import oasis.model.authz.Scopes;
 import oasis.security.KeyPairLoader;
 import oasis.services.authn.TokenHandler;
@@ -90,8 +91,15 @@ public class TokenEndpointTest {
       bindMock(TokenHandler.class).in(TestSingleton.class);
       bindMock(AppAdminHelper.class).in(TestSingleton.class);
 
-      bind(Clock.class).to(FixedClock.class);
       bind(JsonFactory.class).to(JacksonFactory.class);
+      bind(Clock.class).to(FixedClock.class);
+
+      bind(DateTimeUtils.MillisProvider.class).toInstance(new DateTimeUtils.MillisProvider() {
+        @Override
+        public long getMillis() {
+          return now.getMillis();
+        }
+      });
 
       bind(AuthModule.Settings.class).toInstance(AuthModule.Settings.builder()
           .setIdTokenDuration(Duration.standardMinutes(1))

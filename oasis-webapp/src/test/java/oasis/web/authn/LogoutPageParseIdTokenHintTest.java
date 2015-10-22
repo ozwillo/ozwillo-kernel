@@ -62,16 +62,16 @@ public class LogoutPageParseIdTokenHintTest {
             .setAudience(SERVICE_PROVIDER)
     );
 
-    IdToken.Payload idTokenHint = LogoutPage.parseIdTokenHint(jsonFactory, keyPair.getPublic(), ISSUER, idToken, sidToken);
+    String audience = LogoutPage.parseIdTokenHint(keyPair.getPublic(), ISSUER, idToken, sidToken);
 
-    assertThat(idTokenHint).isNotNull();
+    assertThat(audience).isNotNull();
   }
 
   @Test
   public void testBadIdTokenHint() throws Throwable {
-    IdToken.Payload idTokenHint = LogoutPage.parseIdTokenHint(jsonFactory, keyPair.getPublic(), ISSUER, "invalid id_token_hint", sidToken);
+    String audience = LogoutPage.parseIdTokenHint(keyPair.getPublic(), ISSUER, "invalid id_token_hint", sidToken);
 
-    assertThat(idTokenHint).isNull();
+    assertThat(audience).isNull();
   }
 
   @Test public void testParseIdTokenHint_badSignature() throws Throwable {
@@ -88,9 +88,9 @@ public class LogoutPageParseIdTokenHintTest {
             .setAudience(SERVICE_PROVIDER)
     );
 
-    IdToken.Payload idTokenHint = LogoutPage.parseIdTokenHint(jsonFactory, keyPair.getPublic(), ISSUER, idToken, sidToken);
+    String audience = LogoutPage.parseIdTokenHint(keyPair.getPublic(), ISSUER, idToken, sidToken);
 
-    assertThat(idTokenHint).isNull();
+    assertThat(audience).isNull();
   }
 
   @Test public void testParseIdTokenHint_badIssuer() throws Throwable {
@@ -105,9 +105,9 @@ public class LogoutPageParseIdTokenHintTest {
             .setAudience(SERVICE_PROVIDER)
     );
 
-    IdToken.Payload idTokenHint = LogoutPage.parseIdTokenHint(jsonFactory, keyPair.getPublic(), ISSUER, idToken, sidToken);
+    String audience = LogoutPage.parseIdTokenHint(keyPair.getPublic(), ISSUER, idToken, sidToken);
 
-    assertThat(idTokenHint).isNull();
+    assertThat(audience).isNull();
   }
 
   @Test public void testParseIdTokenHint_badSubject() throws Throwable {
@@ -122,9 +122,9 @@ public class LogoutPageParseIdTokenHintTest {
             .setAudience(SERVICE_PROVIDER)
     );
 
-    IdToken.Payload idTokenHint = LogoutPage.parseIdTokenHint(jsonFactory, keyPair.getPublic(), ISSUER, idToken, sidToken);
+    String audience = LogoutPage.parseIdTokenHint(keyPair.getPublic(), ISSUER, idToken, sidToken);
 
-    assertThat(idTokenHint).isNull();
+    assertThat(audience).isNull();
   }
 
   @Test public void testParseIdTokenHint_subjectIgnoredIfNoSidToken() throws Throwable {
@@ -139,9 +139,9 @@ public class LogoutPageParseIdTokenHintTest {
             .setAudience(SERVICE_PROVIDER)
     );
 
-    IdToken.Payload idTokenHint = LogoutPage.parseIdTokenHint(jsonFactory, keyPair.getPublic(), ISSUER, idToken, null);
+    String audience = LogoutPage.parseIdTokenHint(keyPair.getPublic(), ISSUER, idToken, null);
 
-    assertThat(idTokenHint).isNotNull();
+    assertThat(audience).isNotNull();
   }
 
   @Test public void testParseIdTokenHint_badAudience() throws Throwable {
@@ -156,8 +156,8 @@ public class LogoutPageParseIdTokenHintTest {
             .setAudience(null)
     );
 
-    IdToken.Payload idTokenHint = LogoutPage.parseIdTokenHint(jsonFactory, keyPair.getPublic(), ISSUER, idToken, sidToken);
+    String audience = LogoutPage.parseIdTokenHint(keyPair.getPublic(), ISSUER, idToken, sidToken);
 
-    assertThat(idTokenHint).isNull();
+    assertThat(audience).isNull();
   }
 }

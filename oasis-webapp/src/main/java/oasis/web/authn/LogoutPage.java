@@ -17,10 +17,13 @@
  */
 package oasis.web.authn;
 
+import static org.jose4j.jwa.AlgorithmConstraints.ConstraintType.*;
+
 import java.net.URI;
 import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -37,13 +40,23 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
+import org.jose4j.jwa.AlgorithmConstraints;
+import org.jose4j.jws.AlgorithmIdentifiers;
+import org.jose4j.jwt.JwtClaims;
+import org.jose4j.jwt.MalformedClaimException;
+import org.jose4j.jwt.NumericDate;
+import org.jose4j.jwt.consumer.InvalidJwtException;
+import org.jose4j.jwt.consumer.InvalidJwtSignatureException;
+import org.jose4j.jwt.consumer.JwtConsumerBuilder;
+import org.jose4j.jwt.consumer.JwtContext;
+import org.jose4j.jwt.consumer.Validator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.api.client.auth.openidconnect.IdToken;
-import com.google.api.client.json.JsonFactory;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
+import com.google.common.collect.Iterables;
 import com.google.template.soy.data.SoyListData;
 import com.google.template.soy.data.SoyMapData;
 import com.ibm.icu.text.Collator;
@@ -78,7 +91,6 @@ public class LogoutPage {
   @Inject TokenRepository tokenRepository;
   @Inject AuthModule.Settings settings;
   @Inject Urls urls;
-  @Inject JsonFactory jsonFactory;
   @Inject AppInstanceRepository appInstanceRepository;
   @Inject ServiceRepository serviceRepository;
   @Inject AccountRepository accountRepository;
@@ -93,15 +105,14 @@ public class LogoutPage {
         ? ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken()
         : null;
 
-    final IdToken.Payload idTokenHint = parseIdTokenHint(id_token_hint, sidToken);
+    final String audience = parseIdTokenHint(id_token_hint, sidToken);
     post_logout_redirect_uri = Strings.emptyToNull(post_logout_redirect_uri);
 
     final AppInstance appInstance;
-    if (idTokenHint != null) {
-      final String client_id = idTokenHint.getAudienceAsList().get(0);
-      appInstance = appInstanceRepository.getAppInstance(client_id);
+    if (audience != null) {
+      appInstance = appInstanceRepository.getAppInstance(audience);
       if (appInstance == null) {
-        logger.debug("No app instance for id_token_hint audience: {}", client_id);
+        logger.debug("No app instance for id_token_hint audience: {}", audience);
       }
     } else {
       appInstance = null;
@@ -140,6 +151,7 @@ public class LogoutPage {
       // Not authenticated (we'll assume the user already signed out but the app didn't caught it up)
       return redirectTo(post_logout_redirect_uri != null ? URI.create(post_logout_redirect_uri) : null);
     }
+    assert sidToken != null;
 
     UserAccount account = accountRepository.getUserAccountById(sidToken.getAccountId());
 
@@ -182,9 +194,8 @@ public class LogoutPage {
 
   @VisibleForTesting
   @Nullable
-  private IdToken.Payload parseIdTokenHint(@Nullable String idTokenHint, @Nullable SidToken sidToken) {
-    return parseIdTokenHint(jsonFactory, settings.keyPair.getPublic(), getIssuer(), idTokenHint,
-        sidToken);
+  private String parseIdTokenHint(@Nullable String idTokenHint, @Nullable SidToken sidToken) {
+    return parseIdTokenHint(settings.keyPair.getPublic(), getIssuer(), idTokenHint, sidToken);
   }
 
   private String getIssuer() {
@@ -196,40 +207,37 @@ public class LogoutPage {
 
   @VisibleForTesting
   @Nullable
-  static IdToken.Payload parseIdTokenHint(JsonFactory jsonFactory, PublicKey publicKey, String issuer,
-      @Nullable String idTokenHint, @Nullable SidToken sidToken) {
+  static String parseIdTokenHint(PublicKey publicKey, String issuer,
+      @Nullable String idTokenHint, @Nullable final SidToken sidToken) {
     if (idTokenHint == null) {
       return null;
     }
+    List<String> audience;
     try {
-      IdToken idToken = IdToken.parse(jsonFactory, idTokenHint);
-      if (!idToken.verifySignature(publicKey)) {
-        logger.debug("Bad signature for id_token_hint: {}", idTokenHint);
-        return null;
-      }
-      if (!idToken.verifyIssuer(issuer)) {
-        logger.debug("Bad issuer for id_token_hint (expected: {}, actual: {})", issuer, idToken.getPayload().getIssuer());
-        return null;
-      }
-      IdToken.Payload payload = idToken.getPayload();
-      if (payload.getAudience() == null) {
-        logger.debug("Missing audience in id_token_hint: {}", idTokenHint);
-        return null;
-      }
-      // there must be an audience
-      assert payload.getAudienceAsList() != null && !payload.getAudienceAsList().isEmpty();
-      if (sidToken != null && !sidToken.getAccountId().equals(payload.getSubject())) {
-        // The app asked to sign-out another session (we'll assume the user already signed out –and
-        // signed in again– but the app didn't caught it up)
-        logger.debug("Mismatching subject in id_token_hint (expected: {}, actual: {})",
-            sidToken.getAccountId(), payload.getSubject());
-        return null;
-      }
-      return payload;
-    } catch (Exception e) {
-      logger.debug("Error parsing id_token_hint", e);
+      audience = new JwtConsumerBuilder()
+          .setJwsAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, AlgorithmIdentifiers.RSA_USING_SHA256))
+          .setVerificationKey(publicKey)
+          .setExpectedIssuer(issuer)
+          .setSkipDefaultAudienceValidation()
+          .setAllowedClockSkewInSeconds(Integer.MAX_VALUE)                        // We don't want to validate the time
+          .setExpectedSubject(sidToken == null ? null : sidToken.getAccountId())  // setExpectedSubject calls setRequireSubject even if the expected subject is null
+          .build()
+          .processToClaims(idTokenHint)
+          .getAudience();
+    } catch (InvalidJwtSignatureException e) {
+      logger.debug("Bad signature for id_token_hint: {}", idTokenHint);
+      return null;
+    } catch (MalformedClaimException e) {
+      logger.debug("Malformed claim in id_token_hint: {}", idTokenHint, e);
+      return null;
+    } catch (InvalidJwtException e) {
+      logger.debug("Invalid id_token_hint: {}", idTokenHint, e);
       return null;
     }
+    if (audience == null || audience.isEmpty()) {
+      return null;
+    }
+    return audience.get(0);
   }
 
   @POST

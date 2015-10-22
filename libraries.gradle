@@ -1,4 +1,4 @@
-allprojects {
+subprojects {
   repositories {
     mavenCentral()
   }
@@ -47,6 +47,7 @@ ext.libs = [
 
   bouncycastle:        'org.bouncycastle:bcprov-jdk15on:1.52',
 
+  jose4j:              'org.bitbucket.b_c:jose4j:0.4.4',
   google_oauth_client: dependencies.create('com.google.oauth-client:google-oauth-client-java6:1.20.0') {
       exclude module: 'httpclient'
     },

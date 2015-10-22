@@ -17,8 +17,6 @@
  */
 package oasis.web.authz;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -40,16 +38,16 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import org.joda.time.DateTimeUtils;
+import org.jose4j.jws.AlgorithmIdentifiers;
+import org.jose4j.jws.JsonWebSignature;
+import org.jose4j.jwt.JwtClaims;
+import org.jose4j.jwt.NumericDate;
+import org.jose4j.lang.JoseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.api.client.auth.oauth2.TokenErrorResponse;
-import com.google.api.client.auth.oauth2.TokenResponse;
-import com.google.api.client.auth.openidconnect.IdToken;
-import com.google.api.client.auth.openidconnect.IdTokenResponse;
-import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.webtoken.JsonWebSignature;
-import com.google.api.client.util.Clock;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
@@ -80,6 +78,7 @@ import oasis.urls.Urls;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.Client;
 import oasis.web.authn.ClientPrincipal;
+import oasis.web.openidconnect.ErrorResponse;
 import oasis.web.resteasy.Resteasy1099;
 
 @Path("/a/token")
@@ -89,14 +88,9 @@ public class TokenEndpoint {
   private static final Logger logger = LoggerFactory.getLogger(TokenEndpoint.class);
   private static final Joiner SCOPE_JOINER = Joiner.on(' ').skipNulls();
   private static final Splitter SCOPE_SPLITTER = Splitter.on(' ');
-  private static final JsonWebSignature.Header JWS_HEADER = new JsonWebSignature.Header()
-      .setType("JWS")
-      .setAlgorithm("RS256")
-      .setKeyId(KeysEndpoint.JSONWEBKEY_PK_ID);
 
   @Inject AuthModule.Settings settings;
-  @Inject JsonFactory jsonFactory;
-  @Inject Clock clock;
+  @Inject DateTimeUtils.MillisProvider clock;
 
   @Inject TokenRepository tokenRepository;
   @Inject TokenHandler tokenHandler;
@@ -119,7 +113,7 @@ public class TokenEndpoint {
       notes = "See the <a href=\"http://tools.ietf.org/html/rfc6749#section-3.2\">OAuth 2.0 RFC</a> and " +
           "<a href=\"http://openid.net/specs/openid-connect-basic-1_0.html#ObtainingTokens\">OpenID Connect RFC</a> for more information."
   )
-  public Response validate(MultivaluedMap<String, String> params) throws GeneralSecurityException, IOException {
+  public Response validate(MultivaluedMap<String, String> params) throws JoseException {
     this.params = params;
 
     String grant_type = getRequiredParameter("grant_type");
@@ -137,7 +131,7 @@ public class TokenEndpoint {
     }
   }
 
-  private Response validateRefreshToken() throws GeneralSecurityException, IOException {
+  private Response validateRefreshToken() {
     String refresh_token = getRequiredParameter("refresh_token");
 
     String asked_scopes_param = getParameter("scope");
@@ -180,15 +174,15 @@ public class TokenEndpoint {
     String access_token = TokenSerializer.serialize(accessToken, pass);
 
     TokenResponse response = new TokenResponse();
-    response.setAccessToken(access_token);
-    response.setTokenType("Bearer");
-    response.setExpiresInSeconds(accessToken.expiresIn().getStandardSeconds());
-    response.setScope(SCOPE_JOINER.join(asked_scopes));
+    response.access_token = access_token;
+    response.token_type = "Bearer";
+    response.expires_in = accessToken.expiresIn().getStandardSeconds();
+    response.scope = SCOPE_JOINER.join(asked_scopes);
 
     return response(Response.Status.OK, response);
   }
 
-  private Response validateAuthorizationCode() throws GeneralSecurityException, IOException {
+  private Response validateAuthorizationCode() throws JoseException {
     String auth_code = getRequiredParameter("code");
 
     String redirect_uri = getRequiredParameter("redirect_uri");
@@ -213,7 +207,7 @@ public class TokenEndpoint {
       return errorResponse("invalid_grant", null);
     }
 
-    IdTokenResponse response = new IdTokenResponse();
+    TokenResponse response = new TokenResponse();
 
     AccessToken accessToken;
     final String pass = tokenHandler.generateRandom();
@@ -227,9 +221,7 @@ public class TokenEndpoint {
 
       log(refreshToken);
 
-      String refresh_token = TokenSerializer.serialize(refreshToken, refreshPass);
-
-      response.setRefreshToken(refresh_token);
+      response.refresh_token = TokenSerializer.serialize(refreshToken, refreshPass);
 
       accessToken = tokenHandler.createAccessToken(refreshToken, refreshToken.getScopeIds(), pass);
     } else {
@@ -244,7 +236,6 @@ public class TokenEndpoint {
 
     String access_token = TokenSerializer.serialize(accessToken, pass);
 
-    long issuedAt = TimeUnit.MILLISECONDS.toSeconds(clock.currentTimeMillis());
     // Unconditionally send auth_time, as per https://tools.ietf.org/html/draft-hunt-oauth-v2-user-a4c
     Long authTime = null;
     Token token = tokenRepository.getToken(Iterables.getLast(authorizationCode.getAncestorIds()));
@@ -257,25 +248,35 @@ public class TokenEndpoint {
     boolean isAppUser = accessControlRepository.getAccessControlEntry(appInstance.getId(), accessToken.getAccountId()) != null;
     boolean isAppAdmin = appAdminHelper.isAdmin(accessToken.getAccountId(), appInstance);
 
-    response.setAccessToken(access_token);
-    response.setTokenType("Bearer");
-    response.setExpiresInSeconds(accessToken.expiresIn().getStandardSeconds());
-    response.setScope(SCOPE_JOINER.join(accessToken.getScopeIds()));
-    response.setIdToken(JsonWebSignature.signUsingRsaSha256(
-        settings.keyPair.getPrivate(),
-        jsonFactory,
-        JWS_HEADER,
-        new IdToken.Payload()
-            .setIssuer(getIssuer())
-            .setSubject(accessToken.getAccountId())
-            .setAudience(client_id)
-            .setExpirationTimeSeconds(issuedAt + settings.idTokenDuration.getStandardSeconds())
-            .setIssuedAtTimeSeconds(issuedAt)
-            .setNonce(authorizationCode.getNonce())
-            .setAuthorizationTimeSeconds(authTime)
-            .set("app_user", isAppUser ? Boolean.TRUE : null)
-            .set("app_admin", isAppAdmin ? Boolean.TRUE : null)
-    ));
+    response.access_token = access_token;
+    response.token_type = "Bearer";
+    response.expires_in = accessToken.expiresIn().getStandardSeconds();
+    response.scope = SCOPE_JOINER.join(accessToken.getScopeIds());
+
+    long issuedAt = TimeUnit.MILLISECONDS.toSeconds(clock.getMillis());
+    JwtClaims claims = new JwtClaims();
+    claims.setIssuer(getIssuer());
+    claims.setSubject(accessToken.getAccountId());
+    claims.setAudience(client_id);
+    claims.setIssuedAt(NumericDate.fromSeconds(issuedAt));
+    claims.setExpirationTime(NumericDate.fromSeconds(issuedAt + settings.idTokenDuration.getStandardSeconds()));
+    claims.setClaim("nonce", authorizationCode.getNonce());
+    if (authTime != null) {
+      claims.setClaim("auth_time", authTime);
+    }
+    if (isAppUser) {
+      claims.setClaim("app_user", Boolean.TRUE);
+    }
+    if (isAppAdmin) {
+      claims.setClaim("app_admin", Boolean.TRUE);
+    }
+    JsonWebSignature jws = new JsonWebSignature();
+    jws.setKey(settings.keyPair.getPrivate());
+    jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
+    jws.setKeyIdHeaderValue(KeysEndpoint.JSONWEBKEY_PK_ID);
+    jws.setPayload(claims.toJson());
+
+    response.id_token = jws.getCompactSerialization();
 
     return response(Response.Status.OK, response);
   }
@@ -344,9 +345,9 @@ public class TokenEndpoint {
   }
 
   private Response errorResponse(String error, @Nullable String description) {
-    TokenErrorResponse response = new TokenErrorResponse()
+    ErrorResponse response = new ErrorResponse()
         .setError(error)
-        .setErrorDescription(description);
+        .setError_description(description);
     return response(Response.Status.BAD_REQUEST, response);
   }
 
@@ -407,5 +408,14 @@ public class TokenEndpoint {
       access_token,
       refresh_token,
     }
+  }
+
+  static class TokenResponse {
+    @JsonProperty String access_token;
+    @JsonProperty String token_type;
+    @JsonProperty long expires_in;
+    @JsonProperty String scope;
+    @JsonProperty @Nullable String refresh_token;
+    @JsonProperty @Nullable String id_token;
   }
 }

@@ -17,10 +17,9 @@
  */
 package oasis.web.userinfo;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -37,19 +36,20 @@ import javax.ws.rs.core.UriInfo;
 
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
+import org.jose4j.jws.AlgorithmIdentifiers;
+import org.jose4j.jws.JsonWebSignature;
+import org.jose4j.jwt.JwtClaims;
+import org.jose4j.jwt.NumericDate;
+import org.jose4j.lang.JoseException;
 
-import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.webtoken.JsonWebSignature;
-import com.google.api.client.json.webtoken.JsonWebToken;
-import com.google.api.client.util.Key;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
+import oasis.auth.AuthModule;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.authn.AccessToken;
 import oasis.model.authz.Scopes;
-import oasis.auth.AuthModule;
 import oasis.urls.Urls;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
@@ -62,10 +62,6 @@ import oasis.web.resteasy.Resteasy1099;
 @Path("/a/userinfo")
 @Api(value = "/a/userinfo", description = "UserInfo Endpoint")
 public class UserInfoEndpoint {
-  private static final JsonWebSignature.Header JWS_HEADER = new JsonWebSignature.Header()
-      .setType("JWS")
-      .setAlgorithm("RS256")
-      .setKeyId(KeysEndpoint.JSONWEBKEY_PK_ID);
   private static final DateTimeFormatter BIRTHDATE_FORMATTER = ISODateTimeFormat.date().withDefaultYear(0);
   /** Note: we'd prefer JWT, but OpenID Connect wants us to prefer JSON, so using qs&lt;1.0 here. */
   private static final String APPLICATION_JWT = "application/jwt; qs=0.99";
@@ -74,7 +70,6 @@ public class UserInfoEndpoint {
   @Context SecurityContext securityContext;
 
   @Inject AuthModule.Settings settings;
-  @Inject JsonFactory jsonFactory;
   @Inject AccountRepository accountRepository;
   @Inject Urls urls;
 
@@ -86,18 +81,19 @@ public class UserInfoEndpoint {
           "the <a href=\"http://tools.ietf.org/html/draft-ietf-oauth-json-web-token-08\">JWT Draft</a> " +
           "and the <a href=\"http://tools.ietf.org/html/draft-ietf-jose-json-web-signature-11\">JWS Draft</a> for more information."
   )
-  public Response getSigned() throws GeneralSecurityException, IOException {
-    UserInfo userInfo = getUserInfo();
+  public Response getSigned() throws JoseException {
+    JwtClaims userInfo = getUserInfo();
     userInfo.setIssuer(getIssuer());
     AccessToken accessToken = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken();
     userInfo.setAudience(accessToken.getServiceProviderId());
 
-    String signedJwt = JsonWebSignature.signUsingRsaSha256(
-        settings.keyPair.getPrivate(),
-        jsonFactory,
-        JWS_HEADER,
-        userInfo
-    );
+    JsonWebSignature jws = new JsonWebSignature();
+    jws.setKey(settings.keyPair.getPrivate());
+    jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
+    jws.setKeyIdHeaderValue(KeysEndpoint.JSONWEBKEY_PK_ID);
+    jws.setPayload(userInfo.toJson());
+
+    String signedJwt = jws.getCompactSerialization();
     return Response.ok().entity(signedJwt).build();
   }
 
@@ -114,10 +110,10 @@ public class UserInfoEndpoint {
       value = "Return Claims about the End-User in JSON format.",
       notes = "See the <a href=\"http://openid.net/specs/openid-connect-basic-1_0.html#UserInfo\">OpenID Connect Draft</a> for more information."
   )
-  public Response getUnsigned() throws IOException {
-    UserInfo userInfo = getUserInfo();
+  public Response getUnsigned() {
+    JwtClaims userInfo = getUserInfo();
 
-    String json = jsonFactory.toString(userInfo);
+    String json = userInfo.toJson();
     return Response.ok().entity(json).build();
   }
 
@@ -129,7 +125,7 @@ public class UserInfoEndpoint {
           "the <a href=\"http://tools.ietf.org/html/draft-ietf-oauth-json-web-token-08\">JWT Draft</a> " +
           "and the <a href=\"http://tools.ietf.org/html/draft-ietf-jose-json-web-signature-11\">JWS Draft</a> for more information."
   )
-  public Response postSigned() throws GeneralSecurityException, IOException {
+  public Response postSigned() throws JoseException {
     return getSigned();
   }
 
@@ -139,11 +135,11 @@ public class UserInfoEndpoint {
       value = "Return Claims about the End-User in JSON format.",
       notes = "See the <a href=\"http://openid.net/specs/openid-connect-basic-1_0.html#UserInfo\">OpenID Connect Draft</a> for more information."
   )
-  public Response postUnsigned() throws IOException {
+  public Response postUnsigned() {
     return getUnsigned();
   }
 
-  private UserInfo getUserInfo() {
+  private JwtClaims getUserInfo() {
     OAuthPrincipal oAuthPrincipal = (OAuthPrincipal) securityContext.getUserPrincipal();
     UserAccount userAccount = accountRepository.getUserAccountById(oAuthPrincipal.getAccessToken().getAccountId());
 
@@ -156,54 +152,69 @@ public class UserInfoEndpoint {
 
     Set<String> scopeIds = accessToken.getScopeIds();
 
-    UserInfo userInfo = getUserInfo(userAccount, scopeIds);
+    JwtClaims userInfo = getUserInfo(userAccount, scopeIds);
     userInfo.setSubject(userAccount.getId());
     return userInfo;
   }
 
-  private UserInfo getUserInfo(UserAccount userAccount, Set<String> scopeIds) {
-    UserInfo userInfo = new UserInfo();
+  private JwtClaims getUserInfo(UserAccount userAccount, Set<String> scopeIds) {
+    JwtClaims userInfo = new JwtClaims();
 
     if (scopeIds.contains(Scopes.PROFILE)) {
-      String birthDate = userAccount.getBirthdate() != null ? userAccount.getBirthdate().toString(BIRTHDATE_FORMATTER) : null;
-      userInfo.setName(userAccount.getName())
-          .setFamilyName(userAccount.getFamily_name())
-          .setGivenName(userAccount.getGiven_name())
-          .setMiddleName(userAccount.getMiddle_name())
-          .setNickname(userAccount.getNickname())
-          .setPicture(userAccount.getPicture())
-          .setGender(userAccount.getGender())
-          .setBirthdate(birthDate)
-          .setZoneinfo(userAccount.getZoneinfo())
-          .setLocale(userAccount.getLocale() == null ? null : userAccount.getLocale().toLanguageTag());
+      setClaimIfNotNull(userInfo, "name", userAccount.getName());
+      setClaimIfNotNull(userInfo, "family_name", userAccount.getFamily_name());
+      setClaimIfNotNull(userInfo, "given_name", userAccount.getGiven_name());
+      setClaimIfNotNull(userInfo, "middle_name", userAccount.getMiddle_name());
+      setClaimIfNotNull(userInfo, "nickname", userAccount.getNickname());
+      setClaimIfNotNull(userInfo, "picture", userAccount.getPicture());
+      setClaimIfNotNull(userInfo, "gender", userAccount.getGender());
+      if (userAccount.getBirthdate() != null) {
+        userInfo.setClaim("birthdate", userAccount.getBirthdate().toString(BIRTHDATE_FORMATTER));
+      }
+      setClaimIfNotNull(userInfo, "zoneinfo", userAccount.getZoneinfo());
+      if (userAccount.getLocale() != null) {
+        setClaimIfNotNull(userInfo, "locale", userAccount.getLocale().toLanguageTag());
+      }
     }
 
     if (scopeIds.contains(Scopes.EMAIL) && userAccount.getEmail_address() != null) {
-      userInfo.setEmail(userAccount.getEmail_address());
-      userInfo.setEmailVerified(userAccount.getEmail_verified());
+      userInfo.setClaim("email", userAccount.getEmail_address());
+      userInfo.setClaim("email_verified", Boolean.TRUE.equals(userAccount.getEmail_verified()));
     }
 
     if (scopeIds.contains(Scopes.ADDRESS) && userAccount.getAddress() != null) {
-      UserInfo.Address address = new UserInfo.Address()
-          .setStreetAddress(userAccount.getAddress().getStreet_address())
-          .setLocality(userAccount.getAddress().getLocality())
-          .setRegion(userAccount.getAddress().getRegion())
-          .setPostalCode(userAccount.getAddress().getPostal_code())
-          .setCountry(userAccount.getAddress().getCountry());
-      userInfo.setAddress(address);
+      LinkedHashMap<String, Object> address = new LinkedHashMap<>();
+      putIfNotNull(address, "street_address", userAccount.getAddress().getStreet_address());
+      putIfNotNull(address, "locality", userAccount.getAddress().getLocality());
+      putIfNotNull(address, "region", userAccount.getAddress().getRegion());
+      putIfNotNull(address, "postal_code", userAccount.getAddress().getPostal_code());
+      putIfNotNull(address, "country", userAccount.getAddress().getCountry());
+      userInfo.setClaim("address", address);
     }
 
     if (scopeIds.contains(Scopes.PHONE) && userAccount.getPhone_number() != null) {
-      userInfo.setPhone_number(userAccount.getPhone_number());
-      userInfo.setPhone_number_verified(Boolean.TRUE.equals(userAccount.getPhone_number_verified()));
+      userInfo.setClaim("phone_number", userAccount.getPhone_number());
+      userInfo.setClaim("phone_number_verified", Boolean.TRUE.equals(userAccount.getPhone_number_verified()));
     }
 
     long updatedAt = userAccount.getUpdated_at();
     if (updatedAt > 0) {
-      userInfo.setUpdatedAt(TimeUnit.MILLISECONDS.toSeconds(updatedAt));
+      userInfo.setNumericDateClaim("updated_at", NumericDate.fromMilliseconds(updatedAt));
     }
 
     return userInfo;
+  }
+
+  private void setClaimIfNotNull(JwtClaims claims, String claimName, Object value) {
+    if (value != null) {
+      claims.setClaim(claimName, value);
+    }
+  }
+
+  private void putIfNotNull(Map<String, Object> map, String key, Object value) {
+    if (value != null) {
+      map.put(key, value);
+    }
   }
 
   private WebApplicationException invalidTokenResponse() {
@@ -212,279 +223,5 @@ public class UserInfoEndpoint {
 
   private WebApplicationException errorResponse(Response.Status status, String errorCode) {
     return new WebApplicationException(Response.status(status).header(HttpHeaders.WWW_AUTHENTICATE, "Bearer error=\"" + errorCode + "\"").build());
-  }
-
-  private static class UserInfo extends JsonWebToken.Payload {
-    // Profile
-    @Key private String name;
-    @Key private String family_name;
-    @Key private String given_name;
-    @Key private String middle_name;
-    @Key private String nickname;
-    @Key private String picture;
-    @Key private String gender;
-    @Key private String birthdate;
-    @Key private String zoneinfo;
-    @Key private String locale;
-    @Key private Long updated_at;
-    // Email
-    @Key private String email;
-    @Key private Boolean email_verified;
-    // Address
-    @Key private Address address;
-    // Phone
-    @Key private String phone_number;
-    @Key private Boolean phone_number_verified;
-
-    public String getName() {
-      return name;
-    }
-
-    public UserInfo setName(String name) {
-      this.name = name;
-      return this;
-    }
-
-    public String getFamilyName() {
-      return family_name;
-    }
-
-    public UserInfo setFamilyName(String familyName) {
-      this.family_name = familyName;
-      return this;
-    }
-
-    public String getGivenName() {
-      return given_name;
-    }
-
-    public UserInfo setGivenName(String givenName) {
-      this.given_name = givenName;
-      return this;
-    }
-
-    public String getMiddleName() {
-      return middle_name;
-    }
-
-    public UserInfo setMiddleName(String middle_name) {
-      this.middle_name = middle_name;
-      return this;
-    }
-
-    public String getNickname() {
-      return nickname;
-    }
-
-    public UserInfo setNickname(String nickname) {
-      this.nickname = nickname;
-      return this;
-    }
-
-    public String getPicture() {
-      return picture;
-    }
-
-    public UserInfo setPicture(String picture) {
-      this.picture = picture;
-      return this;
-    }
-
-    public String getGender() {
-      return gender;
-    }
-
-    public UserInfo setGender(String gender) {
-      this.gender = gender;
-      return this;
-    }
-
-    public String getBirthdate() {
-      return birthdate;
-    }
-
-    public UserInfo setBirthdate(String birthdate) {
-      this.birthdate = birthdate;
-      return this;
-    }
-
-    public String getZoneinfo() {
-      return zoneinfo;
-    }
-
-    public UserInfo setZoneinfo(String zoneinfo) {
-      this.zoneinfo = zoneinfo;
-      return this;
-    }
-
-    public String getLocale() {
-      return locale;
-    }
-
-    public UserInfo setLocale(String locale) {
-      this.locale = locale;
-      return this;
-    }
-
-    public Long getUpdatedAt() {
-      return updated_at;
-    }
-
-    public UserInfo setUpdatedAt(Long updated_at) {
-      this.updated_at = updated_at;
-      return this;
-    }
-
-    public String getEmail() {
-      return email;
-    }
-
-    public UserInfo setEmail(String email) {
-      this.email = email;
-      return this;
-    }
-
-    public Boolean isEmailVerified() {
-      return email_verified;
-    }
-
-    public UserInfo setEmailVerified(Boolean email_verified) {
-      this.email_verified = email_verified;
-      return this;
-    }
-
-    public Address getAddress() {
-      return address;
-    }
-
-    public UserInfo setAddress(Address address) {
-      this.address = address;
-      return this;
-    }
-
-    public String getPhone_number() {
-      return phone_number;
-    }
-
-    public UserInfo setPhone_number(String phone_number) {
-      this.phone_number = phone_number;
-      return this;
-    }
-
-    public Boolean isPhone_number_verified() {
-      return phone_number_verified;
-    }
-
-    public UserInfo setPhone_number_verified(Boolean phone_verified) {
-      this.phone_number_verified = phone_verified;
-      return this;
-    }
-
-    @Override
-    public UserInfo setExpirationTimeSeconds(Long expirationTimeSeconds) {
-      super.setExpirationTimeSeconds(expirationTimeSeconds);
-      return this;
-    }
-
-    @Override
-    public UserInfo setNotBeforeTimeSeconds(Long notBeforeTimeSeconds) {
-      super.setNotBeforeTimeSeconds(notBeforeTimeSeconds);
-      return this;
-    }
-
-    @Override
-    public UserInfo setIssuedAtTimeSeconds(Long issuedAtTimeSeconds) {
-      super.setIssuedAtTimeSeconds(issuedAtTimeSeconds);
-      return this;
-    }
-
-    @Override
-    public UserInfo setIssuer(String issuer) {
-      super.setIssuer(issuer);
-      return this;
-    }
-
-    @Override
-    public UserInfo setAudience(Object audience) {
-      super.setAudience(audience);
-      return this;
-    }
-
-    @Override
-    public UserInfo setJwtId(String jwtId) {
-      super.setJwtId(jwtId);
-      return this;
-    }
-
-    @Override
-    public UserInfo setType(String type) {
-      super.setType(type);
-      return this;
-    }
-
-    @Override
-    public UserInfo setSubject(String subject) {
-      super.setSubject(subject);
-      return this;
-    }
-
-    @Override
-    public UserInfo set(String fieldName, Object value) {
-      super.set(fieldName, value);
-      return this;
-    }
-
-    private static class Address {
-      @Key private String street_address;
-      @Key private String locality;
-      @Key private String region;
-      @Key private String postal_code;
-      @Key private String country;
-
-      public String getStreetAddress() {
-        return street_address;
-      }
-
-      public Address setStreetAddress(String street_address) {
-        this.street_address = street_address;
-        return this;
-      }
-
-      public String getLocality() {
-        return locality;
-      }
-
-      public Address setLocality(String locality) {
-        this.locality = locality;
-        return this;
-      }
-
-      public String getRegion() {
-        return region;
-      }
-
-      public Address setRegion(String region) {
-        this.region = region;
-        return this;
-      }
-
-      public String getPostalCode() {
-        return postal_code;
-      }
-
-      public Address setPostalCode(String postal_code) {
-        this.postal_code = postal_code;
-        return this;
-      }
-
-      public String getCountry() {
-        return country;
-      }
-
-      public Address setCountry(String country) {
-        this.country = country;
-        return this;
-      }
-    }
   }
 }

@@ -17,6 +17,8 @@
  */
 package oasis.web.authz;
 
+import static org.jose4j.jwa.AlgorithmConstraints.ConstraintType.*;
+
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collections;
@@ -47,9 +49,13 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
-import com.google.api.client.auth.openidconnect.IdToken;
-import com.google.api.client.json.JsonFactory;
-import com.google.api.client.util.Clock;
+import org.joda.time.DateTimeUtils;
+import org.jose4j.jwa.AlgorithmConstraints;
+import org.jose4j.jws.AlgorithmIdentifiers;
+import org.jose4j.jwt.MalformedClaimException;
+import org.jose4j.jwt.consumer.InvalidJwtException;
+import org.jose4j.jwt.consumer.JwtConsumerBuilder;
+
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
@@ -134,8 +140,7 @@ public class AuthorizationEndpoint {
   @Inject ScopeRepository scopeRepository;
   @Inject TokenHandler tokenHandler;
   @Inject LocaleHelper localeHelper;
-  @Inject JsonFactory jsonFactory;
-  @Inject Clock clock;
+  @Inject DateTimeUtils.MillisProvider clock;
   @Inject Urls urls;
 
   private MultivaluedMap<String, String> params;
@@ -232,7 +237,7 @@ public class AuthorizationEndpoint {
       } catch (NumberFormatException nfe) {
         throw invalidParam("max_age");
       }
-      if (sidToken.getAuthenticationTime().plus(TimeUnit.SECONDS.toMillis(maxAge)).isBefore(clock.currentTimeMillis())) {
+      if (sidToken.getAuthenticationTime().plus(TimeUnit.SECONDS.toMillis(maxAge)).isBefore(clock.getMillis())) {
         return redirectToLogin(uriInfo, prompt);
       }
     }
@@ -453,24 +458,28 @@ public class AuthorizationEndpoint {
   }
 
   private void validateIdTokenHint(UriInfo uriInfo, SidToken sidToken, String id_token_hint) {
-    if (id_token_hint != null) {
-      final IdToken idTokenHint;
-      try {
-        idTokenHint = IdToken.parse(jsonFactory, id_token_hint);
-        if (!idTokenHint.verifySignature(settings.keyPair.getPublic()) ||
-            !idTokenHint.verifyIssuer(getIssuer(uriInfo))) {
-          throw invalidParam("id_token_hint");
-        }
-      } catch (WebApplicationException wae) {
-        throw wae;
-      } catch (Throwable t) {
-        throw invalidParam("id_token_hint");
-      }
-      if (!sidToken.getAccountId().equals(idTokenHint.getPayload().getSubject())) {
-        // See https://bitbucket.org/openid/connect/issue/878/messages-2111-define-negative-response-for
-        // for a discussion of the error to use here.
-        throw error("login_required", null);
-      }
+    if (id_token_hint == null) {
+      return;
+    }
+    String subject;
+    try {
+      subject = new JwtConsumerBuilder()
+          .setJwsAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, AlgorithmIdentifiers.RSA_USING_SHA256))
+          .setVerificationKey(settings.keyPair.getPublic())
+          .setExpectedIssuer(getIssuer(uriInfo))
+          .setSkipDefaultAudienceValidation()
+          .setAllowedClockSkewInSeconds(Integer.MAX_VALUE)  // We don't want to validate the time
+          .setRequireSubject()
+          .build()
+          .processToClaims(id_token_hint)
+          .getSubject();
+    } catch (MalformedClaimException | InvalidJwtException e) {
+      throw invalidParam("id_token_hint");
+    }
+    if (!sidToken.getAccountId().equals(subject)) {
+      // See https://bitbucket.org/openid/connect/issue/878/messages-2111-define-negative-response-for
+      // for a discussion of the error to use here.
+      throw error("login_required", null);
     }
   }
 
