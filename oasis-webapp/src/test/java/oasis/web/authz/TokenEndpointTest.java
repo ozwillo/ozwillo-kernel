@@ -18,7 +18,7 @@
 package oasis.web.authz;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.jose4j.jwa.AlgorithmConstraints.ConstraintType.WHITELIST;
+import static org.jose4j.jwa.AlgorithmConstraints.ConstraintType.*;
 import static org.mockito.Mockito.*;
 
 import java.util.concurrent.TimeUnit;
@@ -34,6 +34,7 @@ import org.joda.time.Duration;
 import org.joda.time.Instant;
 import org.jose4j.jwa.AlgorithmConstraints;
 import org.jose4j.jws.AlgorithmIdentifiers;
+import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.jwt.JwtClaims;
 import org.jose4j.jwt.NumericDate;
 import org.jose4j.jwt.consumer.JwtConsumerBuilder;
@@ -45,8 +46,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 
 import oasis.auditlog.noop.NoopAuditLogModule;
@@ -60,6 +63,7 @@ import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.authn.AccessToken;
 import oasis.model.authn.AuthorizationCode;
+import oasis.model.authn.JtiRepository;
 import oasis.model.authn.RefreshToken;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
@@ -180,11 +184,20 @@ public class TokenEndpointTest {
     setServiceProviderId(refreshToken.getServiceProviderId());
     setScopeIds(ImmutableSet.of("dp1s1", "dp3s1"));
   }};
+  static final AccessToken accessTokenFromJwtBearer = new AccessToken() {{
+    setId("accessTokenFromJwtBearer");
+    setAccountId(TokenEndpoint.ANONYMOUS_ACCOUNT_ID);
+    setCreationTime(now);
+    expiresIn(Duration.standardDays(1));
+    setAncestorIds(ImmutableList.of("jti"));
+    setServiceProviderId(appInstance.getId());
+    setScopeIds(TokenEndpoint.AUTHORIZED_JWT_BEARER_SCOPES);
+  }};
 
   @Inject @Rule public InProcessResteasy resteasy;
 
   @Before public void setUpMocks(TokenHandler tokenHandler, TokenRepository tokenRepository, AccountRepository accountRepository,
-      AppInstanceRepository appInstanceRepository) {
+      AppInstanceRepository appInstanceRepository, JtiRepository jtiRepository) {
     when(tokenHandler.generateRandom()).thenReturn("pass");
 
     when(tokenHandler.getCheckedToken("valid", AuthorizationCode.class)).thenReturn(validAuthCode);
@@ -198,11 +211,16 @@ public class TokenEndpointTest {
     when(tokenHandler.createAccessToken(refreshToken, refreshToken.getScopeIds(), "pass")).thenReturn(accessTokenWithOfflineAccess);
     when(tokenHandler.createAccessToken(refreshToken, refreshedAccessToken.getScopeIds(), "pass"))
         .thenReturn(refreshedAccessToken);
+    when(tokenHandler.createAccessTokenForJWTBearer("jti", TokenEndpoint.ANONYMOUS_ACCOUNT_ID, TokenEndpoint.AUTHORIZED_JWT_BEARER_SCOPES, appInstance.getId(), "pass"))
+        .thenReturn(accessTokenFromJwtBearer);
 
     when(tokenRepository.getToken(sidToken.getId())).thenReturn(sidToken);
 
     when(accountRepository.getUserAccountById(account.getId())).thenReturn(account);
     when(appInstanceRepository.getAppInstance(appInstance.getId())).thenReturn(appInstance);
+
+    when(jtiRepository.markAsUsed(eq("jti"), any(Instant.class))).thenReturn(true);
+    when(jtiRepository.markAsUsed(eq("reused"), any(Instant.class))).thenReturn(false);
   }
 
   @Before public void setUp() {
@@ -528,6 +546,210 @@ public class TokenEndpointTest {
         .post(Entity.form(new Form()
             .param("grant_type", "refresh_token")
             .param("refresh_token", refreshToken)
+            .param("scope", scope)));
+  }
+
+  @Test public void testJwtBearerWithReusedJti(AuthModule.Settings settings) throws Throwable {
+    // given
+    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
+
+    // when
+    JwtClaims claims = new JwtClaims();
+    claims.setIssuer(InProcessResteasy.BASE_URI.toString());
+    claims.setAudience(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(TokenEndpoint.class).build().toString());
+    claims.setSubject(appInstance.getId());
+    claims.setIssuedAt(NumericDate.fromMilliseconds(oneHourAgo.getMillis()));
+    claims.setExpirationTime(NumericDate.fromMilliseconds(tomorrow.getMillis()));
+    claims.setJwtId("reused");
+    JsonWebSignature jws = new JsonWebSignature();
+    jws.setKey(settings.keyPair.getPrivate());
+    jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
+    jws.setPayload(claims.toJson());
+    Response resp = jwtBearer(jws.getCompactSerialization(), Joiner.on(" ").join(TokenEndpoint.AUTHORIZED_JWT_BEARER_SCOPES));
+
+    // then
+    assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
+    ErrorResponse response = resp.readEntity(ErrorResponse.class);
+    assertThat(response.getError()).isEqualTo("invalid_grant");
+  }
+
+  @Test public void testJwtBearerWithBadSignature() throws Throwable {
+    // given
+    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
+
+    // when
+    JwtClaims claims = new JwtClaims();
+    claims.setIssuer(InProcessResteasy.BASE_URI.toString());
+    claims.setAudience(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(TokenEndpoint.class).build().toString());
+    claims.setSubject(appInstance.getId());
+    claims.setIssuedAt(NumericDate.fromMilliseconds(oneHourAgo.getMillis()));
+    claims.setExpirationTime(NumericDate.fromMilliseconds(tomorrow.getMillis()));
+    claims.setJwtId("jti");
+    JsonWebSignature jws = new JsonWebSignature();
+    jws.setKey(KeyPairLoader.generateRandomKeyPair().getPrivate());
+    jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
+    jws.setPayload(claims.toJson());
+    Response resp = jwtBearer(jws.getCompactSerialization(), Joiner.on(" ").join(TokenEndpoint.AUTHORIZED_JWT_BEARER_SCOPES));
+
+    // then
+    assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
+    ErrorResponse response = resp.readEntity(ErrorResponse.class);
+    assertThat(response.getError()).isEqualTo("invalid_grant");
+  }
+
+  @Test public void testJwtBearerWithBadIssuer(AuthModule.Settings settings) throws Throwable {
+    // given
+    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
+
+    // when
+    JwtClaims claims = new JwtClaims();
+    claims.setIssuer("http://example.com");
+    claims.setAudience(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(TokenEndpoint.class).build().toString());
+    claims.setSubject(appInstance.getId());
+    claims.setIssuedAt(NumericDate.fromMilliseconds(oneHourAgo.getMillis()));
+    claims.setExpirationTime(NumericDate.fromMilliseconds(tomorrow.getMillis()));
+    claims.setJwtId("jti");
+    JsonWebSignature jws = new JsonWebSignature();
+    jws.setKey(settings.keyPair.getPrivate());
+    jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
+    jws.setPayload(claims.toJson());
+    Response resp = jwtBearer(jws.getCompactSerialization(), Joiner.on(" ").join(TokenEndpoint.AUTHORIZED_JWT_BEARER_SCOPES));
+
+    // then
+    assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
+    ErrorResponse response = resp.readEntity(ErrorResponse.class);
+    assertThat(response.getError()).isEqualTo("invalid_grant");
+  }
+
+  @Test public void testJwtBearerWithBadAudience(AuthModule.Settings settings) throws Throwable {
+    // given
+    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
+
+    // when
+    JwtClaims claims = new JwtClaims();
+    claims.setIssuer(InProcessResteasy.BASE_URI.toString());
+    claims.setAudience("http://example.com");
+    claims.setSubject(appInstance.getId());
+    claims.setIssuedAt(NumericDate.fromMilliseconds(oneHourAgo.getMillis()));
+    claims.setExpirationTime(NumericDate.fromMilliseconds(tomorrow.getMillis()));
+    claims.setJwtId("jti");
+    JsonWebSignature jws = new JsonWebSignature();
+    jws.setKey(settings.keyPair.getPrivate());
+    jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
+    jws.setPayload(claims.toJson());
+    Response resp = jwtBearer(jws.getCompactSerialization(), Joiner.on(" ").join(TokenEndpoint.AUTHORIZED_JWT_BEARER_SCOPES));
+
+    // then
+    assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
+    ErrorResponse response = resp.readEntity(ErrorResponse.class);
+    assertThat(response.getError()).isEqualTo("invalid_grant");
+  }
+
+  @Test public void testJwtBearerWithBadSubject(AuthModule.Settings settings) throws Throwable {
+    // given
+    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
+
+    // when
+    JwtClaims claims = new JwtClaims();
+    claims.setIssuer(InProcessResteasy.BASE_URI.toString());
+    claims.setAudience(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(TokenEndpoint.class).build().toString());
+    claims.setSubject("foo");
+    claims.setIssuedAt(NumericDate.fromMilliseconds(oneHourAgo.getMillis()));
+    claims.setExpirationTime(NumericDate.fromMilliseconds(tomorrow.getMillis()));
+    claims.setJwtId("jti");
+    JsonWebSignature jws = new JsonWebSignature();
+    jws.setKey(settings.keyPair.getPrivate());
+    jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
+    jws.setPayload(claims.toJson());
+    Response resp = jwtBearer(jws.getCompactSerialization(), Joiner.on(" ").join(TokenEndpoint.AUTHORIZED_JWT_BEARER_SCOPES));
+
+    // then
+    assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
+    ErrorResponse response = resp.readEntity(ErrorResponse.class);
+    assertThat(response.getError()).isEqualTo("invalid_grant");
+  }
+
+  @Test public void testJwtBearerWithNoExpirationTime(AuthModule.Settings settings) throws Throwable {
+    // given
+    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
+
+    // when
+    JwtClaims claims = new JwtClaims();
+    claims.setIssuer(InProcessResteasy.BASE_URI.toString());
+    claims.setAudience(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(TokenEndpoint.class).build().toString());
+    claims.setSubject(appInstance.getId());
+    claims.setIssuedAt(NumericDate.fromMilliseconds(oneHourAgo.getMillis()));
+    claims.setJwtId("jti");
+    JsonWebSignature jws = new JsonWebSignature();
+    jws.setKey(settings.keyPair.getPrivate());
+    jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
+    jws.setPayload(claims.toJson());
+    Response resp = jwtBearer(jws.getCompactSerialization(), Joiner.on(" ").join(TokenEndpoint.AUTHORIZED_JWT_BEARER_SCOPES));
+
+    // then
+    assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
+    ErrorResponse response = resp.readEntity(ErrorResponse.class);
+    assertThat(response.getError()).isEqualTo("invalid_grant");
+  }
+
+  @Test public void testJwtBearerWithPassedExpirationTime(AuthModule.Settings settings) throws Throwable {
+    // given
+    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
+
+    // when
+    JwtClaims claims = new JwtClaims();
+    claims.setIssuer(InProcessResteasy.BASE_URI.toString());
+    claims.setAudience(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(TokenEndpoint.class).build().toString());
+    claims.setSubject(appInstance.getId());
+    claims.setIssuedAt(NumericDate.fromMilliseconds(oneHourAgo.minus(Duration.standardDays(1)).getMillis()));
+    claims.setExpirationTime(NumericDate.fromMilliseconds(oneHourAgo.getMillis()));
+    claims.setJwtId("jti");
+    JsonWebSignature jws = new JsonWebSignature();
+    jws.setKey(settings.keyPair.getPrivate());
+    jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
+    jws.setPayload(claims.toJson());
+    Response resp = jwtBearer(jws.getCompactSerialization(), Joiner.on(" ").join(TokenEndpoint.AUTHORIZED_JWT_BEARER_SCOPES));
+
+    // then
+    assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
+    ErrorResponse response = resp.readEntity(ErrorResponse.class);
+    assertThat(response.getError()).isEqualTo("invalid_grant");
+  }
+
+  @Test public void testValidJwtBearer(AuthModule.Settings settings) throws Throwable {
+    // given
+    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
+
+    // when
+    JwtClaims claims = new JwtClaims();
+    claims.setIssuer(InProcessResteasy.BASE_URI.toString());
+    claims.setAudience(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(TokenEndpoint.class).build().toString());
+    claims.setSubject(appInstance.getId());
+    // Note: no "issued at"
+    claims.setExpirationTime(NumericDate.fromMilliseconds(tomorrow.getMillis()));
+    claims.setJwtId("jti");
+    JsonWebSignature jws = new JsonWebSignature();
+    jws.setKey(settings.keyPair.getPrivate());
+    jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
+    jws.setPayload(claims.toJson());
+    Response resp = jwtBearer(jws.getCompactSerialization(), Joiner.on(" ").join(TokenEndpoint.AUTHORIZED_JWT_BEARER_SCOPES));
+
+    // then
+    assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.OK);
+    TokenResponse response = resp.readEntity(TokenResponse.class);
+    assertThat(response.token_type).isEqualTo("Bearer");
+    assertThat(response.scope.split(" ")).containsOnly(Iterables.toArray(TokenEndpoint.AUTHORIZED_JWT_BEARER_SCOPES, String.class));
+    assertThat(response.expires_in).isEqualTo(new Duration(now, accessTokenFromJwtBearer.getExpirationTime()).getStandardSeconds());
+    assertThat(response.access_token).isEqualTo(TokenSerializer.serialize(accessTokenFromJwtBearer, "pass"));
+    assertThat(response.refresh_token).isNullOrEmpty();
+    assertThat(response.id_token).isNullOrEmpty();
+  }
+
+  private Response jwtBearer(String jwt, String scope) throws Exception {
+    return resteasy.getClient().target(UriBuilder.fromResource(TokenEndpoint.class).build()).request()
+        .post(Entity.form(new Form()
+            .param("grant_type", "urn:ietf:params:oauth:grant-type:jwt-bearer")
+            .param("assertion", jwt)
             .param("scope", scope)));
   }
 }

@@ -56,6 +56,7 @@ public class AuthModule extends AbstractModule {
           .setSidTokenDuration(Duration.millis(config.getDuration("sid-token-duration", TimeUnit.MILLISECONDS)))
           .setAccountActivationTokenDuration(Duration.millis(config.getDuration("account-activation-token-duration", TimeUnit.MILLISECONDS)))
           .setChangePasswordTokenDuration(Duration.millis(config.getDuration("change-password-token-duration", TimeUnit.MILLISECONDS)))
+          .setJwtBearerDuration(Duration.millis(config.getDuration("jwt-bearer-duration", TimeUnit.MILLISECONDS)))
           .setPasswordMinimumLength(config.getInt("password-minimum-length"))
           .build();
     }
@@ -70,6 +71,7 @@ public class AuthModule extends AbstractModule {
       private Duration sidTokenDuration;
       private Duration accountActivationTokenDuration;
       private Duration changePasswordTokenDuration;
+      private Duration jwtBearerDuration;
       private int passwordMinimumLength;
 
       public Settings build() {
@@ -116,6 +118,11 @@ public class AuthModule extends AbstractModule {
         return this;
       }
 
+      public Builder setJwtBearerDuration(Duration jwtBearerDuration) {
+        this.jwtBearerDuration = jwtBearerDuration;
+        return this;
+      }
+
       public Builder setPasswordMinimumLength(int passwordMinimumLength) {
         this.passwordMinimumLength = passwordMinimumLength;
         return this;
@@ -130,6 +137,7 @@ public class AuthModule extends AbstractModule {
     public final Duration sidTokenDuration;
     public final Duration accountActivationTokenDuration;
     public final Duration changePasswordTokenDuration;
+    public final Duration jwtBearerDuration;
     public final int passwordMinimumLength;
 
     private Settings(Builder builder) {
@@ -141,6 +149,7 @@ public class AuthModule extends AbstractModule {
       this.sidTokenDuration = builder.sidTokenDuration;
       this.accountActivationTokenDuration = builder.accountActivationTokenDuration;
       this.changePasswordTokenDuration = builder.changePasswordTokenDuration;
+      this.jwtBearerDuration = builder.jwtBearerDuration;
       this.passwordMinimumLength = builder.passwordMinimumLength;
     }
   }

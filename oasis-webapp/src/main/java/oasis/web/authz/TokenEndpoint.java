@@ -17,6 +17,8 @@
  */
 package oasis.web.authz;
 
+import static org.jose4j.jwa.AlgorithmConstraints.ConstraintType.*;
+
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -36,18 +38,25 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
 import org.joda.time.DateTimeUtils;
+import org.joda.time.Instant;
+import org.jose4j.jwa.AlgorithmConstraints;
 import org.jose4j.jws.AlgorithmIdentifiers;
 import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.jwt.JwtClaims;
+import org.jose4j.jwt.MalformedClaimException;
 import org.jose4j.jwt.NumericDate;
+import org.jose4j.jwt.consumer.InvalidJwtException;
+import org.jose4j.jwt.consumer.JwtConsumerBuilder;
 import org.jose4j.lang.JoseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
@@ -66,6 +75,7 @@ import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.authn.AbstractOAuthToken;
 import oasis.model.authn.AccessToken;
 import oasis.model.authn.AuthorizationCode;
+import oasis.model.authn.JtiRepository;
 import oasis.model.authn.RefreshToken;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.Token;
@@ -89,10 +99,14 @@ public class TokenEndpoint {
   private static final Joiner SCOPE_JOINER = Joiner.on(' ').skipNulls();
   private static final Splitter SCOPE_SPLITTER = Splitter.on(' ');
 
+  @VisibleForTesting static final String ANONYMOUS_ACCOUNT_ID = "anonymous";
+  @VisibleForTesting static final ImmutableSet<String> AUTHORIZED_JWT_BEARER_SCOPES = ImmutableSet.of("datacore");
+
   @Inject AuthModule.Settings settings;
   @Inject DateTimeUtils.MillisProvider clock;
 
   @Inject TokenRepository tokenRepository;
+  @Inject JtiRepository jtiRepository;
   @Inject TokenHandler tokenHandler;
   @Inject AppInstanceRepository appInstanceRepository;
   @Inject AccessControlRepository accessControlRepository;
@@ -118,13 +132,15 @@ public class TokenEndpoint {
 
     String grant_type = getRequiredParameter("grant_type");
 
-    // TODO: support other kind of tokens (jwt-bearer?)
     switch(grant_type) {
       case "authorization_code":
         return this.validateAuthorizationCode();
 
       case "refresh_token":
         return this.validateRefreshToken();
+
+      case "urn:ietf:params:oauth:grant-type:jwt-bearer":
+        return this.validateJwtBearer();
 
       default:
         return errorResponse("unsupported_grant_type", null);
@@ -281,6 +297,73 @@ public class TokenEndpoint {
     return response(Response.Status.OK, response);
   }
 
+  private Response validateJwtBearer() {
+    String assertion = getRequiredParameter("assertion");
+
+    String asked_scopes_param = getParameter("scope");
+
+    String client_id = ((ClientPrincipal) securityContext.getUserPrincipal()).getClientId();
+    // for now we only support JWTs that we issued ourselves (during application provisioning)
+    // TODO: support other usages of jwt-bearer ("service accounts", "app users", you name it)
+    @Nullable final String jti;
+    final Instant expirationTime;
+    try {
+      String issuer = getIssuer();
+      JwtClaims claims = new JwtConsumerBuilder()
+          .setJwsAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, AlgorithmIdentifiers.RSA_USING_SHA256))
+          .setVerificationKey(settings.keyPair.getPublic())
+          .setExpectedIssuer(issuer)        // we issued the JWT
+          .setExpectedAudience(issuer, UriBuilder.fromUri(issuer).path(getClass()).build().toString())
+          .setExpectedSubject(client_id)    // client_id is used as subject
+          .setEvaluationTime(NumericDate.fromMilliseconds(clock.getMillis()))
+          .setAllowedClockSkewInSeconds(0)  // we issued the JWT, so we assume our clocks are OK
+          .setRequireExpirationTime()
+          .setRequireJwtId()                // we issued the JWT, so we can mandate it
+          .build()
+          .processToClaims(assertion);
+      jti = claims.getJwtId();
+      expirationTime = new Instant(claims.getExpirationTime().getValueInMillis());
+    } catch (MalformedClaimException | InvalidJwtException e) {
+      return errorResponse("invalid_grant", null);
+    }
+
+    if (jti != null && !jtiRepository.markAsUsed(jti, expirationTime)) {
+      // Detected JWT ID reuse, revoke previously issued tokens for that JWT ID.
+      tokenRepository.revokeToken(jti);
+      return errorResponse("invalid_grant", null);
+    }
+
+    Set<String> asked_scopes;
+    if (!Strings.isNullOrEmpty(asked_scopes_param)) {
+      asked_scopes = Sets.newHashSet(SCOPE_SPLITTER.splitToList(asked_scopes_param));
+
+      if (!AUTHORIZED_JWT_BEARER_SCOPES.containsAll(asked_scopes)) {
+        return errorResponse("invalid_scope", null);
+      }
+    } else {
+      asked_scopes = AUTHORIZED_JWT_BEARER_SCOPES;
+    }
+
+    String pass = tokenHandler.generateRandom();
+    AccessToken accessToken = tokenHandler.createAccessTokenForJWTBearer(jti, ANONYMOUS_ACCOUNT_ID, asked_scopes, client_id, pass);
+
+    if (accessToken == null) {
+      return Response.serverError().build();
+    }
+
+    log(accessToken, TokenLogEvent.GrantType.jwt_bearer);
+
+    String access_token = TokenSerializer.serialize(accessToken, pass);
+
+    TokenResponse response = new TokenResponse();
+    response.access_token = access_token;
+    response.token_type = "Bearer";
+    response.expires_in = accessToken.expiresIn().getStandardSeconds();
+    response.scope = SCOPE_JOINER.join(asked_scopes);
+
+    return response(Response.Status.OK, response);
+  }
+
   private String getIssuer() {
     if (urls.canonicalBaseUri().isPresent()) {
       return urls.canonicalBaseUri().get().toString();
@@ -402,6 +485,7 @@ public class TokenEndpoint {
     public static enum GrantType {
       authorization_code,
       refresh_token,
+      jwt_bearer,
     }
 
     public static enum TokenType {

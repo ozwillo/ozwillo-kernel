@@ -32,6 +32,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.BaseEncoding;
 
+import oasis.auth.AuthModule;
 import oasis.model.authn.AccessToken;
 import oasis.model.authn.AccountActivationToken;
 import oasis.model.authn.AuthorizationCode;
@@ -41,7 +42,6 @@ import oasis.model.authn.RefreshToken;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.Token;
 import oasis.model.authn.TokenRepository;
-import oasis.auth.AuthModule;
 import oasis.services.authn.login.PasswordHasher;
 import oasis.userdirectory.UserDirectoryModule;
 
@@ -144,6 +144,28 @@ public class TokenHandler {
     }
 
     // Return the new access token
+    return accessToken;
+  }
+
+  public AccessToken createAccessTokenForJWTBearer(@Nullable String jti, String accountId, Set<String> scopeIds,
+      String serviceProviderId, String pass) {
+    AccessToken accessToken = new AccessToken();
+    accessToken.setAccountId(accountId);
+    accessToken.expiresIn(authSettings.accessTokenDuration);
+    accessToken.setScopeIds(scopeIds);
+    accessToken.setServiceProviderId(serviceProviderId);
+    if (jti != null) {
+      // Note: store the JWT ID (although it's been marked as used) to be able to
+      // detect JWT ID reuse, and revoke all previously issued tokens based on the reused JWT ID.
+      // (see https://tools.ietf.org/html/rfc7523#section-3)
+      accessToken.setAncestorIds(ImmutableList.of(jti));
+    }
+
+    secureToken(accessToken, pass);
+
+    if (!tokenRepository.registerToken(accessToken)) {
+      return null;
+    }
     return accessToken;
   }
 

@@ -26,28 +26,40 @@ import java.util.concurrent.TimeoutException;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
+import org.joda.time.DateTimeUtils;
+import org.jose4j.jws.AlgorithmIdentifiers;
+import org.jose4j.jws.JsonWebSignature;
+import org.jose4j.jwt.JwtClaims;
+import org.jose4j.jwt.NumericDate;
+import org.jose4j.lang.JoseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
+import oasis.auth.AuthModule;
+import oasis.jongo.OasisIdHelper;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.applications.v2.AppInstance;
@@ -61,12 +73,14 @@ import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Organization;
 import oasis.services.authn.CredentialsService;
 import oasis.services.authn.PasswordGenerator;
+import oasis.urls.Urls;
 import oasis.usecases.DeleteAppInstance;
 import oasis.usecases.ImmutableDeleteAppInstance;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
 import oasis.web.authn.WithScopes;
+import oasis.web.authz.TokenEndpoint;
 import oasis.web.resteasy.Resteasy1099;
 import oasis.web.utils.ResponseFactory;
 import oasis.web.webhooks.WebhookSignatureFilter;
@@ -87,6 +101,9 @@ public class MarketBuyEndpoint {
   @Inject CredentialsService credentialsService;
   @Inject DeleteAppInstance deleteAppInstance;
   @Inject Client client;
+  @Inject AuthModule.Settings settings;
+  @Inject Urls urls;
+  @Inject DateTimeUtils.MillisProvider clock;
 
   @Context UriInfo uriInfo;
   @Context SecurityContext securityContext;
@@ -169,7 +186,8 @@ public class MarketBuyEndpoint {
             .setClient_secret(pwd)
             .setUser(accountRepository.getUserAccountById(userId))
             .setOrganization(organization)
-            .setInstance_registration_uri(Resteasy1099.getBaseUriBuilder(uriInfo).path(InstanceRegistrationEndpoint.class).build(instance.getId()))));
+            .setInstance_registration_uri(Resteasy1099.getBaseUriBuilder(uriInfo).path(InstanceRegistrationEndpoint.class).build(instance.getId()))
+            .setAuthorization_grant(new AuthorizationGrant(createJwtBearer(instance)))));
     Response response;
     try {
       response = future.get(1, TimeUnit.MINUTES);
@@ -205,6 +223,37 @@ public class MarketBuyEndpoint {
     return Response.ok(instance).build();
   }
 
+  private String createJwtBearer(AppInstance appInstance) {
+    String issuer = getIssuer();
+    long issuedAt = TimeUnit.MILLISECONDS.toSeconds(clock.getMillis());
+    JwtClaims claims = new JwtClaims();
+    claims.setIssuer(issuer);
+    claims.setAudience(UriBuilder.fromUri(issuer).path(TokenEndpoint.class).build().toString());
+    claims.setSubject(appInstance.getId());
+    claims.setIssuedAt(NumericDate.fromSeconds(issuedAt));
+    claims.setExpirationTime(NumericDate.fromSeconds(issuedAt + settings.jwtBearerDuration.getStandardSeconds()));
+    claims.setJwtId(OasisIdHelper.generateId());
+    JsonWebSignature jws = new JsonWebSignature();
+    jws.setKey(settings.keyPair.getPrivate());
+    jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
+    jws.setPayload(claims.toJson());
+    try {
+      return jws.getCompactSerialization();
+    } catch (JoseException e) {
+      logger.error("Error creating jwt-bearer", e);
+      // XXX: use InternalServerErrorException as it won't be logged (we already logged above)
+      // FIXME: refactor to somehow return a Response from the resource method.
+      throw new InternalServerErrorException(e);
+    }
+  }
+
+  private String getIssuer() {
+    if (urls.canonicalBaseUri().isPresent()) {
+      return urls.canonicalBaseUri().get().toString();
+    }
+    return Resteasy1099.getBaseUri(uriInfo).toString();
+  }
+
   public static class CreateInstanceRequest {
     @JsonProperty String instance_id;
     @JsonProperty String client_id;
@@ -215,6 +264,7 @@ public class MarketBuyEndpoint {
     @JsonProperty String organization_name;
     @JsonProperty Organization organization;
     @JsonProperty URI instance_registration_uri;
+    @JsonProperty AuthorizationGrant authorization_grant;
 
     public CreateInstanceRequest setInstance_id(String instance_id) {
       this.instance_id = instance_id;
@@ -256,6 +306,11 @@ public class MarketBuyEndpoint {
       this.instance_registration_uri = instance_registration_uri;
       return this;
     }
+
+    public CreateInstanceRequest setAuthorization_grant(AuthorizationGrant authorization_grant) {
+      this.authorization_grant = authorization_grant;
+      return this;
+    }
   }
 
   public static class User {
@@ -267,6 +322,17 @@ public class MarketBuyEndpoint {
       this.id = id;
       this.name = name;
       this.email_address = email_address;
+    }
+  }
+
+  public static class AuthorizationGrant {
+    @JsonProperty String grant_type = "urn:ietf:params:oauth:grant-type:jwt-bearer";
+    @JsonProperty String assertion;
+    // TODO: update when we'll have finer-grain scopes for the DataCore.
+    @JsonProperty String scope = "datacore";
+
+    public AuthorizationGrant(String assertion) {
+      this.assertion = assertion;
     }
   }
 }
