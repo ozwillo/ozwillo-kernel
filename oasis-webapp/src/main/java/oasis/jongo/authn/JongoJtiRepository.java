@@ -43,7 +43,7 @@ public class JongoJtiRepository implements JtiRepository, JongoBootstrapper {
   public boolean markAsUsed(String jti, Instant expirationTime) {
     try {
       // TODO: Pass directly the instance of Instant
-      getUsedJtisCollection().insert("{ id: #, expirationTime: # }", jti, expirationTime);
+      getUsedJtisCollection().insert("{ id: #, expirationTime: # }", jti, expirationTime.toDate());
     } catch (DuplicateKeyException e) {
       return false;
     }
