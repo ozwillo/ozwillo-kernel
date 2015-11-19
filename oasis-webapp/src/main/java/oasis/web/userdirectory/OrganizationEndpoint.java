@@ -36,9 +36,6 @@ import javax.ws.rs.core.UriInfo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Strings;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiParam;
 
 import oasis.model.DuplicateKeyException;
 import oasis.model.InvalidVersionException;
@@ -59,7 +56,6 @@ import oasis.web.utils.ResponseFactory;
 
 @Path("/d/org/{organizationId}")
 @Produces(MediaType.APPLICATION_JSON)
-@Api(value = "organization", description = "Organization")
 public class OrganizationEndpoint {
 
   @Inject DirectoryRepository directory;
@@ -72,8 +68,6 @@ public class OrganizationEndpoint {
   @PathParam("organizationId") String organizationId;
 
   @GET
-  @ApiOperation(value = "Retrieve an organization",
-      response = Organization.class)
   public Response getOrganization() {
     Organization organization = directory.getOrganization(organizationId);
     if (organization == null) {
@@ -89,11 +83,9 @@ public class OrganizationEndpoint {
   @PUT
   @Authenticated @OAuth
   @WithScopes(Scopes.PORTAL)
-  @ApiOperation(value = "Update an organization",
-      response = Organization.class)
   public Response updateOrganization(
       @Context UriInfo uriInfo,
-      @HeaderParam("If-Match") @ApiParam(required = true) String etagStr,
+      @HeaderParam("If-Match") String etagStr,
       Organization organization) {
 
     if (Strings.isNullOrEmpty(etagStr)) {
@@ -130,9 +122,8 @@ public class OrganizationEndpoint {
   @POST
   @Authenticated @OAuth
   @WithScopes(Scopes.PORTAL)
-  @ApiOperation(value = "Change organization status")
   public Response changeOrganizationStatus(
-      @HeaderParam("If-Match") @ApiParam(required = true) String etagStr,
+      @HeaderParam("If-Match") String etagStr,
       ChangeOrganizationStatusRequest request
   ) {
     if (Strings.isNullOrEmpty(etagStr)) {

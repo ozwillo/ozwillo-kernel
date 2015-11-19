@@ -39,8 +39,6 @@ import com.google.common.base.Strings;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.applications.v2.Scope;
 import oasis.model.applications.v2.ScopeRepository;
@@ -54,7 +52,6 @@ import oasis.web.authn.ClientPrincipal;
 
 @Authenticated @Client
 @Path("/a/tokeninfo")
-@Api(value = "/a/tokeninfo", description = "Introspection Endpoint")
 public class IntrospectionEndpoint {
   private static final Joiner SCOPE_JOINER = Joiner.on(' ').skipNulls();
 
@@ -67,11 +64,6 @@ public class IntrospectionEndpoint {
   @POST
   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
   @Produces(MediaType.APPLICATION_JSON)
-  @ApiOperation(
-      value = "Get information about an access token.",
-      notes = "See the <a href=\"http://tools.ietf.org/html/draft-richer-oauth-introspection\">DRAFT</a> for more information.",
-      response = IntrospectionResponse.class
-  )
   public Response post(@FormParam("token") String token) throws IOException {
     if (Strings.isNullOrEmpty(token)) {
       return error();

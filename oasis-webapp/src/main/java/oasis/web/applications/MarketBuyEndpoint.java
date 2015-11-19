@@ -31,7 +31,6 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Context;
@@ -53,10 +52,7 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.auth.AuthModule;
 import oasis.jongo.OasisIdHelper;
@@ -89,7 +85,6 @@ import oasis.web.webhooks.WebhookSignatureFilter;
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 @Authenticated @OAuth
-@Api(value = "buy", description = "Buying/picking an application")
 public class MarketBuyEndpoint {
   private static final Logger logger = LoggerFactory.getLogger(MarketBuyEndpoint.class);
 
@@ -111,10 +106,6 @@ public class MarketBuyEndpoint {
   @PathParam("application_id") String applicationId;
 
   @POST
-  @ApiOperation(
-      value = "Instantiates an application",
-      response = AppInstance.class
-  )
   @WithScopes(Scopes.PORTAL)
   public Response instantiate(AppInstance instance) {
     Application application = applicationRepository.getApplication(applicationId);

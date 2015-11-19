@@ -30,8 +30,6 @@ import javax.ws.rs.core.SecurityContext;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstanceRepository;
@@ -47,7 +45,6 @@ import oasis.web.utils.ResponseFactory;
 @Authenticated @OAuth
 @WithScopes(Scopes.PORTAL)
 @Path("/apps/instance/organization/{organization_id}")
-@Api(value = "organization-instances", description = "Application instances for an organization")
 @Produces(MediaType.APPLICATION_JSON)
 public class OrganizationAppInstanceEndpoint {
   @Inject AppInstanceRepository appInstanceRepository;
@@ -58,11 +55,6 @@ public class OrganizationAppInstanceEndpoint {
   @PathParam("organization_id") String organizationId;
 
   @GET
-  @ApiOperation(
-      value = "Retrieve all app instances created for an organization",
-      response = AppInstance.class,
-      responseContainer = "Array"
-  )
   public Response get() {
     String oAuthUserId = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId();
     OrganizationMembership organizationMembership = organizationMembershipRepository.getOrganizationMembership(oAuthUserId, organizationId);

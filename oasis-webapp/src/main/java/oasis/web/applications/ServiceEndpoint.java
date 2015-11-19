@@ -35,8 +35,6 @@ import javax.ws.rs.core.SecurityContext;
 
 import com.google.common.base.Strings;
 import com.mongodb.DuplicateKeyException;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.InvalidVersionException;
 import oasis.model.applications.v2.AccessControlRepository;
@@ -61,7 +59,6 @@ import oasis.web.utils.ResponseFactory;
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 @OAuth
-@Api(value = "services", description = "Application services")
 public class ServiceEndpoint {
   @Inject ServiceRepository serviceRepository;
   @Inject AccessControlRepository accessControlRepository;
@@ -76,10 +73,6 @@ public class ServiceEndpoint {
   @PathParam("service_id") String serviceId;
 
   @GET
-  @ApiOperation(
-      value = "Retrieves information about a service",
-      response = Service.class
-  )
   public Response getService() {
     Service service = serviceRepository.getService(serviceId);
     if (service == null) {
@@ -114,10 +107,6 @@ public class ServiceEndpoint {
   }
 
   @PUT
-  @ApiOperation(
-      value = "Updates the service",
-      response = Service.class
-  )
   @Authenticated
   @WithScopes(Scopes.PORTAL)
   public Response update(
@@ -165,7 +154,6 @@ public class ServiceEndpoint {
   }
 
   @DELETE
-  @ApiOperation("Deletes the service")
   @Authenticated
   @WithScopes(Scopes.PORTAL)
   public Response delete(

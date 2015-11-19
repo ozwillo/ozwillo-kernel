@@ -38,10 +38,8 @@ import javax.ws.rs.core.UriBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Strings;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiParam;
 
 import oasis.model.InvalidVersionException;
 import oasis.model.applications.v2.AppInstance;
@@ -58,7 +56,6 @@ import oasis.web.webhooks.WebhookSignatureFilter;
 @Authenticated
 @Client
 @Path("/e")
-@Api(value = "/e", description = "EventBus API")
 public class EventBusEndpoint {
   private static final Logger logger = LoggerFactory.getLogger(EventBusEndpoint.class);
 
@@ -72,7 +69,6 @@ public class EventBusEndpoint {
   @POST
   @Path("/publish")
   @Consumes(MediaType.APPLICATION_JSON)
-  @ApiOperation(value = "Publish a typed event into the event bus.")
   public Response publish(
       final Event event
   ) {
@@ -130,8 +126,6 @@ public class EventBusEndpoint {
   @POST
   @Path("/{instanceId}/subscriptions")
   @Consumes(MediaType.APPLICATION_JSON)
-  @ApiOperation(value = "Subscribe to a typed event from the event bus.",
-      notes = "The returned location URL get access to the subscription (delete the subscription)")
   public Response subscribe(
       @PathParam("instanceId") String instanceId,
       Subscription subscription
@@ -170,10 +164,9 @@ public class EventBusEndpoint {
   @DELETE
   @Path("/subscription/{subscriptionId}")
   @Consumes(MediaType.APPLICATION_JSON)
-  @ApiOperation(value = "Delete a subscription.")
   public Response unsubscribe(
       @Context Request request,
-      @HeaderParam("If-Match") @ApiParam(required = true) String etagStr,
+      @HeaderParam("If-Match") String etagStr,
       @PathParam("subscriptionId") String subscriptionId
   ) {
     if (Strings.isNullOrEmpty(etagStr)) {
@@ -200,5 +193,14 @@ public class EventBusEndpoint {
     }
 
     return ResponseFactory.NO_CONTENT;
+  }
+
+  static class Event {
+
+    @JsonProperty String message;
+
+    @JsonProperty String data;
+
+    @JsonProperty String eventType; // Unique (gives the application for an organisation)
   }
 }

@@ -42,9 +42,6 @@ import org.jose4j.jwt.JwtClaims;
 import org.jose4j.jwt.NumericDate;
 import org.jose4j.lang.JoseException;
 
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-
 import oasis.auth.AuthModule;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
@@ -60,7 +57,6 @@ import oasis.web.resteasy.Resteasy1099;
 
 @Authenticated @OAuth @WithScopes(Scopes.OPENID)
 @Path("/a/userinfo")
-@Api(value = "/a/userinfo", description = "UserInfo Endpoint")
 public class UserInfoEndpoint {
   private static final DateTimeFormatter BIRTHDATE_FORMATTER = ISODateTimeFormat.date().withDefaultYear(0);
   /** Note: we'd prefer JWT, but OpenID Connect wants us to prefer JSON, so using qs&lt;1.0 here. */
@@ -75,12 +71,6 @@ public class UserInfoEndpoint {
 
   @GET
   @Produces(APPLICATION_JWT)
-  @ApiOperation(
-      value = "Return Claims about the End-User in signed JWT format.",
-      notes = "See the <a href=\"http://openid.net/specs/openid-connect-basic-1_0.html#UserInfo\">OpenID Connect Draft</a>, " +
-          "the <a href=\"http://tools.ietf.org/html/draft-ietf-oauth-json-web-token-08\">JWT Draft</a> " +
-          "and the <a href=\"http://tools.ietf.org/html/draft-ietf-jose-json-web-signature-11\">JWS Draft</a> for more information."
-  )
   public Response getSigned() throws JoseException {
     JwtClaims userInfo = getUserInfo();
     userInfo.setIssuer(getIssuer());
@@ -106,10 +96,6 @@ public class UserInfoEndpoint {
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  @ApiOperation(
-      value = "Return Claims about the End-User in JSON format.",
-      notes = "See the <a href=\"http://openid.net/specs/openid-connect-basic-1_0.html#UserInfo\">OpenID Connect Draft</a> for more information."
-  )
   public Response getUnsigned() {
     JwtClaims userInfo = getUserInfo();
 
@@ -119,22 +105,12 @@ public class UserInfoEndpoint {
 
   @POST
   @Produces(APPLICATION_JWT)
-  @ApiOperation(
-      value = "Return Claims about the End-User in signed JWT format.",
-      notes = "See the <a href=\"http://openid.net/specs/openid-connect-basic-1_0.html#UserInfo\">OpenID Connect Draft</a>, " +
-          "the <a href=\"http://tools.ietf.org/html/draft-ietf-oauth-json-web-token-08\">JWT Draft</a> " +
-          "and the <a href=\"http://tools.ietf.org/html/draft-ietf-jose-json-web-signature-11\">JWS Draft</a> for more information."
-  )
   public Response postSigned() throws JoseException {
     return getSigned();
   }
 
   @POST
   @Produces(MediaType.APPLICATION_JSON)
-  @ApiOperation(
-      value = "Return Claims about the End-User in JSON format.",
-      notes = "See the <a href=\"http://openid.net/specs/openid-connect-basic-1_0.html#UserInfo\">OpenID Connect Draft</a> for more information."
-  )
   public Response postUnsigned() {
     return getUnsigned();
   }

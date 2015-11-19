@@ -46,8 +46,6 @@ import com.google.common.collect.Iterables;
 import com.google.template.soy.data.SanitizedContent;
 import com.google.template.soy.data.SoyMapData;
 import com.ibm.icu.util.ULocale;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.mail.MailMessage;
 import oasis.mail.MailSender;
@@ -84,7 +82,6 @@ import oasis.web.utils.ResponseFactory;
 @Produces(MediaType.APPLICATION_JSON)
 @Authenticated @OAuth
 @WithScopes(Scopes.PORTAL)
-@Api(value = "memberships-org", description = "Organization Memberships (from the organization point of view)")
 public class OrganizationMembershipEndpoint {
   private static final Logger logger = LoggerFactory.getLogger(OrganizationMembershipEndpoint.class);
 
@@ -104,11 +101,6 @@ public class OrganizationMembershipEndpoint {
   @PathParam("organization_id") String organizationId;
 
   @GET
-  @ApiOperation(
-      value = "Retrieves users who are members of the organization",
-      response = OrgMembership.class,
-      responseContainer = "Array"
-  )
   public Response get(@QueryParam("start") int start, @QueryParam("limit") int limit) {
     OrganizationMembership membership = organizationMembershipRepository
         .getOrganizationMembership(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId(), organizationId);
@@ -153,10 +145,6 @@ public class OrganizationMembershipEndpoint {
   }
 
   @POST
-  @ApiOperation(
-      value = "Creates a pending organization membership",
-      response = OrganizationMembership.class
-  )
   public Response post(MembershipRequest request) {
     String requesterId = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId();
     OrganizationMembership ownerMembership = organizationMembershipRepository.getOrganizationMembership(requesterId, organizationId);

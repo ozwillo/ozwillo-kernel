@@ -22,15 +22,12 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.wordnik.swagger.annotations.ApiModelProperty;
 
 public abstract class AbstractOAuthToken extends AbstractAccountToken {
   @JsonProperty
-  @ApiModelProperty
   private String serviceProviderId;
 
   @JsonProperty
-  @ApiModelProperty
   private Set<String> scopeIds = new HashSet<>();
 
   public String getServiceProviderId() {

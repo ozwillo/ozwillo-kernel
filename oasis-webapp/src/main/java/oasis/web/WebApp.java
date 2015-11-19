@@ -24,11 +24,6 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.typesafe.config.Config;
-import com.wordnik.swagger.config.ConfigFactory;
-import com.wordnik.swagger.config.ScannerFactory;
-import com.wordnik.swagger.jaxrs.config.DefaultJaxrsScanner;
-import com.wordnik.swagger.jaxrs.reader.DefaultJaxrsApiReader;
-import com.wordnik.swagger.reader.ClassReaders;
 
 import oasis.auditlog.log4j.Log4JAuditLogModule;
 import oasis.auditlog.noop.NoopAuditLogModule;
@@ -85,8 +80,6 @@ public class WebApp extends CommandLineTool {
     final JongoService jongo = injector.getInstance(JongoService.class);
     final JestService jest = injector.getInstance(JestService.class);
 
-    initSwagger(config);
-
     Runtime.getRuntime().addShutdownHook(new Thread() {
       @Override
       public void run() {
@@ -99,14 +92,6 @@ public class WebApp extends CommandLineTool {
     jongo.start();
     jest.start();
     server.start();
-  }
-
-  private static void initSwagger(Config config) {
-    ConfigFactory.config().setApiVersion(config.getString("swagger.api.version"));
-
-    // TODO: authorizations and info
-    ScannerFactory.setScanner(new DefaultJaxrsScanner());
-    ClassReaders.setReader(new DefaultJaxrsApiReader());
   }
 
   public static void main(String[] args) throws Throwable {

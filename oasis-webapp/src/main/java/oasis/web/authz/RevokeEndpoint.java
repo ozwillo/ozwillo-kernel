@@ -32,9 +32,6 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-
 import oasis.model.authn.AbstractOAuthToken;
 import oasis.model.authn.TokenRepository;
 import oasis.services.authn.TokenHandler;
@@ -46,7 +43,6 @@ import oasis.web.openidconnect.ErrorResponse;
 @Path("/a/revoke")
 @Authenticated
 @Client
-@Api(value = "/a/revoke", description = "Revoke Endpoint.")
 public class RevokeEndpoint {
   private MultivaluedMap<String, String> params;
 
@@ -57,10 +53,6 @@ public class RevokeEndpoint {
 
   @POST
   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-  @ApiOperation(
-      value = "Revoke a token",
-      notes = "See the <a href=\"http://tools.ietf.org/html/rfc7009\">OAuth 2.0 Token Revocation RFC</a> for more information."
-  )
   public Response post(MultivaluedMap<String, String> params) {
     this.params = params;
 

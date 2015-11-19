@@ -20,10 +20,7 @@ package oasis.web;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
-import com.wordnik.swagger.jaxrs.listing.ApiListingResourceJSON;
-import com.wordnik.swagger.jaxrs.listing.ResourceListingProvider;
 
-import oasis.web.apidocs.ApiDeclarationProvider;
 import oasis.web.applications.AccessControlEntryEndpoint;
 import oasis.web.applications.AppInstanceAccessControlEndpoint;
 import oasis.web.applications.AppInstanceEndpoint;
@@ -90,11 +87,6 @@ public class Application extends javax.ws.rs.core.Application {
         JacksonJsonProvider.class, // Note: this is our own implementation
         // Views
         SoyTemplateBodyWriter.class,
-        // Swagger
-        ResourceListingProvider.class,
-        ApiListingResourceJSON.class,
-        SwaggerUI.class,
-        ApiDeclarationProvider.class, // Note: this is our own implementation
         // Status
         StatusEndpoint.class,
         // Authentication

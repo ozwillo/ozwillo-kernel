@@ -37,8 +37,6 @@ import javax.ws.rs.core.UriInfo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Strings;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
@@ -62,7 +60,6 @@ import oasis.web.utils.ResponseFactory;
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 @Authenticated @OAuth
-@Api(value = "acl-instance", description = "Application Instance's Access Control List")
 public class AppInstanceAccessControlEndpoint {
   @Inject AccessControlRepository accessControlRepository;
   @Inject AppInstanceRepository appInstanceRepository;
@@ -76,11 +73,6 @@ public class AppInstanceAccessControlEndpoint {
   @PathParam("instance_id") String instance_id;
 
   @GET
-  @ApiOperation(
-      value = "Retrieves app_users of the app instance",
-      response = ACE.class,
-      responseContainer = "Array"
-  )
   public Response get() {
     AppInstance instance = appInstanceRepository.getAppInstance(instance_id);
     if (instance == null) {
@@ -149,11 +141,6 @@ public class AppInstanceAccessControlEndpoint {
   }
 
   @POST
-  @ApiOperation(
-      value = "Add an app_user to the app instance",
-      response = ACE.class,
-      responseContainer = "Array"
-  )
   @WithScopes(Scopes.PORTAL)
   public Response addToList(AccessControlEntry ace) {
     if (ace.getInstance_id() != null && !instance_id.equals(ace.getInstance_id())) {

@@ -32,8 +32,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
 import com.google.common.base.Strings;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.InvalidVersionException;
 import oasis.model.accounts.AccountRepository;
@@ -51,7 +49,6 @@ import oasis.web.utils.ResponseFactory;
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 @Authenticated @OAuth
-@Api(value = "user", description = "User profile")
 public class UserEndpoint {
   @Inject AccountRepository accountRepository;
   @Inject EtagService etagService;
@@ -61,10 +58,6 @@ public class UserEndpoint {
   @PathParam("user_id") String user_id;
 
   @GET
-  @ApiOperation(
-      value = "Retrieves information about a user",
-      response = UserAccount.class
-  )
   public Response get() {
     UserAccount account = accountRepository.getUserAccountById(user_id);
     if (account == null) {
@@ -88,10 +81,6 @@ public class UserEndpoint {
   }
 
   @PUT
-  @ApiOperation(
-      value = "Updates the user's profile",
-      response = UserAccount.class
-  )
   @WithScopes(Scopes.PORTAL)
   public Response replace(
       @HeaderParam(HttpHeaders.IF_MATCH) String ifMatch,

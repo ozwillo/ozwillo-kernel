@@ -31,10 +31,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
 import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstanceRepository;
@@ -51,7 +48,6 @@ import oasis.web.utils.ResponseFactory;
 @WithScopes(Scopes.PORTAL)
 @Path("/apps/instance/user/{user_id}")
 @Produces(MediaType.APPLICATION_JSON)
-@Api(value = "user-instances", description = "Application instances for a user (bought for himself)")
 public class UserAppInstanceEndpoint {
   @Inject AppInstanceRepository appInstanceRepository;
   @Inject OrganizationMembershipRepository organizationMembershipRepository;
@@ -61,11 +57,6 @@ public class UserAppInstanceEndpoint {
   @PathParam("user_id") String userId;
 
   @GET
-  @ApiOperation(
-      value = "Retrieve all app instances created by a user for himself, and/or created for organization the user is an admin of, possibly filtered by instantiation status",
-      response = AppInstance.class,
-      responseContainer = "Array"
-  )
   public Response get(
       @QueryParam("include_orgs") @DefaultValue("false") boolean includeOrgs,
       @QueryParam("status") AppInstance.InstantiationStatus instantiationStatus

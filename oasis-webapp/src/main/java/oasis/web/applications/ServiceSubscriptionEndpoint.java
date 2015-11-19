@@ -39,8 +39,6 @@ import com.google.common.base.Strings;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
@@ -67,7 +65,6 @@ import oasis.web.utils.ResponseFactory;
 @WithScopes(Scopes.PORTAL)
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
-@Api(value = "subs-service", description = "User-Service subscriptions (from the service point of view)")
 public class ServiceSubscriptionEndpoint {
   @Inject UserSubscriptionRepository userSubscriptionRepository;
   @Inject ServiceRepository serviceRepository;
@@ -83,11 +80,6 @@ public class ServiceSubscriptionEndpoint {
   @PathParam("service_id") String serviceId;
 
   @GET
-  @ApiOperation(
-      value = "Retrieves users subscribed to the service (filtered to only the app_users)",
-      response = ServiceSub.class,
-      responseContainer = "Array"
-  )
   public Response getSubscriptions() {
     AppInstance instance = getAppInstance();
     if (instance == null) {
@@ -141,10 +133,6 @@ public class ServiceSubscriptionEndpoint {
   }
 
   @POST
-  @ApiOperation(
-      value = "Subscribes a user to the service; the user must be an app_user for the app-instance",
-      response = UserSubscription.class
-  )
   public Response subscribe(UserSubscription subscription) {
     if (subscription.getService_id() != null && !serviceId.equals(subscription.getService_id())) {
       return ResponseFactory.unprocessableEntity("service_id doesn't match URL");

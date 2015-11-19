@@ -31,9 +31,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-
 import oasis.model.authz.Scopes;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Organization;
@@ -50,7 +47,6 @@ import oasis.web.utils.ResponseFactory;
 @Produces(MediaType.APPLICATION_JSON)
 @Authenticated @OAuth
 @WithScopes(Scopes.PORTAL)
-@Api(value = "/d", description = "User directory API")
 public class UserDirectoryEndpoint {
 
   @Inject DirectoryRepository directory;
@@ -73,9 +69,6 @@ public class UserDirectoryEndpoint {
 
   @POST
   @Path("/org")
-  @ApiOperation(value = "Create an organization",
-      notes = "The returned location URL get access to the organization (retrieve, update, delete this organization)",
-      response = Organization.class)
   public Response createOrganization(@Context SecurityContext securityContext, Organization organization) {
     organization.setStatus(Organization.Status.AVAILABLE);
     organization = directory.createOrganization(organization);

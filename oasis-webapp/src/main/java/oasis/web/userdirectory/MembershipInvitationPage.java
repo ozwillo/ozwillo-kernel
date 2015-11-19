@@ -42,7 +42,6 @@ import com.google.template.soy.data.SanitizedContent;
 import com.google.template.soy.data.SoyMapData;
 import com.google.template.soy.parseinfo.SoyTemplateInfo;
 import com.ibm.icu.util.ULocale;
-import com.wordnik.swagger.annotations.Api;
 
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
@@ -75,7 +74,6 @@ import oasis.web.security.StrictReferer;
 @Path("/d/invitation/{token}")
 @Produces(MediaType.TEXT_HTML)
 @Authenticated @User
-@Api(value = "memberships", description = "Organization membership")
 public class MembershipInvitationPage {
   private static final Logger logger = LoggerFactory.getLogger(MembershipInvitationPage.class);
 

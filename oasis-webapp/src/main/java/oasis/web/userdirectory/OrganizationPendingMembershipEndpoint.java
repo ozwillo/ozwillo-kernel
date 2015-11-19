@@ -34,8 +34,6 @@ import javax.ws.rs.core.UriInfo;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.directory.OrganizationMembership;
 import oasis.model.directory.OrganizationMembershipRepository;
@@ -50,7 +48,6 @@ import oasis.web.utils.ResponseFactory;
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 @Authenticated @OAuth
-@Api(value = "pending-memberships-org", description = "Organization Pending Memberships (from the organization point of view)")
 public class OrganizationPendingMembershipEndpoint {
   @Inject OrganizationMembershipRepository organizationMembershipRepository;
   @Inject EtagService etagService;
@@ -61,11 +58,6 @@ public class OrganizationPendingMembershipEndpoint {
   @PathParam("organization_id") String organizationId;
 
   @GET
-  @ApiOperation(
-      value = "Retrieves users who are pending members of the organization",
-      response = PendingOrgMembership.class,
-      responseContainer = "Array"
-  )
   public Response getPendingMemberships(
       @QueryParam("start") int start,
       @QueryParam("limit") int limit

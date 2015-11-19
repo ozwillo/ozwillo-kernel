@@ -2,7 +2,6 @@ apply plugin: 'java'
 
 dependencies {
     compile libs.jsr305
-    compile libs.swagger_annotations
     compile libs.jackson_annotations
     compile libs.joda_time
     compile libs.jackson_joda

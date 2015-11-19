@@ -31,8 +31,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
 import com.google.common.base.Strings;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.InvalidVersionException;
 import oasis.model.applications.v2.AppInstance;
@@ -54,7 +52,6 @@ import oasis.web.utils.ResponseFactory;
 @Authenticated @OAuth
 @WithScopes(Scopes.PORTAL)
 @Produces(MediaType.APPLICATION_JSON)
-@Api(value = "subs", description = "User-Service subscription")
 public class SubscriptionEndpoint {
   @Inject UserSubscriptionRepository userSubscriptionRepository;
   @Inject AppInstanceRepository appInstanceRepository;
@@ -67,10 +64,6 @@ public class SubscriptionEndpoint {
   @PathParam("subscription_id") String subscriptionId;
 
   @GET
-  @ApiOperation(
-      value = "Retrieves information about a subscription",
-      response = UserSubscription.class
-  )
   public Response get() {
     UserSubscription subscription = userSubscriptionRepository.getUserSubscription(subscriptionId);
     if (subscription == null) {
@@ -95,7 +88,6 @@ public class SubscriptionEndpoint {
   }
 
   @DELETE
-  @ApiOperation("Deletes a subscription")
   public Response unsubscribe(@HeaderParam(HttpHeaders.IF_MATCH) String ifMatch) {
     if (Strings.isNullOrEmpty(ifMatch)) {
       return ResponseFactory.preconditionRequiredIfMatch();

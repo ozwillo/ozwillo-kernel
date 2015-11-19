@@ -20,35 +20,25 @@ package oasis.web.authz;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.wordnik.swagger.annotations.ApiModelProperty;
 
 class IntrospectionResponse {
   @JsonProperty
-  @ApiModelProperty
   private boolean active;
   @JsonProperty
-  @ApiModelProperty
   private Long exp;
   @JsonProperty
-  @ApiModelProperty
   private Long iat;
   @JsonProperty
-  @ApiModelProperty
   private String scope;
   @JsonProperty
-  @ApiModelProperty
   private String client_id;
   @JsonProperty
-  @ApiModelProperty
   private String sub;
   @JsonProperty
-  @ApiModelProperty
   private String aud;
   @JsonProperty
-  @ApiModelProperty
   private String token_type;
   @JsonProperty
-  @ApiModelProperty
   private List<String> sub_groups;
 
   public boolean isActive() {

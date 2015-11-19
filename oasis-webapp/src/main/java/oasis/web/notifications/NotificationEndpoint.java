@@ -36,9 +36,8 @@ import javax.ws.rs.core.SecurityContext;
 
 import org.joda.time.Instant;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Lists;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.ServiceRepository;
@@ -54,7 +53,6 @@ import oasis.web.authn.OAuthPrincipal;
 import oasis.web.utils.ResponseFactory;
 
 @Path("/n")
-@Api(value = "/n", description = "Notification API")
 @Authenticated
 public class NotificationEndpoint {
 
@@ -67,7 +65,6 @@ public class NotificationEndpoint {
   @Path("/publish")
   @Consumes(MediaType.APPLICATION_JSON)
   @Client
-  @ApiOperation(value = "Publish a notification targeted to some users")
   public Response publish(IncomingNotification incomingNotification) {
     String clientId = ((ClientPrincipal) securityContext.getUserPrincipal()).getClientId();
 
@@ -103,9 +100,6 @@ public class NotificationEndpoint {
   @Path("/{userId}/messages")
   @Produces(MediaType.APPLICATION_JSON)
   @OAuth
-  @ApiOperation(value = "Get all unread notifications for a defined user and a filter.",
-      response = Notification.class,
-      responseContainer = "Array")
   public Response get(
       @PathParam("userId") String userId,
       @QueryParam("instance") String instanceId,
@@ -146,7 +140,6 @@ public class NotificationEndpoint {
   @Path("/{userId}/messages")
   @Consumes(MediaType.APPLICATION_JSON)
   @OAuth
-  @ApiOperation(value = "Change status (read, unread) of notifications for a user.")
   public Response post(
       @PathParam("userId") String userId,
       Mark mark
@@ -158,5 +151,12 @@ public class NotificationEndpoint {
 
     notificationRepository.markNotifications(userId, Lists.newArrayList(mark.message_ids), mark.status);
     return ResponseFactory.NO_CONTENT;
+  }
+
+  static class Mark {
+
+    @JsonProperty String[] message_ids;
+
+    @JsonProperty Notification.Status status;
   }
 }

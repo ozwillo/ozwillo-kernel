@@ -33,8 +33,6 @@ import javax.ws.rs.core.SecurityContext;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Strings;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.InvalidVersionException;
 import oasis.model.applications.v2.AccessControlEntry;
@@ -55,7 +53,6 @@ import oasis.web.utils.ResponseFactory;
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 @Authenticated @OAuth
-@Api(value = "acl-ace", description = "Access Control Entry")
 public class AccessControlEntryEndpoint {
   @Inject AccessControlRepository accessControlRepository;
   @Inject AppInstanceRepository appInstanceRepository;
@@ -67,10 +64,6 @@ public class AccessControlEntryEndpoint {
   @PathParam("ace_id") String ace_id;
 
   @GET
-  @ApiOperation(
-      value = "Retrieves an ACE",
-      response = AccessControlEntry.class
-  )
   public Response get() {
     final AccessControlEntry ace = accessControlRepository.getAccessControlEntry(ace_id);
     if (ace == null) {
@@ -107,7 +100,6 @@ public class AccessControlEntryEndpoint {
   }
 
   @DELETE
-  @ApiOperation("Deletes an ACE")
   @WithScopes(Scopes.PORTAL)
   public Response revoke(@HeaderParam(HttpHeaders.IF_MATCH) String ifMatch) {
     if (Strings.isNullOrEmpty(ifMatch)) {

@@ -31,8 +31,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
 import com.google.common.base.Strings;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.InvalidVersionException;
 import oasis.model.authn.TokenRepository;
@@ -48,7 +46,6 @@ import oasis.web.utils.ResponseFactory;
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 @Authenticated @OAuth
-@Api(value = "pending memberships", description = "Pending organization membership")
 public class PendingMembershipEndpoint {
   @PathParam("membership_id") String membershipId;
 
@@ -59,7 +56,6 @@ public class PendingMembershipEndpoint {
   @Context SecurityContext securityContext;
 
   @DELETE
-  @ApiOperation("Deletes a pending membership")
   public Response deletePendingMembership(@HeaderParam(HttpHeaders.IF_MATCH) String ifMatch) {
     if (Strings.isNullOrEmpty(ifMatch)) {
       return ResponseFactory.preconditionRequiredIfMatch();

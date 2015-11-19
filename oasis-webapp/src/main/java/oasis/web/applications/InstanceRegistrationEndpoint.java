@@ -49,8 +49,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.template.soy.data.SanitizedContent;
 import com.ibm.icu.util.ULocale;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstance.NeededScope;
@@ -82,7 +80,6 @@ import oasis.web.utils.ResponseFactory;
 
 @Path("/apps/pending-instance/{instance_id}")
 @Authenticated @Client
-@Api(value = "instance-registration", description = "Application Factories' callback")
 public class InstanceRegistrationEndpoint {
   private static final Logger logger = LoggerFactory.getLogger(InstanceRegistrationEndpoint.class);
 
@@ -105,10 +102,6 @@ public class InstanceRegistrationEndpoint {
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  @ApiOperation(
-      value = "Acknowledges the provisioning of an instance",
-      notes = "See the <a href='https://docs.google.com/document/d/1V0lmEPTVl_UH7Dl-6AsiedALviJvjHW7RGw5jYg0Ah8/edit?usp=sharing'>Application Provisioning Protocol</a>"
-  )
   public Response instantiated(
       @Context UriInfo uriInfo,
       AcknowledgementRequest acknowledgementRequest) {
@@ -225,10 +218,6 @@ public class InstanceRegistrationEndpoint {
   }
 
   @DELETE
-  @ApiOperation(
-      value = "Notifies an error while provisioning the instance",
-      notes = "See the <a href='https://docs.google.com/document/d/1V0lmEPTVl_UH7Dl-6AsiedALviJvjHW7RGw5jYg0Ah8/edit?usp=sharing'>Application Provisioning Protocol</a>"
-  )
   public Response errorInstantiating() {
     if (!((ClientPrincipal) securityContext.getUserPrincipal()).getClientId().equals(instanceId)) {
       return Response.status(Response.Status.FORBIDDEN).build();

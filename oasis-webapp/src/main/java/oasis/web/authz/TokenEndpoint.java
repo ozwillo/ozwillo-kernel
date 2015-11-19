@@ -63,8 +63,6 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.auditlog.AuditLogEvent;
 import oasis.auditlog.AuditLogService;
@@ -93,7 +91,6 @@ import oasis.web.resteasy.Resteasy1099;
 
 @Path("/a/token")
 @Authenticated @Client
-@Api(value = "/a/token", description = "Token Endpoint.")
 public class TokenEndpoint {
   private static final Logger logger = LoggerFactory.getLogger(TokenEndpoint.class);
   private static final Joiner SCOPE_JOINER = Joiner.on(' ').skipNulls();
@@ -122,11 +119,6 @@ public class TokenEndpoint {
   @POST
   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
   @Produces(MediaType.APPLICATION_JSON)
-  @ApiOperation(
-      value = "Exchange an authorization code or a refresh token for an access token.",
-      notes = "See the <a href=\"http://tools.ietf.org/html/rfc6749#section-3.2\">OAuth 2.0 RFC</a> and " +
-          "<a href=\"http://openid.net/specs/openid-connect-basic-1_0.html#ObtainingTokens\">OpenID Connect RFC</a> for more information."
-  )
   public Response validate(MultivaluedMap<String, String> params) throws JoseException {
     this.params = params;
 

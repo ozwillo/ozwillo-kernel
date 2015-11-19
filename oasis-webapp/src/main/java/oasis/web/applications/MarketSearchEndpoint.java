@@ -45,8 +45,6 @@ import com.google.common.base.Strings;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
 import com.ibm.icu.util.ULocale;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
@@ -58,7 +56,6 @@ import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
 
 @Path("/m/search")
-@Api(value = "market-search", description = "Searches the market catalog")
 @OAuth
 @Produces(MediaType.APPLICATION_JSON)
 public class MarketSearchEndpoint {
@@ -68,11 +65,6 @@ public class MarketSearchEndpoint {
   @Context SecurityContext context;
 
   @GET
-  @ApiOperation(
-      value = "Searches the market catalog",
-      response = CatalogEntry.class,
-      responseContainer = "Array"
-  )
   public Response get(
       @Nullable @QueryParam("hl") ULocale locale,
       @DefaultValue("0") @QueryParam("start") int start,

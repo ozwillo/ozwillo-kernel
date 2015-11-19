@@ -22,15 +22,12 @@ dependencies {
   compile libs.resteasy_client
   compile libs.okhttp
   compile libs.closure_templates
-  compile libs.swagger_jaxrs
 
   compileOnly libs.immutables
   apt         libs.immutables
 
   compile libs.slf4j
   runtime libs.log4j_runtime
-
-  runtime libs.swagger_ui
 
   testCompile libs.junit
   testCompile libs.mockito

@@ -39,7 +39,6 @@ public class SoyGuiceModule extends AbstractModule {
   @Provides @Singleton SoyTofu provideSoyTofu(SoyFileSet.Builder builder) {
     return builder
         .add(getClass().getResource("/templates/Common.soy"))
-        .add(getClass().getResource("/templates/SwaggerUI.soy"))
         .add(getClass().getResource("/templates/Login.soy"))
         .add(getClass().getResource("/templates/Recover.soy"))
         .add(getClass().getResource("/templates/Logout.soy"))

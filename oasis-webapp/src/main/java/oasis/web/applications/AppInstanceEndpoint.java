@@ -42,8 +42,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstanceRepository;
@@ -56,7 +54,6 @@ import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Organization;
 import oasis.services.authz.AppAdminHelper;
 import oasis.services.etag.EtagService;
-import oasis.urls.Urls;
 import oasis.usecases.ChangeAppInstanceStatus;
 import oasis.usecases.DeleteAppInstance;
 import oasis.usecases.ImmutableChangeAppInstanceStatus;
@@ -73,7 +70,6 @@ import oasis.web.utils.ResponseFactory;
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 @Authenticated @OAuth
-@Api(value = "app-instances", description = "Application instances")
 public class AppInstanceEndpoint {
   @Inject AppInstanceRepository appInstanceRepository;
   @Inject DirectoryRepository directoryRepository;
@@ -90,10 +86,6 @@ public class AppInstanceEndpoint {
   String instanceId;
 
   @GET
-  @ApiOperation(
-      value = "Retrieve information on an application instance",
-      response = AppInstance.class
-  )
   public Response getAppInstance() {
     AppInstance instance = appInstanceRepository.getAppInstance(instanceId);
     if (instance == null) {
@@ -121,12 +113,6 @@ public class AppInstanceEndpoint {
   }
 
   @GET
-  @Path("/services")
-  @ApiOperation(
-      value = "Retrieve the services of the application instance",
-      response = Service.class,
-      responseContainer = "Array"
-  )
   public Response getServices() {
     AppInstance instance = appInstanceRepository.getAppInstance(instanceId);
     if (instance == null) {
@@ -158,10 +144,6 @@ public class AppInstanceEndpoint {
 
   @POST
   @Path("/services")
-  @ApiOperation(
-      value = "Adds a new service to the application instance",
-      response = Service.class
-  )
   public Response addService(@Context UriInfo uriInfo, Service service) {
     AppInstance instance = appInstanceRepository.getAppInstance(instanceId);
     if (instance == null) {
@@ -203,7 +185,6 @@ public class AppInstanceEndpoint {
   }
 
   @POST
-  @ApiOperation("Change the status of the application instance")
   @WithScopes(Scopes.PORTAL)
   public Response changeStatus(
       @HeaderParam(HttpHeaders.IF_MATCH) String ifMatch,
@@ -257,7 +238,6 @@ public class AppInstanceEndpoint {
   }
 
   @DELETE
-  @ApiOperation("Deletes a pending instance")
   @WithScopes(Scopes.PORTAL)
   public Response deleteInstance(
       @HeaderParam(HttpHeaders.IF_MATCH) String ifMatch

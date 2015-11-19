@@ -56,8 +56,6 @@ import com.google.common.collect.Sets;
 import com.google.template.soy.data.SoyListData;
 import com.google.template.soy.data.SoyMapData;
 import com.ibm.icu.util.ULocale;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
 
 import oasis.auth.AuthModule;
 import oasis.auth.RedirectUri;
@@ -96,7 +94,6 @@ import oasis.web.security.StrictReferer;
 @Path("/a/auth")
 @User
 @Produces(MediaType.TEXT_HTML)
-@Api(value = "/a/auth", description = "Authorization Endpoint.")
 public class AuthorizationEndpoint {
   private static final String APPROVE_PATH = "/approve";
 
@@ -141,22 +138,12 @@ public class AuthorizationEndpoint {
   private RedirectUri redirectUri;
 
   @GET
-  @ApiOperation(
-      value = "Grant authorizations to the client application.",
-      notes = "See the <a href=\"http://tools.ietf.org/html/rfc6749#section-3.1\">OAuth 2.0 RFC</a> and " +
-          "<a href=\"http://openid.net/specs/openid-connect-basic-1_0.html#AuthorizationRequest\">OpenID Connect RFC</a> for more information."
-  )
   public Response get(@Context UriInfo uriInfo) {
     return post(uriInfo, uriInfo.getQueryParameters());
   }
 
   @POST
   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-  @ApiOperation(
-      value = "Grant authorizations to the client application.",
-      notes = "See the <a href=\"http://tools.ietf.org/html/rfc6749#section-3.1\">OAuth 2.0 RFC</a> and " +
-          "<a href=\"http://openid.net/specs/openid-connect-basic-1_0.html#AuthorizationRequest\">OpenID Connect RFC</a> for more information."
-  )
   public Response post(@Context UriInfo uriInfo, MultivaluedMap<String, String> params) {
     this.params = params;
 
