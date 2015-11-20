@@ -189,7 +189,7 @@ public class OrganizationMembershipEndpoint {
       notifyAdminsForNewMembershipInvitation(request.email, organization, requester);
     } catch (Exception e) {
       // Don't fail if we can't notify
-      logger.error("Error notifying organization admins after the requester {} invited a user");
+      logger.error("Error notifying organization admins after the requester {} invited a user", requester, e);
     }
 
     return Response.created(Resteasy1099.getBaseUriBuilder(uriInfo).path(MembershipEndpoint.class).build(membership.getId()))
