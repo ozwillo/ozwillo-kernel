@@ -22,6 +22,7 @@ import static com.google.common.base.Preconditions.*;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
+import org.joda.time.Instant;
 import org.jongo.Jongo;
 import org.jongo.MongoCollection;
 import org.slf4j.Logger;
@@ -64,7 +65,7 @@ public class JongoOrganizationMembershipRepository implements OrganizationMember
     checkArgument(Strings.isNullOrEmpty(membership.getEmail()));
 
     JongoOrganizationMembership member = new JongoOrganizationMembership(membership);
-    member.initCreated();
+    member.setCreated(Instant.now());
     try {
       getOrganizationMembershipsCollection().insert(member);
     } catch (DuplicateKeyException e) {
@@ -81,7 +82,7 @@ public class JongoOrganizationMembershipRepository implements OrganizationMember
     checkArgument(Strings.isNullOrEmpty(membership.getAccountId()));
 
     JongoOrganizationMembership member = new JongoOrganizationMembership(membership);
-    member.initCreated();
+    member.setCreated(Instant.now());
     try {
       getOrganizationMembershipsCollection().insert(member);
     } catch (DuplicateKeyException e) {

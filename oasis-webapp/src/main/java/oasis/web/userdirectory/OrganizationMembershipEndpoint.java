@@ -162,7 +162,6 @@ public class OrganizationMembershipEndpoint {
     membership.setEmail(request.email);
     membership.setAdmin(false);
     membership.setStatus(OrganizationMembership.Status.PENDING);
-    membership.setCreated(Instant.now());
     membership.setCreator_id(requesterId);
     membership = organizationMembershipRepository.createPendingOrganizationMembership(membership);
 
