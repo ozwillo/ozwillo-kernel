@@ -113,6 +113,7 @@ public class AppInstanceEndpoint {
   }
 
   @GET
+  @Path("/services")
   public Response getServices() {
     AppInstance instance = appInstanceRepository.getAppInstance(instanceId);
     if (instance == null) {
