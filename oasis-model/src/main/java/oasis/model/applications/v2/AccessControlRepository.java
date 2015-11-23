@@ -24,11 +24,21 @@ public interface AccessControlRepository {
 
   AccessControlEntry getAccessControlEntry(String id);
 
+  AccessControlEntry getPendingAccessControlEntry(String id);
+
   AccessControlEntry getAccessControlEntry(String instanceId, String userId);
+
+  AccessControlEntry acceptPendingAccessControlEntry(String aceId, String userId);
 
   boolean deleteAccessControlEntry(String id, long[] versions) throws InvalidVersionException;
 
+  boolean deletePendingAccessControlEntry(String id);
+
+  boolean deletePendingAccessControlEntry(String id, long[] versions) throws InvalidVersionException;
+
   Iterable<AccessControlEntry> getAccessControlListForAppInstance(String instanceId);
+
+  Iterable<AccessControlEntry> getPendingAccessControlListForAppInstance(String instanceId);
 
   int deleteAccessControlListForAppInstance(String instanceId);
 }

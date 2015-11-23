@@ -1,0 +1,51 @@
+/**
+ * Ozwillo Kernel
+ * Copyright (C) 2015  Atol Conseils & Développements
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+{namespace oasis.mail autoescape="strict"}
+
+/**
+ * New app-instance invitation email subject.
+ */
+{template .newAppInstanceInvitationSubject kind="text"}
+{@param requesterName:    string} /** Requester name. */
+{@param appInstanceName: string}  /** App-instance name. */
+
+{msg desc="App-instance invitation email subject"}
+{$requesterName} has invited you to use the {$appInstanceName} application
+{/msg}
+{/template}
+
+/**
+ * New app-instance invitation email body.
+ */
+{template .newAppInstanceInvitationBody}
+{@param requesterName:            string} /** Requester name. */
+{@param appInstanceName:          string} /** App-instance name. */
+{@param appInstanceInvitationUrl: string} /** Link to the app-instance invitation page. */
+
+<!DOCTYPE html>
+<html>
+<body>
+{msg desc="App-instance invitation email body"}
+  <p>{$requesterName} has invited you to use the {$appInstanceName} application.
+  <p>To accept or reject the invitation, follow this link: <a href="{$appInstanceInvitationUrl}">{$appInstanceInvitationUrl}</a>.
+  <p>If you were not expecting this invitation, you can ignore this email.
+  <p>The Ozwillo team
+{/msg}
+</body>
+</html>
+{/template}

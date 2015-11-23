@@ -35,6 +35,7 @@ import com.google.common.io.BaseEncoding;
 import oasis.auth.AuthModule;
 import oasis.model.authn.AccessToken;
 import oasis.model.authn.AccountActivationToken;
+import oasis.model.authn.AppInstanceInvitationToken;
 import oasis.model.authn.AuthorizationCode;
 import oasis.model.authn.ChangePasswordToken;
 import oasis.model.authn.MembershipInvitationToken;
@@ -240,6 +241,22 @@ public class TokenHandler {
 
     MembershipInvitationToken invitationToken = new MembershipInvitationToken();
     invitationToken.setOrganizationMembershipId(organizationMembershipId);
+    invitationToken.expiresIn(userDirectorySettings.invitationTokenDuration());
+
+    secureToken(invitationToken, pass);
+
+    if (!tokenRepository.registerToken(invitationToken)) {
+      return null;
+    }
+
+    return invitationToken;
+  }
+
+  public AppInstanceInvitationToken createAppInstanceInvitationToken(String aceId, String pass) {
+    checkArgument(!Strings.isNullOrEmpty(aceId));
+
+    AppInstanceInvitationToken invitationToken = new AppInstanceInvitationToken();
+    invitationToken.setAceId(aceId);
     invitationToken.expiresIn(userDirectorySettings.invitationTokenDuration());
 
     secureToken(invitationToken, pass);

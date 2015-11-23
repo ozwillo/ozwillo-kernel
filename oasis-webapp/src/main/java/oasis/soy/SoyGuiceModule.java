@@ -45,9 +45,11 @@ public class SoyGuiceModule extends AbstractModule {
         .add(getClass().getResource("/templates/Authorize.soy"))
         .add(getClass().getResource("/templates/ChangePassword.soy"))
         .add(getClass().getResource("/templates/OrgMembershipInvitation.soy"))
+        .add(getClass().getResource("/templates/AppInstanceInvitation.soy"))
         .add(getClass().getResource("/templates/mail/SignUp.soy"))
         .add(getClass().getResource("/templates/mail/RecoverMail.soy"))
         .add(getClass().getResource("/templates/mail/OrgMembershipInvitationMail.soy"))
+        .add(getClass().getResource("/templates/mail/AppInstanceInvitationMail.soy"))
         .add(getClass().getResource("/templates/notification/AppProvisioning.soy"))
         .add(getClass().getResource("/templates/notification/DeletedOrganizationMembership.soy"))
         .add(getClass().getResource("/templates/notification/ChangedAppInstanceStatus.soy"))
@@ -55,6 +57,7 @@ public class SoyGuiceModule extends AbstractModule {
         .add(getClass().getResource("/templates/notification/DeletedAppInstance.soy"))
         .add(getClass().getResource("/templates/notification/DeletedOrganization.soy"))
         .add(getClass().getResource("/templates/notification/OrgMembershipInvitationNotification.soy"))
+        .add(getClass().getResource("/templates/notification/AppInstanceInvitationNotification.soy"))
         .build()
         .compileToTofu();
   }

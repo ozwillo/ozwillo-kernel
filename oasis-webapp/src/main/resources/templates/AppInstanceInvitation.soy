@@ -1,0 +1,90 @@
+/**
+ * Ozwillo Kernel
+ * Copyright (C) 2015  Atol Conseils & Développements
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+{namespace oasis autoescape="strict"}
+
+/**
+ * App-instance invitation page.
+ */
+{template .appInstanceInvitation}
+{@param  requesterName:    string} /** Requester name. */
+{@param  appInstanceName:  string} /** App-instance name. */
+{@param  acceptFormAction: string} /** URL to post the accept form to. */
+{@param  refuseFormAction: string} /** URL to post the refuse form to. */
+
+{call .header}
+  {param title kind="text"}{msg desc="app-instance invitation page"}Accept or refuse application invitation{/msg}{/param}
+{/call}
+
+<style>{literal}
+main { text-align: center; }
+h1 { font-weight: lighter; font-size: 1.8em; }
+button {
+  background: #6e418e; color: white;
+  margin: 5px 1em;
+  padding: .5em 2em;
+  border: 1px solid #6e418e;
+  border-radius: 10px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+form {
+  display: inline-block;
+}
+{/literal}</style>
+
+{let $requesterNameBold kind="html"}
+  <b>{$requesterName}</b>
+{/let}
+{let $appInstanceNameBold kind="html"}
+  <b>{$appInstanceName}</b>
+{/let}
+<h1>{msg desc="app-instance invitation description"}{$requesterNameBold} has invited you to join the {$appInstanceNameBold} application.{/msg}</h1>
+<div>
+  <form method="POST" action="{$acceptFormAction}">
+    <button type="submit">{msg desc="Accept app-instance invitation form submit button"}Accept{/msg}</button>
+  </form>
+  <form method="POST" action="{$refuseFormAction}">
+    <button type="submit">{msg desc="Reject app-instance invitation form submit button"}Reject{/msg}</button>
+  </form>
+</div>
+
+{call .footer /}
+{/template}
+
+
+/**
+ * App-instance invitation page token error.
+ */
+{template .appInstanceInvitationTokenError}
+
+{call .header}
+  {param title kind="text"}{msg desc="app-instance invitation page error"}Expired invitation{/msg}{/param}
+{/call}
+
+<style>{literal}
+main { text-align: center; }
+h1 { font-weight: lighter; font-size: 1.8em; }
+{/literal}</style>
+
+<h1>{msg desc="app-instance invitation error title"}Your invitation is expired{/msg}</h1>
+
+<p>{msg desc="app-instance invitation error description"}Please contact an administrator of the application related to the invitation.{/msg}</p>
+
+{call .footer /}
+{/template}

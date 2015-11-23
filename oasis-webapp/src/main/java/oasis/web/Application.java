@@ -24,11 +24,14 @@ import com.google.common.collect.ImmutableSet;
 import oasis.web.applications.AccessControlEntryEndpoint;
 import oasis.web.applications.AppInstanceAccessControlEndpoint;
 import oasis.web.applications.AppInstanceEndpoint;
+import oasis.web.applications.AppInstanceInvitationPage;
+import oasis.web.applications.AppInstancePendingAccessControlEndpoint;
 import oasis.web.applications.ApplicationEndpoint;
 import oasis.web.applications.InstanceRegistrationEndpoint;
 import oasis.web.applications.MarketBuyEndpoint;
 import oasis.web.applications.MarketSearchEndpoint;
 import oasis.web.applications.OrganizationAppInstanceEndpoint;
+import oasis.web.applications.PendingAccessControlEntryEndpoint;
 import oasis.web.applications.ServiceEndpoint;
 import oasis.web.applications.ServiceSubscriptionEndpoint;
 import oasis.web.applications.SubscriptionEndpoint;
@@ -145,7 +148,10 @@ public class Application extends javax.ws.rs.core.Application {
         AppInstanceAccessControlEndpoint.class,
         MembershipInvitationPage.class,
         OrganizationPendingMembershipEndpoint.class,
-        PendingMembershipEndpoint.class
+        PendingMembershipEndpoint.class,
+        AppInstanceInvitationPage.class,
+        AppInstancePendingAccessControlEndpoint.class,
+        PendingAccessControlEntryEndpoint.class
         );
   }
 }

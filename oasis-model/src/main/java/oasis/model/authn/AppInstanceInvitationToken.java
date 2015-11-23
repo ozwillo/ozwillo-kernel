@@ -17,30 +17,17 @@
  */
 package oasis.model.authn;
 
-import java.util.Collection;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-public interface TokenRepository {
-  Token getToken(String tokenId);
+public class AppInstanceInvitationToken extends Token {
+  @JsonProperty
+  private String aceId;
 
-  boolean registerToken(Token token);
+  public String getAceId() {
+    return aceId;
+  }
 
-  boolean revokeToken(String tokenId);
-
-  boolean renewToken(String tokenId);
-
-  boolean reAuthSidToken(String tokenId);
-
-  int revokeTokensForAccount(String accountId);
-
-  int revokeTokensForAccountAndTokenType(String accountId, Class<? extends Token> tokenType);
-
-  int revokeTokensForClient(String clientId);
-
-  int revokeTokensForScopes(Collection<String> scopeIds);
-
-  int revokeInvitationTokensForOrganizationMembership(String organizationMembershipId);
-
-  int revokeInvitationTokensForAppInstance(String aceId);
-
-  Collection<String> getAllClientsForSession(String sidTokenId);
+  public void setAceId(String aceId) {
+    this.aceId = aceId;
+  }
 }

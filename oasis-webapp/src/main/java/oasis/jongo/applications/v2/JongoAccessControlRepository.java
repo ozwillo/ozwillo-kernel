@@ -19,6 +19,7 @@ package oasis.jongo.applications.v2;
 
 import javax.inject.Inject;
 
+import org.joda.time.Instant;
 import org.jongo.Jongo;
 import org.jongo.MongoCollection;
 import org.slf4j.Logger;
@@ -28,6 +29,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.primitives.Longs;
 import com.mongodb.DuplicateKeyException;
+import com.mongodb.MongoCommandException;
 
 import oasis.jongo.JongoBootstrapper;
 import oasis.model.InvalidVersionException;
@@ -50,40 +52,99 @@ public class JongoAccessControlRepository implements AccessControlRepository, Jo
   @Override
   public AccessControlEntry createAccessControlEntry(AccessControlEntry ace) {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(ace.getInstance_id()));
-    Preconditions.checkArgument(!Strings.isNullOrEmpty(ace.getUser_id()));
+    Preconditions.checkArgument((
+        Strings.isNullOrEmpty(ace.getUser_id())
+            && ace.getStatus() == AccessControlEntry.Status.ACCEPTED
+            && Strings.isNullOrEmpty(ace.getEmail())
+        ) || (
+        Strings.isNullOrEmpty(ace.getEmail())
+            && ace.getStatus() == AccessControlEntry.Status.PENDING
+            && Strings.isNullOrEmpty(ace.getUser_id())));
 
-    ace = new JongoAccessControlEntry(ace);
+    JongoAccessControlEntry entry = new JongoAccessControlEntry(ace);
+    entry.setCreated(Instant.now());
     try {
       getAccessControlEntriesCollection()
-          .insert(ace);
+          .insert(entry);
     } catch (DuplicateKeyException dke) {
       return null;
     }
-    return ace;
+    return entry;
   }
 
   @Override
   public AccessControlEntry getAccessControlEntry(String id) {
     return getAccessControlEntriesCollection()
-        .findOne("{ id: # }", id)
+        .findOne("{ id: #, $or: [ { status: { $exists: 0 } }, { status: # } ] }", id, AccessControlEntry.Status.ACCEPTED)
+        .as(JongoAccessControlEntry.class);
+  }
+
+  @Override
+  public AccessControlEntry getPendingAccessControlEntry(String id) {
+    return getAccessControlEntriesCollection()
+        .findOne("{ id: #, status: # }", id, AccessControlEntry.Status.PENDING)
         .as(JongoAccessControlEntry.class);
   }
 
   @Override
   public AccessControlEntry getAccessControlEntry(String instanceId, String userId) {
     return getAccessControlEntriesCollection()
-        .findOne("{ instance_id: #, user_id: # }", instanceId, userId)
+        .findOne("{ instance_id: #, user_id: #, $or: [ { status: { $exists: 0 } }, { status: # } ] }",
+            instanceId, userId, AccessControlEntry.Status.ACCEPTED)
+        .as(JongoAccessControlEntry.class);
+  }
+
+  @Override
+  public AccessControlEntry acceptPendingAccessControlEntry(String aceId, String userId) {
+    Preconditions.checkArgument(!Strings.isNullOrEmpty(aceId));
+    Preconditions.checkArgument(!Strings.isNullOrEmpty(userId));
+
+    return getAccessControlEntriesCollection()
+        .findAndModify("{ id: #, status: # }", aceId, AccessControlEntry.Status.PENDING)
+        .returnNew()
+        .with("{ $set: { status: #, user_id: #, accepted: # }, $unset: { email: '' } }",
+            AccessControlEntry.Status.ACCEPTED, userId, System.currentTimeMillis())
         .as(JongoAccessControlEntry.class);
   }
 
   @Override
   public boolean deleteAccessControlEntry(String id, long[] versions) throws InvalidVersionException {
     int n = getAccessControlEntriesCollection()
-        .remove("{ id: #, modified: { $in: # } }", id, Longs.asList(versions))
+        .remove("{ id: #, $or: [ { status: { $exists: 0 } }, { status: # } ], modified: { $in: # } }",
+            id, AccessControlEntry.Status.ACCEPTED, Longs.asList(versions))
         .getN();
 
     if (n == 0) {
-      if (getAccessControlEntriesCollection().count("{ id: # }", id) != 0) {
+      if (getAccessControlEntriesCollection().count("{ id: #, $or: [ { status: { $exists: 0 } }, { status: # } ] }",
+          id, AccessControlEntry.Status.ACCEPTED) != 0) {
+        throw new InvalidVersionException("ace", id);
+      }
+      return false;
+    }
+
+    if (n > 1) {
+      logger.error("Deleted {} access control entries with ID {}, that shouldn't have happened", n, id);
+    }
+    return true;
+  }
+
+  @Override
+  public boolean deletePendingAccessControlEntry(String id) {
+    int n = getAccessControlEntriesCollection()
+        .remove("{ id: #, status: # }", id, AccessControlEntry.Status.PENDING)
+        .getN();
+    return n > 0;
+  }
+
+  @Override
+  public boolean deletePendingAccessControlEntry(String id, long[] versions) throws InvalidVersionException {
+    int n = getAccessControlEntriesCollection()
+        .remove("{ id: #, status: #, modified: { $in: # } }",
+            id, AccessControlEntry.Status.PENDING, Longs.asList(versions))
+        .getN();
+
+    if (n == 0) {
+      if (getAccessControlEntriesCollection().count("{ id: #, status: # }", id, AccessControlEntry.Status.PENDING) != 0) {
         throw new InvalidVersionException("ace", id);
       }
       return false;
@@ -99,7 +160,15 @@ public class JongoAccessControlRepository implements AccessControlRepository, Jo
   @SuppressWarnings("unchecked")
   public Iterable<AccessControlEntry> getAccessControlListForAppInstance(String instanceId) {
     return (Iterable<AccessControlEntry>) (Iterable<?>) getAccessControlEntriesCollection()
-        .find("{ instance_id: # }", instanceId)
+        .find("{ instance_id: #, $or: [ { status: { $exists: 0 } }, { status: # } ] }", instanceId, AccessControlEntry.Status.ACCEPTED)
+        .as(JongoAccessControlEntry.class);
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public Iterable<AccessControlEntry> getPendingAccessControlListForAppInstance(String instanceId) {
+    return (Iterable<AccessControlEntry>) (Iterable<?>) getAccessControlEntriesCollection()
+        .find("{ instance_id: #, status: # }", instanceId, AccessControlEntry.Status.PENDING)
         .as(JongoAccessControlEntry.class);
   }
 
@@ -113,7 +182,13 @@ public class JongoAccessControlRepository implements AccessControlRepository, Jo
   @Override
   public void bootstrap() {
     getAccessControlEntriesCollection().ensureIndex("{ id: 1 }", "{ unique: 1 }");
-    getAccessControlEntriesCollection().ensureIndex("{ instance_id: 1, user_id: 1 }", "{ unique: 1 }");
+    getAccessControlEntriesCollection().ensureIndex("{ instance_id: 1, user_id: 1, email: 1 }", "{ unique: 1 }");
+    try {
+      getAccessControlEntriesCollection().dropIndex("{ instance_id: 1, user_id: 1 }");
+      logger.info("Deleted previous index on instance_id+user_id (replaced by index on instance_id+user_id+email)");
+    } catch (MongoCommandException mce) {
+      // ignore
+    }
     getAccessControlEntriesCollection().ensureIndex("{ instance_id: 1 }");
   }
 }

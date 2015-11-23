@@ -152,6 +152,15 @@ public class JongoTokenRepository implements TokenRepository, JongoBootstrapper 
   }
 
   @Override
+  public int revokeInvitationTokensForAppInstance(String aceId) {
+    checkArgument(!Strings.isNullOrEmpty(aceId));
+
+    return this.getTokensCollection()
+        .remove("{ aceId: # }", aceId)
+        .getN();
+  }
+
+  @Override
   public Collection<String> getAllClientsForSession(String sidTokenId) {
     checkArgument(!Strings.isNullOrEmpty(sidTokenId));
     return getTokensCollection()

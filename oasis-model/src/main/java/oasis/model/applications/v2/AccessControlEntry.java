@@ -18,6 +18,9 @@
 package oasis.model.applications.v2;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+import org.joda.time.Instant;
 
 import oasis.model.annotations.Id;
 
@@ -25,7 +28,11 @@ public class AccessControlEntry {
   @Id
   private String id;
   private String instance_id;
-  private String user_id;
+  @Nullable private String user_id;
+  @Nullable private String email;
+  private Status status;
+  private Instant created;
+  private Instant accepted;
   private String creator_id;
 
   public AccessControlEntry() {
@@ -58,12 +65,46 @@ public class AccessControlEntry {
     this.instance_id = instance_id;
   }
 
+  @Nullable
   public String getUser_id() {
     return user_id;
   }
 
-  public void setUser_id(String user_id) {
+  public void setUser_id(@Nullable String user_id) {
     this.user_id = user_id;
+  }
+
+  @Nullable
+  public String getEmail() {
+    return email;
+  }
+
+  public void setEmail(@Nullable String email) {
+    this.email = email;
+  }
+
+  public Status getStatus() {
+    return status;
+  }
+
+  public void setStatus(Status status) {
+    this.status = status;
+  }
+
+  public Instant getCreated() {
+    return created;
+  }
+
+  public void setCreated(Instant created) {
+    this.created = created;
+  }
+
+  public Instant getAccepted() {
+    return accepted;
+  }
+
+  public void setAccepted(Instant accepted) {
+    this.accepted = accepted;
   }
 
   public String getCreator_id() {
@@ -72,5 +113,9 @@ public class AccessControlEntry {
 
   public void setCreator_id(String creator_id) {
     this.creator_id = creator_id;
+  }
+
+  public enum Status {
+    PENDING, ACCEPTED
   }
 }
