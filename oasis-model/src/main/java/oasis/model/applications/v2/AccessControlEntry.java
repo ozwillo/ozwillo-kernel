@@ -46,6 +46,10 @@ public class AccessControlEntry {
   public AccessControlEntry(@Nonnull AccessControlEntry other) {
     instance_id = other.getInstance_id();
     user_id = other.getUser_id();
+    email = other.getEmail();
+    status = other.getStatus();
+    created = other.getCreated();
+    accepted = other.getAccepted();
     creator_id = other.getCreator_id();
   }
 
