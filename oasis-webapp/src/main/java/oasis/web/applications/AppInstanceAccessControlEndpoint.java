@@ -184,7 +184,7 @@ public class AppInstanceAccessControlEndpoint {
     }
     ace.setInstance_id(instance_id);
     // TODO: check that the user exists
-    if (Strings.isNullOrEmpty(ace.getUser_id()) || Strings.isNullOrEmpty(ace.getEmail())) {
+    if (Strings.isNullOrEmpty(ace.getUser_id()) && Strings.isNullOrEmpty(ace.getEmail())) {
       return ResponseFactory.unprocessableEntity("user_id or email is missing");
     }
     if (!Strings.isNullOrEmpty(ace.getUser_id()) && !Strings.isNullOrEmpty(ace.getEmail())) {
