@@ -53,11 +53,11 @@ public class JongoAccessControlRepository implements AccessControlRepository, Jo
   public AccessControlEntry createAccessControlEntry(AccessControlEntry ace) {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(ace.getInstance_id()));
     Preconditions.checkArgument((
-        Strings.isNullOrEmpty(ace.getUser_id())
+        !Strings.isNullOrEmpty(ace.getUser_id())
             && ace.getStatus() == AccessControlEntry.Status.ACCEPTED
             && Strings.isNullOrEmpty(ace.getEmail())
         ) || (
-        Strings.isNullOrEmpty(ace.getEmail())
+        !Strings.isNullOrEmpty(ace.getEmail())
             && ace.getStatus() == AccessControlEntry.Status.PENDING
             && Strings.isNullOrEmpty(ace.getUser_id())));
 
