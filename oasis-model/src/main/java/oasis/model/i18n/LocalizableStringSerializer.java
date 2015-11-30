@@ -18,7 +18,6 @@
 package oasis.model.i18n;
 
 import java.io.IOException;
-import java.util.Locale;
 import java.util.Map;
 
 import javax.annotation.Nullable;
@@ -31,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.ContextualSerializer;
+import com.ibm.icu.util.ULocale;
 
 class LocalizableStringSerializer extends JsonSerializer<LocalizableString> implements ContextualSerializer {
   private final String propertyName;
@@ -77,7 +77,7 @@ class LocalizableStringSerializer extends JsonSerializer<LocalizableString> impl
 
   @Override
   public void serialize(LocalizableString value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException {
-    for (Map.Entry<Locale, String> entry : value.values.entrySet()) {
+    for (Map.Entry<ULocale, String> entry : value.values.entrySet()) {
       String localizedValue = entry.getValue();
 
       if (localizedValue == null || localizedValue.isEmpty()) {

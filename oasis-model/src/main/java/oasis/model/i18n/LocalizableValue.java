@@ -18,18 +18,25 @@
 package oasis.model.i18n;
 
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Locale;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.ResourceBundle;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
+
+import com.ibm.icu.util.LocaleMatcher;
+import com.ibm.icu.util.LocalePriorityList;
 import com.ibm.icu.util.ULocale;
 
+@NotThreadSafe
 public class LocalizableValue<T> {
-  private static final ResourceBundle.Control control = ResourceBundle.Control.getNoFallbackControl(ResourceBundle.Control.FORMAT_DEFAULT);
 
   protected final boolean modifiable;
-  final Map<Locale, T> values;
+  final Map<ULocale, T> values;
+
+  private @Nullable LocaleMatcher localeMatcher;
 
   public LocalizableValue(T rootValue) {
     this();
@@ -38,7 +45,7 @@ public class LocalizableValue<T> {
 
   public LocalizableValue() {
     this.modifiable = true;
-    this.values = new HashMap<>();
+    this.values = new LinkedHashMap<>();
   }
 
   public LocalizableValue(LocalizableValue<? extends T> src) {
@@ -47,27 +54,49 @@ public class LocalizableValue<T> {
 
   protected LocalizableValue(LocalizableValue<? extends T> src, boolean modifiable) {
     this.modifiable = modifiable;
-    this.values = modifiable ? new HashMap<>(src.values) : Collections.unmodifiableMap(src.values);
+    this.values = modifiable ? new LinkedHashMap<>(src.values) : Collections.unmodifiableMap(src.values);
+    this.localeMatcher = src.localeMatcher;
   }
 
   public T get(ULocale locale) {
-    for (Locale candidateLocale : control.getCandidateLocales("", ULocale.addLikelySubtags(locale).toLocale())) {
-      T value = values.get(candidateLocale);
-      if (value != null) {
-        return value;
-      }
+    if (values.isEmpty()) {
+      return null;
     }
-    return null;
+    T value = values.get(locale);
+    if (value != null) {
+      return value;
+    }
+    return values.get(ensureLocaleMatcher().getBestMatch(locale));
   }
 
   public void set(ULocale locale, T localizedValue) {
     if (!this.modifiable) {
       throw new UnsupportedOperationException();
     }
-    values.put(locale.toLocale(), localizedValue);
+    values.put(locale, localizedValue);
+    localeMatcher = null;
   }
 
   public LocalizableValue<T> unmodifiable() {
     return modifiable ? new LocalizableValue<>(this, true) : this;
+  }
+
+  @Nonnull
+  private LocaleMatcher ensureLocaleMatcher() {
+    assert !this.values.isEmpty();
+    LocaleMatcher localeMatcher = this.localeMatcher;
+    if (localeMatcher == null) {
+      Iterator<ULocale> localesIterator = values.keySet().iterator();
+      LocalePriorityList.Builder builder = LocalePriorityList.add(values.containsKey(ULocale.ROOT) ? ULocale.ROOT : localesIterator.next());
+      while (localesIterator.hasNext()) {
+        ULocale locale = localesIterator.next();
+        if (ULocale.ROOT.equals(locale)) {
+          continue; // Don't add ROOT twice, it would no longer be first
+        }
+        builder.add(locale);
+      }
+      this.localeMatcher = localeMatcher = new LocaleMatcher(builder.build());
+    }
+    return localeMatcher;
   }
 }

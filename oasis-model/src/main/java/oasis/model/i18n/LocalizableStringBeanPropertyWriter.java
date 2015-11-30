@@ -17,7 +17,6 @@
  */
 package oasis.model.i18n;
 
-import java.util.Locale;
 import java.util.Map;
 
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -25,6 +24,7 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.PropertySerializerMap;
+import com.ibm.icu.util.ULocale;
 
 public class LocalizableStringBeanPropertyWriter extends BeanPropertyWriter {
   public LocalizableStringBeanPropertyWriter(BeanPropertyWriter writer) {
@@ -67,8 +67,8 @@ public class LocalizableStringBeanPropertyWriter extends BeanPropertyWriter {
       _handleSelfReference(bean, jgen, prov, ser);
     }
 
-    for (Map.Entry<Locale, String> entry : value.values.entrySet()) {
-      Locale locale = entry.getKey();
+    for (Map.Entry<ULocale, String> entry : value.values.entrySet()) {
+      ULocale locale = entry.getKey();
       String localizedValue = entry.getValue();
 
       if (localizedValue == null || localizedValue.isEmpty()) {
@@ -76,7 +76,7 @@ public class LocalizableStringBeanPropertyWriter extends BeanPropertyWriter {
       }
 
       String key;
-      if (Locale.ROOT.equals(locale)) {
+      if (ULocale.ROOT.equals(locale)) {
         key = _name.toString();
       } else {
         key = _name + "#" + locale.toLanguageTag();

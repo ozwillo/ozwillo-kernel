@@ -85,9 +85,9 @@ public class LocalizableStringJsonSerializationTest {
     assertThat(foo).isNotNull();
     assertThat(foo.localized).isNotNull();
     assertThat(foo.localized.values).containsOnly(
-        entry(ULocale.ROOT.toLocale(), "root"),
-        entry(ULocale.FRENCH.toLocale(), "Français"),
-        entry(ULocale.ENGLISH.toLocale(), "English")
+        entry(ULocale.ROOT, "root"),
+        entry(ULocale.FRENCH, "Français"),
+        entry(ULocale.ENGLISH, "English")
     );
   }
 
@@ -131,9 +131,9 @@ public class LocalizableStringJsonSerializationTest {
     assertThat(foo).isNotNull();
     assertThat(foo.getSetterless()).isNotNull();
     assertThat(foo.getSetterless().values).containsOnly(
-        entry(ULocale.ROOT.toLocale(), "root"),
-        entry(ULocale.FRENCH.toLocale(), "Français"),
-        entry(ULocale.ENGLISH.toLocale(), "English")
+        entry(ULocale.ROOT, "root"),
+        entry(ULocale.FRENCH, "Français"),
+        entry(ULocale.ENGLISH, "English")
     );
   }
 }

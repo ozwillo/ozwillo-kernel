@@ -17,9 +17,12 @@
  */
 package oasis.model.i18n;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
+@NotThreadSafe
 @JsonSerialize(using = LocalizableStringSerializer.class)
 @JsonDeserialize(using = LocalizableStringDeserializer.class)
 public class LocalizableString extends LocalizableValue<String> {

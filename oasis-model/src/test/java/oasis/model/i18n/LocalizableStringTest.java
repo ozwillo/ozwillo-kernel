@@ -76,4 +76,40 @@ public class LocalizableStringTest {
     assertThat(sut.get(ULocale.ENGLISH)).isEqualTo("root");
     assertThat(sut.get(ULocale.UK)).isEqualTo("root");
   }
+
+  @Test
+  public void testFallbackToPossiblyMoreSpecificVariant() {
+    LocalizableString sut = new LocalizableString();
+    sut.set(ULocale.FRANCE, "Français (France)");
+    sut.set(ULocale.forLanguageTag("fr-BE"), "Français (Belgique)");
+    // XXX: insert after 'fr' to test that ROOT matches some 'en' flavor, independent of insertion order
+    sut.set(ULocale.UK, "English (UK)");
+
+    assertThat(sut.get(ULocale.FRENCH)).isEqualTo("Français (France)");
+    assertThat(sut.get(ULocale.FRANCE)).isEqualTo("Français (France)");
+    assertThat(sut.get(ULocale.forLanguageTag("fr-whatever"))).isEqualTo("Français (France)");
+    assertThat(sut.get(ULocale.forLanguageTag("fr-x-whatever"))).isEqualTo("Français (France)");
+    assertThat(sut.get(ULocale.forLanguageTag("fr-FR-whatever"))).isEqualTo("Français (France)");
+    assertThat(sut.get(ULocale.forLanguageTag("fr-FR-x-whatever"))).isEqualTo("Français (France)");
+    assertThat(sut.get(ULocale.forLanguageTag("fr-FR-whatever-x-whatever"))).isEqualTo("Français (France)");
+    assertThat(sut.get(ULocale.forLanguageTag("fr-Latn-FR"))).isEqualTo("Français (France)");
+    assertThat(sut.get(ULocale.forLanguageTag("fr-Latn-FR-whatever"))).isEqualTo("Français (France)");
+    assertThat(sut.get(ULocale.forLanguageTag("fr-Latn-FR-x-whatever"))).isEqualTo("Français (France)");
+    assertThat(sut.get(ULocale.forLanguageTag("fr-Latn-FR-whatever-x-whatever"))).isEqualTo("Français (France)");
+
+    // XXX: insertion order matters in this case
+    assertThat(sut.get(ULocale.forLanguageTag("fr-LU"))).isEqualTo("Français (France)");
+
+    assertThat(sut.get(ULocale.forLanguageTag("fr-BE-whatever"))).isEqualTo("Français (Belgique)");
+    assertThat(sut.get(ULocale.forLanguageTag("fr-BE-x-whatever"))).isEqualTo("Français (Belgique)");
+    assertThat(sut.get(ULocale.forLanguageTag("fr-BE-whatever-x-whatever"))).isEqualTo("Français (Belgique)");
+    assertThat(sut.get(ULocale.forLanguageTag("fr-Latn-BE"))).isEqualTo("Français (Belgique)");
+    assertThat(sut.get(ULocale.forLanguageTag("fr-Latn-BE-whatever"))).isEqualTo("Français (Belgique)");
+    assertThat(sut.get(ULocale.forLanguageTag("fr-Latn-BE-x-whatever"))).isEqualTo("Français (Belgique)");
+    assertThat(sut.get(ULocale.forLanguageTag("fr-Latn-BE-whatever-x-whatever"))).isEqualTo("Français (Belgique)");
+
+    assertThat(sut.get(ULocale.ROOT)).isEqualTo("English (UK)");
+    assertThat(sut.get(ULocale.ENGLISH)).isEqualTo("English (UK)");
+    assertThat(sut.get(ULocale.US)).isEqualTo("English (UK)");
+  }
 }
