@@ -17,13 +17,8 @@
  */
 package oasis.model.i18n;
 
-import java.util.Collections;
-import java.util.Locale;
-import java.util.Map;
-
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.ibm.icu.util.ULocale;
 
 @JsonSerialize(using = LocalizableStringSerializer.class)
 @JsonDeserialize(using = LocalizableStringDeserializer.class)
@@ -41,12 +36,12 @@ public class LocalizableString extends LocalizableValue<String> {
     super(src);
   }
 
-  private LocalizableString(Map<Locale, String> values) {
-    super(values);
+  private LocalizableString(LocalizableString src, boolean modifiable) {
+    super(src, modifiable);
   }
 
   @Override
   public LocalizableString unmodifiable() {
-    return new LocalizableString(Collections.unmodifiableMap(values));
+    return modifiable ? new LocalizableString(this, true) : this;
   }
 }

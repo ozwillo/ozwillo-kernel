@@ -28,6 +28,7 @@ import com.ibm.icu.util.ULocale;
 public class LocalizableValue<T> {
   private static final ResourceBundle.Control control = ResourceBundle.Control.getNoFallbackControl(ResourceBundle.Control.FORMAT_DEFAULT);
 
+  protected final boolean modifiable;
   final Map<Locale, T> values;
 
   public LocalizableValue(T rootValue) {
@@ -36,15 +37,17 @@ public class LocalizableValue<T> {
   }
 
   public LocalizableValue() {
-    this(new HashMap<Locale, T>());
+    this.modifiable = true;
+    this.values = new HashMap<>();
   }
 
   public LocalizableValue(LocalizableValue<? extends T> src) {
-    this(new HashMap<>(src.values));
+    this(src, src.modifiable);
   }
 
-  protected LocalizableValue(Map<Locale, T> values) {
-    this.values = values;
+  protected LocalizableValue(LocalizableValue<? extends T> src, boolean modifiable) {
+    this.modifiable = modifiable;
+    this.values = modifiable ? new HashMap<>(src.values) : Collections.unmodifiableMap(src.values);
   }
 
   public T get(ULocale locale) {
@@ -58,10 +61,13 @@ public class LocalizableValue<T> {
   }
 
   public void set(ULocale locale, T localizedValue) {
+    if (!this.modifiable) {
+      throw new UnsupportedOperationException();
+    }
     values.put(locale.toLocale(), localizedValue);
   }
 
   public LocalizableValue<T> unmodifiable() {
-    return new LocalizableValue<>(Collections.unmodifiableMap(values));
+    return modifiable ? new LocalizableValue<>(this, true) : this;
   }
 }
