@@ -54,23 +54,15 @@ main>div { line-height: 1.5em; }
 
 .btn-row { margin-top: 1.8em; text-align: center; }
 .btn-row button {
-  border: none;
-  background: transparent; color: #6e418e;
-  font-weight: bold;
+  border: 1px solid #4c2d62;
+  background: #6f438e; color: #fff;
   cursor: pointer;
+  margin: 5px 1em;
+  padding: .5em 2em;
+  display: inline-block;
 }
-.btn-row button img { vertical-align: middle; margin-right: 10px; }
 
 small { display: block; margin-top: 2em; font-size: .65em; line-height: initial; }
-
-/* IE compat: */
-aside { display: block; }
-/* Setup the aside so that it covers the bottom of the main and appears as if it was outside it. */
-aside { margin: 30px -10px -25px; } /* 30px at the top to get some space from the buttons, other margins reset main's padding. */
-aside { background: #626580; } /* Same background as the page-wrap */
-
-aside>* { text-align: center; }
-aside a { display: inline-block; padding: 5px 15px; font-weight: lighter; text-decoration: none; background: #6e418e; color: white; }
 {/literal}
 </style>
   <h1><img src="/images/ozwillo.png" alt="Ozwillo" width=200 height=55></h1>
@@ -120,7 +112,6 @@ aside a { display: inline-block; padding: 5px 15px; font-weight: lighter; text-d
         {/if}
         <div class=btn-row>
           <button>
-            <img alt="" src="/images/go.png" width=50 height=50>
             {msg desc="Form submit button"}
               Log in
             {fallbackmsg desc="Form submit button"}
@@ -154,7 +145,6 @@ aside a { display: inline-block; padding: 5px 15px; font-weight: lighter; text-d
         {/msg}</small>
         <div class=btn-row>
           <button>
-            <img alt="" src="/images/go.png" width=50 height=50>
             {msg desc="Form submit button"}
               Sign up
             {fallbackmsg desc="Form submit button"}
@@ -170,16 +160,6 @@ aside a { display: inline-block; padding: 5px 15px; font-weight: lighter; text-d
     In accordance with the EU Data Protection Directive (95/46/EC), you benefit from an access and modification right for the information concerning you, which you can exercise by contacting Pôle Numérique, 1 avenue de la gare 26958 VALENCE Cedex 9, FRANCE.<br>
     You can also, for legitimate reasons, object to the processing of your personal data.
   {/msg}</small>
-  <aside class=two-cols>
-    <span style="height: 0px;"></span>
-    <span>
-      {let $overview kind="text"}{msg desc="overview URL"}https://www.ozwillo.com/en/oz/discover{/msg}{/let}
-      <a href="{$overview}">
-        {msg desc="Overview link on sign-up page"}Overview{/msg}
-        <img alt="" src="/images/plus.png" width=35 height=36 style="vertical-align: middle; margin-left: 10px;">
-      </a>
-    </span>
-  </aside>
 {call .footer /}
 {/template}
 
@@ -206,12 +186,13 @@ h2 { margin-bottom: 2.5em; }
 
 .btn-row { margin-top: 1.8em; text-align: center; }
 .btn-row button {
-  border: none;
-  background: transparent; color: #6e418e;
-  font-weight: bold;
+  border: 1px solid #4c2d62;
+  background: #6f438e; color: #fff;
   cursor: pointer;
+  margin: 5px 1em;
+  padding: .5em 2em;
+  display: inline-block;
 }
-.btn-row button img { vertical-align: middle; margin-right: 10px; }
 {/literal}</style>
   <h1><img src="/images/ozwillo.png" alt="Ozwillo" width=200 height=55></h1>
   {if $error}
@@ -236,7 +217,6 @@ h2 { margin-bottom: 2.5em; }
 
     <div class=btn-row>
       <button>
-        <img alt="" src="/images/go.png" width=50 height=50>
         {msg desc="Form submit button"}Go!{/msg}
       </button>
     </div>

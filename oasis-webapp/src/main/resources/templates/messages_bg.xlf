@@ -332,11 +332,6 @@
         <target>Активирайте своя Ozwillo акаунт</target>
         <note priority="1" from="description">Sign-up email subject</note>
       </trans-unit>
-      <trans-unit id="6402974759009404648" datatype="html">
-        <source>https://www.ozwillo.com/en/oz/discover</source>
-        <target>https://www.ozwillo.com/bg/oz/discover</target>
-        <note priority="1" from="description">overview URL</note>
-      </trans-unit>
       <trans-unit id="6442419536401397182" datatype="html">
         <source><x id="START_PARAGRAPH"/>Congratulations <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>Your subscription to the <x id="START_LINK"/>Ozwillo portal<x id="END_LINK"/> has been validated.</source>
         <target><x id="START_PARAGRAPH"/>Поздравления, <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>Вашият абонамент за <x id="START_LINK"/>портала Ozwillo<x id="END_LINK"/> е валидиран.</target>

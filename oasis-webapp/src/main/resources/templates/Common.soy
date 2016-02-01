@@ -31,28 +31,28 @@
   <meta charset=utf-8>
   <title>Ozwillo{if $title} – {$title}{/if}</title>
   <meta name=viewport content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#6e418e">
+  <meta name="theme-color" content="#6f438e">
 <style>{literal}
 @font-face {
-  font-family: FF DIN;
-  src: url('/fonts/din-webfont.woff') format('woff'),
-       url('/fonts/din-webfont.ttf') format('truetype');
+  font-family: Roboto;
+  src: url('/fonts/Roboto-Regular-webfont.woff') format('woff'),
+       url('/fonts/Roboto-Regular-webfont.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
 }
 
 @font-face {
-  font-family: FF DIN;
-  src: url('/fonts/din_lightalternate-webfont.woff') format('woff'),
-       url('/fonts/din_lightalternate-webfont.ttf') format('truetype');
+  font-family: Roboto;
+  src: url('/fonts/Roboto-Light-webfont.woff') format('woff'),
+       url('/fonts/Roboto-Light-webfont.ttf') format('truetype');
   font-weight: lighter;
   font-style: normal;
 }
 
 @font-face {
-  font-family: FF DIN;
-  src: url('/fonts/din_bold-webfont.woff') format('woff'),
-       url('/fonts/din_bold-webfont.ttf') format('truetype');
+  font-family: Roboto;
+  src: url('/fonts/Roboto-Bold-webfont.woff') format('woff'),
+       url('/fonts/Roboto-Bold-webfont.ttf') format('truetype');
   font-weight: bold;
   font-style: normal;
 }
@@ -74,20 +74,20 @@ header > nav { max-width: 1170px; padding: 0 15px; /* values from portal's boots
 main { max-width: 700px; margin: 0 auto; border-width: 50px 15px 15px; border-style: solid }
 footer { max-width: 500px; margin: 0 auto; }
 
-html,body { background: #6e418e; color: white; }
-.page-wrap { background: #626580; }
+html,body { background: #dfcae2; color: #4f5a65; }
+.page-wrap { background: #6f438e; }
 header,main { background: white; color: #636884; }
-main { border-color: #626580; }
+main { border-color: #6f438e; }
 
 header > nav { display: flex; justify-content: space-between; }
 main { padding: 25px 10px; }
 footer { padding: 10px; }
 footer::after { display: block; content: " "; clear: both; }
 
-* { font-family: FF DIN, Arial, sans-serif; font-size: 100%; }
+* { font-family: Roboto, Arial, sans-serif; font-size: 100%; }
 
-input { border: 1px solid #626580; border-radius: 3px; padding: 7px 10px; }
-input:focus { border-color: #6e418e; color: #6e418e }
+input { border: 1px solid #6f438e; border-radius: 3px; padding: 7px 10px; }
+input:focus { border-color: #4c2d62; color: #4c2d62; }
 
 input:not([type=checkbox]) { font-weight: normal; width: 100%; max-width: 200px; }
 label { font-weight: lighter; }
@@ -108,7 +108,7 @@ label { font-weight: lighter; }
   font-size: 16px;
   min-width: 160px;
 }
-#locales-menu > li > a { display: block; padding: 5px 20px; color: #555; background: white; text-decoration: none }
+#locales-menu > li > a { display: block; padding: 5px 20px; color: #333; background: white; text-decoration: none }
 #localeselector:hover > button,
 #locales-menu:not(:hover) > li > a.selected,
 #locales-menu > li > a:hover {

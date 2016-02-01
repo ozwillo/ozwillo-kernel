@@ -341,11 +341,6 @@
         <target>Activez votre compte Ozwillo</target>
         <note priority="1" from="description">Sign-up email subject</note>
       </trans-unit>
-      <trans-unit id="6402974759009404648" datatype="html">
-        <source>https://www.ozwillo.com/en/oz/discover</source>
-        <target>https://www.ozwillo.com/fr/oz/decouvrir</target>
-        <note priority="1" from="description">overview URL</note>
-      </trans-unit>
       <trans-unit id="6773310109171539191" datatype="html">
         <source>This link has expired. Try again below.</source>
         <target>Ce lien a expiré. Essayez à nouveau ci-dessous.</target>
