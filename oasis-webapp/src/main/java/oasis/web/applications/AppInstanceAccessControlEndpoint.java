@@ -70,6 +70,7 @@ import oasis.soy.SoyTemplate;
 import oasis.soy.SoyTemplateRenderer;
 import oasis.soy.templates.AppInstanceInvitationMailSoyInfo;
 import oasis.soy.templates.AppInstanceInvitationMailSoyInfo.NewAppInstanceInvitationBodySoyTemplateInfo;
+import oasis.soy.templates.AppInstanceInvitationMailSoyInfo.NewAppInstanceInvitationSubjectSoyTemplateInfo;
 import oasis.soy.templates.AppInstanceInvitationNotificationSoyInfo;
 import oasis.soy.templates.AppInstanceInvitationNotificationSoyInfo.NewAppInstanceInvitationAdminMessageSoyTemplateInfo;
 import oasis.web.authn.Authenticated;
@@ -247,13 +248,14 @@ public class AppInstanceAccessControlEndpoint {
       AppInstanceInvitationToken appInstanceInvitationToken, String tokenPass) {
     SoyMapData data = new SoyMapData();
     // Subject data
-    data.put(AppInstanceInvitationMailSoyInfo.NewAppInstanceInvitationSubjectSoyTemplateInfo.APP_INSTANCE_NAME, appInstance.getName());
+    data.put(NewAppInstanceInvitationSubjectSoyTemplateInfo.APP_INSTANCE_NAME, appInstance.getName().get(requester.getLocale()));
+    data.put(NewAppInstanceInvitationSubjectSoyTemplateInfo.REQUESTER_NAME, requester.getDisplayName());
     // Body data
     URI uri = uriInfo.getBaseUriBuilder().path(AppInstanceInvitationPage.class)
         .path(AppInstanceInvitationPage.class, "showInvitation")
         .build(TokenSerializer.serialize(appInstanceInvitationToken, tokenPass));
     data.put(NewAppInstanceInvitationBodySoyTemplateInfo.APP_INSTANCE_INVITATION_URL, uri.toString());
-    data.put(NewAppInstanceInvitationBodySoyTemplateInfo.APP_INSTANCE_NAME, appInstance.getName());
+    data.put(NewAppInstanceInvitationBodySoyTemplateInfo.APP_INSTANCE_NAME, appInstance.getName().get(requester.getLocale()));
     data.put(NewAppInstanceInvitationBodySoyTemplateInfo.REQUESTER_NAME, requester.getDisplayName());
 
     try {
@@ -274,12 +276,12 @@ public class AppInstanceAccessControlEndpoint {
     SoyMapData data = new SoyMapData();
     data.put(NewAppInstanceInvitationAdminMessageSoyTemplateInfo.INVITED_USER_EMAIL, invitedUserEmail);
     data.put(NewAppInstanceInvitationAdminMessageSoyTemplateInfo.REQUESTER_NAME, requester.getDisplayName());
-    data.put(NewAppInstanceInvitationAdminMessageSoyTemplateInfo.APP_INSTANCE_NAME, appInstance.getName());
 
     Notification notificationPrototype = new Notification();
     notificationPrototype.setTime(Instant.now());
     notificationPrototype.setStatus(Notification.Status.UNREAD);
     for (ULocale locale : LocaleHelper.SUPPORTED_LOCALES) {
+      data.put(NewAppInstanceInvitationAdminMessageSoyTemplateInfo.APP_INSTANCE_NAME, appInstance.getName().get(locale));
       ULocale messageLocale = locale;
       if (LocaleHelper.DEFAULT_LOCALE.equals(locale)) {
         messageLocale = ULocale.ROOT;

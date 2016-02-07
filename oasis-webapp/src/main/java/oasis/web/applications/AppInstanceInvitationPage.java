@@ -230,7 +230,7 @@ public class AppInstanceInvitationPage {
             new SoyMapData(
                 AppInstanceInvitationSoyTemplateInfo.ACCEPT_FORM_ACTION, acceptFormAction.toString(),
                 AppInstanceInvitationSoyTemplateInfo.REFUSE_FORM_ACTION, refuseFormAction.toString(),
-                AppInstanceInvitationSoyTemplateInfo.APP_INSTANCE_NAME, appInstance.getName(),
+                AppInstanceInvitationSoyTemplateInfo.APP_INSTANCE_NAME, appInstance.getName().get(locale),
                 AppInstanceInvitationSoyTemplateInfo.REQUESTER_NAME, requester.getDisplayName()
             )
         ))
@@ -262,22 +262,24 @@ public class AppInstanceInvitationPage {
   private void notifyAdmins(AppInstance appInstance, String invitedUserEmail, UserAccount requester, boolean acceptedInvitation) {
     SoyMapData data = new SoyMapData();
     final SoyTemplateInfo templateInfo;
+    final String appInstanceNameParamName;
     if (acceptedInvitation) {
       templateInfo = AppInstanceInvitationNotificationSoyInfo.ACCEPTED_APP_INSTANCE_INVITATION_ADMIN_MESSAGE;
       data.put(AcceptedAppInstanceInvitationAdminMessageSoyTemplateInfo.INVITED_USER_EMAIL, invitedUserEmail);
       data.put(AcceptedAppInstanceInvitationAdminMessageSoyTemplateInfo.REQUESTER_NAME, requester.getDisplayName());
-      data.put(AcceptedAppInstanceInvitationAdminMessageSoyTemplateInfo.APP_INSTANCE_NAME, appInstance.getName());
+      appInstanceNameParamName = AcceptedAppInstanceInvitationAdminMessageSoyTemplateInfo.APP_INSTANCE_NAME;
     } else {
       templateInfo = AppInstanceInvitationNotificationSoyInfo.REJECTED_APP_INSTANCE_INVITATION_ADMIN_MESSAGE;
       data.put(RejectedAppInstanceInvitationAdminMessageSoyTemplateInfo.INVITED_USER_EMAIL, invitedUserEmail);
       data.put(RejectedAppInstanceInvitationAdminMessageSoyTemplateInfo.REQUESTER_NAME, requester.getDisplayName());
-      data.put(RejectedAppInstanceInvitationAdminMessageSoyTemplateInfo.APP_INSTANCE_NAME, appInstance.getName());
+      appInstanceNameParamName = RejectedAppInstanceInvitationAdminMessageSoyTemplateInfo.APP_INSTANCE_NAME;
     }
 
     Notification notificationPrototype = new Notification();
     notificationPrototype.setTime(Instant.now());
     notificationPrototype.setStatus(Notification.Status.UNREAD);
     for (ULocale locale : LocaleHelper.SUPPORTED_LOCALES) {
+      data.put(appInstanceNameParamName, appInstance.getName().get(locale));
       ULocale messageLocale = locale;
       if (LocaleHelper.DEFAULT_LOCALE.equals(locale)) {
         messageLocale = ULocale.ROOT;
