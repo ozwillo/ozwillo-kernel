@@ -171,7 +171,7 @@ public class TokenHandler {
   }
 
   public AuthorizationCode createAuthorizationCode(SidToken sidToken, Set<String> scopeIds, String serviceProviderId,
-      @Nullable String nonce, String redirectUri, String pass) {
+      @Nullable String nonce, String redirectUri, @Nullable String codeChallenge, String pass) {
     AuthorizationCode authorizationCode = new AuthorizationCode();
     authorizationCode.setAccountId(sidToken.getAccountId());
     authorizationCode.expiresIn(authSettings.authorizationCodeDuration);
@@ -179,6 +179,7 @@ public class TokenHandler {
     authorizationCode.setServiceProviderId(serviceProviderId);
     authorizationCode.setNonce(nonce);
     authorizationCode.setRedirectUri(redirectUri);
+    authorizationCode.setCodeChallenge(codeChallenge);
     authorizationCode.setParent(sidToken);
 
     secureToken(authorizationCode, pass);

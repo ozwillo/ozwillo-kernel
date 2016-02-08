@@ -49,6 +49,7 @@ import javax.ws.rs.core.UriInfo;
 
 import org.joda.time.DateTimeUtils;
 
+import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
@@ -98,6 +99,11 @@ public class AuthorizationEndpoint {
   private static final String APPROVE_PATH = "/approve";
 
   private static final Splitter SPACE_SPLITTER = Splitter.on(' ').omitEmptyStrings();
+  private static final CharMatcher CODE_CHALLENGE_MATCHER = CharMatcher
+      .inRange('A', 'Z').or(CharMatcher.inRange('a', 'z')) // ALPHA
+      .or(CharMatcher.inRange('0', '9')) // DIGIT
+      .or(CharMatcher.anyOf("-._~"))
+      .precomputed();
 
   private class Prompt {
     boolean interactive = true;
@@ -224,6 +230,16 @@ public class AuthorizationEndpoint {
     }
 
     final String nonce = getParameter("nonce");
+    final String code_challenge = getParameter("code_challenge");
+    if (code_challenge != null) {
+      final String code_challenge_method = getParameter("code_challenge_method");
+      if (!"S256".equals(code_challenge_method)) {
+        throw invalidParam("code_challenge_method");
+      }
+      if (!isCodeChallengeValid(code_challenge)) {
+        throw invalidParam("code_challenge");
+      }
+    }
 
     Set<String> authorizedScopeIds = getAuthorizedScopeIds(appInstance.getId(), sidToken.getAccountId());
     if (ClientIds.PORTAL.equals(appInstance.getId()) && !authorizedScopeIds.containsAll(scopeIds)) {
@@ -241,13 +257,13 @@ public class AuthorizationEndpoint {
     }
     if (authorizedScopeIds.containsAll(scopeIds) && !prompt.consent) {
       // User already authorized all claimed scopes, let it be a "transparent" redirect
-      return generateAuthorizationCodeAndRedirect(sidToken, scopeIds, appInstance.getId(), nonce, redirect_uri);
+      return generateAuthorizationCodeAndRedirect(sidToken, scopeIds, appInstance.getId(), nonce, redirect_uri, code_challenge);
     }
 
     if (!prompt.interactive) {
       throw error("consent_required", null);
     }
-    return promptUser(sidToken.getAccountId(), appInstance, scopeIds, authorizedScopeIds, redirect_uri, state, nonce);
+    return promptUser(sidToken.getAccountId(), appInstance, scopeIds, authorizedScopeIds, redirect_uri, state, nonce, code_challenge);
   }
 
   @POST
@@ -261,7 +277,8 @@ public class AuthorizationEndpoint {
       @FormParam("client_id") String client_id,
       @FormParam("redirect_uri") String redirect_uri,
       @Nullable @FormParam("state") String state,
-      @Nullable @FormParam("nonce") String nonce
+      @Nullable @FormParam("nonce") String nonce,
+      @Nullable @FormParam("code_challenge") String code_challenge
   ) {
     // TODO: check XSS (check data hasn't been tampered since generation of the form, so we can skip some validations we had already done)
 
@@ -271,7 +288,7 @@ public class AuthorizationEndpoint {
 
     authorizationRepository.authorize(sidToken.getAccountId(), client_id, selectedScopeIds);
 
-    return generateAuthorizationCodeAndRedirect(sidToken, scopeIds, client_id, nonce, redirect_uri);
+    return generateAuthorizationCodeAndRedirect(sidToken, scopeIds, client_id, nonce, redirect_uri, code_challenge);
   }
 
   private Response redirectToLogin(UriInfo uriInfo, Prompt prompt) {
@@ -296,9 +313,9 @@ public class AuthorizationEndpoint {
   }
 
   private Response generateAuthorizationCodeAndRedirect(SidToken sidToken, Set<String> scopeIds, String client_id,
-      @Nullable String nonce, String redirect_uri) {
+      @Nullable String nonce, String redirect_uri, @Nullable String code_challenge) {
     String pass = tokenHandler.generateRandom();
-    AuthorizationCode authCode = tokenHandler.createAuthorizationCode(sidToken, scopeIds, client_id, nonce, redirect_uri, pass);
+    AuthorizationCode authCode = tokenHandler.createAuthorizationCode(sidToken, scopeIds, client_id, nonce, redirect_uri, code_challenge, pass);
 
     String auth_code = TokenSerializer.serialize(authCode, pass);
 
@@ -311,7 +328,7 @@ public class AuthorizationEndpoint {
   }
 
   private Response promptUser(String accountId, AppInstance serviceProvider, Set<String> requiredScopeIds, Set<String> authorizedScopeIds,
-      String redirect_uri, @Nullable String state, @Nullable String nonce) {
+      String redirect_uri, @Nullable String state, @Nullable String nonce, @Nullable String code_challenge) {
     Set<String> globalClaimedScopeIds = Sets.newHashSet();
     Set<NeededScope> neededScopes = serviceProvider.getNeeded_scopes();
     if (neededScopes != null) {
@@ -378,7 +395,8 @@ public class AuthorizationEndpoint {
                 AuthorizeSoyTemplateInfo.ALREADY_AUTHORIZED_SCOPES, alreadyAuthorizedScopes,
                 AuthorizeSoyTemplateInfo.REDIRECT_URI, redirect_uri,
                 AuthorizeSoyTemplateInfo.STATE, state,
-                AuthorizeSoyTemplateInfo.NONCE, nonce
+                AuthorizeSoyTemplateInfo.NONCE, nonce,
+                AuthorizeSoyTemplateInfo.CODE_CHALLENGE, code_challenge
             )
         ))
         .build();
@@ -451,6 +469,11 @@ public class AuthorizationEndpoint {
       // for a discussion of the error to use here.
       throw error("login_required", null);
     }
+  }
+
+  private boolean isCodeChallengeValid(String code_challenge) {
+    return 43 <= code_challenge.length() && code_challenge.length() <= 128
+        && CODE_CHALLENGE_MATCHER.matchesAllOf(code_challenge);
   }
 
   private String getIssuer(UriInfo uriInfo) {

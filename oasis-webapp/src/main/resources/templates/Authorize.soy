@@ -21,17 +21,18 @@
  * Authorization page.
  */
 {template .authorize}
-{@param  appId:        string} /** application ID. */
-{@param  appName:      string} /** application name. */
-{@param  formAction:   string} /** URL to post the form to. */
-{@param  cancelUrl:    string} /** URL to go to when cancelling. */
+{@param  appId:          string} /** application ID. */
+{@param  appName:        string} /** application name. */
+{@param  formAction:     string} /** URL to post the form to. */
+{@param  cancelUrl:      string} /** URL to go to when cancelling. */
 {@param  requiredScopes: list<string>} /** list of requested (and thus required) scope IDs. */
 {@param  missingScopes:           list<[id: string, title: string|null, description: string|null]>} /** list of requested (and thus required) but not yet granted scopes. */
 {@param  optionalScopes:          list<[id: string, title: string|null, description: string|null]>} /** list of optional (pre-registered but not requested) scopes. */
 {@param  alreadyAuthorizedScopes: list<[id: string, title: string|null, description: string|null]>} /** list of already-granted scopes. */
-{@param  redirect_uri: string} /** 'redirect_uri' request parameter */
-{@param? state:        string} /** 'state' request parameter */
-{@param? nonce:        string} /** 'nonce' request parameter */
+{@param  redirect_uri:   string} /** 'redirect_uri' request parameter */
+{@param? state:          string} /** 'state' request parameter */
+{@param? nonce:          string} /** 'nonce' request parameter */
+{@param? code_challenge: string} /** 'code_challenge' request parameter */
 
 {call .header}
   {param title kind="text"}{msg desc="Authorization page title"}Authorize {$appName}{/msg}{/param}
@@ -70,6 +71,9 @@ a { color: #6f438e; }
     {/if}
     {if $nonce}
       <input type="hidden" name="nonce" value="{$nonce}">
+    {/if}
+    {if $code_challenge}
+      <input type="hidden" name="code_challenge" value="{$code_challenge}">
     {/if}
 
     <div>

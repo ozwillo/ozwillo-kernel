@@ -47,6 +47,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -110,6 +111,9 @@ public class TokenEndpointTest {
   static final Instant tomorrow = now.plus(Duration.standardDays(1));
   static final Instant oneHourAgo = now.minus(Duration.standardHours(1));
 
+  static final String validCodeVerifier = "let-this-test-string-be-a-valid-code-verifier";
+  static final String validCodeChallenge = "X4qcuPsv3LQP2ZS7toD1-TWQUUMtscLgKhAUhVqatJw";
+
   static final AppInstance appInstance = new AppInstance() {{
     setId("sp");
     setProvider_id("organization");
@@ -146,6 +150,18 @@ public class TokenEndpointTest {
     setScopeIds(ImmutableSet.of(Scopes.OFFLINE_ACCESS, "dp1s1", "dp1s3", "dp3s1"));
     setRedirectUri("http://sp.example.com/callback");
     setNonce("nonce");
+  }};
+  static final AuthorizationCode validAuthCodeWithCodeChallenge = new AuthorizationCode() {{
+    setId("validAuthCode");
+    setAccountId(account.getId());
+    setCreationTime(now.minus(Duration.standardHours(1)));
+    expiresIn(Duration.standardHours(2));
+    setParent(sidToken);
+    setServiceProviderId(appInstance.getId());
+    setScopeIds(ImmutableSet.of("dp1s1", "dp1s3", "dp3s1"));
+    setRedirectUri("http://sp.example.com/callback");
+    setNonce("nonce");
+    setCodeChallenge(validCodeChallenge);
   }};
 
   static final AccessToken accessToken = new AccessToken() {{
@@ -202,11 +218,13 @@ public class TokenEndpointTest {
 
     when(tokenHandler.getCheckedToken("valid", AuthorizationCode.class)).thenReturn(validAuthCode);
     when(tokenHandler.getCheckedToken("offline", AuthorizationCode.class)).thenReturn(validAuthCodeWithOfflineAccess);
+    when(tokenHandler.getCheckedToken("pkce", AuthorizationCode.class)).thenReturn(validAuthCodeWithCodeChallenge);
     when(tokenHandler.getCheckedToken("invalid", AuthorizationCode.class)).thenReturn(null);
     when(tokenHandler.getCheckedToken("valid", RefreshToken.class)).thenReturn(refreshToken);
     when(tokenHandler.getCheckedToken("invalid", RefreshToken.class)).thenReturn(null);
 
     when(tokenHandler.createAccessToken(validAuthCode, "pass")).thenReturn(accessToken);
+    when(tokenHandler.createAccessToken(validAuthCodeWithCodeChallenge, "pass")).thenReturn(accessToken);
     when(tokenHandler.createRefreshToken(validAuthCodeWithOfflineAccess, "pass")).thenReturn(refreshToken);
     when(tokenHandler.createAccessToken(refreshToken, refreshToken.getScopeIds(), "pass")).thenReturn(accessTokenWithOfflineAccess);
     when(tokenHandler.createAccessToken(refreshToken, refreshedAccessToken.getScopeIds(), "pass"))
@@ -483,6 +501,144 @@ public class TokenEndpointTest {
             .param("grant_type", "authorization_code")
             .param("code", authorizationCode)
             .param("redirect_uri", redirectUri)));
+  }
+
+  @Test public void testValidAuthCodeWithCodeChallenge(AuthModule.Settings settings) throws Throwable {
+    // given
+    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
+
+    // when
+    Response resp = authCodeWithCodeVerifier("pkce", validAuthCodeWithCodeChallenge.getRedirectUri(), validCodeVerifier);
+
+    // then
+    assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.OK);
+    TokenResponse response = resp.readEntity(TokenResponse.class);
+    assertThat(response.token_type).isEqualTo("Bearer");
+    assertThat(response.scope.split(" ")).containsOnly("dp1s1", "dp1s3", "dp3s1");
+    assertThat(response.expires_in).isEqualTo(
+        new Duration(now, accessToken.getExpirationTime()).getStandardSeconds());
+    assertThat(response.access_token).isEqualTo(TokenSerializer.serialize(accessToken, "pass"));
+    assertThat(response.refresh_token).isNullOrEmpty();
+
+    JwtClaims claims = new JwtConsumerBuilder()
+        .setJwsAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, AlgorithmIdentifiers.RSA_USING_SHA256))
+        .setVerificationKey(settings.keyPair.getPublic())
+        .setExpectedIssuer(InProcessResteasy.BASE_URI.toString())
+        .setExpectedSubject(account.getId())
+        .setExpectedAudience(appInstance.getId())
+        .setRequireIssuedAt()
+        .setRequireExpirationTime()
+        .setEvaluationTime(NumericDate.fromMilliseconds(now.getMillis()))
+        .build()
+        .processToClaims(response.id_token);
+
+    assertThat(claims.getIssuedAt().getValue()).isEqualTo(TimeUnit.MILLISECONDS.toSeconds(now.getMillis()));
+    assertThat(claims.getExpirationTime().getValue()).isEqualTo(claims.getIssuedAt().getValue() + settings.idTokenDuration.getStandardSeconds());
+    assertThat(claims.getStringClaimValue("nonce")).isEqualTo("nonce");
+    assertThat(claims.getNumericDateClaimValue("auth_time").getValue()).isEqualTo(
+        TimeUnit.MILLISECONDS.toSeconds(sidToken.getAuthenticationTime().getMillis()));
+    if (claims.hasClaim("app_user")) {
+      assertThat(claims.getClaimValue("app_user")).isEqualTo(Boolean.FALSE);
+    }
+    if (claims.hasClaim("app_admin")) {
+      assertThat(claims.getClaimValue("app_admin")).isEqualTo(Boolean.FALSE);
+    }
+  }
+
+  @Test public void testAuthCodeMissingCodeVerifier() throws Throwable {
+    // given
+    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter("sp"));
+
+    // when
+    Response resp = authCode("pkce", validAuthCodeWithCodeChallenge.getRedirectUri());
+
+    // then
+    assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
+    ErrorResponse response = resp.readEntity(ErrorResponse.class);
+    assertThat(response.getError()).isEqualTo("invalid_request");
+    assertThat(response.getError_description()).contains("code_verifier");
+  }
+
+  @Test public void testAuthCodeCodeVerifierTooShort() throws Throwable {
+    // given
+    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter("sp"));
+
+    // when
+    Response resp = authCodeWithCodeVerifier("pkce", validAuthCodeWithCodeChallenge.getRedirectUri(), "too-short");
+
+    // then
+    assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
+    ErrorResponse response = resp.readEntity(ErrorResponse.class);
+    assertThat(response.getError()).isEqualTo("invalid_request");
+    assertThat(response.getError_description()).contains("code_verifier");
+  }
+
+  @Test public void testAuthCodeCodeVerifierTooLong() throws Throwable {
+    // given
+    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter("sp"));
+
+    // when
+    Response resp = authCodeWithCodeVerifier("pkce", validAuthCodeWithCodeChallenge.getRedirectUri(),
+        Strings.repeat(validCodeVerifier, 4));
+
+    // then
+    assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
+    ErrorResponse response = resp.readEntity(ErrorResponse.class);
+    assertThat(response.getError()).isEqualTo("invalid_request");
+    assertThat(response.getError_description()).contains("code_verifier");
+  }
+
+  @Test public void testAuthCodeInvalidCodeVerifier() throws Throwable {
+    // given
+    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter("sp"));
+
+    // when
+    Response resp = authCodeWithCodeVerifier("pkce", validAuthCodeWithCodeChallenge.getRedirectUri(),
+        validCodeVerifier.replace('-', '/'));
+
+    // then
+    assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
+    ErrorResponse response = resp.readEntity(ErrorResponse.class);
+    assertThat(response.getError()).isEqualTo("invalid_request");
+    assertThat(response.getError_description()).contains("code_verifier");
+  }
+
+  @Test public void testAuthCodeMismatchingCodeVerifier() throws Throwable {
+    // given
+    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter("sp"));
+
+    // when
+    Response resp = authCodeWithCodeVerifier("pkce", validAuthCodeWithCodeChallenge.getRedirectUri(),
+        validCodeVerifier.replace('-', '.'));
+
+    // then
+    assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
+    ErrorResponse response = resp.readEntity(ErrorResponse.class);
+    assertThat(response.getError()).isEqualTo("invalid_grant");
+    assertThat(response.getError_description()).contains("code_verifier");
+  }
+
+  @Test public void testAuthCodeUnwantedCodeVerifier() throws Throwable {
+    // given
+    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter("sp"));
+
+    // when
+    Response resp = authCodeWithCodeVerifier("valid", validAuthCode.getRedirectUri(), validCodeVerifier);
+
+    // then
+    assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
+    ErrorResponse response = resp.readEntity(ErrorResponse.class);
+    assertThat(response.getError()).isEqualTo("invalid_grant");
+    assertThat(response.getError_description()).contains("code_verifier");
+  }
+
+  private Response authCodeWithCodeVerifier(String authorizationCode, String redirectUri, String codeVerifier) {
+    return resteasy.getClient().target(UriBuilder.fromResource(TokenEndpoint.class).build()).request()
+        .post(Entity.form(new Form()
+            .param("grant_type", "authorization_code")
+            .param("code", authorizationCode)
+            .param("redirect_uri", redirectUri)
+            .param("code_verifier", codeVerifier)));
   }
 
   @Test public void testInvalidRefreshToken() throws Throwable {

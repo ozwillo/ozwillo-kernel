@@ -54,6 +54,7 @@ import org.junit.runner.RunWith;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
@@ -223,6 +224,8 @@ public class AuthorizationEndpointTest {
   private static final String state = "some=state&url=" + UrlEscapers.urlFormParameterEscaper().escape("/a?b=c&d=e");
   private static final String encodedState = UrlEscapers.urlFormParameterEscaper().escape(state);
 
+  private static final String codeChallenge = "let.this.test.string.be.a.valid.code.challenge";
+
   @Inject @Rule public InProcessResteasy resteasy;
 
   @Before public void setUpMocks(AccountRepository accountRepository, AuthorizationRepository authorizationRepository,
@@ -264,15 +267,15 @@ public class AuthorizationEndpointTest {
 
     when(tokenHandler.generateRandom()).thenReturn("pass");
     when(tokenHandler.createAuthorizationCode(eq(sidToken), anySetOf(String.class), eq(appInstance.getId()),
-        anyString(), eq(Iterables.getOnlyElement(service.getRedirect_uris())), anyString())).thenReturn(authorizationCode);
+        anyString(), eq(Iterables.getOnlyElement(service.getRedirect_uris())), anyString(), anyString())).thenReturn(authorizationCode);
     when(tokenHandler.createAuthorizationCode(eq(sidToken), anySetOf(String.class), eq(appInstance.getId()),
-        anyString(), eq(Iterables.getOnlyElement(privateService.getRedirect_uris())), anyString())).thenReturn(authorizationCode);
+        anyString(), eq(Iterables.getOnlyElement(privateService.getRedirect_uris())), anyString(), anyString())).thenReturn(authorizationCode);
 
     // Portal special-case
     when(appInstanceRepository.getAppInstance(portalAppInstance.getId())).thenReturn(portalAppInstance);
     when(serviceRepository.getServiceByRedirectUri(portalAppInstance.getId(), Iterables.getOnlyElement(portalService.getRedirect_uris()))).thenReturn(portalService);
     when(tokenHandler.createAuthorizationCode(eq(sidToken), anySetOf(String.class), eq(portalAppInstance.getId()),
-        anyString(), eq(Iterables.getOnlyElement(portalService.getRedirect_uris())), anyString())).thenReturn(authorizationCode);
+        anyString(), eq(Iterables.getOnlyElement(portalService.getRedirect_uris())), anyString(), anyString())).thenReturn(authorizationCode);
   }
 
   @Before public void setUp() {
@@ -306,7 +309,105 @@ public class AuthorizationEndpointTest {
     assertRedirectToApplication(response, service);
 
     verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(openidScope.getId()), appInstance.getId(), null,
-        Iterables.getOnlyElement(service.getRedirect_uris()), "pass");
+        Iterables.getOnlyElement(service.getRedirect_uris()), null, "pass");
+  }
+
+  @Test public void testCodeChallenge(TokenHandler tokenHandler) {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
+        .queryParam("state", encodedState)
+        .queryParam("response_type", "code")
+        .queryParam("scope", openidScope.getId())
+        .queryParam("code_challenge", codeChallenge)
+        .queryParam("code_challenge_method", "S256")
+        .request().get();
+
+    assertRedirectToApplication(response, service);
+
+    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(openidScope.getId()), appInstance.getId(), null,
+        Iterables.getOnlyElement(service.getRedirect_uris()), codeChallenge, "pass");
+  }
+
+  @Test public void testCodeChallenge_missingCodeChallengeMethod() {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
+        .queryParam("state", encodedState)
+        .queryParam("response_type", "code")
+        .queryParam("scope", openidScope.getId())
+        .queryParam("code_challenge", codeChallenge)
+        .request().get();
+
+    assertRedirectError(response, service, "invalid_request", "code_challenge_method");
+  }
+
+  @Test public void testCodeChallenge_badCodeChallengeMethod() {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
+        .queryParam("state", encodedState)
+        .queryParam("response_type", "code")
+        .queryParam("scope", openidScope.getId())
+        .queryParam("code_challenge", codeChallenge)
+        .queryParam("code_challenge_method", "unknown")
+        .request().get();
+
+    assertRedirectError(response, service, "invalid_request", "code_challenge_method");
+  }
+
+  @Test public void testCodeChallenge_codeChallengeTooShort() {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
+        .queryParam("state", encodedState)
+        .queryParam("response_type", "code")
+        .queryParam("scope", openidScope.getId())
+        .queryParam("code_challenge", "too-short")
+        .queryParam("code_challenge_method", "S256")
+        .request().get();
+
+    assertRedirectError(response, service, "invalid_request", "code_challenge");
+  }
+
+  @Test public void testCodeChallenge_codeChallengeTooLong() {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
+        .queryParam("state", encodedState)
+        .queryParam("response_type", "code")
+        .queryParam("scope", openidScope.getId())
+        .queryParam("code_challenge", Strings.repeat(codeChallenge, 4))
+        .queryParam("code_challenge_method", "S256")
+        .request().get();
+
+    assertRedirectError(response, service, "invalid_request", "code_challenge");
+  }
+
+  @Test public void testCodeChallenge_invalidCodeChallenge() {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
+        .queryParam("state", encodedState)
+        .queryParam("response_type", "code")
+        .queryParam("scope", openidScope.getId())
+        .queryParam("code_challenge", codeChallenge.replace('.', '/'))
+        .queryParam("code_challenge_method", "S256")
+        .request().get();
+
+    assertRedirectError(response, service, "invalid_request", "code_challenge");
   }
 
   @Test public void testPromptUser() {
@@ -339,7 +440,7 @@ public class AuthorizationEndpointTest {
     verify(authorizationRepository).authorize(sidToken.getAccountId(), portalAppInstance.getId(),
         ImmutableSet.of(openidScope.getId(), profileScope.getId()));
     verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(openidScope.getId(), profileScope.getId()),
-        portalAppInstance.getId(), null, Iterables.getOnlyElement(portalService.getRedirect_uris()), "pass");
+        portalAppInstance.getId(), null, Iterables.getOnlyElement(portalService.getRedirect_uris()), null, "pass");
   }
 
   @Test public void testPromptForPortalForNonNeededScopes(AuthorizationRepository authorizationRepository) {
@@ -642,7 +743,7 @@ public class AuthorizationEndpointTest {
     assertRedirectToApplication(response, service);
 
     verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(openidScope.getId()), appInstance.getId(), null,
-        Iterables.getOnlyElement(service.getRedirect_uris()), "pass");
+        Iterables.getOnlyElement(service.getRedirect_uris()), null, "pass");
   }
 
   @Test public void testRequestParam() {
@@ -820,7 +921,7 @@ public class AuthorizationEndpointTest {
     assertRedirectToApplication(response, service);
 
     verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(openidScope.getId()), appInstance.getId(), null,
-        Iterables.getOnlyElement(service.getRedirect_uris()), "pass");
+        Iterables.getOnlyElement(service.getRedirect_uris()), null, "pass");
   }
 
   /** Same as {@link #testTransparentRedirection} except with a private service and app_admin user. */
@@ -840,7 +941,7 @@ public class AuthorizationEndpointTest {
     assertRedirectToApplication(response, privateService);
 
     verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(openidScope.getId()), appInstance.getId(), null,
-        Iterables.getOnlyElement(privateService.getRedirect_uris()), "pass");
+        Iterables.getOnlyElement(privateService.getRedirect_uris()), null, "pass");
   }
 
   /** Same as {@link #testTransparentRedirection} except with a private service and app_user user. */
@@ -865,7 +966,7 @@ public class AuthorizationEndpointTest {
     assertRedirectToApplication(response, privateService);
 
     verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(openidScope.getId()), appInstance.getId(), null,
-        Iterables.getOnlyElement(privateService.getRedirect_uris()), "pass");
+        Iterables.getOnlyElement(privateService.getRedirect_uris()), null, "pass");
   }
 
   /** Same as {@link #testTransparentRedirection} except with a private service and a user taht's neither an app_user or app_admin. */

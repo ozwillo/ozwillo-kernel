@@ -19,6 +19,7 @@ package oasis.web.authz;
 
 import static org.jose4j.jwa.AlgorithmConstraints.ConstraintType.*;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -57,12 +58,15 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+import com.google.common.hash.Hashing;
+import com.google.common.io.BaseEncoding;
 
 import oasis.auditlog.AuditLogEvent;
 import oasis.auditlog.AuditLogService;
@@ -93,6 +97,12 @@ import oasis.web.resteasy.Resteasy1099;
 @Authenticated @Client
 public class TokenEndpoint {
   private static final Logger logger = LoggerFactory.getLogger(TokenEndpoint.class);
+
+  private static final CharMatcher CODE_VERIFIER_MATCHER = CharMatcher
+      .inRange('A', 'Z').or(CharMatcher.inRange('a', 'z')) // ALPHA
+      .or(CharMatcher.inRange('0', '9')) // DIGIT
+      .or(CharMatcher.anyOf("-._~"))
+      .precomputed();
   private static final Joiner SCOPE_JOINER = Joiner.on(' ').skipNulls();
   private static final Splitter SCOPE_SPLITTER = Splitter.on(' ');
 
@@ -213,6 +223,25 @@ public class TokenEndpoint {
       logger.error("The serviceProvider {} wanted to access a token which belongs to the serviceProvider {}.", client_id, authorizationCode.getServiceProviderId());
       // Not a Forbidden status because it could give the information that the authorization code really exists
       return errorResponse("invalid_grant", null);
+    }
+
+    if (authorizationCode.getCodeChallenge() != null) {
+      String code_verifier = getRequiredParameter("code_verifier");
+      if (code_verifier.length() < 43 || 128 < code_verifier.length()
+          || !CODE_VERIFIER_MATCHER.matchesAllOf(code_verifier)) {
+        return errorResponse("invalid_request", "Invalid code_verifier value");
+      }
+      // We only support S256
+      String computedChallenge = BaseEncoding.base64Url().omitPadding().encode(
+          Hashing.sha256().hashString(code_verifier, StandardCharsets.US_ASCII).asBytes());
+      // No need to use a constant-time comparison function, auth_codes' lifetime is too short to use timing-attacks on them.
+      if (!authorizationCode.getCodeChallenge().equals(computedChallenge)) {
+        logger.error("Received code_verifier {} does not match the code_challenge received at the authorization request {}.", code_verifier, authorizationCode.getCodeChallenge());
+        return errorResponse("invalid_grant", "Mismatching code_verifier");
+      }
+    } else if (getParameter("code_verifier") != null) {
+      logger.error("Received code_verifier but didn't receive code_challenge at the authorization request.");
+      return errorResponse("invalid_grant", "Received code_verifier but didn't receive code_challenge");
     }
 
     TokenResponse response = new TokenResponse();

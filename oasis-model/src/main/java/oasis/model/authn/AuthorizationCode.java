@@ -26,6 +26,9 @@ public class AuthorizationCode extends AbstractOAuthToken {
   @JsonProperty
   private String redirectUri;
 
+  @JsonProperty
+  private String codeChallenge;
+
   public String getNonce() {
     return nonce;
   }
@@ -40,5 +43,13 @@ public class AuthorizationCode extends AbstractOAuthToken {
 
   public void setRedirectUri(String redirectUri) {
     this.redirectUri = redirectUri;
+  }
+
+  public String getCodeChallenge() {
+    return codeChallenge;
+  }
+
+  public void setCodeChallenge(String codeChallenge) {
+    this.codeChallenge = codeChallenge;
   }
 }
