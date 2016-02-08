@@ -66,6 +66,27 @@ small { display: block; margin-top: 2em; font-size: .65em; line-height: initial;
 {/literal}
 </style>
   <h1><img src="/images/ozwillo.png" alt="Ozwillo" width=200 height=55></h1>
+  <p id="isWebview" style="display: none; color: white; background: #d9534f; font-weight: bold; padding: 10px; text-align: center;">
+    We've detected this page runs in a possibly insecure context.<br>
+    For your security, please open the page in your browser before proceeding.
+  </p>
+  <script>
+    // Inspired by https://www.npmjs.com/package/is-webview
+    // See https://wzrd.in/standalone/is-webview@1.0.1 for bundled (browserified) sources
+    // Code originally licensed under Apache License, Version 2.0
+    // Note that the script executes inline/blocking on-purpose, we really do want the information ASAP!
+    {literal}
+    if ((navigator.userAgent.indexOf(' Mobile/') > 0 && navigator.userAgent.indexOf(' Safari/') < 0) ||
+        'webView' in window ||
+        'Android' in window ||
+        'ondeviceready' in document ||
+        ('external' in window && 'notify' in window.external) ||
+        'Ti' in window ||
+        '_cordovaNative' in window) {
+      document.getElementById("isWebview").style.display = '';
+    }
+    {/literal}
+  </script>
   {if $error}
     <p style="color: white; background: #d9534f; font-weight: bold; padding: 10px; text-align: center;">
     {switch $error}
