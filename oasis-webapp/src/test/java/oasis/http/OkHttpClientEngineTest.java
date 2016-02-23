@@ -38,8 +38,8 @@ import org.junit.runner.RunWith;
 
 import com.squareup.okhttp.mockwebserver.Dispatcher;
 import com.squareup.okhttp.mockwebserver.MockResponse;
+import com.squareup.okhttp.mockwebserver.MockWebServer;
 import com.squareup.okhttp.mockwebserver.RecordedRequest;
-import com.squareup.okhttp.mockwebserver.rule.MockWebServerRule;
 
 import oasis.web.webhooks.WebhookSignatureFilter;
 
@@ -60,9 +60,9 @@ public class OkHttpClientEngineTest {
   // In case an error is thrown in the MockWebServer, so clients don't block infinitely.
   @Rule public Timeout timeout = Timeout.seconds(10);
 
-  @Rule public MockWebServerRule mockServer = new MockWebServerRule();
+  @Rule public MockWebServer mockServer = new MockWebServer();
   @Before public void setUp() {
-    mockServer.get().setDispatcher(new Dispatcher() {
+    mockServer.setDispatcher(new Dispatcher() {
       @Override
       public MockResponse dispatch(RecordedRequest request) throws InterruptedException {
         switch (request.getPath()) {
@@ -88,7 +88,7 @@ public class OkHttpClientEngineTest {
   @Inject Client client;
 
   @Test public void simpleRequest() {
-    Response response = client.target(mockServer.getUrl("/simple").toString()).request().get();
+    Response response = client.target(mockServer.url("/simple").toString()).request().get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.NOT_FOUND);
     assertThat(response.getMediaType()).isEqualTo(MediaType.TEXT_PLAIN_TYPE);
@@ -97,7 +97,7 @@ public class OkHttpClientEngineTest {
   }
 
   @Test public void requestHeader() {
-    Response response = client.target(mockServer.getUrl("/requestHeader").toString()).request()
+    Response response = client.target(mockServer.url("/requestHeader").toString()).request()
         .header(WebhookSignatureFilter.HEADER, SIGNATURE)
         .get();
 
@@ -107,7 +107,7 @@ public class OkHttpClientEngineTest {
   }
 
   @Test public void simpleWriterInterceptors() {
-    Response response = client.target(mockServer.getUrl("/writerInterceptor").toString())
+    Response response = client.target(mockServer.url("/writerInterceptor").toString())
         .register(new WebhookSignatureFilter(SECRET))
         .request()
         .post(Entity.json(PAYLOAD));

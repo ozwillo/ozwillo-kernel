@@ -81,8 +81,10 @@ idea {
     generatedSourceDirs += file(generateSoyParseInfo.outputDir)
   }
 }
-licenseMain {
-  source = sourceSets.main.allSource.minus(fileTree(generateSoyParseInfo.outputDir))
+project.afterEvaluate {
+  licenseMain {
+    source = sourceSets.main.allSource.minus(fileTree(generateSoyParseInfo.outputDir))
+  }
 }
 
 task run(type: JavaExec, dependsOn: classes) {

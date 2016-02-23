@@ -269,7 +269,7 @@ public class JestCatalogEntryRepository implements CatalogEntryRepository, JestB
     }
   }
 
-  private ListenableFuture<Void> executeAsync(final Action<JestResult> action) throws Exception {
+  private ListenableFuture<Void> executeAsync(final Action<? extends JestResult> action) throws Exception {
     final SettableFuture<Void> settableFuture = SettableFuture.create();
     jestClient.executeAsync(action, new JestResultHandler<JestResult>() {
       @Override
