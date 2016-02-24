@@ -63,8 +63,8 @@ ext.libs = [
 
   resteasy_client:     [
       "org.jboss.resteasy:resteasy-client:$resteasyVersion",
-      'net.ltgt.jaxrs:resteasy-client-okhttp:1.0',
-      "com.squareup.okhttp:okhttp:2.7.4"
+      'net.ltgt.jaxrs:resteasy-client-okhttp3:1.0',
+      "com.squareup.okhttp3:okhttp:3.1.2"
     ],
 
   resteasy_testing:   'net.ltgt.jaxrs:resteasy-testing:0.2',

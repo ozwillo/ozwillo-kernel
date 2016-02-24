@@ -24,10 +24,10 @@ import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
-import com.squareup.okhttp.OkHttpClient;
 
-import net.ltgt.resteasy.client.okhttp.OkHttpClientEngine;
+import net.ltgt.resteasy.client.okhttp3.OkHttpClientEngine;
 import oasis.web.providers.JacksonJsonProvider;
+import okhttp3.OkHttpClient;
 
 public class HttpClientModule extends AbstractModule {
 
@@ -42,8 +42,8 @@ public class HttpClientModule extends AbstractModule {
   }
 
   @Provides @Singleton OkHttpClient provideOkHttpClient() {
-    OkHttpClient client = new OkHttpClient();
-    client.setFollowRedirects(false);
-    return client;
+    return new OkHttpClient.Builder()
+        .followRedirects(false)
+        .build();
   }
 }
