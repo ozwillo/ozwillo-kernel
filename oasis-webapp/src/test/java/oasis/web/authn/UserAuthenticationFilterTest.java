@@ -75,8 +75,10 @@ public class UserAuthenticationFilterTest {
   }
 
   @Test public void testUnauthenticated() {
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(DummyResource.class).path(DummyResource.class, "authRequired").build())
-        .queryParam("baz", "baz").queryParam("qux", "qu&ux").request().get();
+    Response response = resteasy.getClient()
+        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(DummyResource.class).path(DummyResource.class, "authRequired").build())
+        .queryParam("baz", "baz").queryParam("qux", "qu&ux")
+        .request().get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
     UriInfo location = new ResteasyUriInfo(response.getLocation());
@@ -87,8 +89,10 @@ public class UserAuthenticationFilterTest {
   @Test public void testAuthenticated() {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(validSidToken));
 
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(DummyResource.class).path(DummyResource.class, "authRequired").build())
-        .queryParam("qux", "quux").request().get();
+    Response response = resteasy.getClient()
+        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(DummyResource.class).path(DummyResource.class, "authRequired").build())
+        .queryParam("qux", "quux")
+        .request().get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
     assertThat(response.readEntity(SidToken.class)).isEqualToComparingFieldByField(validSidToken);
@@ -97,8 +101,10 @@ public class UserAuthenticationFilterTest {
   @Test public void testLoginResponse() {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(validSidToken));
 
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(DummyResource.class).path(DummyResource.class, "redirectToLogin").build())
-        .queryParam("foo", "b&ar").queryParam("baz", "baz").request().get();
+    Response response = resteasy.getClient()
+        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(DummyResource.class).path(DummyResource.class, "redirectToLogin").build())
+        .queryParam("foo", "b&ar").queryParam("baz", "baz")
+        .request().get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
     UriInfo location = new ResteasyUriInfo(response.getLocation());

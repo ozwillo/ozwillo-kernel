@@ -60,7 +60,7 @@ public class WebhookSignatureFilterTest extends TestCase {
   @Test public void testWebhookSignature() {
     Response response = resteasy.getClient()
         .register(new WebhookSignatureFilter(SECRET))
-        .target(UriBuilder.fromResource(DummyResource.class))
+        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(DummyResource.class))
         .request()
         .post(Entity.entity(PAYLOAD, MediaType.APPLICATION_OCTET_STREAM_TYPE));
 

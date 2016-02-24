@@ -81,7 +81,7 @@ public class UserDirectoryEndpointTest {
     sentOrganization.setStatus(Organization.Status.AVAILABLE);
 
     Response response = resteasy.getClient()
-        .target(UriBuilder.fromResource(UserDirectoryEndpoint.class).path(UserDirectoryEndpoint.class, "createOrganization")).request()
+        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(UserDirectoryEndpoint.class).path(UserDirectoryEndpoint.class, "createOrganization")).request()
         .post(Entity.json(sentOrganization));
 
     // Check that the server correctly received the organization

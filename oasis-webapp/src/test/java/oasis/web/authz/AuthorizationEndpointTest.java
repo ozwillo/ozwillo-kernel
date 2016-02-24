@@ -284,7 +284,7 @@ public class AuthorizationEndpointTest {
   }
 
   @Test public void testNotLoggedIn() {
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
@@ -298,7 +298,7 @@ public class AuthorizationEndpointTest {
   @Test public void testTransparentRedirection(TokenHandler tokenHandler) {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
@@ -315,7 +315,7 @@ public class AuthorizationEndpointTest {
   @Test public void testCodeChallenge(TokenHandler tokenHandler) {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
@@ -334,7 +334,7 @@ public class AuthorizationEndpointTest {
   @Test public void testCodeChallenge_missingCodeChallengeMethod() {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
@@ -349,7 +349,7 @@ public class AuthorizationEndpointTest {
   @Test public void testCodeChallenge_badCodeChallengeMethod() {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
@@ -365,7 +365,7 @@ public class AuthorizationEndpointTest {
   @Test public void testCodeChallenge_codeChallengeTooShort() {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
@@ -381,7 +381,7 @@ public class AuthorizationEndpointTest {
   @Test public void testCodeChallenge_codeChallengeTooLong() {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
@@ -397,7 +397,7 @@ public class AuthorizationEndpointTest {
   @Test public void testCodeChallenge_invalidCodeChallenge() {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
@@ -413,7 +413,7 @@ public class AuthorizationEndpointTest {
   @Test public void testPromptUser() {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
@@ -427,7 +427,7 @@ public class AuthorizationEndpointTest {
   @Test public void testAutomaticallyAuthorizePortalsNeededScopes(AuthorizationRepository authorizationRepository, TokenHandler tokenHandler) {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("client_id", portalAppInstance.getId())
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(portalService.getRedirect_uris())))
         .queryParam("state", encodedState)
@@ -446,7 +446,7 @@ public class AuthorizationEndpointTest {
   @Test public void testPromptForPortalForNonNeededScopes(AuthorizationRepository authorizationRepository) {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("client_id", portalAppInstance.getId())
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(portalService.getRedirect_uris())))
         .queryParam("state", encodedState)
@@ -465,7 +465,7 @@ public class AuthorizationEndpointTest {
   @Test public void testPromptForPortalIfPromptConsent(AuthorizationRepository authorizationRepository) {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("client_id", portalAppInstance.getId())
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(portalService.getRedirect_uris())))
         .queryParam("state", encodedState)
@@ -488,7 +488,7 @@ public class AuthorizationEndpointTest {
   @Test public void testPromptLogin() {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
@@ -504,7 +504,7 @@ public class AuthorizationEndpointTest {
   @Test public void testPromptConsent() {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
@@ -518,7 +518,7 @@ public class AuthorizationEndpointTest {
 
   /** Same as {@link #testTransparentRedirection} except with {@code prompt=none} and no logged-in user. */
   @Test public void testPromptNone_loginRequired() {
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
@@ -534,7 +534,7 @@ public class AuthorizationEndpointTest {
   @Test public void testPromptNone_consentRequired() {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
@@ -547,7 +547,7 @@ public class AuthorizationEndpointTest {
   }
 
   @Test public void testStoppedClient() {
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("client_id", stoppedAppInstance.getId())
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
@@ -560,7 +560,7 @@ public class AuthorizationEndpointTest {
   }
 
   @Test public void testUnknownClient() {
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("client_id", "unknown")
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
@@ -573,7 +573,7 @@ public class AuthorizationEndpointTest {
   }
 
   @Test public void testMissingClient() {
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
@@ -584,7 +584,7 @@ public class AuthorizationEndpointTest {
   }
 
   @Test public void testBadRedirectUri(@All("bad redirect_uri") String redirectUri) {
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(redirectUri))
         .queryParam("state", encodedState)
@@ -596,7 +596,7 @@ public class AuthorizationEndpointTest {
   }
 
   @Test public void testMissingRedirectUri() {
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
@@ -607,7 +607,7 @@ public class AuthorizationEndpointTest {
   }
 
   @Test public void testBadResponseType() {
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
@@ -619,7 +619,7 @@ public class AuthorizationEndpointTest {
   }
 
   @Test public void testMissingResponseType() {
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
@@ -633,7 +633,7 @@ public class AuthorizationEndpointTest {
   @Test public void testResponseMode() {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
@@ -650,7 +650,7 @@ public class AuthorizationEndpointTest {
    * <a href="http://lists.openid.net/pipermail/openid-specs-ab/Week-of-Mon-20140317/004678.html">on the mailing list</a>
    */
   @Test public void testBadResponseMode() {
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
@@ -665,7 +665,7 @@ public class AuthorizationEndpointTest {
   @Test public void testUnknownScope() {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
@@ -679,7 +679,7 @@ public class AuthorizationEndpointTest {
   @Test public void testScopeMissingOpenid() {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
@@ -693,7 +693,7 @@ public class AuthorizationEndpointTest {
   @Test public void testMissingScope() {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
@@ -704,7 +704,7 @@ public class AuthorizationEndpointTest {
   }
 
   @Test public void testPromptNoneAndValue() {
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
@@ -717,7 +717,7 @@ public class AuthorizationEndpointTest {
   }
 
   @Test public void testUnknownPromptValue() {
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
@@ -732,7 +732,7 @@ public class AuthorizationEndpointTest {
   @Test public void testOfflineAccessIgnoredWithoutPromptConsent(TokenHandler tokenHandler) {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
@@ -747,7 +747,7 @@ public class AuthorizationEndpointTest {
   }
 
   @Test public void testRequestParam() {
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
@@ -760,7 +760,7 @@ public class AuthorizationEndpointTest {
   }
 
   @Test public void testRequestUriParam() {
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
@@ -785,7 +785,7 @@ public class AuthorizationEndpointTest {
     jws.setKey(settings.keyPair.getPrivate());
     String idToken = jws.getCompactSerialization();
 
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
@@ -800,7 +800,7 @@ public class AuthorizationEndpointTest {
   @Test public void testIdTokenHint_unparseableJwt() throws Throwable {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
@@ -825,7 +825,7 @@ public class AuthorizationEndpointTest {
     jws.setKey(KeyPairLoader.generateRandomKeyPair().getPrivate());
     String idToken = jws.getCompactSerialization();
 
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
@@ -851,7 +851,7 @@ public class AuthorizationEndpointTest {
     jws.setKey(settings.keyPair.getPrivate());
     String idToken = jws.getCompactSerialization();
 
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
@@ -877,7 +877,7 @@ public class AuthorizationEndpointTest {
     jws.setKey(settings.keyPair.getPrivate());
     String idToken = jws.getCompactSerialization();
 
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
@@ -893,7 +893,7 @@ public class AuthorizationEndpointTest {
   @Test public void testMaxAge_needsReauth() {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
@@ -909,7 +909,7 @@ public class AuthorizationEndpointTest {
   @Test public void testMaxAge_ok(TokenHandler tokenHandler) {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
@@ -930,7 +930,7 @@ public class AuthorizationEndpointTest {
 
     when(appAdminHelper.isAdmin(sidToken.getAccountId(), appInstance)).thenReturn(true);
 
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(privateService.getRedirect_uris())))
         .queryParam("state", encodedState)
@@ -955,7 +955,7 @@ public class AuthorizationEndpointTest {
           setUser_id(sidToken.getAccountId());
         }});
 
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(privateService.getRedirect_uris())))
         .queryParam("state", encodedState)
@@ -973,7 +973,7 @@ public class AuthorizationEndpointTest {
   @Test public void testPrivateService_IsNeitherAppUserOrAppAdmin() throws Throwable {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(AuthorizationEndpoint.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(AuthorizationEndpoint.class))
         .queryParam("client_id", appInstance.getId())
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(privateService.getRedirect_uris())))
         .queryParam("state", encodedState)

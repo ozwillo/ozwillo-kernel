@@ -86,7 +86,9 @@ public class UserInfoEndpointTest {
       setScopeIds(Sets.newHashSet(Scopes.OPENID, Scopes.PROFILE));
     }}));
 
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(UserInfoEndpoint.class)).request().get();
+    Response response = resteasy.getClient()
+        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(UserInfoEndpoint.class))
+        .request().get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
     assertThat(response.getMediaType()).isEqualTo(MediaType.APPLICATION_JSON_TYPE);
@@ -99,7 +101,9 @@ public class UserInfoEndpointTest {
       setAccountId(citizenAccount.getId());
     }}));
 
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(UserInfoEndpoint.class)).request()
+    Response response = resteasy.getClient()
+        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(UserInfoEndpoint.class))
+        .request()
         .accept("application/jwt", "application/json; q=0.9")
         .get();
 

@@ -53,7 +53,7 @@ public class Resteasy1077RegressionTest {
   @Test
   public void testTrailingSlash() throws Exception {
     Response response = resteasy.getClient()
-        .target(UriBuilder.fromPath("/test/"))
+        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path("/test/"))
         .request()
         .get();
 
@@ -64,7 +64,7 @@ public class Resteasy1077RegressionTest {
   @Test
   public void testNoTrailingSlash() throws Exception {
     Response response = resteasy.getClient()
-        .target(UriBuilder.fromPath("/test"))
+        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path("/test"))
         .request()
         .get();
 

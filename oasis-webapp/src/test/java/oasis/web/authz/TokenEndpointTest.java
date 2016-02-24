@@ -250,7 +250,7 @@ public class TokenEndpointTest {
     resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
 
     // when
-    Response resp = resteasy.getClient().target(UriBuilder.fromResource(TokenEndpoint.class).build()).request()
+    Response resp = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(TokenEndpoint.class).build()).request()
         .post(Entity.form(new Form("grant_type", "unsupported")));
 
     // then
@@ -264,7 +264,7 @@ public class TokenEndpointTest {
     resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
 
     // when
-    Response resp = resteasy.getClient().target(UriBuilder.fromResource(TokenEndpoint.class).build()).request()
+    Response resp = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(TokenEndpoint.class).build()).request()
         .post(Entity.form(new Form("code", "valid")));
 
     // then
@@ -279,7 +279,7 @@ public class TokenEndpointTest {
     resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
 
     // when
-    Response resp = resteasy.getClient().target(UriBuilder.fromResource(TokenEndpoint.class).build()).request()
+    Response resp = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(TokenEndpoint.class).build()).request()
         .post(Entity.form(new Form()
             .param("grant_type", "authorization_code")
             .param("grant_type", "authorization_code")
@@ -496,7 +496,7 @@ public class TokenEndpointTest {
   }
 
   private Response authCode(String authorizationCode, String redirectUri) {
-    return resteasy.getClient().target(UriBuilder.fromResource(TokenEndpoint.class).build()).request()
+    return resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(TokenEndpoint.class).build()).request()
         .post(Entity.form(new Form()
             .param("grant_type", "authorization_code")
             .param("code", authorizationCode)
@@ -633,7 +633,7 @@ public class TokenEndpointTest {
   }
 
   private Response authCodeWithCodeVerifier(String authorizationCode, String redirectUri, String codeVerifier) {
-    return resteasy.getClient().target(UriBuilder.fromResource(TokenEndpoint.class).build()).request()
+    return resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(TokenEndpoint.class).build()).request()
         .post(Entity.form(new Form()
             .param("grant_type", "authorization_code")
             .param("code", authorizationCode)
@@ -698,7 +698,7 @@ public class TokenEndpointTest {
   }
 
   private Response refreshToken(String refreshToken, String scope) {
-    return resteasy.getClient().target(UriBuilder.fromResource(TokenEndpoint.class).build()).request()
+    return resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(TokenEndpoint.class).build()).request()
         .post(Entity.form(new Form()
             .param("grant_type", "refresh_token")
             .param("refresh_token", refreshToken)
@@ -902,7 +902,7 @@ public class TokenEndpointTest {
   }
 
   private Response jwtBearer(String jwt, String scope) throws Exception {
-    return resteasy.getClient().target(UriBuilder.fromResource(TokenEndpoint.class).build()).request()
+    return resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(TokenEndpoint.class).build()).request()
         .post(Entity.form(new Form()
             .param("grant_type", "urn:ietf:params:oauth:grant-type:jwt-bearer")
             .param("assertion", jwt)

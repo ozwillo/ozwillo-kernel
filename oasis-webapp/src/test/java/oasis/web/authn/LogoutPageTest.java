@@ -127,7 +127,7 @@ public class LogoutPageTest {
     resteasy.getDeployment().getProviderFactory().register(SoyTemplateBodyWriter.class);
   }
   @Test public void testGet_notLoggedIn_noParam(Urls urls) {
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(LogoutPage.class)).request().get();
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(LogoutPage.class)).request().get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
     assertThat(response.getLocation()).isEqualTo(urls.landingPage().get());
@@ -139,7 +139,7 @@ public class LogoutPageTest {
   @Test public void testGet_loggedIn_noIdTokenHint(TokenRepository tokenRepository) {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(LogoutPage.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(LogoutPage.class))
         .queryParam("post_logout_redirect_uri", "http://www.google.com")
         .request()
         .get();
@@ -169,7 +169,7 @@ public class LogoutPageTest {
     jws.setKey(settings.keyPair.getPrivate());
     String idToken = jws.getCompactSerialization();
 
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(LogoutPage.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(LogoutPage.class))
         .queryParam("id_token_hint", idToken)
         .queryParam("post_logout_redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getPost_logout_redirect_uris())))
         .queryParam("state", "some&state")
@@ -205,7 +205,7 @@ public class LogoutPageTest {
     jws.setKey(settings.keyPair.getPrivate());
     String idToken = jws.getCompactSerialization();
 
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(LogoutPage.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(LogoutPage.class))
         .queryParam("id_token_hint", idToken)
         .queryParam("post_logout_redirect_uri", "https://unregistered")
         .request()
@@ -226,7 +226,7 @@ public class LogoutPageTest {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
     // See tests for the parseIdTokenHint method for what is and isn't a valid ID Token hint.
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(LogoutPage.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(LogoutPage.class))
         .queryParam("id_token_hint", "invalid id_token_hint")
         .queryParam("post_logout_redirect_uri", "http://example.com")
         .request()
@@ -245,7 +245,7 @@ public class LogoutPageTest {
   }
 
   @Test public void testGet_notLoggedIn_noIdTokenHint(Urls urls) {
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(LogoutPage.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(LogoutPage.class))
         .queryParam("post_logout_redirect_uri", "http://www.google.com")
         .request()
         .get();
@@ -270,7 +270,7 @@ public class LogoutPageTest {
     jws.setKey(settings.keyPair.getPrivate());
     String idToken = jws.getCompactSerialization();
 
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(LogoutPage.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(LogoutPage.class))
         .queryParam("id_token_hint", idToken)
         .queryParam("post_logout_redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getPost_logout_redirect_uris())))
         .request()
@@ -295,7 +295,7 @@ public class LogoutPageTest {
     jws.setKey(settings.keyPair.getPrivate());
     String idToken = jws.getCompactSerialization();
 
-    Response response = resteasy.getClient().target(UriBuilder.fromResource(LogoutPage.class))
+    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(LogoutPage.class))
         .queryParam("id_token_hint", idToken)
         .queryParam("post_logout_redirect_uri", "https://unregistered")
         .request()
