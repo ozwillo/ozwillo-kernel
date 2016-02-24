@@ -18,6 +18,7 @@
 package oasis.web.authz;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -40,12 +41,16 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
+import oasis.model.applications.v2.AccessControlRepository;
+import oasis.model.applications.v2.AppInstance;
+import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.applications.v2.Scope;
 import oasis.model.applications.v2.ScopeRepository;
 import oasis.model.authn.AccessToken;
 import oasis.model.bootstrap.ClientIds;
 import oasis.model.directory.OrganizationMembershipRepository;
 import oasis.services.authn.TokenHandler;
+import oasis.services.authz.AppAdminHelper;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.Client;
 import oasis.web.authn.ClientPrincipal;
@@ -58,6 +63,9 @@ public class IntrospectionEndpoint {
   @Inject TokenHandler tokenHandler;
   @Inject ScopeRepository scopeRepository;
   @Inject OrganizationMembershipRepository organizationMembershipRepository;
+  @Inject AppInstanceRepository appInstanceRepository;
+  @Inject AppAdminHelper appAdminHelper;
+  @Inject AccessControlRepository accessControlRepository;
 
   @Context SecurityContext securityContext;
 
@@ -104,8 +112,22 @@ public class IntrospectionEndpoint {
         .setSub(accessToken.getAccountId())
         .setToken_type("Bearer");
     if (ClientIds.DATACORE.equals(client_id)) {
-        introspectionResponse.setSub_groups(Lists.newArrayList(
-            organizationMembershipRepository.getOrganizationIdsForUser(accessToken.getAccountId())));
+      ArrayList<String> groups = Lists.newArrayList(
+          organizationMembershipRepository.getOrganizationIdsForUser(accessToken.getAccountId()));
+      AppInstance appInstance = appInstanceRepository.getAppInstance(accessToken.getServiceProviderId());
+      if (appInstance != null) {
+        if (appAdminHelper.isAdmin(accessToken.getAccountId(), appInstance)) {
+          groups.add("app_admin_" + appInstance.getId());
+        }
+        if (accessControlRepository.getAccessControlEntry(appInstance.getId(), accessToken.getAccountId()) != null) {
+          groups.add("app_user_" + appInstance.getId());
+        }
+      } /* else:
+           that shouldn't happen: app_instance has disappeared but there are still valid tokens out there.
+           ignore the situation (do not return error()) as that would result in a different answer (active/inactive token)
+           depending on whether the request is coming from the DataCore vs. any other client.
+         */
+      introspectionResponse.setSub_groups(groups);
     }
 
     return Response.ok()
