@@ -91,7 +91,6 @@ import oasis.web.authn.Authenticated;
 import oasis.web.authn.Client;
 import oasis.web.authn.ClientPrincipal;
 import oasis.web.openidconnect.ErrorResponse;
-import oasis.web.resteasy.Resteasy1099;
 
 @Path("/a/token")
 @Authenticated @Client
@@ -389,7 +388,7 @@ public class TokenEndpoint {
     if (urls.canonicalBaseUri().isPresent()) {
       return urls.canonicalBaseUri().get().toString();
     }
-    return Resteasy1099.getBaseUri(uriInfo).toString();
+    return uriInfo.getBaseUri().toString();
   }
 
   private Response response(Response.Status status, Object response) {
@@ -403,9 +402,6 @@ public class TokenEndpoint {
 
   @Nullable
   private String getParameter(String paramName) {
-    if (params == null) { // Workaround for https://issues.jboss.org/browse/RESTEASY-1004
-      return null;
-    }
     List<String> values = params.get(paramName);
     if (values == null || values.isEmpty()) {
       return null;

@@ -60,7 +60,6 @@ import oasis.soy.SoyTemplate;
 import oasis.soy.templates.LogoutSoyInfo;
 import oasis.soy.templates.LogoutSoyInfo.LogoutSoyTemplateInfo;
 import oasis.urls.Urls;
-import oasis.web.resteasy.Resteasy1099;
 import oasis.web.security.StrictReferer;
 import oasis.web.openidconnect.IdTokenHintParser;
 
@@ -188,7 +187,7 @@ public class LogoutPage {
     if (urls.canonicalBaseUri().isPresent()) {
       return urls.canonicalBaseUri().get().toString();
     }
-    return Resteasy1099.getBaseUri(uriInfo).toString();
+    return uriInfo.getBaseUri().toString();
   }
 
   @POST

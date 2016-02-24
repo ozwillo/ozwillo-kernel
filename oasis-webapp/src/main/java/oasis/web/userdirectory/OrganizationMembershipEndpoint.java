@@ -74,7 +74,6 @@ import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
 import oasis.web.authn.WithScopes;
 import oasis.web.i18n.LocaleHelper;
-import oasis.web.resteasy.Resteasy1099;
 import oasis.web.utils.ResponseFactory;
 
 @Path("/d/memberships/org/{organization_id}")
@@ -131,7 +130,7 @@ public class OrganizationMembershipEndpoint {
               public OrgMembership apply(OrganizationMembership input) {
                 OrgMembership membership = new OrgMembership();
                 membership.id = input.getId();
-                membership.membership_uri = Resteasy1099.getBaseUriBuilder(uriInfo).path(MembershipEndpoint.class).build(input.getId()).toString();
+                membership.membership_uri = uriInfo.getBaseUriBuilder().path(MembershipEndpoint.class).build(input.getId()).toString();
                 membership.membership_etag = etagService.getEtag(input);
                 membership.account_id = input.getAccountId();
                 // TODO: check access rights to the user name
@@ -191,7 +190,7 @@ public class OrganizationMembershipEndpoint {
       logger.error("Error notifying organization admins after the requester {} invited a user", requester, e);
     }
 
-    return Response.created(Resteasy1099.getBaseUriBuilder(uriInfo).path(MembershipEndpoint.class).build(membership.getId()))
+    return Response.created(uriInfo.getBaseUriBuilder().path(MembershipEndpoint.class).build(membership.getId()))
         .tag(etagService.getEtag(membership))
         .entity(membership)
         .build();

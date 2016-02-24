@@ -28,7 +28,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.Provider;
 
 import oasis.urls.Urls;
-import oasis.web.resteasy.Resteasy1099;
 
 /**
  * Enforce the use of the {@link oasis.urls.Urls#canonicalBaseUri() canonical base URI}
@@ -46,11 +45,11 @@ public class UserCanonicalBaseUriFilter implements ContainerRequestFilter {
     if (!urls.canonicalBaseUri().isPresent()) {
       return; // nothing to do
     }
-    if (Resteasy1099.getBaseUri(requestContext.getUriInfo()).equals(urls.canonicalBaseUri().get())) {
+    if (requestContext.getUriInfo().getBaseUri().equals(urls.canonicalBaseUri().get())) {
       return; // we're already on the canonical base URI
     }
 
-    URI relativeUri = Resteasy1099.getBaseUri(requestContext.getUriInfo()).relativize(requestContext.getUriInfo().getRequestUri());
+    URI relativeUri = requestContext.getUriInfo().getBaseUri().relativize(requestContext.getUriInfo().getRequestUri());
     URI canonicalUri = urls.canonicalBaseUri().get().resolve(relativeUri);
 
     requestContext.abortWith(Response.seeOther(canonicalUri).build());

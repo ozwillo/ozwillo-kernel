@@ -45,7 +45,6 @@ import oasis.services.etag.EtagService;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
-import oasis.web.resteasy.Resteasy1099;
 import oasis.web.utils.ResponseFactory;
 
 @Path("/apps/pending-acl/instance/{instance_id}")
@@ -85,7 +84,7 @@ public class AppInstancePendingAccessControlEndpoint {
               public PendingACE apply(AccessControlEntry accessControlEntry) {
                 PendingACE ace = new PendingACE();
                 ace.id = accessControlEntry.getId();
-                ace.pending_entry_uri = Resteasy1099.getBaseUriBuilder(uriInfo)
+                ace.pending_entry_uri = uriInfo.getBaseUriBuilder()
                     .path(PendingAccessControlEntryEndpoint.class)
                     .build(accessControlEntry.getId())
                     .toString();

@@ -63,7 +63,6 @@ import oasis.soy.templates.LoginSoyInfo.ReauthSoyTemplateInfo;
 import oasis.urls.Urls;
 import oasis.web.StaticResources;
 import oasis.web.i18n.LocaleHelper;
-import oasis.web.resteasy.Resteasy1099;
 import oasis.web.security.StrictReferer;
 import oasis.web.utils.UserAgentFingerprinter;
 
@@ -246,7 +245,7 @@ public class LoginPage {
     if (landingPage.isPresent()) {
       return landingPage.get();
     }
-    return Resteasy1099.getBaseUriBuilder(uriInfo).path(StaticResources.class).path(StaticResources.class, "home").build();
+    return uriInfo.getBaseUriBuilder().path(StaticResources.class).path(StaticResources.class, "home").build();
   }
 
   private void log(String userName, LoginLogEvent.LoginResult loginResult) {

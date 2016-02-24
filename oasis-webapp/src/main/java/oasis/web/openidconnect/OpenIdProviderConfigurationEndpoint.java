@@ -42,7 +42,6 @@ import oasis.web.authz.KeysEndpoint;
 import oasis.web.authz.RevokeEndpoint;
 import oasis.web.authz.TokenEndpoint;
 import oasis.web.i18n.LocaleHelper;
-import oasis.web.resteasy.Resteasy1099;
 import oasis.web.userinfo.UserInfoEndpoint;
 
 /**
@@ -73,14 +72,14 @@ public class OpenIdProviderConfigurationEndpoint {
     if (urls.canonicalBaseUri().isPresent()) {
       return urls.canonicalBaseUri().get();
     }
-    return Resteasy1099.getBaseUri(uriInfo);
+    return uriInfo.getBaseUri();
   }
 
   private UriBuilder getBaseUriBuilder() {
     if (urls.canonicalBaseUri().isPresent()) {
       return UriBuilder.fromUri(urls.canonicalBaseUri().get());
     }
-    return Resteasy1099.getBaseUriBuilder(uriInfo);
+    return uriInfo.getBaseUriBuilder();
   }
 
   /**

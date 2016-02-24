@@ -63,7 +63,6 @@ import oasis.soy.templates.LoginSoyInfo;
 import oasis.soy.templates.SignUpSoyInfo;
 import oasis.urls.Urls;
 import oasis.web.i18n.LocaleHelper;
-import oasis.web.resteasy.Resteasy1099;
 import oasis.web.security.StrictReferer;
 
 @Path("/a/signup")
@@ -128,7 +127,7 @@ public class SignUpPage {
     try {
       String pass = tokenHandler.generateRandom();
       AccountActivationToken accountActivationToken = tokenHandler.createAccountActivationToken(account.getId(), extractContinueUrl(continueUrl), pass);
-      URI activationLink = Resteasy1099.getBaseUriBuilder(uriInfo)
+      URI activationLink = uriInfo.getBaseUriBuilder()
           .path(ActivateAccountPage.class)
           .queryParam(LoginPage.LOCALE_PARAM, account.getLocale().toLanguageTag())
           .build(TokenSerializer.serialize(accountActivationToken, pass));

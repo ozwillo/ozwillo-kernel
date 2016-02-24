@@ -89,7 +89,6 @@ import oasis.web.authn.UserAuthenticationFilter;
 import oasis.web.authn.UserSessionPrincipal;
 import oasis.web.i18n.LocaleHelper;
 import oasis.web.openidconnect.IdTokenHintParser;
-import oasis.web.resteasy.Resteasy1099;
 import oasis.web.security.StrictReferer;
 
 @Path("/a/auth")
@@ -480,7 +479,7 @@ public class AuthorizationEndpoint {
     if (urls.canonicalBaseUri().isPresent()) {
       return urls.canonicalBaseUri().get().toString();
     }
-    return Resteasy1099.getBaseUri(uriInfo).toString();
+    return uriInfo.getBaseUri().toString();
   }
 
   private Set<String> getAuthorizedScopeIds(String client_id, String userId) {
@@ -532,9 +531,6 @@ public class AuthorizationEndpoint {
    */
   @Nullable
   private String getParameter(String paramName) {
-    if (params == null) { // Workaround for https://issues.jboss.org/browse/RESTEASY-1004
-      return null;
-    }
     List<String> values = params.get(paramName);
     if (values == null || values.isEmpty()) {
       return null;

@@ -53,7 +53,6 @@ import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
 import oasis.web.authn.WithScopes;
 import oasis.web.authz.KeysEndpoint;
-import oasis.web.resteasy.Resteasy1099;
 
 @Authenticated @OAuth @WithScopes(Scopes.OPENID)
 @Path("/a/userinfo")
@@ -91,7 +90,7 @@ public class UserInfoEndpoint {
     if (urls.canonicalBaseUri().isPresent()) {
       return urls.canonicalBaseUri().get().toString();
     }
-    return Resteasy1099.getBaseUri(uriInfo).toString();
+    return uriInfo.getBaseUri().toString();
   }
 
   @GET

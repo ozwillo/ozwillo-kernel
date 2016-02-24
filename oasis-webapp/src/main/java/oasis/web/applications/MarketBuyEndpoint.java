@@ -77,7 +77,6 @@ import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
 import oasis.web.authn.WithScopes;
 import oasis.web.authz.TokenEndpoint;
-import oasis.web.resteasy.Resteasy1099;
 import oasis.web.utils.ResponseFactory;
 import oasis.web.webhooks.WebhookSignatureFilter;
 
@@ -177,7 +176,7 @@ public class MarketBuyEndpoint {
             .setClient_secret(pwd)
             .setUser(accountRepository.getUserAccountById(userId))
             .setOrganization(organization)
-            .setInstance_registration_uri(Resteasy1099.getBaseUriBuilder(uriInfo).path(InstanceRegistrationEndpoint.class).build(instance.getId()))
+            .setInstance_registration_uri(uriInfo.getBaseUriBuilder().path(InstanceRegistrationEndpoint.class).build(instance.getId()))
             .setAuthorization_grant(new AuthorizationGrant(createJwtBearer(instance)))));
     Response response;
     try {
@@ -242,7 +241,7 @@ public class MarketBuyEndpoint {
     if (urls.canonicalBaseUri().isPresent()) {
       return urls.canonicalBaseUri().get().toString();
     }
-    return Resteasy1099.getBaseUri(uriInfo).toString();
+    return uriInfo.getBaseUri().toString();
   }
 
   public static class CreateInstanceRequest {

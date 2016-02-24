@@ -41,7 +41,6 @@ import oasis.services.etag.EtagService;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
-import oasis.web.resteasy.Resteasy1099;
 import oasis.web.utils.ResponseFactory;
 
 @Path("/d/pending-memberships/org/{organization_id}")
@@ -79,7 +78,7 @@ public class OrganizationPendingMembershipEndpoint {
               public PendingOrgMembership apply(OrganizationMembership organizationMembership) {
                 PendingOrgMembership membership = new PendingOrgMembership();
                 membership.id = organizationMembership.getId();
-                membership.pending_membership_uri = Resteasy1099.getBaseUriBuilder(uriInfo)
+                membership.pending_membership_uri = uriInfo.getBaseUriBuilder()
                     .path(PendingMembershipEndpoint.class)
                     .build(organizationMembership.getId())
                     .toString();

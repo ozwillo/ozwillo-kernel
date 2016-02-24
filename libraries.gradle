@@ -29,7 +29,7 @@ def guiceVersion = '4.0'
 def jacksonVersion = '2.5.5'
 def log4jVersion = '2.5'
 def okhttpVersion = '2.7.4'
-def resteasyVersion = '3.0.6.Final'
+def resteasyVersion = '3.0.16.Final'
 
 ext.libs = [
   guava:               'com.google.guava:guava:19.0',
@@ -58,17 +58,11 @@ ext.libs = [
     ],
 
   resteasy_netty:      [
-      dependencies.create("org.jboss.resteasy:resteasy-netty:$resteasyVersion") {
-        exclude module: 'slf4j-simple'
-        exclude module: 'resteasy-jackson2-provider'
-        exclude module: 'scannotation'
-      },
+      "org.jboss.resteasy:resteasy-netty:$resteasyVersion",
       'io.netty:netty:3.9.9.Final',
     ],
 
-  resteasy_client:     dependencies.create("org.jboss.resteasy:resteasy-client:$resteasyVersion") {
-      exclude module: 'scannotation'
-    },
+  resteasy_client:     "org.jboss.resteasy:resteasy-client:$resteasyVersion",
 
   okhttp:             "com.squareup.okhttp:okhttp:${okhttpVersion}",
   okhttp_mockserver:  "com.squareup.okhttp:mockwebserver:${okhttpVersion}",

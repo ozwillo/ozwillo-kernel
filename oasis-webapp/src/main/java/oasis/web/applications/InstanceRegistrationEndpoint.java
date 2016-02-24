@@ -75,7 +75,6 @@ import oasis.web.authn.Authenticated;
 import oasis.web.authn.Client;
 import oasis.web.authn.ClientPrincipal;
 import oasis.web.i18n.LocaleHelper;
-import oasis.web.resteasy.Resteasy1099;
 import oasis.web.utils.ResponseFactory;
 
 @Path("/apps/pending-instance/{instance_id}")
@@ -212,7 +211,7 @@ public class InstanceRegistrationEndpoint {
       }
     }
 
-    return Response.created(Resteasy1099.getBaseUriBuilder(uriInfo).path(AppInstanceEndpoint.class).build(instanceId))
+    return Response.created(uriInfo.getBaseUriBuilder().path(AppInstanceEndpoint.class).build(instanceId))
         .entity(new GenericEntity<Map<String, String>>(acknowledgementResponse) {})
         .build();
   }

@@ -154,7 +154,7 @@ public class OkHttpClientEngine implements ClientHttpEngine {
       }
 
       @Override
-      protected void releaseConnection() throws IOException {
+      public void releaseConnection() throws IOException {
         // Stream might have been entirely replaced, so we need to close it independently from response.body()
         Throwable primaryExc = null;
         try {

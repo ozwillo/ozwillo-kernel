@@ -54,7 +54,6 @@ import oasis.soy.SoyTemplate;
 import oasis.soy.templates.RecoverMailSoyInfo;
 import oasis.soy.templates.RecoverSoyInfo;
 import oasis.web.i18n.LocaleHelper;
-import oasis.web.resteasy.Resteasy1099;
 
 @Path("/a/recover")
 public class ForgotPasswordPage {
@@ -99,7 +98,7 @@ public class ForgotPasswordPage {
       } else {
         String pass = tokenHandler.generateRandom();
         ChangePasswordToken changePasswordToken = tokenHandler.createChangePasswordToken(account.getId(), pass);
-        URI resetPasswordLink = Resteasy1099.getBaseUriBuilder(uriInfo)
+        URI resetPasswordLink = uriInfo.getBaseUriBuilder()
             .path(ResetPasswordPage.class)
             .queryParam(LoginPage.LOCALE_PARAM, locale.toLanguageTag())
             .build(TokenSerializer.serialize(changePasswordToken, pass));

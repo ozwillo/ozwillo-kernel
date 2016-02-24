@@ -68,7 +68,6 @@ import oasis.web.authn.Authenticated;
 import oasis.web.authn.User;
 import oasis.web.authn.UserSessionPrincipal;
 import oasis.web.i18n.LocaleHelper;
-import oasis.web.resteasy.Resteasy1099;
 import oasis.web.security.StrictReferer;
 
 @Path("/d/invitation/{token}")
@@ -206,11 +205,11 @@ public class MembershipInvitationPage {
   private Response generatePage(ULocale locale, OrganizationMembership pendingOrganizationMembership, Organization organization) {
     UserAccount requester = accountRepository.getUserAccountById(pendingOrganizationMembership.getCreator_id());
 
-    URI acceptFormAction = Resteasy1099.getBaseUriBuilder(uriInfo)
+    URI acceptFormAction = uriInfo.getBaseUriBuilder()
         .path(MembershipInvitationPage.class)
         .path(MembershipInvitationPage.class, "acceptInvitation")
         .build(serializedToken);
-    URI refuseFormAction = Resteasy1099.getBaseUriBuilder(uriInfo)
+    URI refuseFormAction = uriInfo.getBaseUriBuilder()
         .path(MembershipInvitationPage.class)
         .path(MembershipInvitationPage.class, "refuseInvitation")
         .build(serializedToken);

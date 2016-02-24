@@ -78,7 +78,6 @@ import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
 import oasis.web.authn.WithScopes;
 import oasis.web.i18n.LocaleHelper;
-import oasis.web.resteasy.Resteasy1099;
 import oasis.web.utils.ResponseFactory;
 
 @Path("/apps/acl/instance/{instance_id}")
@@ -129,7 +128,7 @@ public class AppInstanceAccessControlEndpoint {
       ACE ace = new ACE();
       // Note: the *_name fields will be filled later
       ace.id = input.getId();
-      ace.entry_uri = Resteasy1099.getBaseUriBuilder(uriInfo).path(AccessControlEntryEndpoint.class).build(input.getId()).toString();
+      ace.entry_uri = uriInfo.getBaseUriBuilder().path(AccessControlEntryEndpoint.class).build(input.getId()).toString();
       ace.entry_etag = etagService.getEtag(input);
       ace.instance_id = input.getInstance_id();
       ace.user_id = input.getUser_id();
@@ -236,7 +235,7 @@ public class AppInstanceAccessControlEndpoint {
       }
     }
 
-    URI aceUri = Resteasy1099.getBaseUriBuilder(uriInfo).path(AccessControlEntryEndpoint.class).build(ace.getId());
+    URI aceUri = uriInfo.getBaseUriBuilder().path(AccessControlEntryEndpoint.class).build(ace.getId());
     return Response.created(aceUri)
         .contentLocation(aceUri)
         .tag(etagService.getEtag(ace))

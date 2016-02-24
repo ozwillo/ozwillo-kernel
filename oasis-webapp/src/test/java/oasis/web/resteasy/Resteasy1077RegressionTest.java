@@ -52,10 +52,10 @@ public class Resteasy1077RegressionTest {
 
   @Test
   public void testTrailingSlash() throws Exception {
-Response response = resteasy.getClient()
-    .target(UriBuilder.fromPath("/test/"))
-    .request()
-    .get();
+    Response response = resteasy.getClient()
+        .target(UriBuilder.fromPath("/test/"))
+        .request()
+        .get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
     assertThat(response.readEntity(String.class)).isEqualTo("test");
@@ -78,14 +78,15 @@ Response response = resteasy.getClient()
     @Path("/test/")
     @GET
     public Response test(@Context UriInfo uriInfo) {
-          if (uriInfo.getPath().endsWith("/")) {
-              return Response.ok("test", MediaType.TEXT_PLAIN_TYPE).build();
-            } else {
-              return Response
-                          .status(Response.Status.MOVED_PERMANENTLY)
-                        .location(Resteasy1099.getBaseUriBuilder(uriInfo).path("/test/").build())
-                        .build();
-            }
-        }
+      // XXX: can't use getPath() because of https://issues.jboss.org/browse/RESTEASY-1124
+      if (uriInfo.getRequestUri().getPath().endsWith("/")) {
+        return Response.ok("test", MediaType.TEXT_PLAIN_TYPE).build();
+      } else {
+        return Response
+            .status(Response.Status.MOVED_PERMANENTLY)
+            .location(uriInfo.getBaseUriBuilder().path("/test/").build())
+            .build();
+      }
+    }
   }
 }

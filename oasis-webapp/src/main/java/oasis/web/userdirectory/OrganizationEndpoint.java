@@ -51,7 +51,6 @@ import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
 import oasis.web.authn.WithScopes;
-import oasis.web.resteasy.Resteasy1099;
 import oasis.web.utils.ResponseFactory;
 
 @Path("/d/org/{organizationId}")
@@ -109,7 +108,7 @@ public class OrganizationEndpoint {
       return ResponseFactory.notFound("The requested organization does not exist");
     }
 
-    URI uri = Resteasy1099.getBaseUriBuilder(uriInfo)
+    URI uri = uriInfo.getBaseUriBuilder()
         .path(OrganizationEndpoint.class)
         .build(organizationId);
     return Response.ok(uri)
