@@ -28,7 +28,6 @@ subprojects {
 def guiceVersion = '4.0'
 def jacksonVersion = '2.5.5'
 def log4jVersion = '2.5'
-def okhttpVersion = '2.7.4'
 def resteasyVersion = '3.0.16.Final'
 
 ext.libs = [
@@ -62,10 +61,15 @@ ext.libs = [
       'io.netty:netty:3.9.9.Final',
     ],
 
-  resteasy_client:     "org.jboss.resteasy:resteasy-client:$resteasyVersion",
+  resteasy_client:     [
+      "org.jboss.resteasy:resteasy-client:$resteasyVersion",
+      'net.ltgt.jaxrs:resteasy-client-okhttp:1.0',
+      "com.squareup.okhttp:okhttp:2.7.4"
+    ],
 
-  okhttp:             "com.squareup.okhttp:okhttp:${okhttpVersion}",
-  okhttp_mockserver:  "com.squareup.okhttp:mockwebserver:${okhttpVersion}",
+  resteasy_testing:   'net.ltgt.jaxrs:resteasy-testing:0.2',
+
+  jaxrs_webhook:      'net.ltgt.jaxrs:jaxrs-webhook:0.1',
 
   closure_templates_standalone: [
       'com.google.template:soy:2015-04-10',

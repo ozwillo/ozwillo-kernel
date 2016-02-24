@@ -53,7 +53,7 @@ public class Resteasy1077RegressionTest {
   @Test
   public void testTrailingSlash() throws Exception {
     Response response = resteasy.getClient()
-        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path("/test/"))
+        .target(resteasy.getBaseUriBuilder().path("/test/"))
         .request()
         .get();
 
@@ -64,13 +64,13 @@ public class Resteasy1077RegressionTest {
   @Test
   public void testNoTrailingSlash() throws Exception {
     Response response = resteasy.getClient()
-        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path("/test"))
+        .target(resteasy.getBaseUriBuilder().path("/test"))
         .request()
         .get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.MOVED_PERMANENTLY);
     UriInfo location = new ResteasyUriInfo(response.getLocation());
-    assertThat(location.getAbsolutePath()).isEqualTo(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path("/test/").build());
+    assertThat(location.getAbsolutePath()).isEqualTo(UriBuilder.fromUri(resteasy.getBaseUri()).path("/test/").build());
   }
 
   @Path("/")

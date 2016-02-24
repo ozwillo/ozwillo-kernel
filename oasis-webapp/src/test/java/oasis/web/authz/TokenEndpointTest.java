@@ -250,7 +250,7 @@ public class TokenEndpointTest {
     resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
 
     // when
-    Response resp = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(TokenEndpoint.class).build()).request()
+    Response resp = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(TokenEndpoint.class).build()).request()
         .post(Entity.form(new Form("grant_type", "unsupported")));
 
     // then
@@ -264,7 +264,7 @@ public class TokenEndpointTest {
     resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
 
     // when
-    Response resp = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(TokenEndpoint.class).build()).request()
+    Response resp = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(TokenEndpoint.class).build()).request()
         .post(Entity.form(new Form("code", "valid")));
 
     // then
@@ -279,7 +279,7 @@ public class TokenEndpointTest {
     resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(appInstance.getId()));
 
     // when
-    Response resp = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(TokenEndpoint.class).build()).request()
+    Response resp = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(TokenEndpoint.class).build()).request()
         .post(Entity.form(new Form()
             .param("grant_type", "authorization_code")
             .param("grant_type", "authorization_code")
@@ -352,7 +352,7 @@ public class TokenEndpointTest {
     JwtClaims claims = new JwtConsumerBuilder()
         .setJwsAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, AlgorithmIdentifiers.RSA_USING_SHA256))
         .setVerificationKey(settings.keyPair.getPublic())
-        .setExpectedIssuer(InProcessResteasy.BASE_URI.toString())
+        .setExpectedIssuer(resteasy.getBaseUri().toString())
         .setExpectedSubject(account.getId())
         .setExpectedAudience(appInstance.getId())
         .setRequireIssuedAt()
@@ -399,7 +399,7 @@ public class TokenEndpointTest {
     JwtClaims claims = new JwtConsumerBuilder()
         .setJwsAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, AlgorithmIdentifiers.RSA_USING_SHA256))
         .setVerificationKey(settings.keyPair.getPublic())
-        .setExpectedIssuer(InProcessResteasy.BASE_URI.toString())
+        .setExpectedIssuer(resteasy.getBaseUri().toString())
         .setExpectedSubject(account.getId())
         .setExpectedAudience(appInstance.getId())
         .setRequireIssuedAt()
@@ -441,7 +441,7 @@ public class TokenEndpointTest {
     JwtClaims claims = new JwtConsumerBuilder()
         .setJwsAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, AlgorithmIdentifiers.RSA_USING_SHA256))
         .setVerificationKey(settings.keyPair.getPublic())
-        .setExpectedIssuer(InProcessResteasy.BASE_URI.toString())
+        .setExpectedIssuer(resteasy.getBaseUri().toString())
         .setExpectedSubject(account.getId())
         .setExpectedAudience(appInstance.getId())
         .setRequireIssuedAt()
@@ -481,7 +481,7 @@ public class TokenEndpointTest {
     JwtClaims claims = new JwtConsumerBuilder()
         .setJwsAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, AlgorithmIdentifiers.RSA_USING_SHA256))
         .setVerificationKey(settings.keyPair.getPublic())
-        .setExpectedIssuer(InProcessResteasy.BASE_URI.toString())
+        .setExpectedIssuer(resteasy.getBaseUri().toString())
         .setExpectedSubject(account.getId())
         .setExpectedAudience(appInstance.getId())
         .setRequireIssuedAt()
@@ -496,7 +496,7 @@ public class TokenEndpointTest {
   }
 
   private Response authCode(String authorizationCode, String redirectUri) {
-    return resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(TokenEndpoint.class).build()).request()
+    return resteasy.getClient().target(resteasy.getBaseUriBuilder().path(TokenEndpoint.class).build()).request()
         .post(Entity.form(new Form()
             .param("grant_type", "authorization_code")
             .param("code", authorizationCode)
@@ -523,7 +523,7 @@ public class TokenEndpointTest {
     JwtClaims claims = new JwtConsumerBuilder()
         .setJwsAlgorithmConstraints(new AlgorithmConstraints(WHITELIST, AlgorithmIdentifiers.RSA_USING_SHA256))
         .setVerificationKey(settings.keyPair.getPublic())
-        .setExpectedIssuer(InProcessResteasy.BASE_URI.toString())
+        .setExpectedIssuer(resteasy.getBaseUri().toString())
         .setExpectedSubject(account.getId())
         .setExpectedAudience(appInstance.getId())
         .setRequireIssuedAt()
@@ -633,7 +633,7 @@ public class TokenEndpointTest {
   }
 
   private Response authCodeWithCodeVerifier(String authorizationCode, String redirectUri, String codeVerifier) {
-    return resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(TokenEndpoint.class).build()).request()
+    return resteasy.getClient().target(resteasy.getBaseUriBuilder().path(TokenEndpoint.class).build()).request()
         .post(Entity.form(new Form()
             .param("grant_type", "authorization_code")
             .param("code", authorizationCode)
@@ -698,7 +698,7 @@ public class TokenEndpointTest {
   }
 
   private Response refreshToken(String refreshToken, String scope) {
-    return resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(TokenEndpoint.class).build()).request()
+    return resteasy.getClient().target(resteasy.getBaseUriBuilder().path(TokenEndpoint.class).build()).request()
         .post(Entity.form(new Form()
             .param("grant_type", "refresh_token")
             .param("refresh_token", refreshToken)
@@ -711,8 +711,8 @@ public class TokenEndpointTest {
 
     // when
     JwtClaims claims = new JwtClaims();
-    claims.setIssuer(InProcessResteasy.BASE_URI.toString());
-    claims.setAudience(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(TokenEndpoint.class).build().toString());
+    claims.setIssuer(resteasy.getBaseUri().toString());
+    claims.setAudience(UriBuilder.fromUri(resteasy.getBaseUri()).path(TokenEndpoint.class).build().toString());
     claims.setSubject(appInstance.getId());
     claims.setIssuedAt(NumericDate.fromMilliseconds(oneHourAgo.getMillis()));
     claims.setExpirationTime(NumericDate.fromMilliseconds(tomorrow.getMillis()));
@@ -735,8 +735,8 @@ public class TokenEndpointTest {
 
     // when
     JwtClaims claims = new JwtClaims();
-    claims.setIssuer(InProcessResteasy.BASE_URI.toString());
-    claims.setAudience(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(TokenEndpoint.class).build().toString());
+    claims.setIssuer(resteasy.getBaseUri().toString());
+    claims.setAudience(UriBuilder.fromUri(resteasy.getBaseUri()).path(TokenEndpoint.class).build().toString());
     claims.setSubject(appInstance.getId());
     claims.setIssuedAt(NumericDate.fromMilliseconds(oneHourAgo.getMillis()));
     claims.setExpirationTime(NumericDate.fromMilliseconds(tomorrow.getMillis()));
@@ -760,7 +760,7 @@ public class TokenEndpointTest {
     // when
     JwtClaims claims = new JwtClaims();
     claims.setIssuer("http://example.com");
-    claims.setAudience(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(TokenEndpoint.class).build().toString());
+    claims.setAudience(UriBuilder.fromUri(resteasy.getBaseUri()).path(TokenEndpoint.class).build().toString());
     claims.setSubject(appInstance.getId());
     claims.setIssuedAt(NumericDate.fromMilliseconds(oneHourAgo.getMillis()));
     claims.setExpirationTime(NumericDate.fromMilliseconds(tomorrow.getMillis()));
@@ -783,7 +783,7 @@ public class TokenEndpointTest {
 
     // when
     JwtClaims claims = new JwtClaims();
-    claims.setIssuer(InProcessResteasy.BASE_URI.toString());
+    claims.setIssuer(resteasy.getBaseUri().toString());
     claims.setAudience("http://example.com");
     claims.setSubject(appInstance.getId());
     claims.setIssuedAt(NumericDate.fromMilliseconds(oneHourAgo.getMillis()));
@@ -807,8 +807,8 @@ public class TokenEndpointTest {
 
     // when
     JwtClaims claims = new JwtClaims();
-    claims.setIssuer(InProcessResteasy.BASE_URI.toString());
-    claims.setAudience(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(TokenEndpoint.class).build().toString());
+    claims.setIssuer(resteasy.getBaseUri().toString());
+    claims.setAudience(UriBuilder.fromUri(resteasy.getBaseUri()).path(TokenEndpoint.class).build().toString());
     claims.setSubject("foo");
     claims.setIssuedAt(NumericDate.fromMilliseconds(oneHourAgo.getMillis()));
     claims.setExpirationTime(NumericDate.fromMilliseconds(tomorrow.getMillis()));
@@ -831,8 +831,8 @@ public class TokenEndpointTest {
 
     // when
     JwtClaims claims = new JwtClaims();
-    claims.setIssuer(InProcessResteasy.BASE_URI.toString());
-    claims.setAudience(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(TokenEndpoint.class).build().toString());
+    claims.setIssuer(resteasy.getBaseUri().toString());
+    claims.setAudience(UriBuilder.fromUri(resteasy.getBaseUri()).path(TokenEndpoint.class).build().toString());
     claims.setSubject(appInstance.getId());
     claims.setIssuedAt(NumericDate.fromMilliseconds(oneHourAgo.getMillis()));
     claims.setJwtId("jti");
@@ -854,8 +854,8 @@ public class TokenEndpointTest {
 
     // when
     JwtClaims claims = new JwtClaims();
-    claims.setIssuer(InProcessResteasy.BASE_URI.toString());
-    claims.setAudience(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(TokenEndpoint.class).build().toString());
+    claims.setIssuer(resteasy.getBaseUri().toString());
+    claims.setAudience(UriBuilder.fromUri(resteasy.getBaseUri()).path(TokenEndpoint.class).build().toString());
     claims.setSubject(appInstance.getId());
     claims.setIssuedAt(NumericDate.fromMilliseconds(oneHourAgo.minus(Duration.standardDays(1)).getMillis()));
     claims.setExpirationTime(NumericDate.fromMilliseconds(oneHourAgo.getMillis()));
@@ -878,8 +878,8 @@ public class TokenEndpointTest {
 
     // when
     JwtClaims claims = new JwtClaims();
-    claims.setIssuer(InProcessResteasy.BASE_URI.toString());
-    claims.setAudience(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(TokenEndpoint.class).build().toString());
+    claims.setIssuer(resteasy.getBaseUri().toString());
+    claims.setAudience(UriBuilder.fromUri(resteasy.getBaseUri()).path(TokenEndpoint.class).build().toString());
     claims.setSubject(appInstance.getId());
     // Note: no "issued at"
     claims.setExpirationTime(NumericDate.fromMilliseconds(tomorrow.getMillis()));
@@ -902,7 +902,7 @@ public class TokenEndpointTest {
   }
 
   private Response jwtBearer(String jwt, String scope) throws Exception {
-    return resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(TokenEndpoint.class).build()).request()
+    return resteasy.getClient().target(resteasy.getBaseUriBuilder().path(TokenEndpoint.class).build()).request()
         .post(Entity.form(new Form()
             .param("grant_type", "urn:ietf:params:oauth:grant-type:jwt-bearer")
             .param("assertion", jwt)

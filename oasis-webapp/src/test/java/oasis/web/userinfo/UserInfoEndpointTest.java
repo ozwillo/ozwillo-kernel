@@ -87,7 +87,7 @@ public class UserInfoEndpointTest {
     }}));
 
     Response response = resteasy.getClient()
-        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(UserInfoEndpoint.class))
+        .target(resteasy.getBaseUriBuilder().path(UserInfoEndpoint.class))
         .request().get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
@@ -102,7 +102,7 @@ public class UserInfoEndpointTest {
     }}));
 
     Response response = resteasy.getClient()
-        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(UserInfoEndpoint.class))
+        .target(resteasy.getBaseUriBuilder().path(UserInfoEndpoint.class))
         .request()
         .accept("application/jwt", "application/json; q=0.9")
         .get();

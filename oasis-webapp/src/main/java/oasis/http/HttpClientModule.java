@@ -26,6 +26,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.squareup.okhttp.OkHttpClient;
 
+import net.ltgt.resteasy.client.okhttp.OkHttpClientEngine;
 import oasis.web.providers.JacksonJsonProvider;
 
 public class HttpClientModule extends AbstractModule {

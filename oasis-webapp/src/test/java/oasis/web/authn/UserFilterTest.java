@@ -90,7 +90,7 @@ public class UserFilterTest {
   }
 
   @Test public void testNoCookie(TokenHandler tokenHandler) {
-    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(DummyResource.class).build()).request().get();
+    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(DummyResource.class).build()).request().get();
 
     commonAssertions(response);
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.NO_CONTENT);
@@ -103,7 +103,7 @@ public class UserFilterTest {
   @Test public void testAuthenticated() {
     when(fingerprinter.fingerprint(any(ContainerRequestContext.class))).thenReturn(validSidToken.getUserAgentFingerprint());
 
-    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(DummyResource.class).build()).request()
+    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(DummyResource.class).build()).request()
         .cookie(UserFilter.COOKIE_NAME, "valid")
         .get();
 
@@ -116,7 +116,7 @@ public class UserFilterTest {
   }
 
   @Test public void testWithInvalidCookie() {
-    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(DummyResource.class).build()).request()
+    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(DummyResource.class).build()).request()
         .cookie(UserFilter.COOKIE_NAME, "invalid")
         .get();
 
@@ -132,7 +132,7 @@ public class UserFilterTest {
   @Test public void testWithInvalidFingerprint() {
     when(fingerprinter.fingerprint(any(ContainerRequestContext.class))).thenReturn("attacker".getBytes(StandardCharsets.UTF_8));
 
-    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(DummyResource.class).build()).request()
+    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(DummyResource.class).build()).request()
         .cookie(UserFilter.COOKIE_NAME, "valid")
         .get();
 

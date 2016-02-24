@@ -20,7 +20,7 @@ dependencies {
   compile libs.config
   compile libs.resteasy_netty
   compile libs.resteasy_client
-  compile libs.okhttp
+  compile libs.jaxrs_webhook
   compile libs.closure_templates
 
   compileOnly libs.immutables
@@ -33,7 +33,7 @@ dependencies {
   testCompile libs.mockito
   testCompile libs.jukito
   testCompile libs.assertj
-  testCompile libs.okhttp_mockserver
+  testCompile libs.resteasy_testing
 }
 
 configurations {

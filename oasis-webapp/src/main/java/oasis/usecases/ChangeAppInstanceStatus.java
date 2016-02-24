@@ -22,7 +22,6 @@ import javax.inject.Provider;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.InvocationCallback;
-import javax.ws.rs.core.Response;
 
 import org.immutables.value.Value;
 import org.joda.time.Instant;
@@ -37,6 +36,7 @@ import com.google.template.soy.data.SanitizedContent;
 import com.google.template.soy.data.SoyMapData;
 import com.ibm.icu.util.ULocale;
 
+import net.ltgt.jaxrs.webhook.client.WebhookSignatureFilter;
 import oasis.model.InvalidVersionException;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
@@ -56,7 +56,6 @@ import oasis.soy.templates.ChangedAppInstanceStatusSoyInfo.StoppedAppInstanceMes
 import oasis.soy.templates.ChangedAppInstanceStatusSoyInfo.StoppedAppInstanceMessageForRequesterSoyTemplateInfo;
 import oasis.urls.Urls;
 import oasis.web.i18n.LocaleHelper;
-import oasis.web.webhooks.WebhookSignatureFilter;
 
 @Value.Enclosing
 public class ChangeAppInstanceStatus {

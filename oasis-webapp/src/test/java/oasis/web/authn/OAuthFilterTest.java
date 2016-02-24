@@ -123,7 +123,7 @@ public class OAuthFilterTest {
   @Test
   public void testWithoutAuthorizationHeader(TokenHandler tokenHandler) {
     Response response = resteasy.getClient()
-        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(DummyResource.class).build())
+        .target(resteasy.getBaseUriBuilder().path(DummyResource.class).build())
         .request()
         .get();
 
@@ -137,7 +137,7 @@ public class OAuthFilterTest {
   @Test
   public void testWithUnknownAuthorizationScheme(TokenHandler tokenHandler) {
     Response response = resteasy.getClient()
-        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(DummyResource.class).build())
+        .target(resteasy.getBaseUriBuilder().path(DummyResource.class).build())
         .request()
         .header(HttpHeaders.AUTHORIZATION, "Unknown scheme")
         .get();
@@ -152,7 +152,7 @@ public class OAuthFilterTest {
   @Test
   public void testWithInvalidAuthorizationHeader() {
     Response response = resteasy.getClient()
-        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(DummyResource.class).build())
+        .target(resteasy.getBaseUriBuilder().path(DummyResource.class).build())
         .request()
         .header(HttpHeaders.AUTHORIZATION, "Bearer wow such invalid very bug")
         .get();
@@ -166,7 +166,7 @@ public class OAuthFilterTest {
   @Test
   public void testWithAuthorizationHeaderWithoutBearerCode() {
     Response response = resteasy.getClient()
-        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(DummyResource.class).build())
+        .target(resteasy.getBaseUriBuilder().path(DummyResource.class).build())
         .request()
         .header(HttpHeaders.AUTHORIZATION, "Bearer")
         .get();
@@ -180,7 +180,7 @@ public class OAuthFilterTest {
   @Test
   public void testWithUnknownAccessToken() {
     Response response = resteasy.getClient()
-        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(DummyResource.class).build())
+        .target(resteasy.getBaseUriBuilder().path(DummyResource.class).build())
         .request()
         .header(HttpHeaders.AUTHORIZATION, "Bearer invalid")
         .get();
@@ -194,7 +194,7 @@ public class OAuthFilterTest {
   @Test
   public void testWithAccessTokenWithoutScope() {
     Response response = resteasy.getClient()
-        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(DummyResource.class).build())
+        .target(resteasy.getBaseUriBuilder().path(DummyResource.class).build())
         .request()
         .header(HttpHeaders.AUTHORIZATION, "Bearer without_scope")
         .get();
@@ -208,7 +208,7 @@ public class OAuthFilterTest {
   @Test
   public void testWithAccessTokenWithInsufficientScopes() {
     Response response = resteasy.getClient()
-        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(DummyResource.class).build())
+        .target(resteasy.getBaseUriBuilder().path(DummyResource.class).build())
         .request()
         .header(HttpHeaders.AUTHORIZATION, "Bearer insufficient_scope")
         .get();
@@ -222,7 +222,7 @@ public class OAuthFilterTest {
   @Test
   public void testWithAccessTokenWithTooMuchScopes() {
     Response response = resteasy.getClient()
-        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(DummyResource.class).build())
+        .target(resteasy.getBaseUriBuilder().path(DummyResource.class).build())
         .request()
         .header(HttpHeaders.AUTHORIZATION, "Bearer too_much_scope")
         .get();
@@ -234,7 +234,7 @@ public class OAuthFilterTest {
   @Test
   public void testWithValidAccessToken() {
     Response response = resteasy.getClient()
-        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(DummyResource.class).build())
+        .target(resteasy.getBaseUriBuilder().path(DummyResource.class).build())
         .request()
         .header(HttpHeaders.AUTHORIZATION, "Bearer valid")
         .get();

@@ -44,6 +44,7 @@ import com.google.template.soy.data.SanitizedContent;
 import com.google.template.soy.data.SoyMapData;
 import com.ibm.icu.util.ULocale;
 
+import net.ltgt.jaxrs.webhook.client.WebhookSignatureFilter;
 import oasis.model.InvalidVersionException;
 import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstanceRepository;
@@ -60,7 +61,6 @@ import oasis.soy.SoyTemplateRenderer;
 import oasis.soy.templates.DeletedAppInstanceSoyInfo;
 import oasis.soy.templates.DeletedAppInstanceSoyInfo.DeletedAppInstanceMessageSoyTemplateInfo;
 import oasis.web.i18n.LocaleHelper;
-import oasis.web.webhooks.WebhookSignatureFilter;
 
 @Value.Enclosing
 public class DeleteAppInstance {

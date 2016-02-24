@@ -54,6 +54,7 @@ import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 
+import net.ltgt.jaxrs.webhook.client.WebhookSignatureFilter;
 import oasis.auth.AuthModule;
 import oasis.jongo.OasisIdHelper;
 import oasis.model.accounts.AccountRepository;
@@ -78,7 +79,6 @@ import oasis.web.authn.OAuthPrincipal;
 import oasis.web.authn.WithScopes;
 import oasis.web.authz.TokenEndpoint;
 import oasis.web.utils.ResponseFactory;
-import oasis.web.webhooks.WebhookSignatureFilter;
 
 @Path("/m/instantiate/{application_id}")
 @Consumes(MediaType.APPLICATION_JSON)

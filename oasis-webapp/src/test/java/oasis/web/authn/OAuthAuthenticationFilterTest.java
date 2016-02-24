@@ -80,7 +80,7 @@ public class OAuthAuthenticationFilterTest {
   @Test
   public void testUnauthenticated() {
     Response response = resteasy.getClient()
-        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(DummyResource.class).path(DummyResource.class, "authRequired").build())
+        .target(resteasy.getBaseUriBuilder().path(DummyResource.class).path(DummyResource.class, "authRequired").build())
         .request()
         .get();
 
@@ -93,7 +93,7 @@ public class OAuthAuthenticationFilterTest {
     resteasy.getDeployment().getProviderFactory().register(new TestOAuthFilter(validAccessToken));
 
     Response response = resteasy.getClient()
-        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(DummyResource.class).path(DummyResource.class, "authRequired").build())
+        .target(resteasy.getBaseUriBuilder().path(DummyResource.class).path(DummyResource.class, "authRequired").build())
         .request()
         .get();
 
@@ -104,7 +104,7 @@ public class OAuthAuthenticationFilterTest {
   @Test
   public void testChallengeResponse() {
     Response response = resteasy.getClient()
-        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(DummyResource.class).path(DummyResource.class, "challenge").build())
+        .target(resteasy.getBaseUriBuilder().path(DummyResource.class).path(DummyResource.class, "challenge").build())
         .request()
         .get();
 

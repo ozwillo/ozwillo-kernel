@@ -75,7 +75,7 @@ public class ClientAuthenticationFilterTest {
   @Test
   public void testWithoutAuthorizationHeader() {
     Response response = resteasy.getClient()
-        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(DummyResource.class).build())
+        .target(resteasy.getBaseUriBuilder().path(DummyResource.class).build())
         .request()
         .get();
 
@@ -86,7 +86,7 @@ public class ClientAuthenticationFilterTest {
   @Test
   public void testIncorrectAuthScheme() {
     Response response = resteasy.getClient()
-        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(DummyResource.class).build())
+        .target(resteasy.getBaseUriBuilder().path(DummyResource.class).build())
         .request()
         .header(HttpHeaders.AUTHORIZATION, getAuthorizationHeader("Whatever", "valid_id", "valid:secret"))
         .get();
@@ -97,7 +97,7 @@ public class ClientAuthenticationFilterTest {
   @Test
   public void testMissingCredentials() {
     Response response = resteasy.getClient()
-        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(DummyResource.class).build())
+        .target(resteasy.getBaseUriBuilder().path(DummyResource.class).build())
         .request()
         .header(HttpHeaders.AUTHORIZATION, "Basic ")
         .get();
@@ -108,7 +108,7 @@ public class ClientAuthenticationFilterTest {
   @Test
   public void testTooManyCredentials() {
     Response response = resteasy.getClient()
-        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(DummyResource.class).build())
+        .target(resteasy.getBaseUriBuilder().path(DummyResource.class).build())
         .request()
         .header(HttpHeaders.AUTHORIZATION, getAuthorizationHeader("Basic", "valid_id", "valid:secret") + " too many values")
         .get();
@@ -119,7 +119,7 @@ public class ClientAuthenticationFilterTest {
   @Test
   public void testMalformedBase64() {
     Response response = resteasy.getClient()
-        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(DummyResource.class).build())
+        .target(resteasy.getBaseUriBuilder().path(DummyResource.class).build())
         .request()
         .header(HttpHeaders.AUTHORIZATION, "Basic €")
         .get();
@@ -130,7 +130,7 @@ public class ClientAuthenticationFilterTest {
   @Test
   public void testMalformedUTF8Base64Decoding() {
     Response response = resteasy.getClient()
-        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(DummyResource.class).build())
+        .target(resteasy.getBaseUriBuilder().path(DummyResource.class).build())
         .request()
         .header(HttpHeaders.AUTHORIZATION, "Basic " + BaseEncoding.base64().encode(new byte[] {(byte) 0x80}))
         .get();
@@ -141,7 +141,7 @@ public class ClientAuthenticationFilterTest {
   @Test
   public void testWithMalformedCredentials() {
     Response response = resteasy.getClient()
-        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(DummyResource.class).build())
+        .target(resteasy.getBaseUriBuilder().path(DummyResource.class).build())
         .request()
         .header(HttpHeaders.AUTHORIZATION, "Basic " + BaseEncoding.base64().encode("valid_id".getBytes(StandardCharsets.UTF_8)))
         .get();
@@ -152,7 +152,7 @@ public class ClientAuthenticationFilterTest {
   @Test
   public void testWithEmptyClientId() {
     Response response = resteasy.getClient()
-        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(DummyResource.class).build())
+        .target(resteasy.getBaseUriBuilder().path(DummyResource.class).build())
         .request()
         .header(HttpHeaders.AUTHORIZATION, getAuthorizationHeader("Basic", "", "secret"))
         .get();
@@ -164,7 +164,7 @@ public class ClientAuthenticationFilterTest {
   @Test
   public void testWithInvalidCredentials() {
     Response response = resteasy.getClient()
-        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(DummyResource.class).build())
+        .target(resteasy.getBaseUriBuilder().path(DummyResource.class).build())
         .request()
         .header(HttpHeaders.AUTHORIZATION, getAuthorizationHeader("Basic", "invalid_id", "invalid:secret"))
         .get();
@@ -176,7 +176,7 @@ public class ClientAuthenticationFilterTest {
   @Test
   public void testWithValidCredentials() {
     Response response = resteasy.getClient()
-        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(DummyResource.class).build())
+        .target(resteasy.getBaseUriBuilder().path(DummyResource.class).build())
         .request()
         .header(HttpHeaders.AUTHORIZATION, getAuthorizationHeader("Basic", "valid_id", "valid:secret"))
         .get();

@@ -125,7 +125,7 @@ public class LoginPageTest {
   }
 
   @Test public void loginPageWithDefaults() {
-    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(LoginPage.class)).request().get();
+    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(LoginPage.class)).request().get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
     assertLoginForm(response);
@@ -134,7 +134,7 @@ public class LoginPageTest {
   @Test public void loginPageWithContinue() {
     final String continueUrl = "/foo/bar?baz&qux=qu%26ux";
 
-    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(LoginPage.class))
+    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(LoginPage.class))
         .queryParam(LoginPage.CONTINUE_PARAM, UrlEscapers.urlFormParameterEscaper().escape(continueUrl))
         .request().get();
 
@@ -148,7 +148,7 @@ public class LoginPageTest {
   @Test public void loginPageWhileLoggedIn() {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(someSidToken));
 
-    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(LoginPage.class)).request().get();
+    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(LoginPage.class)).request().get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
     assertLoginForm(response)
@@ -158,20 +158,20 @@ public class LoginPageTest {
   @Test public void signIn() {
     final String continueUrl = "/foo/bar?baz&qux=qu%26ux";
 
-    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(LoginPage.class))
+    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(LoginPage.class))
         .request().post(Entity.form(new Form()
             .param("continue", continueUrl)
             .param("u", someUserAccount.getEmail_address())
             .param("pwd", "password")));
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
-    assertThat(response.getLocation()).isEqualTo(InProcessResteasy.BASE_URI.resolve(continueUrl));
+    assertThat(response.getLocation()).isEqualTo(resteasy.getBaseUri().resolve(continueUrl));
   }
 
   @Test public void trySignInWithBadPassword() {
     final String continueUrl = "/foo/bar?qux=quux";
 
-    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(LoginPage.class))
+    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(LoginPage.class))
         .request().post(Entity.form(new Form()
             .param("continue", continueUrl)
             .param("u", someUserAccount.getEmail_address())
@@ -189,7 +189,7 @@ public class LoginPageTest {
     final String continueUrl = "/foo/bar?qux=quux";
     final String cancelUrl = "https://application/callback=state=state&error=login_required";
 
-    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(LoginPage.class))
+    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(LoginPage.class))
         .request().post(Entity.form(new Form()
             .param("continue", continueUrl)
             .param("cancel", cancelUrl)
@@ -207,14 +207,14 @@ public class LoginPageTest {
 
     final String continueUrl = "/foo/bar?qux=quux";
 
-    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(LoginPage.class))
+    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(LoginPage.class))
         .request().post(Entity.form(new Form()
             .param("continue", continueUrl)
             .param("u", someUserAccount.getEmail_address())
             .param("pwd", "password")));
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
-    assertThat(response.getLocation()).isEqualTo(InProcessResteasy.BASE_URI.resolve(continueUrl));
+    assertThat(response.getLocation()).isEqualTo(resteasy.getBaseUri().resolve(continueUrl));
 
     verify(tokenRepository, never()).revokeToken(anyString());
     verify(tokenRepository).reAuthSidToken(someSidToken.getId());
@@ -225,7 +225,7 @@ public class LoginPageTest {
 
     final String continueUrl = "/foo/bar?qux=quux";
 
-    Response response = resteasy.getClient().target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(LoginPage.class))
+    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(LoginPage.class))
         .request().post(Entity.form(new Form()
             .param("continue", continueUrl)
             .param("u", otherUserAccount.getEmail_address())

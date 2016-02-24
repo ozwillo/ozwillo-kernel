@@ -246,7 +246,7 @@ public class IntrospectionEndpointTest {
 
   private Response introspect(String token) {
     return resteasy.getClient()
-        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(IntrospectionEndpoint.class))
+        .target(resteasy.getBaseUriBuilder().path(IntrospectionEndpoint.class))
         .request()
         .post(Entity.form(new Form("token", token)));
   }

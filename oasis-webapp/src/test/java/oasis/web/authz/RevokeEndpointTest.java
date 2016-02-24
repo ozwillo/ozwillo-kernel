@@ -135,7 +135,7 @@ public class RevokeEndpointTest {
 
   private Response revoke(Form form) {
     return resteasy.getClient()
-        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(RevokeEndpoint.class))
+        .target(resteasy.getBaseUriBuilder().path(RevokeEndpoint.class))
         .request()
         .post(Entity.form(form));
   }

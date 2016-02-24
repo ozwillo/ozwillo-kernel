@@ -57,7 +57,7 @@ public class JacksonJsonProviderTest {
     able.doubles = ImmutableList.of(Math.random(), Math.random());
 
     DummyObject baker = resteasy.getClient()
-        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(DummyResource.class).build())
+        .target(resteasy.getBaseUriBuilder().path(DummyResource.class).build())
         .request()
         .post(Entity.json(able), DummyObject.class);
 
@@ -66,7 +66,7 @@ public class JacksonJsonProviderTest {
 
   @Test public void testJsonSyntaxError() {
     Response response = resteasy.getClient()
-        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(DummyResource.class).build())
+        .target(resteasy.getBaseUriBuilder().path(DummyResource.class).build())
         .request()
         .post(Entity.json("{\"foo\": "));
 
@@ -76,7 +76,7 @@ public class JacksonJsonProviderTest {
 
   @Test public void testTypeMappingError() {
     Response response = resteasy.getClient()
-        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(DummyResource.class).build())
+        .target(resteasy.getBaseUriBuilder().path(DummyResource.class).build())
         .request()
         .post(Entity.json("{\"instant\": [] }"));
 

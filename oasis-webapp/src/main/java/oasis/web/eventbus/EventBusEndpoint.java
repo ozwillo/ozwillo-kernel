@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Strings;
 
+import net.ltgt.jaxrs.webhook.client.WebhookSignatureFilter;
 import oasis.model.InvalidVersionException;
 import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstanceRepository;
@@ -51,7 +52,6 @@ import oasis.web.authn.Authenticated;
 import oasis.web.authn.Client;
 import oasis.web.authn.ClientPrincipal;
 import oasis.web.utils.ResponseFactory;
-import oasis.web.webhooks.WebhookSignatureFilter;
 
 @Authenticated
 @Client

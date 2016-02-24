@@ -76,13 +76,13 @@ public class UserAuthenticationFilterTest {
 
   @Test public void testUnauthenticated() {
     Response response = resteasy.getClient()
-        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(DummyResource.class).path(DummyResource.class, "authRequired").build())
+        .target(resteasy.getBaseUriBuilder().path(DummyResource.class).path(DummyResource.class, "authRequired").build())
         .queryParam("baz", "baz").queryParam("qux", "qu&ux")
         .request().get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
     UriInfo location = new ResteasyUriInfo(response.getLocation());
-    assertThat(location.getAbsolutePath()).isEqualTo(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(LoginPage.class).build());
+    assertThat(location.getAbsolutePath()).isEqualTo(UriBuilder.fromUri(resteasy.getBaseUri()).path(LoginPage.class).build());
     assertThat(location.getQueryParameters().getFirst("continue")).isEqualTo("http://localhost/foo/bar?baz=baz&qux=qu%26ux");
   }
 
@@ -90,7 +90,7 @@ public class UserAuthenticationFilterTest {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(validSidToken));
 
     Response response = resteasy.getClient()
-        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(DummyResource.class).path(DummyResource.class, "authRequired").build())
+        .target(resteasy.getBaseUriBuilder().path(DummyResource.class).path(DummyResource.class, "authRequired").build())
         .queryParam("qux", "quux")
         .request().get();
 
@@ -102,13 +102,13 @@ public class UserAuthenticationFilterTest {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(validSidToken));
 
     Response response = resteasy.getClient()
-        .target(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(DummyResource.class).path(DummyResource.class, "redirectToLogin").build())
+        .target(resteasy.getBaseUriBuilder().path(DummyResource.class).path(DummyResource.class, "redirectToLogin").build())
         .queryParam("foo", "b&ar").queryParam("baz", "baz")
         .request().get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
     UriInfo location = new ResteasyUriInfo(response.getLocation());
-    assertThat(location.getAbsolutePath()).isEqualTo(UriBuilder.fromUri(InProcessResteasy.BASE_URI).path(LoginPage.class).build());
+    assertThat(location.getAbsolutePath()).isEqualTo(UriBuilder.fromUri(resteasy.getBaseUri()).path(LoginPage.class).build());
     assertThat(location.getQueryParameters().getFirst("continue")).isEqualTo("http://localhost/qux/quux?foo=b%26ar&baz=baz");
 
     // Make sure we don't log the user out!
