@@ -996,10 +996,10 @@ public class AuthorizationEndpointTest {
   private void assertRedirectToLogin(Response response) {
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
     UriInfo location = new ResteasyUriInfo(response.getLocation());
-    assertThat(location.getAbsolutePath()).isEqualTo(UriBuilder.fromUri(resteasy.getBaseUri()).path(LoginPage.class).build());
+    assertThat(location.getAbsolutePath()).isEqualTo(resteasy.getBaseUriBuilder().path(LoginPage.class).build());
 
     UriInfo continueUrl = new ResteasyUriInfo(URI.create(location.getQueryParameters().getFirst(LoginPage.CONTINUE_PARAM)));
-    assertThat(continueUrl.getAbsolutePath()).isEqualTo(UriBuilder.fromUri(resteasy.getBaseUri()).path(AuthorizationEndpoint.class).build());
+    assertThat(continueUrl.getAbsolutePath()).isEqualTo(resteasy.getBaseUriBuilder().path(AuthorizationEndpoint.class).build());
     assertThat(continueUrl.getQueryParameters())
         .containsEntry("client_id", singletonList(appInstance.getId()))
         .containsEntry("redirect_uri", singletonList(Iterables.getOnlyElement(service.getRedirect_uris())))

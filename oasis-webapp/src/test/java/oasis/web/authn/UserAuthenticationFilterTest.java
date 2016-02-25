@@ -20,6 +20,8 @@ package oasis.web.authn;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import java.net.URI;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -83,7 +85,7 @@ public class UserAuthenticationFilterTest {
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
     UriInfo location = new ResteasyUriInfo(response.getLocation());
-    assertThat(location.getAbsolutePath()).isEqualTo(UriBuilder.fromUri(resteasy.getBaseUri()).path(LoginPage.class).build());
+    assertThat(location.getAbsolutePath()).isEqualTo(resteasy.getBaseUriBuilder().path(LoginPage.class).build());
     assertThat(location.getQueryParameters().getFirst("continue")).isEqualTo(requestUri.toString());
   }
 
@@ -110,7 +112,7 @@ public class UserAuthenticationFilterTest {
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
     UriInfo location = new ResteasyUriInfo(response.getLocation());
-    assertThat(location.getAbsolutePath()).isEqualTo(UriBuilder.fromUri(resteasy.getBaseUri()).path(LoginPage.class).build());
+    assertThat(location.getAbsolutePath()).isEqualTo(resteasy.getBaseUriBuilder().path(LoginPage.class).build());
     assertThat(location.getQueryParameters().getFirst("continue")).isEqualTo(requestUri.toString());
 
     // Make sure we don't log the user out!

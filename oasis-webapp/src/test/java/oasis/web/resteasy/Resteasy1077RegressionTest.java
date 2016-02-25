@@ -70,7 +70,7 @@ public class Resteasy1077RegressionTest {
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.MOVED_PERMANENTLY);
     UriInfo location = new ResteasyUriInfo(response.getLocation());
-    assertThat(location.getAbsolutePath()).isEqualTo(UriBuilder.fromUri(resteasy.getBaseUri()).path("/test/").build());
+    assertThat(location.getAbsolutePath()).isEqualTo(resteasy.getBaseUriBuilder().path("/test/").build());
   }
 
   @Path("/")

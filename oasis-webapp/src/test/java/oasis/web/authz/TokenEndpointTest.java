@@ -712,7 +712,7 @@ public class TokenEndpointTest {
     // when
     JwtClaims claims = new JwtClaims();
     claims.setIssuer(resteasy.getBaseUri().toString());
-    claims.setAudience(UriBuilder.fromUri(resteasy.getBaseUri()).path(TokenEndpoint.class).build().toString());
+    claims.setAudience(resteasy.getBaseUriBuilder().path(TokenEndpoint.class).build().toString());
     claims.setSubject(appInstance.getId());
     claims.setIssuedAt(NumericDate.fromMilliseconds(oneHourAgo.getMillis()));
     claims.setExpirationTime(NumericDate.fromMilliseconds(tomorrow.getMillis()));
@@ -736,7 +736,7 @@ public class TokenEndpointTest {
     // when
     JwtClaims claims = new JwtClaims();
     claims.setIssuer(resteasy.getBaseUri().toString());
-    claims.setAudience(UriBuilder.fromUri(resteasy.getBaseUri()).path(TokenEndpoint.class).build().toString());
+    claims.setAudience(resteasy.getBaseUriBuilder().path(TokenEndpoint.class).build().toString());
     claims.setSubject(appInstance.getId());
     claims.setIssuedAt(NumericDate.fromMilliseconds(oneHourAgo.getMillis()));
     claims.setExpirationTime(NumericDate.fromMilliseconds(tomorrow.getMillis()));
@@ -760,7 +760,7 @@ public class TokenEndpointTest {
     // when
     JwtClaims claims = new JwtClaims();
     claims.setIssuer("http://example.com");
-    claims.setAudience(UriBuilder.fromUri(resteasy.getBaseUri()).path(TokenEndpoint.class).build().toString());
+    claims.setAudience(resteasy.getBaseUriBuilder().path(TokenEndpoint.class).build().toString());
     claims.setSubject(appInstance.getId());
     claims.setIssuedAt(NumericDate.fromMilliseconds(oneHourAgo.getMillis()));
     claims.setExpirationTime(NumericDate.fromMilliseconds(tomorrow.getMillis()));
@@ -808,7 +808,7 @@ public class TokenEndpointTest {
     // when
     JwtClaims claims = new JwtClaims();
     claims.setIssuer(resteasy.getBaseUri().toString());
-    claims.setAudience(UriBuilder.fromUri(resteasy.getBaseUri()).path(TokenEndpoint.class).build().toString());
+    claims.setAudience(resteasy.getBaseUriBuilder().path(TokenEndpoint.class).build().toString());
     claims.setSubject("foo");
     claims.setIssuedAt(NumericDate.fromMilliseconds(oneHourAgo.getMillis()));
     claims.setExpirationTime(NumericDate.fromMilliseconds(tomorrow.getMillis()));
@@ -832,7 +832,7 @@ public class TokenEndpointTest {
     // when
     JwtClaims claims = new JwtClaims();
     claims.setIssuer(resteasy.getBaseUri().toString());
-    claims.setAudience(UriBuilder.fromUri(resteasy.getBaseUri()).path(TokenEndpoint.class).build().toString());
+    claims.setAudience(resteasy.getBaseUriBuilder().path(TokenEndpoint.class).build().toString());
     claims.setSubject(appInstance.getId());
     claims.setIssuedAt(NumericDate.fromMilliseconds(oneHourAgo.getMillis()));
     claims.setJwtId("jti");
@@ -855,7 +855,7 @@ public class TokenEndpointTest {
     // when
     JwtClaims claims = new JwtClaims();
     claims.setIssuer(resteasy.getBaseUri().toString());
-    claims.setAudience(UriBuilder.fromUri(resteasy.getBaseUri()).path(TokenEndpoint.class).build().toString());
+    claims.setAudience(resteasy.getBaseUriBuilder().path(TokenEndpoint.class).build().toString());
     claims.setSubject(appInstance.getId());
     claims.setIssuedAt(NumericDate.fromMilliseconds(oneHourAgo.minus(Duration.standardDays(1)).getMillis()));
     claims.setExpirationTime(NumericDate.fromMilliseconds(oneHourAgo.getMillis()));
@@ -879,7 +879,7 @@ public class TokenEndpointTest {
     // when
     JwtClaims claims = new JwtClaims();
     claims.setIssuer(resteasy.getBaseUri().toString());
-    claims.setAudience(UriBuilder.fromUri(resteasy.getBaseUri()).path(TokenEndpoint.class).build().toString());
+    claims.setAudience(resteasy.getBaseUriBuilder().path(TokenEndpoint.class).build().toString());
     claims.setSubject(appInstance.getId());
     // Note: no "issued at"
     claims.setExpirationTime(NumericDate.fromMilliseconds(tomorrow.getMillis()));
