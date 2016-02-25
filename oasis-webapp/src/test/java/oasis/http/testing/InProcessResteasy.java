@@ -17,6 +17,12 @@
  */
 package oasis.http.testing;
 
+import java.io.IOException;
+import java.net.URI;
+
+import javax.ws.rs.client.ClientRequestContext;
+import javax.ws.rs.client.ClientRequestFilter;
+
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.spi.ResteasyDeployment;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
@@ -26,6 +32,7 @@ import com.google.inject.Injector;
 
 import oasis.http.HttpServer;
 import oasis.web.providers.JacksonJsonProvider;
+import oasis.web.security.SecureFilter;
 
 /**
  * Creates an in-process Resteasy container and client. Depends on Jukito.
@@ -36,6 +43,8 @@ public class InProcessResteasy extends net.ltgt.resteasy.testing.InProcessRestea
 
   @Inject
   InProcessResteasy(Injector injector) {
+    // Set the scheme do HTTPS to match what the SecureFilter (added in configureDeployment) will do.
+    super(URI.create("https://localhost/"));
     this.injector = injector;
   }
 
@@ -44,11 +53,24 @@ public class InProcessResteasy extends net.ltgt.resteasy.testing.InProcessRestea
     ResteasyProviderFactory providerFactory = HttpServer.createResteasyProviderFactory(injector);
     providerFactory.register(JacksonJsonProvider.class); // Note: this is our own implementation
 
+    // Add SecureFilter to detect Resteasy bugs earlier.
+    // Works in conjunction with the ClientRequestFilter added in configureClient
+    providerFactory.register(SecureFilter.class);
+
     deployment.setProviderFactory(providerFactory);
   }
 
   @Override
   protected void configureClient(ResteasyClientBuilder builder) {
     builder.register(JacksonJsonProvider.class); // Note: this is our own implementation
+
+    // Simulate an SSL terminator in front of the application.
+    // Works in conjunction with the SecureFilter added in configureDeployment
+    builder.register(new ClientRequestFilter() {
+      @Override
+      public void filter(ClientRequestContext requestContext) throws IOException {
+        requestContext.getHeaders().putSingle("X-Forwarded-Proto", "https");
+      }
+    });
   }
 }

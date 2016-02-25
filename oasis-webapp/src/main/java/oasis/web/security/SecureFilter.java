@@ -41,11 +41,13 @@ public class SecureFilter implements ContainerRequestFilter {
   @Override
   public void filter(ContainerRequestContext requestContext) throws IOException {
     if ("https".equalsIgnoreCase(requestContext.getHeaderString("X-Forwarded-Proto"))) {
+      // Workaround for https://issues.jboss.org/browse/RESTEASY-1308
+      requestContext.getUriInfo().getQueryParameters(false).clear();
+      requestContext.getUriInfo().getQueryParameters(true).clear();
+
       requestContext.setRequestUri(
           requestContext.getUriInfo().getBaseUriBuilder().scheme("https").build(),
-          requestContext.getUriInfo().getRequestUriBuilder().scheme("https")
-              .replaceQuery(null) // Workaround for https://issues.jboss.org/browse/RESTEASY-1308
-              .build());
+          requestContext.getUriInfo().getRequestUriBuilder().scheme("https").build());
 
       final SecurityContext oldSecurityContext = requestContext.getSecurityContext();
       requestContext.setSecurityContext(new SecurityContext() {
