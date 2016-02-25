@@ -43,6 +43,10 @@ import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 
 import oasis.http.testing.InProcessResteasy;
+import oasis.model.applications.v2.AccessControlEntry;
+import oasis.model.applications.v2.AccessControlRepository;
+import oasis.model.applications.v2.AppInstance;
+import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.applications.v2.Scope;
 import oasis.model.applications.v2.ScopeRepository;
 import oasis.model.authn.AccessToken;
@@ -50,6 +54,7 @@ import oasis.model.authz.Scopes;
 import oasis.model.bootstrap.ClientIds;
 import oasis.model.directory.OrganizationMembershipRepository;
 import oasis.services.authn.TokenHandler;
+import oasis.services.authz.AppAdminHelper;
 import oasis.web.authn.testing.TestClientAuthenticationFilter;
 
 @RunWith(JukitoRunner.class)
@@ -61,6 +66,7 @@ public class IntrospectionEndpointTest {
       bind(IntrospectionEndpoint.class);
 
       bindMock(TokenHandler.class).in(TestSingleton.class);
+      bindMock(AppAdminHelper.class).in(TestSingleton.class);
     }
   }
 
@@ -85,15 +91,20 @@ public class IntrospectionEndpointTest {
   static final AccessToken validToken = new AccessToken() {{
     setId("valid");
     setAccountId("account");
+    setServiceProviderId("application");
     setScopeIds(ImmutableSet.of(Scopes.OPENID, "datacore", "dp1:s1", "dp1:s3", "dp3:s1"));
     expiresIn(Duration.standardDays(1));
+  }};
+
+  static final AppInstance appInstance = new AppInstance() {{
+    setId("application");
   }};
 
   @Inject @Rule public InProcessResteasy resteasy;
 
   @SuppressWarnings("unchecked")
   @Before public void setUpMocks(TokenHandler tokenHandler, ScopeRepository scopeRepository,
-      OrganizationMembershipRepository organizationMembershipRepository) {
+      OrganizationMembershipRepository organizationMembershipRepository, AppInstanceRepository appInstanceRepository) {
     when(tokenHandler.getCheckedToken(eq("valid"), any(Class.class))).thenReturn(validToken);
     when(tokenHandler.getCheckedToken(eq("invalid"), any(Class.class))).thenReturn(null);
 
@@ -103,6 +114,8 @@ public class IntrospectionEndpointTest {
     when(scopeRepository.getScopesOfAppInstance("dp2")).thenReturn(dp2Scopes);
 
     when(organizationMembershipRepository.getOrganizationIdsForUser("account")).thenReturn(Arrays.asList("org1", "org2"));
+
+    when(appInstanceRepository.getAppInstance("application")).thenReturn(appInstance);
   }
 
   @Before public void setUp() {
@@ -161,6 +174,52 @@ public class IntrospectionEndpointTest {
     IntrospectionResponse response = resp.readEntity(IntrospectionResponse.class);
     assertValidResponse(response, "datacore");
     assertThat(response.getSub_groups()).containsOnly("org1", "org2");
+  }
+
+  @Test public void testValidTokenAsDataCoreWithAppAdmin(AppAdminHelper appAdminHelper) {
+    // given
+    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(ClientIds.DATACORE));
+    when(appAdminHelper.isAdmin("account", appInstance)).thenReturn(true);
+
+    // when
+    Response resp = introspect("valid");
+
+    // then
+    assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.OK);
+    IntrospectionResponse response = resp.readEntity(IntrospectionResponse.class);
+    assertValidResponse(response, "datacore");
+    assertThat(response.getSub_groups()).containsOnly("org1", "org2", "app_admin_application");
+  }
+
+  @Test public void testValidTokenAsDataCoreWithAppUser(AccessControlRepository accessControlRepository) {
+    // given
+    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(ClientIds.DATACORE));
+    when(accessControlRepository.getAccessControlEntry("application", "account")).thenReturn(new AccessControlEntry());
+
+    // when
+    Response resp = introspect("valid");
+
+    // then
+    assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.OK);
+    IntrospectionResponse response = resp.readEntity(IntrospectionResponse.class);
+    assertValidResponse(response, "datacore");
+    assertThat(response.getSub_groups()).containsOnly("org1", "org2", "app_user_application");
+  }
+
+  @Test public void testValidTokenAsDataCoreWithAppAdminAndAppUser(AppAdminHelper appAdminHelper, AccessControlRepository accessControlRepository) {
+    // given
+    resteasy.getDeployment().getProviderFactory().register(new TestClientAuthenticationFilter(ClientIds.DATACORE));
+    when(appAdminHelper.isAdmin("account", appInstance)).thenReturn(true);
+    when(accessControlRepository.getAccessControlEntry("application", "account")).thenReturn(new AccessControlEntry());
+
+    // when
+    Response resp = introspect("valid");
+
+    // then
+    assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.OK);
+    IntrospectionResponse response = resp.readEntity(IntrospectionResponse.class);
+    assertValidResponse(response, "datacore");
+    assertThat(response.getSub_groups()).containsOnly("org1", "org2", "app_admin_application", "app_user_application");
   }
 
   private void assertValidResponse(IntrospectionResponse response, String... expectedScopes) {
