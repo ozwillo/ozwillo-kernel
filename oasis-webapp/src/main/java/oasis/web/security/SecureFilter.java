@@ -43,7 +43,9 @@ public class SecureFilter implements ContainerRequestFilter {
     if ("https".equalsIgnoreCase(requestContext.getHeaderString("X-Forwarded-Proto"))) {
       requestContext.setRequestUri(
           requestContext.getUriInfo().getBaseUriBuilder().scheme("https").build(),
-          requestContext.getUriInfo().getRequestUriBuilder().scheme("https").build());
+          requestContext.getUriInfo().getRequestUriBuilder().scheme("https")
+              .replaceQuery(null) // Workaround for https://issues.jboss.org/browse/RESTEASY-1308
+              .build());
 
       final SecurityContext oldSecurityContext = requestContext.getSecurityContext();
       requestContext.setSecurityContext(new SecurityContext() {
