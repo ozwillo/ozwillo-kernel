@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
+import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.ibm.icu.util.TimeZone;
@@ -36,6 +37,7 @@ import oasis.auth.AuthModule;
 import oasis.jongo.JongoService;
 import oasis.jongo.applications.v2.JongoAppInstance;
 import oasis.jongo.applications.v2.JongoAppInstanceRepository;
+import oasis.jongo.applications.v2.JongoServiceRepository;
 import oasis.jongo.guice.JongoModule;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
@@ -106,6 +108,13 @@ public class Bootstrap extends CommandLineTool {
 
     final Injector injector = Guice.createInjector(
         JongoModule.create(config.getConfig("oasis.mongo")),
+        new AbstractModule() {
+          @Override
+          protected void configure() {
+            // ServiceRepository is generally bound through CatalogModule
+            bind(ServiceRepository.class).to(JongoServiceRepository.class);
+          }
+        },
         // TODO: store PKIs in DB to use a single subtree of the config
         AuthModule.create(config.getConfig("oasis.auth")
             .withFallback(config.withOnlyPath("oasis.conf-dir")))
