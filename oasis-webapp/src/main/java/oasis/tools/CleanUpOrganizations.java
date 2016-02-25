@@ -20,18 +20,15 @@ package oasis.tools;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
-import java.util.Locale;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.ws.rs.client.Client;
 
-import org.jongo.Jongo;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.inject.Guice;
@@ -91,7 +88,7 @@ public class CleanUpOrganizations extends CommandLineTool {
         UrlsModule.create(config.getConfig("oasis.urls")),
         new SoyGuiceModule(),
         JongoModule.create(config.getConfig("oasis.mongo")),
-        new HttpClientModule(),
+        HttpClientModule.create(config.getConfig("oasis.http.client")),
         ElasticsearchModule.create(config.getConfig("oasis.elasticsearch")),
         new JestModule(),
         new CatalogModule(),

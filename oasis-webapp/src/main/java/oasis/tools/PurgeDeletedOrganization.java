@@ -77,7 +77,7 @@ public class PurgeDeletedOrganization extends CommandLineTool {
         UrlsModule.create(config.getConfig("oasis.urls")),
         new SoyGuiceModule(),
         JongoModule.create(config.getConfig("oasis.mongo")),
-        new HttpClientModule(),
+        HttpClientModule.create(config.getConfig("oasis.http.client")),
         ElasticsearchModule.create(config.getConfig("oasis.elasticsearch")),
         new JestModule(),
         new CatalogModule(),

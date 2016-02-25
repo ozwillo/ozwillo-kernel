@@ -72,7 +72,7 @@ public class InitializeCatalogIndex extends CommandLineTool {
         ElasticsearchModule.create(config.getConfig("oasis.elasticsearch")),
         new JestModule(),
         new CatalogModule(),
-        new HttpClientModule(),
+        HttpClientModule.create(config.getConfig("oasis.http.client")),
         // TODO: store PKIs in DB to use a single subtree of the config
         AuthModule.create(config.getConfig("oasis.auth")
             .withFallback(config.withOnlyPath("oasis.conf-dir")))
