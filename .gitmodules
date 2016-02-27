@@ -1,3 +1,6 @@
 [submodule "oasis-webapp/src/test/resources/http-state"]
 	path = oasis-webapp/src/test/resources/http-state
 	url = https://github.com/abarth/http-state.git
+[submodule "oasis-webapp/src/main/ozwillo-style"]
+	path = oasis-webapp/src/main/ozwillo-style
+	url = https://github.com/ozwillo/ozwillo-style.git

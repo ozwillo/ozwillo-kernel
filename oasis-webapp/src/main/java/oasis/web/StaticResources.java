@@ -58,6 +58,20 @@ public class StaticResources {
   }
 
   @GET
+  @Path("/manifest.json")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response manifest() throws IOException {
+    return getResource("manifest.json");
+  }
+
+  @GET
+  @Path("/browserconfig.xml")
+  @Produces(MediaType.APPLICATION_XML)
+  public Response browserconfig() throws IOException {
+    return getResource("browserconfig.xml");
+  }
+
+  @GET
   @Path("{resource: .+\\.css}")
   @Produces("text/css")
   public Response css(@PathParam("resource") String resourceName) throws IOException {
@@ -96,13 +110,6 @@ public class StaticResources {
   @Path("{resource: .+\\.ttf}")
   @Produces("application/x-font-ttf")
   public Response ttf(@PathParam("resource") String resourceName) throws IOException {
-    return getResource(resourceName);
-  }
-
-  @GET
-  @Path("{resource: .+\\.eot}")
-  @Produces("application/vnd.ms-fontobject")
-  public Response eot(@PathParam("resource") String resourceName) throws IOException {
     return getResource(resourceName);
   }
 

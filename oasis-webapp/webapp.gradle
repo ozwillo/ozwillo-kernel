@@ -36,6 +36,21 @@ dependencies {
   testCompile libs.resteasy_testing
 }
 
+processResources {
+  from('src/main/ozwillo-style/favicons') {
+    exclude '**/*.html'
+    rename { file -> 'oasis-ui/' + file }
+  }
+  filesMatching('**/Common.soy') {
+    filter { line ->
+      if (line.trim() == '/* BUILD WILL INSERT FAVICONS SNIPPET HERE */') {
+        line = file('src/main/ozwillo-style/favicons/snippet_head_for_favicons.html').text
+      }
+      return line
+    }
+  }
+}
+
 configurations {
   soy
 }
