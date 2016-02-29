@@ -18,6 +18,7 @@
 package oasis.http;
 
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Singleton;
 import javax.ws.rs.client.Client;
@@ -69,6 +70,9 @@ public class HttpClientModule extends AbstractModule {
 
   @Provides @Singleton OkHttpClient provideOkHttpClient() {
     return new OkHttpClient.Builder()
+        .readTimeout(1, TimeUnit.MINUTES)
+        .writeTimeout(1, TimeUnit.MINUTES)
+        .connectTimeout(1, TimeUnit.MINUTES)
         .followRedirects(false)
         .addNetworkInterceptor(
             new HttpLoggingInterceptor(new HttpLoggingInterceptor.Logger() {
