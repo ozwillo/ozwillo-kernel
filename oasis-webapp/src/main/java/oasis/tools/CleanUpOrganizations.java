@@ -35,6 +35,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.typesafe.config.Config;
 
+import de.thetaphi.forbiddenapis.SuppressForbidden;
 import oasis.auth.AuthModule;
 import oasis.catalog.CatalogModule;
 import oasis.elasticsearch.ElasticsearchModule;
@@ -51,8 +52,10 @@ import oasis.model.directory.Organization;
 import oasis.model.directory.OrganizationMembershipRepository;
 import oasis.soy.SoyGuiceModule;
 import oasis.urls.UrlsModule;
-import oasis.usecases.*;
 import oasis.usecases.DeleteAppInstance;
+import oasis.usecases.DeleteOrganization;
+import oasis.usecases.ImmutableDeleteAppInstance;
+import oasis.usecases.ImmutableDeleteOrganization;
 
 public class CleanUpOrganizations extends CommandLineTool {
 
@@ -77,6 +80,7 @@ public class CleanUpOrganizations extends CommandLineTool {
     return LoggerFactory.getLogger(CleanUpOrganizations.class);
   }
 
+  @SuppressForbidden
   public void run(String[] args) throws Exception {
     final Config config = init(args);
 

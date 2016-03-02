@@ -28,6 +28,8 @@ import org.slf4j.Logger;
 
 import com.typesafe.config.Config;
 
+import de.thetaphi.forbiddenapis.SuppressForbidden;
+
 public abstract class CommandLineTool {
 
   @Option(name = "-c", usage = "Configuration file", metaVar = "file")
@@ -70,6 +72,7 @@ public abstract class CommandLineTool {
     }
   }
 
+  @SuppressForbidden
   protected void printUsage(CmdLineException e) {
     // TODO: detailed usage description
     System.err.println(e.getMessage());

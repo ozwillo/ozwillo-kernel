@@ -50,6 +50,11 @@ subprojects {
     sourceCompatibility = 1.7
     targetCompatibility = 1.7
 
+    project.apply plugin: 'de.thetaphi.forbiddenapis'
+    forbiddenApis {
+      bundledSignatures = [ 'jdk-unsafe', 'jdk-deprecated', 'jdk-system-out' ]
+    }
+
     tasks.withType(JavaCompile) {
       options.encoding = 'UTF-8'
       options.compilerArgs += [ '-Werror', '-Xlint:unchecked' ]
@@ -75,6 +80,7 @@ buildscript {
     classpath('gradle.plugin.nl.javadude.gradle.plugins:license-gradle-plugin:0.12.1') {
       exclude group: 'com.android.tools.build', module: 'gradle'
     }
+    classpath 'de.thetaphi:forbiddenapis:2.0'
   }
 }
 

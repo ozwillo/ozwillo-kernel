@@ -29,6 +29,9 @@ dependencies {
   compile libs.slf4j
   runtime libs.log4j_runtime
 
+  compileOnly     libs.forbiddenapis
+  testCompileOnly libs.forbiddenapis
+
   testCompile libs.junit
   testCompile libs.mockito
   testCompile libs.jukito

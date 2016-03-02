@@ -23,6 +23,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Locale;
 
 import javax.annotation.Priority;
 import javax.inject.Inject;
@@ -57,7 +58,7 @@ public class ClientAuthenticationFilter implements ContainerRequestFilter {
   // NOTE: we only expect to generate US_ASCII credentials
   private static final Charset CREDENTIALS_ENCODING = StandardCharsets.UTF_8;
   // TODO: make realm configurable
-  private static final String CHALLENGE = String.format(
+  private static final String CHALLENGE = String.format(Locale.ROOT,
       "%s realm=\"OASIS Client applications\", charset=\"%s\"",
       SecurityContext.BASIC_AUTH, CREDENTIALS_ENCODING.name());
 

@@ -18,6 +18,7 @@
 package oasis.auditlog.log4j;
 
 import java.text.SimpleDateFormat;
+import java.util.Locale;
 import java.util.TimeZone;
 
 import org.apache.logging.log4j.LogManager;
@@ -43,8 +44,7 @@ public class Log4JAuditLogService extends AuditLogService {
         "data", auditLogEvent.getContextMap()
     );
 
-    Message message = new JsonMessage(data, new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX"), TimeZone.getTimeZone(
-        "UTC"));
+    Message message = new JsonMessage(data, new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.ROOT), TimeZone.getTimeZone("UTC"));
 
     auditLogger.info(message);
   }

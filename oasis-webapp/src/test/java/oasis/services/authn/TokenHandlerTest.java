@@ -20,6 +20,8 @@ package oasis.services.authn;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import java.nio.charset.StandardCharsets;
+
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeUtils;
 import org.joda.time.Duration;
@@ -32,6 +34,7 @@ import org.junit.runner.RunWith;
 
 import com.google.inject.Inject;
 
+import de.thetaphi.forbiddenapis.SuppressForbidden;
 import oasis.model.authn.AccessToken;
 import oasis.model.authn.Token;
 import oasis.model.authn.TokenRepository;
@@ -59,24 +62,25 @@ public class TokenHandlerTest {
     setId("validToken");
     setCreationTime(now.minus(Duration.standardHours(1)));
     expiresIn(Duration.standardHours(2));
-    setHash("valid".getBytes());
-    setSalt("salt".getBytes());
+    setHash("valid".getBytes(StandardCharsets.UTF_8));
+    setSalt("salt".getBytes(StandardCharsets.UTF_8));
   }};
   static final Token expiredToken = new Token() {{
     setId("expiredToken");
     setCreationTime(new DateTime(2008, 1, 20, 11, 10).toInstant());
     setExpirationTime(new DateTime(2013, 10, 30, 19, 42).toInstant());
-    setHash("valid".getBytes());
-    setSalt("salt".getBytes());
+    setHash("valid".getBytes(StandardCharsets.UTF_8));
+    setSalt("salt".getBytes(StandardCharsets.UTF_8));
   }};
 
+  @SuppressForbidden
   @Before public void setUpMocks(TokenRepository tokenRepository, PasswordHasher passwordHasher) {
     when(tokenRepository.getToken(validToken.getId())).thenReturn(validToken);
     when(tokenRepository.getToken(expiredToken.getId())).thenReturn(expiredToken);
 
-    when(passwordHasher.checkPassword("valid", "valid".getBytes(), "salt".getBytes())).thenReturn(true);
-    when(passwordHasher.checkPassword("expired", "expired".getBytes(), "salt".getBytes())).thenReturn(true);
-    when(passwordHasher.checkPassword("counterfeit", "counterfeit".getBytes(), "salt".getBytes())).thenReturn(false);
+    when(passwordHasher.checkPassword("valid", "valid".getBytes(StandardCharsets.UTF_8), "salt".getBytes(StandardCharsets.UTF_8))).thenReturn(true);
+    when(passwordHasher.checkPassword("expired", "expired".getBytes(StandardCharsets.UTF_8), "salt".getBytes(StandardCharsets.UTF_8))).thenReturn(true);
+    when(passwordHasher.checkPassword("counterfeit", "counterfeit".getBytes(StandardCharsets.UTF_8), "salt".getBytes(StandardCharsets.UTF_8))).thenReturn(false);
   }
 
   @Test public void testGetCheckedToken_validToken() {

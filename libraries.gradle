@@ -36,6 +36,8 @@ ext.libs = [
 
   immutables:          'org.immutables:value:2.1.11',
 
+  forbiddenapis:       'de.thetaphi:forbiddenapis:2.0',
+
   bouncycastle:        'org.bouncycastle:bcprov-jdk15on:1.54',
 
   jose4j:              'org.bitbucket.b_c:jose4j:0.4.4',

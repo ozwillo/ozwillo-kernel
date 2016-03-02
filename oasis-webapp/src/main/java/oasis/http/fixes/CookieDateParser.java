@@ -23,6 +23,8 @@ import com.google.common.base.Ascii;
 import com.google.common.base.CharMatcher;
 import com.google.common.collect.ImmutableList;
 
+import de.thetaphi.forbiddenapis.SuppressForbidden;
+
 class CookieDateParser {
   private static final CharMatcher DELIMITER = CharMatcher.is((char) 0x09)
       .or(CharMatcher.inRange((char) 0x20, (char) 0x2F))
@@ -133,6 +135,7 @@ class CookieDateParser {
   }
 
   @SuppressWarnings("deprecation") // Date.UTC
+  @SuppressForbidden
   public Date parse() {
     parseTokens();
 
