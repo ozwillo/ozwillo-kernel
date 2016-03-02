@@ -42,6 +42,7 @@ import org.jboss.resteasy.spi.metadata.ResourceLocator;
 
 import com.google.inject.Injector;
 
+@SuppressWarnings("rawtypes")
 public class GuiceInjectorFactory implements InjectorFactory {
   private final InjectorFactory delegate = new InjectorFactoryImpl();
   private final Injector injector;

@@ -37,7 +37,7 @@ class CookieDateParser {
   private static final CharMatcher DIGIT = CharMatcher.inRange('0', '9');
   private static final CharMatcher NON_DELIMITER = DELIMITER.negate().precomputed();
 
-  private static final ImmutableList MONTHS = ImmutableList.of(
+  private static final ImmutableList<String> MONTHS = ImmutableList.of(
       "jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec");
 
   public static Date parseCookieDate(String cookieDate) {

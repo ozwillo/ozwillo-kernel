@@ -57,7 +57,7 @@ subprojects {
 
     tasks.withType(JavaCompile) {
       options.encoding = 'UTF-8'
-      options.compilerArgs += [ '-Werror', '-Xlint:unchecked' ]
+      options.compilerArgs += [ '-Werror', '-Xlint:all', '-Xlint:-processing', '-Xlint:-serial', '-Xlint:-path' ]
     }
 
     if (versionlessOutputs) {
