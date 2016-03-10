@@ -100,9 +100,9 @@ public class NewCookieHeaderDelegate implements HeaderDelegate<NewCookie> {
         } else {
           path = attributeValue;
         }
-      } else if ("Secure".equalsIgnoreCase(attributeValue)) {
+      } else if ("Secure".equalsIgnoreCase(attributeName)) {
         secure = true;
-      } else if ("HttpOnly".equalsIgnoreCase(attributeValue)) {
+      } else if ("HttpOnly".equalsIgnoreCase(attributeName)) {
         httpOnly = true;
       }
     } while (attributes.hasNext());
