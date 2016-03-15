@@ -67,7 +67,7 @@ public class PendingAccessControlEntryEndpoint {
       return ResponseFactory.preconditionRequiredIfMatch();
     }
 
-    AccessControlEntry entry = accessControlRepository.getAccessControlEntry(ace_id);
+    AccessControlEntry entry = accessControlRepository.getPendingAccessControlEntry(ace_id);
     if (entry == null) {
       return ResponseFactory.NOT_FOUND;
     }
