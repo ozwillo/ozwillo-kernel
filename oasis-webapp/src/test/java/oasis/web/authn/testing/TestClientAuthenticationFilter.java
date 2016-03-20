@@ -31,6 +31,6 @@ import oasis.web.authn.ClientPrincipal;
 public class TestClientAuthenticationFilter extends TestSecurityFilter {
 
   public TestClientAuthenticationFilter(String clientId) {
-    super(new ClientPrincipal(clientId), SecurityContext.BASIC_AUTH);
+    super(new ClientPrincipal(clientId), true, SecurityContext.BASIC_AUTH);
   }
 }

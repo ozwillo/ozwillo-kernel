@@ -30,6 +30,6 @@ import oasis.web.authn.OAuthPrincipal;
 public class TestOAuthFilter extends TestSecurityFilter {
 
   public TestOAuthFilter(AccessToken accessToken) {
-    super(new OAuthPrincipal(accessToken), "OAUTH_BEARER");
+    super(new OAuthPrincipal(accessToken), true, "OAUTH_BEARER");
   }
 }

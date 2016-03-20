@@ -31,6 +31,6 @@ import oasis.web.authn.UserSessionPrincipal;
 public class TestUserFilter extends TestSecurityFilter {
 
   public TestUserFilter(SidToken sidToken) {
-    super(new UserSessionPrincipal(sidToken), SecurityContext.FORM_AUTH);
+    super(new UserSessionPrincipal(sidToken), true, SecurityContext.FORM_AUTH);
   }
 }
