@@ -38,6 +38,7 @@ import oasis.model.authz.Scopes;
 import oasis.urls.Urls;
 import oasis.web.authn.LogoutPage;
 import oasis.web.authz.AuthorizationEndpoint;
+import oasis.web.authz.IntrospectionEndpoint;
 import oasis.web.authz.KeysEndpoint;
 import oasis.web.authz.RevokeEndpoint;
 import oasis.web.authz.TokenEndpoint;
@@ -127,7 +128,12 @@ public class OpenIdProviderConfigurationEndpoint {
     // TODO: check_session_iframe
     @JsonProperty String end_session_endpoint = getBaseUriBuilder().path(LogoutPage.class).build().toString();
 
-    // See http://lists.openid.net/pipermail/openid-specs-ab/Week-of-Mon-20140120/004581.html
+    // See https://tools.ietf.org/html/draft-ietf-oauth-discovery-01
     @JsonProperty String revocation_endpoint = getBaseUriBuilder().path(RevokeEndpoint.class).build().toString();
+    /** See {@link oasis.web.authn.ClientAuthenticationFilter}. */
+    @JsonProperty String[] revocation_endpoint_auth_methods_supported = { "client_secret_basic" };
+    @JsonProperty String introspection_endpoint = getBaseUriBuilder().path(IntrospectionEndpoint.class).build().toString();
+    /** See {@link oasis.web.authn.ClientAuthenticationFilter}. */
+    @JsonProperty String[] introspection_endpoint_auth_methods_supported = { "client_secret_basic" };
   }
 }
