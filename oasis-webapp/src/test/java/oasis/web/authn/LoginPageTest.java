@@ -56,7 +56,9 @@ import oasis.model.accounts.UserAccount;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
 import oasis.services.authn.TokenHandler;
+import oasis.services.authn.TokenSerializer;
 import oasis.services.authn.UserPasswordAuthenticator;
+import oasis.services.cookies.CookieFactory;
 import oasis.soy.TestingSoyGuiceModule;
 import oasis.urls.ImmutableUrls;
 import oasis.urls.UrlsModule;
@@ -128,6 +130,7 @@ public class LoginPageTest {
     Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(LoginPage.class)).request().get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
+    assertThat(response.getCookies()).doesNotContainKeys(UserFilter.COOKIE_NAME);
     assertLoginForm(response);
   }
 
@@ -139,6 +142,7 @@ public class LoginPageTest {
         .request().get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
+    assertThat(response.getCookies()).doesNotContainKeys(UserFilter.COOKIE_NAME);
     assertLoginForm(response)
         .matches(hiddenInput("continue", continueUrl))
         .doesNotMatch(hiddenInput("cancel", null))
@@ -151,6 +155,7 @@ public class LoginPageTest {
     Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(LoginPage.class)).request().get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
+    assertThat(response.getCookies()).doesNotContainKeys(UserFilter.COOKIE_NAME);
     assertLoginForm(response)
         .matches(reauthUser(someUserAccount.getEmail_address()));
   }
@@ -166,6 +171,9 @@ public class LoginPageTest {
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
     assertThat(response.getLocation()).isEqualTo(resteasy.getBaseUri().resolve(continueUrl));
+    assertThat(response.getCookies())
+        .containsEntry(UserFilter.COOKIE_NAME, CookieFactory.createSessionCookie(
+            UserFilter.COOKIE_NAME, TokenSerializer.serialize(someSidToken, "pass"), true));
   }
 
   @Test public void trySignInWithBadPassword() {
@@ -178,6 +186,7 @@ public class LoginPageTest {
             .param("pwd", "invalid")));
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
+    assertThat(response.getCookies()).doesNotContainKeys(UserFilter.COOKIE_NAME);
     assertLoginForm(response)
         .matches(hiddenInput("continue", continueUrl))
         .doesNotMatch(hiddenInput("cancel", null))
@@ -197,6 +206,7 @@ public class LoginPageTest {
             .param("pwd", "password")));
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
+    assertThat(response.getCookies()).doesNotContainKeys(UserFilter.COOKIE_NAME);
     assertLoginForm(response)
         .matches(hiddenInput("continue", continueUrl))
         .contains("Incorrect email address or password");
@@ -215,6 +225,7 @@ public class LoginPageTest {
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
     assertThat(response.getLocation()).isEqualTo(resteasy.getBaseUri().resolve(continueUrl));
+    assertThat(response.getCookies()).doesNotContainKeys(UserFilter.COOKIE_NAME);
 
     verify(tokenRepository, never()).revokeToken(anyString());
     verify(tokenRepository).reAuthSidToken(someSidToken.getId());
@@ -231,6 +242,7 @@ public class LoginPageTest {
             .param("u", otherUserAccount.getEmail_address())
             .param("pwd", "password")));
 
+    assertThat(response.getCookies()).doesNotContainKeys(UserFilter.COOKIE_NAME);
     assertLoginForm(response)
         .matches(reauthUser(someUserAccount.getEmail_address()));
   }
