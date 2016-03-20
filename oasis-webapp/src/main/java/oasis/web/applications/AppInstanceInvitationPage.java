@@ -307,14 +307,15 @@ public class AppInstanceInvitationPage {
   private void notifyRequester(AppInstance appInstance, String invitedUserEmail, String requesterId, boolean acceptedInvitation) {
     SoyMapData data = new SoyMapData();
     final SoyTemplateInfo templateInfo;
+    final String appInstanceNameParamName;
     if (acceptedInvitation) {
       templateInfo = AppInstanceInvitationNotificationSoyInfo.ACCEPTED_APP_INSTANCE_INVITATION_REQUESTER_MESSAGE;
       data.put(AcceptedAppInstanceInvitationRequesterMessageSoyTemplateInfo.INVITED_USER_EMAIL, invitedUserEmail);
-      data.put(AcceptedAppInstanceInvitationRequesterMessageSoyTemplateInfo.APP_INSTANCE_NAME, appInstance.getName());
+      appInstanceNameParamName = AcceptedAppInstanceInvitationRequesterMessageSoyTemplateInfo.APP_INSTANCE_NAME;
     } else {
       templateInfo = AppInstanceInvitationNotificationSoyInfo.REJECTED_APP_INSTANCE_INVITATION_REQUESTER_MESSAGE;
       data.put(RejectedAppInstanceInvitationRequesterMessageSoyTemplateInfo.INVITED_USER_EMAIL, invitedUserEmail);
-      data.put(RejectedAppInstanceInvitationRequesterMessageSoyTemplateInfo.APP_INSTANCE_NAME, appInstance.getName());
+      appInstanceNameParamName = RejectedAppInstanceInvitationRequesterMessageSoyTemplateInfo.APP_INSTANCE_NAME;
     }
 
     Notification notification = new Notification();
@@ -322,6 +323,7 @@ public class AppInstanceInvitationPage {
     notification.setStatus(Notification.Status.UNREAD);
     notification.setUser_id(requesterId);
     for (ULocale locale : LocaleHelper.SUPPORTED_LOCALES) {
+      data.put(appInstanceNameParamName, appInstance.getName().get(locale));
       ULocale messageLocale = locale;
       if (LocaleHelper.DEFAULT_LOCALE.equals(locale)) {
         messageLocale = ULocale.ROOT;
