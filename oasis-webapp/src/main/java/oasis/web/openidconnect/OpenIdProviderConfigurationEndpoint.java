@@ -98,7 +98,7 @@ public class OpenIdProviderConfigurationEndpoint {
     /** See {@link AuthorizationEndpoint#generateAuthorizationCodeAndRedirect}. */
     @JsonProperty String[] response_modes_supported = { "query" };
     /** See {@link TokenEndpoint#validate}. */
-    @JsonProperty String[] grant_types_supported = { "authorization_code", "refresh_token" };
+    @JsonProperty String[] grant_types_supported = { "authorization_code", "refresh_token", "urn:ietf:params:oauth:grant-type:jwt-bearer" };
     // acr_values_supported
     // TODO: support "pairwise" subject types? How to correlate them in DataCore and other Data Providers then?
     @JsonProperty String[] subject_types_supported = { "public" };
