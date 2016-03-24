@@ -28,9 +28,18 @@ import org.joda.time.DateTimeZone;
 public class CookieFactory {
   private static final Date FAR_PAST = new DateTime(2008, 1, 20, 11, 10, DateTimeZone.forID("Europe/Paris")).toDate();
 
+  public static String getCookieName(String cookieName, boolean secure) {
+    assert !cookieName.startsWith("__Host-") && !cookieName.startsWith("__Secure-");
+    if (secure) {
+      // We hard-code the Path and Domain below so we can unconditionally use of __Host-*
+      cookieName = "__Host-" + cookieName;
+    }
+    return cookieName;
+  }
+
   public static NewCookie createCookie(String cookieName, String value, int maxAge, Date expires, boolean secure) {
     return new NewCookie(
-        cookieName,                             // name
+        getCookieName(cookieName, secure),      // name
         value,                                  // value
         "/",                                    // path
         null,                                   // domain

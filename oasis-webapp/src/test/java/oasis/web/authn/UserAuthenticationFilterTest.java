@@ -18,7 +18,6 @@
 package oasis.web.authn;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 import java.net.URI;
 
@@ -29,7 +28,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
 import org.jboss.resteasy.spi.ResteasyUriInfo;
@@ -37,7 +35,6 @@ import org.joda.time.Duration;
 import org.joda.time.Instant;
 import org.jukito.JukitoModule;
 import org.jukito.JukitoRunner;
-import org.jukito.TestSingleton;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -47,7 +44,7 @@ import com.google.inject.Inject;
 
 import oasis.http.testing.InProcessResteasy;
 import oasis.model.authn.SidToken;
-import oasis.services.authn.TokenHandler;
+import oasis.services.cookies.CookieFactory;
 import oasis.web.authn.testing.TestUserFilter;
 
 @RunWith(JukitoRunner.class)
@@ -116,7 +113,7 @@ public class UserAuthenticationFilterTest {
     assertThat(location.getQueryParameters().getFirst("continue")).isEqualTo(requestUri.toString());
 
     // Make sure we don't log the user out!
-    assertThat(response.getCookies()).doesNotContainKey(UserFilter.COOKIE_NAME);
+    assertThat(response.getCookies()).doesNotContainKey(CookieFactory.getCookieName(UserFilter.COOKIE_NAME, true));
   }
 
   @Path("/")

@@ -82,6 +82,8 @@ public class LoginPageTest {
     }
   }
 
+  static final String cookieName = CookieFactory.getCookieName(UserFilter.COOKIE_NAME, true);
+
   private static final UserAccount someUserAccount = new UserAccount() {{
     setId("someUser");
     setEmail_address("some@example.com");
@@ -130,7 +132,7 @@ public class LoginPageTest {
     Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(LoginPage.class)).request().get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
-    assertThat(response.getCookies()).doesNotContainKeys(UserFilter.COOKIE_NAME);
+    assertThat(response.getCookies()).doesNotContainKeys(cookieName);
     assertLoginForm(response);
   }
 
@@ -142,7 +144,7 @@ public class LoginPageTest {
         .request().get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
-    assertThat(response.getCookies()).doesNotContainKeys(UserFilter.COOKIE_NAME);
+    assertThat(response.getCookies()).doesNotContainKeys(cookieName);
     assertLoginForm(response)
         .matches(hiddenInput("continue", continueUrl))
         .doesNotMatch(hiddenInput("cancel", null))
@@ -155,7 +157,7 @@ public class LoginPageTest {
     Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(LoginPage.class)).request().get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
-    assertThat(response.getCookies()).doesNotContainKeys(UserFilter.COOKIE_NAME);
+    assertThat(response.getCookies()).doesNotContainKeys(cookieName);
     assertLoginForm(response)
         .matches(reauthUser(someUserAccount.getEmail_address()));
   }
@@ -172,7 +174,7 @@ public class LoginPageTest {
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
     assertThat(response.getLocation()).isEqualTo(resteasy.getBaseUri().resolve(continueUrl));
     assertThat(response.getCookies())
-        .containsEntry(UserFilter.COOKIE_NAME, CookieFactory.createSessionCookie(
+        .containsEntry(cookieName, CookieFactory.createSessionCookie(
             UserFilter.COOKIE_NAME, TokenSerializer.serialize(someSidToken, "pass"), true));
   }
 
@@ -186,7 +188,7 @@ public class LoginPageTest {
             .param("pwd", "invalid")));
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
-    assertThat(response.getCookies()).doesNotContainKeys(UserFilter.COOKIE_NAME);
+    assertThat(response.getCookies()).doesNotContainKeys(cookieName);
     assertLoginForm(response)
         .matches(hiddenInput("continue", continueUrl))
         .doesNotMatch(hiddenInput("cancel", null))
@@ -206,7 +208,7 @@ public class LoginPageTest {
             .param("pwd", "password")));
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
-    assertThat(response.getCookies()).doesNotContainKeys(UserFilter.COOKIE_NAME);
+    assertThat(response.getCookies()).doesNotContainKeys(cookieName);
     assertLoginForm(response)
         .matches(hiddenInput("continue", continueUrl))
         .contains("Incorrect email address or password");
@@ -225,7 +227,7 @@ public class LoginPageTest {
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
     assertThat(response.getLocation()).isEqualTo(resteasy.getBaseUri().resolve(continueUrl));
-    assertThat(response.getCookies()).doesNotContainKeys(UserFilter.COOKIE_NAME);
+    assertThat(response.getCookies()).doesNotContainKeys(cookieName);
 
     verify(tokenRepository, never()).revokeToken(anyString());
     verify(tokenRepository).reAuthSidToken(someSidToken.getId());
@@ -242,7 +244,7 @@ public class LoginPageTest {
             .param("u", otherUserAccount.getEmail_address())
             .param("pwd", "password")));
 
-    assertThat(response.getCookies()).doesNotContainKeys(UserFilter.COOKIE_NAME);
+    assertThat(response.getCookies()).doesNotContainKeys(cookieName);
     assertLoginForm(response)
         .matches(reauthUser(someUserAccount.getEmail_address()));
   }

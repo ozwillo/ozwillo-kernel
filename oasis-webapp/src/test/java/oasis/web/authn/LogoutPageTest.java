@@ -59,6 +59,7 @@ import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
 import oasis.model.i18n.LocalizableString;
 import oasis.security.KeyPairLoader;
+import oasis.services.cookies.CookieFactory;
 import oasis.soy.TestingSoyGuiceModule;
 import oasis.urls.ImmutableUrls;
 import oasis.urls.Urls;
@@ -85,6 +86,8 @@ public class LogoutPageTest {
           .build());
     }
   }
+
+  private static final String cookieName = CookieFactory.getCookieName(UserFilter.COOKIE_NAME, true);
 
   private static final UserAccount account = new UserAccount() {{
     setId("accountId");
@@ -131,8 +134,8 @@ public class LogoutPageTest {
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
     assertThat(response.getLocation()).isEqualTo(urls.landingPage().get());
-    if (response.getCookies().containsKey(UserFilter.COOKIE_NAME)) {
-      assertThat(response.getCookies().get(UserFilter.COOKIE_NAME).getExpiry()).isInThePast();
+    if (response.getCookies().containsKey(cookieName)) {
+      assertThat(response.getCookies().get(cookieName).getExpiry()).isInThePast();
     }
   }
 
@@ -145,8 +148,8 @@ public class LogoutPageTest {
         .get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
-    if (response.getCookies().containsKey(UserFilter.COOKIE_NAME)) {
-      assertThat(response.getCookies().get(UserFilter.COOKIE_NAME).getExpiry()).isInTheFuture();
+    if (response.getCookies().containsKey(cookieName)) {
+      assertThat(response.getCookies().get(cookieName).getExpiry()).isInTheFuture();
     }
     assertLogoutPage(response)
         // post_logout_redirect_url should not be used
@@ -177,8 +180,8 @@ public class LogoutPageTest {
         .get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
-    if (response.getCookies().containsKey(UserFilter.COOKIE_NAME)) {
-      assertThat(response.getCookies().get(UserFilter.COOKIE_NAME).getExpiry()).isInTheFuture();
+    if (response.getCookies().containsKey(cookieName)) {
+      assertThat(response.getCookies().get(cookieName).getExpiry()).isInTheFuture();
     }
     assertLogoutPage(response)
         .contains(appInstance.getName().get(ULocale.ROOT))
@@ -212,8 +215,8 @@ public class LogoutPageTest {
         .get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
-    if (response.getCookies().containsKey(UserFilter.COOKIE_NAME)) {
-      assertThat(response.getCookies().get(UserFilter.COOKIE_NAME).getExpiry()).isInTheFuture();
+    if (response.getCookies().containsKey(cookieName)) {
+      assertThat(response.getCookies().get(cookieName).getExpiry()).isInTheFuture();
     }
     assertLogoutPage(response)
         .contains(appInstance.getName().get(ULocale.ROOT))
@@ -233,8 +236,8 @@ public class LogoutPageTest {
         .get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
-    if (response.getCookies().containsKey(UserFilter.COOKIE_NAME)) {
-      assertThat(response.getCookies().get(UserFilter.COOKIE_NAME).getExpiry()).isInTheFuture();
+    if (response.getCookies().containsKey(cookieName)) {
+      assertThat(response.getCookies().get(cookieName).getExpiry()).isInTheFuture();
     }
     assertLogoutPage(response)
         .doesNotContain(appInstance.getName().get(ULocale.ROOT))
@@ -253,8 +256,8 @@ public class LogoutPageTest {
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
     // post_logout_redirect_url should not be used
     assertThat(response.getLocation()).isEqualTo(urls.landingPage().get());
-    if (response.getCookies().containsKey(UserFilter.COOKIE_NAME)) {
-      assertThat(response.getCookies().get(UserFilter.COOKIE_NAME).getExpiry()).isInTheFuture();
+    if (response.getCookies().containsKey(cookieName)) {
+      assertThat(response.getCookies().get(cookieName).getExpiry()).isInTheFuture();
     }
   }
 
@@ -278,8 +281,8 @@ public class LogoutPageTest {
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
     assertThat(response.getLocation()).isEqualTo(URI.create(Iterables.getOnlyElement(service.getPost_logout_redirect_uris())));
-    if (response.getCookies().containsKey(UserFilter.COOKIE_NAME)) {
-      assertThat(response.getCookies().get(UserFilter.COOKIE_NAME).getExpiry()).isInTheFuture();
+    if (response.getCookies().containsKey(cookieName)) {
+      assertThat(response.getCookies().get(cookieName).getExpiry()).isInTheFuture();
     }
   }
 
@@ -303,8 +306,8 @@ public class LogoutPageTest {
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
     assertThat(response.getLocation()).isNotEqualTo(URI.create("https://unregistered"));
-    if (response.getCookies().containsKey(UserFilter.COOKIE_NAME)) {
-      assertThat(response.getCookies().get(UserFilter.COOKIE_NAME).getExpiry()).isInTheFuture();
+    if (response.getCookies().containsKey(cookieName)) {
+      assertThat(response.getCookies().get(cookieName).getExpiry()).isInTheFuture();
     }
   }
 

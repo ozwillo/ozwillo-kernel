@@ -31,7 +31,6 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriBuilder;
 
 import org.joda.time.Duration;
 import org.joda.time.Instant;
@@ -49,6 +48,7 @@ import oasis.http.testing.InProcessResteasy;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
 import oasis.services.authn.TokenHandler;
+import oasis.services.cookies.CookieFactory;
 import oasis.web.utils.UserAgentFingerprinter;
 
 @RunWith(JukitoRunner.class)
@@ -63,6 +63,8 @@ public class UserFilterTest {
       bindMock(UserAgentFingerprinter.class).in(TestSingleton.class);
     }
   }
+
+  static final String cookieName = CookieFactory.getCookieName(UserFilter.COOKIE_NAME, true);
 
   static final Instant now = Instant.now();
 
@@ -94,7 +96,7 @@ public class UserFilterTest {
 
     commonAssertions(response);
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.NO_CONTENT);
-    assertThat(response.getCookies()).doesNotContainKey(UserFilter.COOKIE_NAME);
+    assertThat(response.getCookies()).doesNotContainKey(cookieName);
     assertThat(response.readEntity(SidToken.class)).isNull();
 
     verifyNoMoreInteractions(tokenHandler, tokenRepository);
@@ -104,12 +106,12 @@ public class UserFilterTest {
     when(fingerprinter.fingerprint(any(ContainerRequestContext.class))).thenReturn(validSidToken.getUserAgentFingerprint());
 
     Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(DummyResource.class).build()).request()
-        .cookie(UserFilter.COOKIE_NAME, "valid")
+        .cookie(cookieName, "valid")
         .get();
 
     commonAssertions(response);
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
-    assertThat(response.getCookies()).doesNotContainKey(UserFilter.COOKIE_NAME);
+    assertThat(response.getCookies()).doesNotContainKey(cookieName);
     assertThat(response.readEntity(SidToken.class)).isEqualToComparingFieldByField(validSidToken);
 
     verify(tokenRepository).renewToken(validSidToken.getId());
@@ -117,13 +119,13 @@ public class UserFilterTest {
 
   @Test public void testWithInvalidCookie() {
     Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(DummyResource.class).build()).request()
-        .cookie(UserFilter.COOKIE_NAME, "invalid")
+        .cookie(cookieName, "invalid")
         .get();
 
     commonAssertions(response);
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.NO_CONTENT);
-    assertThat(response.getCookies()).containsKey(UserFilter.COOKIE_NAME);
-    assertThat(response.getCookies().get(UserFilter.COOKIE_NAME).getExpiry()).isInThePast();
+    assertThat(response.getCookies()).containsKey(cookieName);
+    assertThat(response.getCookies().get(cookieName).getExpiry()).isInThePast();
     assertThat(response.readEntity(SidToken.class)).isNull();
 
     verify(tokenRepository, never()).renewToken(validSidToken.getId());
@@ -133,13 +135,13 @@ public class UserFilterTest {
     when(fingerprinter.fingerprint(any(ContainerRequestContext.class))).thenReturn("attacker".getBytes(StandardCharsets.UTF_8));
 
     Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(DummyResource.class).build()).request()
-        .cookie(UserFilter.COOKIE_NAME, "valid")
+        .cookie(cookieName, "valid")
         .get();
 
     commonAssertions(response);
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.NO_CONTENT);
-    assertThat(response.getCookies()).containsKey(UserFilter.COOKIE_NAME);
-    assertThat(response.getCookies().get(UserFilter.COOKIE_NAME).getExpiry()).isInThePast();
+    assertThat(response.getCookies()).containsKey(cookieName);
+    assertThat(response.getCookies().get(cookieName).getExpiry()).isInThePast();
     assertThat(response.readEntity(SidToken.class)).isNull();
 
     verify(tokenRepository, never()).renewToken(validSidToken.getId());

@@ -53,7 +53,8 @@ public class UserFilter implements ContainerRequestFilter, ContainerResponseFilt
 
   @Override
   public void filter(ContainerRequestContext requestContext) throws IOException {
-    final Cookie sidCookie = requestContext.getCookies().get(COOKIE_NAME);
+    final Cookie sidCookie = requestContext.getCookies().get(
+        CookieFactory.getCookieName(COOKIE_NAME, requestContext.getSecurityContext().isSecure()));
     if (sidCookie == null) {
       requestContext.removeProperty(SID_PROP);
       return;
@@ -104,14 +105,15 @@ public class UserFilter implements ContainerRequestFilter, ContainerResponseFilt
 
   @Override
   public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) throws IOException {
+    final String cookieName = CookieFactory.getCookieName(COOKIE_NAME, requestContext.getSecurityContext().isSecure());
     // XXX: do not use the SecurityContext as another filter might have replaced it
     if (requestContext.getProperty(SID_PROP) == null &&
-        requestContext.getCookies().containsKey(COOKIE_NAME) &&
-        !responseContext.getCookies().containsKey(COOKIE_NAME)) {
+        requestContext.getCookies().containsKey(cookieName) &&
+        !responseContext.getCookies().containsKey(cookieName)) {
       // Remove SID cookie if set but does not identifies a session
       // Note that we make sure not to interfere with resources/filters creating a new session!
       responseContext.getHeaders().add(HttpHeaders.SET_COOKIE,
-          CookieFactory.createExpiredCookie(UserFilter.COOKIE_NAME, requestContext.getSecurityContext().isSecure()));
+          CookieFactory.createExpiredCookie(COOKIE_NAME, requestContext.getSecurityContext().isSecure()));
     }
     responseContext.getHeaders().add(HttpHeaders.VARY, HttpHeaders.COOKIE);
     responseContext.getHeaders().add(HttpHeaders.CACHE_CONTROL, "private");
