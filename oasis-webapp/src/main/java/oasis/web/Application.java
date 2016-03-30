@@ -41,6 +41,7 @@ import oasis.web.auditlog.AuditLogEndpoint;
 import oasis.web.auditlog.HttpInterceptor;
 import oasis.web.authn.ActivateAccountPage;
 import oasis.web.authn.ChangePasswordPage;
+import oasis.web.authn.CheckSessionIframePage;
 import oasis.web.authn.ClientAuthenticationFilter;
 import oasis.web.authn.ForgotPasswordPage;
 import oasis.web.authn.LoginPage;
@@ -106,6 +107,7 @@ public class Application extends javax.ws.rs.core.Application {
         ChangePasswordPage.class,
         ForgotPasswordPage.class,
         ResetPasswordPage.class,
+        CheckSessionIframePage.class,
         // Authorization
         OpenIdProviderConfigurationEndpoint.class,
         AuthorizationEndpoint.class,

@@ -37,7 +37,7 @@ public class CookieFactory {
     return cookieName;
   }
 
-  public static NewCookie createCookie(String cookieName, String value, int maxAge, Date expires, boolean secure) {
+  public static NewCookie createCookie(String cookieName, String value, int maxAge, Date expires, boolean secure, boolean httpOnly) {
     return new NewCookie(
         getCookieName(cookieName, secure),      // name
         value,                                  // value
@@ -48,15 +48,15 @@ public class CookieFactory {
         maxAge,                                 // max-age
         expires,                                // expiry
         secure,                                 // secure
-        true                                    // http-only
+        httpOnly                                // http-only
     );
   }
 
-  public static NewCookie createSessionCookie(String cookieName, String value, boolean secure) {
-    return createCookie(cookieName, value, NewCookie.DEFAULT_MAX_AGE, null, secure);
+  public static NewCookie createSessionCookie(String cookieName, String value, boolean secure, boolean httpOnly) {
+    return createCookie(cookieName, value, NewCookie.DEFAULT_MAX_AGE, null, secure, httpOnly);
   }
 
-  public static NewCookie createExpiredCookie(String cookieName, boolean secure) {
-    return createCookie(cookieName, null, NewCookie.DEFAULT_MAX_AGE, FAR_PAST, secure);
+  public static NewCookie createExpiredCookie(String cookieName, boolean secure, boolean httpOnly) {
+    return createCookie(cookieName, null, NewCookie.DEFAULT_MAX_AGE, FAR_PAST, secure, httpOnly);
   }
 }

@@ -83,6 +83,7 @@ public class LoginPage {
   @Inject UserAgentFingerprinter fingerprinter;
   @Inject Urls urls;
   @Inject LocaleHelper localeHelper;
+  @Inject SessionManagementHelper sessionManagementHelper;
 
   @Context SecurityContext securityContext;
   @Context UriInfo uriInfo;
@@ -146,7 +147,8 @@ public class LoginPage {
     // TODO: One-Time Password
     return Response
         .seeOther(continueUrl)
-        .cookie(CookieFactory.createSessionCookie(UserFilter.COOKIE_NAME, TokenSerializer.serialize(sidToken, pass), securityContext.isSecure())) // TODO: remember me
+        .cookie(CookieFactory.createSessionCookie(UserFilter.COOKIE_NAME, TokenSerializer.serialize(sidToken, pass), securityContext.isSecure(), true)) // TODO: remember me
+        .cookie(SessionManagementHelper.createBrowserStateCookie(securityContext.isSecure(), sessionManagementHelper.generateBrowserState()))
         .build();
   }
 

@@ -23,6 +23,8 @@ dependencies {
   compile libs.jaxrs_webhook
   compile libs.closure_templates
 
+  runtime libs.jsSHA
+
   compileOnly libs.immutables
   apt         libs.immutables
 

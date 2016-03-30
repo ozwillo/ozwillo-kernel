@@ -37,6 +37,7 @@ import org.joda.time.Instant;
 import org.jukito.JukitoModule;
 import org.jukito.JukitoRunner;
 import org.jukito.TestSingleton;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -61,10 +62,12 @@ public class UserFilterTest {
 
       bindMock(TokenHandler.class).in(TestSingleton.class);
       bindMock(UserAgentFingerprinter.class).in(TestSingleton.class);
+      bindMock(SessionManagementHelper.class).in(TestSingleton.class);
     }
   }
 
   static final String cookieName = CookieFactory.getCookieName(UserFilter.COOKIE_NAME, true);
+  static final String browserStateCookieName = CookieFactory.getCookieName(SessionManagementHelper.COOKIE_NAME, true);
 
   static final Instant now = Instant.now();
 
@@ -81,9 +84,15 @@ public class UserFilterTest {
   @Inject UserAgentFingerprinter fingerprinter;
   @Inject TokenRepository tokenRepository;
 
-  @Before public void setUpMocks(TokenHandler tokenHandler) {
+  @Before public void setUpMocks(TokenHandler tokenHandler, SessionManagementHelper sessionManagementHelper) {
     when(tokenHandler.getCheckedToken("valid", SidToken.class)).thenReturn(validSidToken);
     when(tokenHandler.getCheckedToken("invalid", SidToken.class)).thenReturn(null);
+
+    when(sessionManagementHelper.generateBrowserState()).thenReturn("browser-state");
+  }
+
+  @After public void verifyMocks(SessionManagementHelper sessionManagementHelper) {
+    verify(sessionManagementHelper, never()).computeSessionState(anyString(), anyString(), anyString());
   }
 
   @Before public void setUp() {
@@ -96,7 +105,24 @@ public class UserFilterTest {
 
     commonAssertions(response);
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.NO_CONTENT);
-    assertThat(response.getCookies()).doesNotContainKey(cookieName);
+    assertThat(response.getCookies())
+        .doesNotContainKey(cookieName)
+        .containsKeys(browserStateCookieName);
+    assertThat(response.getCookies().get(browserStateCookieName)).isEqualTo(
+        SessionManagementHelper.createBrowserStateCookie(true, "browser-state"));
+    assertThat(response.readEntity(SidToken.class)).isNull();
+
+    verifyNoMoreInteractions(tokenHandler, tokenRepository);
+  }
+
+  @Test public void testBrowserStateOnly(TokenHandler tokenHandler) {
+    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(DummyResource.class).build()).request()
+        .cookie(browserStateCookieName, "browser-state")
+        .get();
+
+    commonAssertions(response);
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.NO_CONTENT);
+    assertThat(response.getCookies()).doesNotContainKeys(cookieName, browserStateCookieName);
     assertThat(response.readEntity(SidToken.class)).isNull();
 
     verifyNoMoreInteractions(tokenHandler, tokenRepository);
@@ -107,11 +133,31 @@ public class UserFilterTest {
 
     Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(DummyResource.class).build()).request()
         .cookie(cookieName, "valid")
+        .cookie(browserStateCookieName, "browser-state")
         .get();
 
     commonAssertions(response);
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
-    assertThat(response.getCookies()).doesNotContainKey(cookieName);
+    assertThat(response.getCookies()).doesNotContainKeys(cookieName, browserStateCookieName);
+    assertThat(response.readEntity(SidToken.class)).isEqualToComparingFieldByField(validSidToken);
+
+    verify(tokenRepository).renewToken(validSidToken.getId());
+  }
+
+  @Test public void testAuthenticatedNoBrowserState() {
+    when(fingerprinter.fingerprint(any(ContainerRequestContext.class))).thenReturn(validSidToken.getUserAgentFingerprint());
+
+    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(DummyResource.class).build()).request()
+        .cookie(cookieName, "valid")
+        .get();
+
+    commonAssertions(response);
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
+    assertThat(response.getCookies())
+        .doesNotContainKey(cookieName)
+        .containsKey(browserStateCookieName);
+    assertThat(response.getCookies().get(browserStateCookieName)).isEqualTo(
+        SessionManagementHelper.createBrowserStateCookie(true, "browser-state"));
     assertThat(response.readEntity(SidToken.class)).isEqualToComparingFieldByField(validSidToken);
 
     verify(tokenRepository).renewToken(validSidToken.getId());

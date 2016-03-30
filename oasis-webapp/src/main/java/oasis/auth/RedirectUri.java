@@ -95,6 +95,12 @@ public class RedirectUri {
     return this;
   }
 
+  public RedirectUri setSessionState(String state) {
+    // XXX: check that it's only set once?
+    appendQueryParam("session_state", state);
+    return this;
+  }
+
   public String toString() {
     return sb.toString();
   }

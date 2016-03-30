@@ -54,76 +54,76 @@ public class StaticResources {
   @Path("/favicon.ico")
   @Produces("image/vnd.microsoft.icon")
   public Response favicon() throws IOException {
-    return getResource("favicon.ico");
+    return getResource("oasis-ui/favicon.ico");
   }
 
   @GET
   @Path("/manifest.json")
   @Produces(MediaType.APPLICATION_JSON)
   public Response manifest() throws IOException {
-    return getResource("manifest.json");
+    return getResource("oasis-ui/manifest.json");
   }
 
   @GET
   @Path("/browserconfig.xml")
   @Produces(MediaType.APPLICATION_XML)
   public Response browserconfig() throws IOException {
-    return getResource("browserconfig.xml");
+    return getResource("oasis-ui/browserconfig.xml");
   }
 
   @GET
   @Path("{resource: .+\\.css}")
   @Produces("text/css")
   public Response css(@PathParam("resource") String resourceName) throws IOException {
-    return getResource(resourceName);
+    return getResource("oasis-ui/" + resourceName);
   }
 
   @GET
   @Path("{resource: .+\\.jpg}")
   @Produces("image/jpg")
   public Response jpg(@PathParam("resource") String resourceName) throws IOException {
-    return getResource(resourceName);
+    return getResource("oasis-ui/" + resourceName);
   }
 
   @GET
   @Path("{resource: .+\\.png}")
   @Produces("image/png")
   public Response png(@PathParam("resource") String resourceName) throws IOException {
-    return getResource(resourceName);
+    return getResource("oasis-ui/" + resourceName);
   }
 
   @GET
   @Path("{resource: .+\\.svg}")
   @Produces("image/svg+xml")
   public Response svg(@PathParam("resource") String resourceName) throws IOException {
-    return getResource(resourceName);
+    return getResource("oasis-ui/" + resourceName);
   }
 
   @GET
   @Path("{resource: .+\\.woff}")
   @Produces("application/font-woff")
   public Response woff(@PathParam("resource") String resourceName) throws IOException {
-    return getResource(resourceName);
+    return getResource("oasis-ui/" + resourceName);
   }
 
   @GET
   @Path("{resource: .+\\.ttf}")
   @Produces("application/x-font-ttf")
   public Response ttf(@PathParam("resource") String resourceName) throws IOException {
-    return getResource(resourceName);
+    return getResource("oasis-ui/" + resourceName);
   }
 
   @GET
-  @Path("{resource: .+\\.js}")
+  @Path("/js/sha256.js") // XXX: keep in sync with check_session_iframe.html
   @Produces("application/javascript")
-  public Response js(@PathParam("resource") String resourceName) throws IOException {
-    return getResource(resourceName);
+  public Response sha256js() throws IOException {
+    return getResource("META-INF/resources/webjars/jsSHA/2.0.2/src/sha256.js");
   }
 
-  private Response getResource(String resourceName) throws IOException {
+  public static Response getResource(String resourceName) throws IOException {
     final URL resource;
     try {
-      resource = Resources.getResource("oasis-ui/" + resourceName);
+      resource = Resources.getResource(resourceName);
     } catch (IllegalArgumentException iae) {
       return ResponseFactory.NOT_FOUND;
     }

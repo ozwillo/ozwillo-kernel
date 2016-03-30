@@ -85,10 +85,12 @@ import oasis.security.KeyPairLoader;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.services.authz.AppAdminHelper;
+import oasis.services.cookies.CookieFactory;
 import oasis.soy.TestingSoyGuiceModule;
 import oasis.urls.ImmutableUrls;
 import oasis.urls.UrlsModule;
 import oasis.web.authn.LoginPage;
+import oasis.web.authn.SessionManagementHelper;
 import oasis.web.authn.testing.TestUserFilter;
 import oasis.web.view.SoyTemplateBodyWriter;
 
@@ -112,6 +114,7 @@ public class AuthorizationEndpointTest {
 
       bindMock(TokenHandler.class).in(TestSingleton.class);
       bindMock(AppAdminHelper.class).in(TestSingleton.class);
+      bindMock(SessionManagementHelper.class).in(TestSingleton.class);
 
       bindManyNamedInstances(String.class, "bad redirect_uri",
           "https://application/callback#hash",  // has #hash
@@ -126,6 +129,8 @@ public class AuthorizationEndpointTest {
           .build());
     }
   }
+
+  static final String browserStateCookieName = CookieFactory.getCookieName(SessionManagementHelper.COOKIE_NAME, true);
 
   static final Instant now = new DateTime(2014, 7, 17, 14, 30).toInstant();
 
@@ -230,7 +235,7 @@ public class AuthorizationEndpointTest {
 
   @Before public void setUpMocks(AccountRepository accountRepository, AuthorizationRepository authorizationRepository,
       AppInstanceRepository appInstanceRepository, ServiceRepository serviceRepository,
-      ScopeRepository scopeRepository, TokenHandler tokenHandler) {
+      ScopeRepository scopeRepository, TokenHandler tokenHandler, SessionManagementHelper sessionManagementHelper) {
     when(accountRepository.getUserAccountById(account.getId())).thenReturn(account);
 
     when(appInstanceRepository.getAppInstance(appInstance.getId())).thenReturn(appInstance);
@@ -276,6 +281,14 @@ public class AuthorizationEndpointTest {
     when(serviceRepository.getServiceByRedirectUri(portalAppInstance.getId(), Iterables.getOnlyElement(portalService.getRedirect_uris()))).thenReturn(portalService);
     when(tokenHandler.createAuthorizationCode(eq(sidToken), anySetOf(String.class), eq(portalAppInstance.getId()),
         anyString(), eq(Iterables.getOnlyElement(portalService.getRedirect_uris())), anyString(), anyString())).thenReturn(authorizationCode);
+
+    when(sessionManagementHelper.generateBrowserState()).thenReturn("browser-state");
+    when(sessionManagementHelper.computeSessionState(appInstance.getId(), Iterables.getOnlyElement(service.getRedirect_uris()), "browser-state"))
+        .thenReturn("session state");
+    when(sessionManagementHelper.computeSessionState(appInstance.getId(), Iterables.getOnlyElement(privateService.getRedirect_uris()), "browser-state"))
+        .thenReturn("session state");
+    when(sessionManagementHelper.computeSessionState(portalAppInstance.getId(), Iterables.getOnlyElement(portalService.getRedirect_uris()), "browser-state"))
+        .thenReturn("session state");
   }
 
   @Before public void setUp() {
@@ -307,6 +320,28 @@ public class AuthorizationEndpointTest {
         .request().get();
 
     assertRedirectToApplication(response, service);
+    assertThat(response.getCookies())
+        .containsEntry(browserStateCookieName, SessionManagementHelper.createBrowserStateCookie(true, "browser-state"));
+
+    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(openidScope.getId()), appInstance.getId(), null,
+        Iterables.getOnlyElement(service.getRedirect_uris()), null, "pass");
+  }
+
+  @Test public void testSessionState(TokenHandler tokenHandler) {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(AuthorizationEndpoint.class))
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
+        .queryParam("state", encodedState)
+        .queryParam("response_type", "code")
+        .queryParam("scope", openidScope.getId())
+        .request()
+        .cookie(SessionManagementHelper.createBrowserStateCookie(true, "browser-state"))
+        .get();
+
+    assertRedirectToApplication(response, service);
+    assertThat(response.getCookies()).doesNotContainKey(SessionManagementHelper.COOKIE_NAME);
 
     verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(openidScope.getId()), appInstance.getId(), null,
         Iterables.getOnlyElement(service.getRedirect_uris()), null, "pass");
@@ -990,7 +1025,8 @@ public class AuthorizationEndpointTest {
     assertRedirectUri(location, service);
     assertThat(location.getQueryParameters())
         .containsEntry("code", singletonList(TokenSerializer.serialize(authorizationCode, "pass")))
-        .containsEntry("state", singletonList(state));
+        .containsEntry("state", singletonList(state))
+        .containsEntry("session_state", singletonList("session state"));
   }
 
   private void assertRedirectToLogin(Response response) {

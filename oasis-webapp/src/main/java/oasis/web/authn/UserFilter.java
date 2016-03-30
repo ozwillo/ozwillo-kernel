@@ -19,6 +19,7 @@ package oasis.web.authn;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Map;
 
 import javax.annotation.Priority;
 import javax.inject.Inject;
@@ -29,6 +30,7 @@ import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.ext.Provider;
 
@@ -50,6 +52,7 @@ public class UserFilter implements ContainerRequestFilter, ContainerResponseFilt
   @Inject TokenRepository tokenRepository;
   @Inject TokenHandler tokenHandler;
   @Inject UserAgentFingerprinter fingerprinter;
+  @Inject javax.inject.Provider<SessionManagementHelper> sessionManagementHelper;
 
   @Override
   public void filter(ContainerRequestContext requestContext) throws IOException {
@@ -106,15 +109,28 @@ public class UserFilter implements ContainerRequestFilter, ContainerResponseFilt
   @Override
   public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) throws IOException {
     final String cookieName = CookieFactory.getCookieName(COOKIE_NAME, requestContext.getSecurityContext().isSecure());
+    final Map<String, Cookie> requestCookies = requestContext.getCookies();
+    final Map<String, NewCookie> responseCookies = responseContext.getCookies();
+    boolean needRefreshBrowserState = false;
     // XXX: do not use the SecurityContext as another filter might have replaced it
     if (requestContext.getProperty(SID_PROP) == null &&
-        requestContext.getCookies().containsKey(cookieName) &&
-        !responseContext.getCookies().containsKey(cookieName)) {
+        requestCookies.containsKey(cookieName) &&
+        !responseCookies.containsKey(cookieName)) {
       // Remove SID cookie if set but does not identifies a session
       // Note that we make sure not to interfere with resources/filters creating a new session!
       responseContext.getHeaders().add(HttpHeaders.SET_COOKIE,
-          CookieFactory.createExpiredCookie(COOKIE_NAME, requestContext.getSecurityContext().isSecure()));
+          CookieFactory.createExpiredCookie(COOKIE_NAME, requestContext.getSecurityContext().isSecure(), true));
     }
+
+    final String browserStateCookieName = CookieFactory.getCookieName(SessionManagementHelper.COOKIE_NAME, requestContext.getSecurityContext().isSecure());
+    if ((needRefreshBrowserState || !requestCookies.containsKey(browserStateCookieName)) &&
+        !responseCookies.containsKey(browserStateCookieName)) {
+      // Ensure existence of browser-state cookie; or refresh it if needed.
+      // Note that we make sure not to interfere with resources/filters setting/refreshing the browser-state!
+      responseContext.getHeaders().add(HttpHeaders.SET_COOKIE,
+          SessionManagementHelper.createBrowserStateCookie(requestContext.getSecurityContext().isSecure(), sessionManagementHelper.get().generateBrowserState()));
+    }
+
     responseContext.getHeaders().add(HttpHeaders.VARY, HttpHeaders.COOKIE);
     responseContext.getHeaders().add(HttpHeaders.CACHE_CONTROL, "private");
   }

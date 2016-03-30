@@ -99,6 +99,8 @@ ext.libs = [
 
   joda_time:           'joda-time:joda-time:2.9.2',
 
+  jsSHA:               'org.webjars.bower:jsSHA:2.0.2',
+
   icu4j:               'com.ibm.icu:icu4j:56.1',
 
   galimatias:          'io.mola.galimatias:galimatias:0.2.1',

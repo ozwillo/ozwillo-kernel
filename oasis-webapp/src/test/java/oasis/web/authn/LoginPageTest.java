@@ -40,6 +40,7 @@ import org.joda.time.Duration;
 import org.jukito.JukitoModule;
 import org.jukito.JukitoRunner;
 import org.jukito.TestSingleton;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -79,10 +80,12 @@ public class LoginPageTest {
 
       bindMock(UserPasswordAuthenticator.class).in(TestSingleton.class);
       bindMock(TokenHandler.class).in(TestSingleton.class);
+      bindMock(SessionManagementHelper.class).in(TestSingleton.class);
     }
   }
 
   static final String cookieName = CookieFactory.getCookieName(UserFilter.COOKIE_NAME, true);
+  static final String browserStateCookieName = CookieFactory.getCookieName(SessionManagementHelper.COOKIE_NAME, true);
 
   private static final UserAccount someUserAccount = new UserAccount() {{
     setId("someUser");
@@ -107,7 +110,7 @@ public class LoginPageTest {
 
   @SuppressWarnings("unchecked")
   @Before public void setupMocks(UserPasswordAuthenticator userPasswordAuthenticator, TokenHandler tokenHandler,
-      AccountRepository accountRepository, TokenRepository tokenRepository) throws LoginException {
+      SessionManagementHelper sessionManagementHelper, AccountRepository accountRepository, TokenRepository tokenRepository) throws LoginException {
     when(userPasswordAuthenticator.authenticate(someUserAccount.getEmail_address(), "password")).thenReturn(someUserAccount);
     when(userPasswordAuthenticator.authenticate(someUserAccount.getEmail_address(), "invalid")).thenThrow(FailedLoginException.class);
     when(userPasswordAuthenticator.authenticate(otherUserAccount.getEmail_address(), "password")).thenReturn(otherUserAccount);
@@ -121,6 +124,12 @@ public class LoginPageTest {
     when(accountRepository.getUserAccountById(otherUserAccount.getId())).thenReturn(otherUserAccount);
 
     when(tokenRepository.reAuthSidToken(anyString())).thenReturn(true);
+
+    when(sessionManagementHelper.generateBrowserState()).thenReturn("browser-state");
+  }
+
+  @After public void verifyMocks(SessionManagementHelper sessionManagementHelper) {
+    verify(sessionManagementHelper, never()).computeSessionState(anyString(), anyString(), anyString());
   }
 
   @Before public void setUp() throws Exception {
@@ -132,7 +141,7 @@ public class LoginPageTest {
     Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(LoginPage.class)).request().get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
-    assertThat(response.getCookies()).doesNotContainKeys(cookieName);
+    assertThat(response.getCookies()).doesNotContainKeys(cookieName, browserStateCookieName);
     assertLoginForm(response);
   }
 
@@ -144,7 +153,7 @@ public class LoginPageTest {
         .request().get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
-    assertThat(response.getCookies()).doesNotContainKeys(cookieName);
+    assertThat(response.getCookies()).doesNotContainKeys(cookieName, browserStateCookieName);
     assertLoginForm(response)
         .matches(hiddenInput("continue", continueUrl))
         .doesNotMatch(hiddenInput("cancel", null))
@@ -157,7 +166,7 @@ public class LoginPageTest {
     Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(LoginPage.class)).request().get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
-    assertThat(response.getCookies()).doesNotContainKeys(cookieName);
+    assertThat(response.getCookies()).doesNotContainKeys(cookieName, browserStateCookieName);
     assertLoginForm(response)
         .matches(reauthUser(someUserAccount.getEmail_address()));
   }
@@ -175,7 +184,8 @@ public class LoginPageTest {
     assertThat(response.getLocation()).isEqualTo(resteasy.getBaseUri().resolve(continueUrl));
     assertThat(response.getCookies())
         .containsEntry(cookieName, CookieFactory.createSessionCookie(
-            UserFilter.COOKIE_NAME, TokenSerializer.serialize(someSidToken, "pass"), true));
+            UserFilter.COOKIE_NAME, TokenSerializer.serialize(someSidToken, "pass"), true, true))
+        .containsEntry(browserStateCookieName, SessionManagementHelper.createBrowserStateCookie(true, "browser-state"));
   }
 
   @Test public void trySignInWithBadPassword() {
@@ -188,7 +198,7 @@ public class LoginPageTest {
             .param("pwd", "invalid")));
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
-    assertThat(response.getCookies()).doesNotContainKeys(cookieName);
+    assertThat(response.getCookies()).doesNotContainKeys(cookieName, browserStateCookieName);
     assertLoginForm(response)
         .matches(hiddenInput("continue", continueUrl))
         .doesNotMatch(hiddenInput("cancel", null))
@@ -208,7 +218,7 @@ public class LoginPageTest {
             .param("pwd", "password")));
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
-    assertThat(response.getCookies()).doesNotContainKeys(cookieName);
+    assertThat(response.getCookies()).doesNotContainKeys(cookieName, browserStateCookieName);
     assertLoginForm(response)
         .matches(hiddenInput("continue", continueUrl))
         .contains("Incorrect email address or password");
@@ -227,7 +237,7 @@ public class LoginPageTest {
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
     assertThat(response.getLocation()).isEqualTo(resteasy.getBaseUri().resolve(continueUrl));
-    assertThat(response.getCookies()).doesNotContainKeys(cookieName);
+    assertThat(response.getCookies()).doesNotContainKeys(cookieName, browserStateCookieName);
 
     verify(tokenRepository, never()).revokeToken(anyString());
     verify(tokenRepository).reAuthSidToken(someSidToken.getId());
@@ -244,7 +254,7 @@ public class LoginPageTest {
             .param("u", otherUserAccount.getEmail_address())
             .param("pwd", "password")));
 
-    assertThat(response.getCookies()).doesNotContainKeys(cookieName);
+    assertThat(response.getCookies()).doesNotContainKeys(cookieName, browserStateCookieName);
     assertLoginForm(response)
         .matches(reauthUser(someUserAccount.getEmail_address()));
   }

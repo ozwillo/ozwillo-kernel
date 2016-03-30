@@ -36,6 +36,7 @@ import com.ibm.icu.util.ULocale;
 
 import oasis.model.authz.Scopes;
 import oasis.urls.Urls;
+import oasis.web.authn.CheckSessionIframePage;
 import oasis.web.authn.LogoutPage;
 import oasis.web.authz.AuthorizationEndpoint;
 import oasis.web.authz.IntrospectionEndpoint;
@@ -125,7 +126,7 @@ public class OpenIdProviderConfigurationEndpoint {
     @JsonProperty String op_tos_uri = urls.termsOfService().transform(Functions.toStringFunction()).orNull();
 
     // See http://openid.net/specs/openid-connect-session-1_0.html#EndpointDiscovery
-    // TODO: check_session_iframe
+    @JsonProperty String check_session_iframe = getBaseUriBuilder().path(CheckSessionIframePage.class).build().toString();
     @JsonProperty String end_session_endpoint = getBaseUriBuilder().path(LogoutPage.class).build().toString();
 
     // See https://tools.ietf.org/html/draft-ietf-oauth-discovery-01

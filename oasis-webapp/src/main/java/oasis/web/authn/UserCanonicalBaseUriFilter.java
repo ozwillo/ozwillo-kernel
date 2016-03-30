@@ -20,11 +20,13 @@ package oasis.web.authn;
 import java.io.IOException;
 import java.net.URI;
 
+import javax.annotation.Nullable;
 import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Provider;
 
 import oasis.urls.Urls;
@@ -42,16 +44,26 @@ public class UserCanonicalBaseUriFilter implements ContainerRequestFilter {
 
   @Override
   public void filter(ContainerRequestContext requestContext) throws IOException {
+    @Nullable Response response = maybeRedirectToCanonicalUri(urls, requestContext.getUriInfo());
+    if (response != null) {
+      requestContext.abortWith(response);
+    }
+  }
+
+  /**
+   * Returns a {@link Response} redirecting to the canonical URI for the given {@code UriInfo},
+   * or {@code null} if it already is canonical.
+   */
+  static @Nullable Response maybeRedirectToCanonicalUri(Urls urls, UriInfo uriInfo) {
     if (!urls.canonicalBaseUri().isPresent()) {
-      return; // nothing to do
+      return null; // nothing to do
     }
-    if (requestContext.getUriInfo().getBaseUri().equals(urls.canonicalBaseUri().get())) {
-      return; // we're already on the canonical base URI
+    if (uriInfo.getBaseUri().equals(urls.canonicalBaseUri().get())) {
+      return null; // we're already on the canonical base URI
     }
 
-    URI relativeUri = requestContext.getUriInfo().getBaseUri().relativize(requestContext.getUriInfo().getRequestUri());
+    URI relativeUri = uriInfo.getBaseUri().relativize(uriInfo.getRequestUri());
     URI canonicalUri = urls.canonicalBaseUri().get().resolve(relativeUri);
-
-    requestContext.abortWith(Response.seeOther(canonicalUri).build());
+    return Response.seeOther(canonicalUri).build();
   }
 }

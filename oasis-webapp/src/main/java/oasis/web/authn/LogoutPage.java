@@ -77,6 +77,7 @@ public class LogoutPage {
   @Inject AppInstanceRepository appInstanceRepository;
   @Inject ServiceRepository serviceRepository;
   @Inject AccountRepository accountRepository;
+  @Inject SessionManagementHelper sessionManagementHelper;
 
   @GET
   @Produces(MediaType.TEXT_HTML)
@@ -205,7 +206,8 @@ public class LogoutPage {
     }
 
     return Response.seeOther(continueUrl)
-        .cookie(CookieFactory.createExpiredCookie(UserFilter.COOKIE_NAME, securityContext.isSecure()))
+        .cookie(CookieFactory.createExpiredCookie(UserFilter.COOKIE_NAME, securityContext.isSecure(), true))
+        .cookie(SessionManagementHelper.createBrowserStateCookie(securityContext.isSecure(), sessionManagementHelper.generateBrowserState()))
         .build();
   }
 }

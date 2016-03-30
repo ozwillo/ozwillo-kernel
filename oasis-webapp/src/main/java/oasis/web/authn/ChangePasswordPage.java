@@ -57,6 +57,7 @@ public class ChangePasswordPage {
   @Inject TokenRepository tokenRepository;
   @Inject AuthModule.Settings authSettings;
   @Inject Urls urls;
+  @Inject SessionManagementHelper sessionManagementHelper;
 
   @Context SecurityContext securityContext;
 
@@ -93,7 +94,8 @@ public class ChangePasswordPage {
         .header("X-Frame-Options", "DENY")
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
-        .cookie(CookieFactory.createExpiredCookie(UserFilter.COOKIE_NAME, securityContext.isSecure()))
+        .cookie(CookieFactory.createExpiredCookie(UserFilter.COOKIE_NAME, securityContext.isSecure(), true))
+        .cookie(SessionManagementHelper.createBrowserStateCookie(securityContext.isSecure(), sessionManagementHelper.generateBrowserState()))
         .entity(new SoyTemplate(ChangePasswordSoyInfo.PASSWORD_CHANGED,
             account.getLocale(),
             new SoyMapData(

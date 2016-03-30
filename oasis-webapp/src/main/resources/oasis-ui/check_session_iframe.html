@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html><head><meta charset=utf-8></head><body><script>
+function b64_to_b64url(b64str) {
+    return b64str.replace(/\+/g, '-').replace(/\//g, '_');
+}
+var str2bytes;
+if ('TextEncoder' in window) {
+    str2bytes = function textEncoderEncode(str) {
+        return new TextEncoder('utf-8').encode(str);
+    };
+} else if ('Uint8Array' in window) { // IE
+    str2bytes = function uint8ArrayBasedEncode(str) {
+        // assume ASCII for our use-case; makes code simpler
+        var bytes = new Uint8Array(str.length);
+        for (var i = 0, l = str.length; i < l; i++) {
+            bytes[i] = str.charCodeAt(i) & 0x7f;
+        }
+        return bytes;
+    };
+}
+var b64;
+if ('btoa' in window && 'ArrayBuffer' in window && 'Uint8Array' in window) {
+    b64 = function bytes2str(bytes) {
+        if (!ArrayBuffer.isView(bytes)) {
+            bytes = new Uint8Array(bytes);
+        }
+        var str = '';
+        for (var i = 0, l = bytes.length; i < l; i++) {
+            str += String.fromCharCode(bytes[i]);
+        }
+        return b64_to_b64url(btoa(str).replace(/=+$/, ''));
+    }
+}
+
+function logInfo(msg) {
+    if ('console' in window && 'info' in window.console) {
+        window.console.info(msg);
+    }
+}
+function logError(err) {
+    if ('console' in window && 'error' in window.console) {
+        window.console.error(err);
+    }
+}
+
+function main(sha256) {
+    window.addEventListener("message", receiveMessage, false);
+
+    function receiveMessage(e) {
+        var parts = e.data.split(' ');
+        if (parts.length != 2) {
+            e.source.postMessage('error', e.origin);
+            logError('Unexpected parts number in message: ' + parts.length);
+            return;
+        }
+        var client_id = parts[0];
+        parts = parts[1].split('.');
+        if (parts.length != 2) {
+            e.source.postMessage('error', e.origin);
+            logError('Unexpected parts number in session state: ' + parts.length);
+            return;
+        }
+        var session_state = parts[0];
+        var salt = parts[1];
+
+        if (!client_id || !session_state) {
+            e.source.postMessage('error', e.origin);
+            logError('Missing client_id [' + client_id + '] or session_state [' + session_state + ']');
+            return;
+        }
+
+        // RegExp courtesy Mozilla Developer Network
+        // see: https://developer.mozilla.org/en-US/docs/Web/API/Document/cookie
+        // XXX: keep in sync with oasis.web.authn.SessionManagementHelper
+        var browser_state = document.cookie.replace(
+                window.location.protocol == "https:"
+                    ? /(?:(?:^|.*;\s*)__Host-BS\s*=\s*([^;]*).*$)|^.*$/
+                    : /(?:(?:^|.*;\s*)BS\s*=\s*([^;]*).*$)|^.*$/,
+                "$1");
+
+        if (!browser_state) {
+            e.source.postMessage('changed', e.origin);
+            return;
+        }
+
+        sha256(
+            [client_id, e.origin, browser_state, salt].join(' '),
+            function(computed_session_state) {
+                e.source.postMessage(computed_session_state === session_state ? 'unchanged' : 'changed', e.origin);
+            },
+            function(err) {
+                e.source.postMessage('error', e.origin);
+                logError(err);
+            });
+    }
+}
+if ('crypto' in window && 'subtle' in window.crypto && typeof window.crypto.subtle.digest === 'function' && str2bytes && b64) {
+    // Web Cryptography API (Chromium, Firefox)
+    logInfo('Using standard Web Cryptography API');
+    main(function webCrypto(str, callback, onerror) {
+        try {
+            window.crypto.subtle.digest('SHA-256', str2bytes(str))
+                    .then(b64)
+                    .then(callback, onerror);
+        } catch (e) {
+            onerror(e);
+        }
+    });
+} else if ('crypto' in window && 'webkitSubtle' in window.crypto && typeof window.crypto.webkitSubtle.digest === 'function' && str2bytes && b64) {
+    // Safari
+    logInfo('Using webkit-prefixed Web Cryptography API');
+    main(function webkitCrypto(str, callback, onerror) {
+        try {
+            window.crypto.webkitSubtle.digest('SHA-256', str2bytes(str))
+                    .then(b64)
+                    .then(callback, onerror);
+        } catch (e) {
+            onerror(e);
+        }
+    });
+} else if ('msCrypto' in window && 'subtle' in window.msCrypto && typeof window.msCrypto.subtle.digest === 'function' && str2bytes && b64) {
+    // IE11
+    logInfo('Using ms-prefixed (oldish) Web Cryptography API');
+    main(function msCrypto(str, callback, onerror) {
+        var d = window.msCrypto.subtle.digest('SHA-256', str2bytes(str));
+        d.oncomplete = function() {
+            var result;
+            try {
+                result = b64(d.result);
+            } catch (e) {
+                onerror(e);
+            }
+            callback(result);
+        };
+        d.onerror = onerror;
+        d.finish();
+    });
+} else {
+    // Fallback to using sha256.js, mocking AMD's define(); main() is called asynchronously.
+    logInfo('Using sha256.js fallback');
+    window.define = function define(supplier) {
+        logInfo('sha256.js loaded');
+        var jsSHAlib = supplier();
+        main(function jsSHA(str, callback, onerror) {
+            var result;
+            try {
+                var shaObj = new jsSHAlib('SHA-256', 'TEXT');
+                shaObj.update(str);
+                result = b64_to_b64url(shaObj.getHash('B64', {b64Pad: ''}));
+            } catch (e) {
+                onerror(e);
+            }
+            callback(result);
+        });
+    };
+    window.define.amd = true;
+    var script = document.createElement('script');
+    // XXX: keep in sync with oasis.web.StaticResources
+    script.src = '/js/sha256.js';
+    document.head.appendChild(script);
+}
+</script></body></html>

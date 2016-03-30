@@ -30,6 +30,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.CookieParam;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -38,6 +39,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.RedirectionException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
@@ -79,11 +81,13 @@ import oasis.model.bootstrap.ClientIds;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.services.authz.AppAdminHelper;
+import oasis.services.cookies.CookieFactory;
 import oasis.soy.SoyTemplate;
 import oasis.soy.templates.AuthorizeSoyInfo;
 import oasis.soy.templates.AuthorizeSoyInfo.AuthorizeSoyTemplateInfo;
 import oasis.urls.Urls;
 import oasis.web.authn.Authenticated;
+import oasis.web.authn.SessionManagementHelper;
 import oasis.web.authn.User;
 import oasis.web.authn.UserAuthenticationFilter;
 import oasis.web.authn.UserSessionPrincipal;
@@ -125,6 +129,7 @@ public class AuthorizationEndpoint {
 
   @Context SecurityContext securityContext;
   @Context Request request;
+  @Context HttpHeaders httpHeaders;
 
   @Inject AuthModule.Settings settings;
   @Inject AuthorizationRepository authorizationRepository;
@@ -138,8 +143,11 @@ public class AuthorizationEndpoint {
   @Inject LocaleHelper localeHelper;
   @Inject DateTimeUtils.MillisProvider clock;
   @Inject Urls urls;
+  @Inject SessionManagementHelper sessionManagementHelper;
 
   private MultivaluedMap<String, String> params;
+  private String client_id;
+  private String redirect_uri;
   private RedirectUri redirectUri;
 
   @GET
@@ -152,10 +160,10 @@ public class AuthorizationEndpoint {
   public Response post(@Context UriInfo uriInfo, MultivaluedMap<String, String> params) {
     this.params = params;
 
-    final String client_id = getRequiredParameter("client_id");
+    client_id = getRequiredParameter("client_id");
     final AppInstance appInstance = getAppInstance(client_id);
 
-    final String redirect_uri = getRequiredParameter("redirect_uri");
+    redirect_uri = getRequiredParameter("redirect_uri");
     @Nullable final Service service = serviceRepository.getServiceByRedirectUri(appInstance.getId(), redirect_uri);
     if (!isRedirectUriValid(appInstance, service, redirect_uri)) {
       throw invalidParam("redirect_uri");
@@ -317,13 +325,25 @@ public class AuthorizationEndpoint {
     AuthorizationCode authCode = tokenHandler.createAuthorizationCode(sidToken, scopeIds, client_id, nonce, redirect_uri, code_challenge, pass);
 
     String auth_code = TokenSerializer.serialize(authCode, pass);
-
     if (auth_code == null) {
       return Response.serverError().build();
     }
-
     redirectUri.setCode(auth_code);
-    return Response.seeOther(URI.create(redirectUri.toString())).build();
+
+    final Response.ResponseBuilder rb = Response.status(Response.Status.SEE_OTHER);
+    setSessionState(rb, client_id, redirect_uri);
+
+    return rb.location(URI.create(redirectUri.toString())).build();
+  }
+
+  private void setSessionState(Response.ResponseBuilder rb, String client_id, String redirect_uri) {
+    Cookie browserStateCookie = httpHeaders.getCookies().get(CookieFactory.getCookieName(SessionManagementHelper.COOKIE_NAME, securityContext.isSecure()));
+    String browserState = browserStateCookie == null ? null : browserStateCookie.getValue();
+    if (Strings.isNullOrEmpty(browserState)) {
+      browserState = sessionManagementHelper.generateBrowserState();
+      rb.cookie(SessionManagementHelper.createBrowserStateCookie(securityContext.isSecure(), browserState));
+    }
+    redirectUri.setSessionState(sessionManagementHelper.computeSessionState(client_id, redirect_uri, browserState));
   }
 
   private Response promptUser(String accountId, AppInstance serviceProvider, Set<String> requiredScopeIds, Set<String> authorizedScopeIds,
@@ -373,8 +393,11 @@ public class AuthorizationEndpoint {
     // redirectUri is now used for creating the cancel Uri for the authorization step with the user
     redirectUri.setError("access_denied", null);
 
+    Response.ResponseBuilder rb = Response.ok();
+    setSessionState(rb, serviceProvider.getId(), redirect_uri);
+
     // TODO: Improve security by adding a token created by encrypting scopes with a secret
-    return Response.ok()
+    return rb
         .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store")
         .header("Pragma", "no-cache")
             // cf. https://www.owasp.org/index.php/List_of_useful_HTTP_headers
@@ -512,8 +535,11 @@ public class AuthorizationEndpoint {
           .entity(error)
           .build());
     }
+
     redirectUri.setError(error, description);
-    return new RedirectionException(Response.seeOther(URI.create(redirectUri.toString())).build());
+    Response.ResponseBuilder rb = Response.status(Response.Status.SEE_OTHER);
+    setSessionState(rb, client_id, redirect_uri);
+    return new RedirectionException(rb.location(URI.create(redirectUri.toString())).build());
   }
 
   /**
