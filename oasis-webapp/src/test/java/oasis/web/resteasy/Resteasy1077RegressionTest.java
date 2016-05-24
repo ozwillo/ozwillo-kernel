@@ -78,8 +78,7 @@ public class Resteasy1077RegressionTest {
     @Path("/test/")
     @GET
     public Response test(@Context UriInfo uriInfo) {
-      // XXX: can't use getPath() because of https://issues.jboss.org/browse/RESTEASY-1124
-      if (uriInfo.getRequestUri().getPath().endsWith("/")) {
+      if (uriInfo.getPath().endsWith("/")) {
         return Response.ok("test", MediaType.TEXT_PLAIN_TYPE).build();
       } else {
         return Response
