@@ -17,13 +17,14 @@
  */
 package oasis.jongo;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bson.types.ObjectId;
-import org.jongo.ReflectiveObjectIdUpdater;
+import org.jongo.marshall.jackson.JacksonObjectIdUpdater;
 
-public class OasisIdUpdater extends ReflectiveObjectIdUpdater {
+public class OasisIdUpdater extends JacksonObjectIdUpdater {
 
-  public OasisIdUpdater(IdFieldSelector idFieldSelector) {
-    super(idFieldSelector);
+  public OasisIdUpdater(ObjectMapper objectMapper) {
+    super(objectMapper);
   }
 
   @Override

@@ -18,9 +18,9 @@
 package oasis.model.i18n;
 
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.IllformedLocaleException;
 import java.util.Map;
+import java.util.Set;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -58,7 +58,7 @@ class LocalizableBeanDeserializer extends BeanDeserializer {
     this._propertyDefinitions = src._propertyDefinitions;
   }
 
-  public LocalizableBeanDeserializer(LocalizableBeanDeserializer src, HashSet<String> ignorableProps) {
+  public LocalizableBeanDeserializer(LocalizableBeanDeserializer src, Set<String> ignorableProps) {
     super(src, ignorableProps);
     this._propertyDefinitions = src._propertyDefinitions;
   }
@@ -74,7 +74,7 @@ class LocalizableBeanDeserializer extends BeanDeserializer {
   }
 
   @Override
-  public BeanDeserializer withIgnorableProperties(HashSet<String> ignorableProps) {
+  public BeanDeserializer withIgnorableProperties(Set<String> ignorableProps) {
     return new LocalizableBeanDeserializer(this, ignorableProps);
   }
 
@@ -113,7 +113,7 @@ class LocalizableBeanDeserializer extends BeanDeserializer {
     BeanPropertyDefinition propDef = _propertyDefinitions.get(prop.getName());
     AnnotatedMember accessor = propDef.getAccessor();
     if (ctxt.canOverrideAccessModifiers()) {
-      accessor.fixAccess();
+      accessor.fixAccess(true);
     }
     LocalizableString ls = (LocalizableString) accessor.getValue(bean);
     if (ls == null) {

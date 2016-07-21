@@ -19,11 +19,9 @@ package oasis.jongo;
 
 import org.jongo.Mapper;
 import org.jongo.ObjectIdUpdater;
-import org.jongo.ReflectiveObjectIdUpdater;
 import org.jongo.marshall.Marshaller;
 import org.jongo.marshall.Unmarshaller;
 import org.jongo.marshall.jackson.JacksonEngine;
-import org.jongo.marshall.jackson.JacksonIdFieldSelector;
 import org.jongo.marshall.jackson.configuration.AbstractMappingBuilder;
 import org.jongo.query.BsonQueryFactory;
 import org.jongo.query.QueryFactory;
@@ -65,7 +63,7 @@ public class OasisMapper implements Mapper {
     public Mapper build() {
       JacksonEngine jacksonEngine = new JacksonEngine(createMapping());
       QueryFactory queryFactory = new BsonQueryFactory(new OasisMarshaller(jacksonEngine));
-      ObjectIdUpdater objectIdUpdater = new OasisIdUpdater(new JacksonIdFieldSelector());
+      ObjectIdUpdater objectIdUpdater = new OasisIdUpdater(jacksonEngine.getObjectMapper());
       return new OasisMapper(jacksonEngine, queryFactory, objectIdUpdater);
     }
 

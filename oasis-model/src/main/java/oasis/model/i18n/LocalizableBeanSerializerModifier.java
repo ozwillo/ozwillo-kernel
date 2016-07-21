@@ -29,7 +29,7 @@ public class LocalizableBeanSerializerModifier extends BeanSerializerModifier {
   public List<BeanPropertyWriter> changeProperties(SerializationConfig config, BeanDescription beanDesc, List<BeanPropertyWriter> beanProperties) {
     for (int i = 0; i < beanProperties.size(); i++) {
       final BeanPropertyWriter writer = beanProperties.get(i);
-      if (LocalizableString.class.isAssignableFrom(writer.getPropertyType())) {
+      if (writer.getType().isTypeOrSubTypeOf(LocalizableString.class)) {
         beanProperties.set(i, new LocalizableStringBeanPropertyWriter(writer));
       }
     }

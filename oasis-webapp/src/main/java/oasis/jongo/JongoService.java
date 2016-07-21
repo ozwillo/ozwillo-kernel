@@ -67,6 +67,7 @@ public class JongoService implements Provider<Jongo> {
     return jongoConnection;
   }
 
+  @SuppressWarnings("deprecation")
   public void start() throws Exception {
     mongoConnection = new MongoClient(settings.mongoURI);
     jongoConnection = new Jongo(mongoConnection.getDB(settings.mongoURI.getDatabase()), new OasisMapper.Builder()
