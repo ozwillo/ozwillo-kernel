@@ -25,7 +25,7 @@ dependencies {
 
   runtime libs.jsSHA
 
-  compileOnly libs.immutables
+  compileOnly libs.immutables_annotations
   apt         libs.immutables
 
   compile libs.slf4j
