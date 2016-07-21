@@ -30,6 +30,7 @@ public class JongoOrganizationMembership extends OrganizationMembership implemen
     super(organizationMember);
   }
 
+  @Override
   public long getModified() {
     return modified;
   }

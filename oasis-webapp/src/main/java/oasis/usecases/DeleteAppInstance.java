@@ -235,6 +235,7 @@ public class DeleteAppInstance {
     public boolean appInstanceDeleted;
     public boolean credentialsDeleted;
 
+    @Override
     public boolean isEmpty() {
       return !appInstanceDeleted
           && !credentialsDeleted

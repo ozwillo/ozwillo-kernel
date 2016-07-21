@@ -107,6 +107,7 @@ public class Service extends CatalogEntry {
   }
 
   @JsonIgnore
+  @Override
   public boolean isVisible() {
     switch (getVisibility()) {
       case VISIBLE:

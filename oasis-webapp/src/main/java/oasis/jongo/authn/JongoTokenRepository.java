@@ -58,6 +58,7 @@ public class JongoTokenRepository implements TokenRepository, JongoBootstrapper 
         .as(Token.class);
   }
 
+  @Override
   public boolean registerToken(Token token) {
     token.checkValidity();
 
@@ -71,6 +72,7 @@ public class JongoTokenRepository implements TokenRepository, JongoBootstrapper 
     return true;
   }
 
+  @Override
   public boolean revokeToken(String tokenId) {
     checkArgument(!Strings.isNullOrEmpty(tokenId));
 
@@ -79,6 +81,7 @@ public class JongoTokenRepository implements TokenRepository, JongoBootstrapper 
         .getN() > 0;
   }
 
+  @Override
   public boolean renewToken(String tokenId) {
     Instant expirationTime = Instant.now().plus(settings.sidTokenDuration);
 

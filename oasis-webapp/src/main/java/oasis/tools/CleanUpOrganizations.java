@@ -20,6 +20,7 @@ package oasis.tools;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -106,7 +107,7 @@ public class CleanUpOrganizations extends CommandLineTool {
     jongoService.start();
     jestService.start();
 
-    try (BufferedReader in = new BufferedReader(new InputStreamReader(System.in))) {
+    try (BufferedReader in = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8))) {
       System.out.println("Application\tInstance\tOrganization\tStatus");
       for (String orgId = in.readLine(); orgId != null; orgId = in.readLine()) {
         if (Strings.isNullOrEmpty(orgId)) {

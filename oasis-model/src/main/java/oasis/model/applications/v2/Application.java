@@ -78,6 +78,7 @@ public class Application extends CatalogEntry {
     this.cancellation_secret = cancellation_secret;
   }
 
+  @Override
   public boolean isVisible() {
     return visible;
   }

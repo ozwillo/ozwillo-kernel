@@ -37,10 +37,10 @@ public abstract class AuditLogService {
    */
   public <T extends AuditLogEvent> T event(Class<T> clazz) {
     try {
-      T logEvent = clazz.newInstance();
+      T logEvent = clazz.getConstructor().newInstance();
       logEvent.setAuditLogService(this);
       return logEvent;
-    } catch (InstantiationException | IllegalAccessException e) {
+    } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
       throw new RuntimeException(e);
     }
   }

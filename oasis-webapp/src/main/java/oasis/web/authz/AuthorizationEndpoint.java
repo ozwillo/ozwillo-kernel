@@ -108,7 +108,7 @@ public class AuthorizationEndpoint {
       .or(CharMatcher.anyOf("-._~"))
       .precomputed();
 
-  private class Prompt {
+  private static class Prompt {
     boolean interactive = true;
     boolean login;
     boolean consent;

@@ -101,6 +101,7 @@ public class RedirectUri {
     return this;
   }
 
+  @Override
   public String toString() {
     return sb.toString();
   }

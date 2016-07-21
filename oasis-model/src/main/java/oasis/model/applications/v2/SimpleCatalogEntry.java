@@ -55,6 +55,7 @@ public class SimpleCatalogEntry extends CatalogEntry {
     setPolicy_uri(new LocalizableString(getPolicy_uri().get(locale)));
   }
 
+  @Override
   public boolean isVisible() {
     return visible;
   }
