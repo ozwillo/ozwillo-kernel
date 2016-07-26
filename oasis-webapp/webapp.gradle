@@ -25,8 +25,9 @@ dependencies {
 
   runtime libs.jsSHA
 
-  compileOnly libs.immutables_annotations
-  apt         libs.immutables
+  compileOnly     libs.immutables_annotations
+  testCompileOnly libs.immutables_annotations
+  apt             libs.immutables
 
   compile libs.slf4j
   runtime libs.log4j_runtime
