@@ -308,6 +308,7 @@ public class Bootstrap extends CommandLineTool {
     instance.setApplication_id(app.getId());
     instance.setStatus(AppInstance.InstantiationStatus.RUNNING);
     instance.setInstantiator_id(adminAccountId);
+    instance.setProvider_id(oasisOrgId);
     for (String scopeId : new String[] { Scopes.OPENID, Scopes.PROFILE, Scopes.EMAIL, Scopes.ADDRESS, Scopes.PHONE, "datacore" }) {
       AppInstance.NeededScope neededScope = new AppInstance.NeededScope();
       neededScope.setScope_id(scopeId);
@@ -321,6 +322,7 @@ public class Bootstrap extends CommandLineTool {
     Service service = new Service();
     service.setLocal_id("front");
     service.setInstance_id(instance.getId());
+    service.setProvider_id(instance.getProvider_id());
     service.setVisibility(Service.Visibility.HIDDEN);
     service.setAccess_control(Service.AccessControl.ANYONE);
     service.setStatus(Service.Status.AVAILABLE);
@@ -345,6 +347,7 @@ public class Bootstrap extends CommandLineTool {
     instance.setApplication_id(app.getId());
     instance.setStatus(AppInstance.InstantiationStatus.RUNNING);
     instance.setInstantiator_id(adminAccountId);
+    instance.setProvider_id(oasisOrgId);
     jongoProvider.get().getCollection(JongoAppInstanceRepository.COLLECTION_NAME).insert(instance);
 
     String clientSecret = passwordGeneratorProvider.get().generate();
