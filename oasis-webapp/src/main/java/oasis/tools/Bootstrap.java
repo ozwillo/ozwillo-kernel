@@ -75,13 +75,25 @@ public class Bootstrap extends CommandLineTool {
       usage = "Administrator's password")
   private String adminPassword;
 
-  @Option(name = "-r", aliases = "--redirect-uri", required = true,
+  @Option(name = "-pr", aliases = "--portal-redirect-uri", required = true,
       usage = "Portal's redirect_uri")
   private String portalRedirectUri;
 
-  @Option(name = "-plr", aliases = "--post-logout-redirect-uri", required = true,
+  @Option(name = "-plr", aliases = "--portal-post-logout-redirect-uri", required = true,
       usage = "Portal's post_logout_redirect_uri")
   private String portalPostLogoutRedirectUri;
+
+  @Option(name = "-dr", aliases = "--datacore-redirect-uri", required = true,
+      usage = "Datacore Playground's redirect_uri")
+  private String datacoreRedirectUri;
+
+  @Option(name = "-ds", aliases = "--datacore-service-uri", required = true,
+      usage = "Datacore Playground's service_uri")
+  private String datacoreServiceUri;
+
+  @Option(name = "-di", aliases = "--datacore-icon", required = true,
+      usage = "Datacore Playground's icon")
+  private String datacoreIcon;
 
   @Inject JongoService jongoService;
   @Inject Provider<Jongo> jongoProvider;
@@ -362,7 +374,18 @@ public class Bootstrap extends CommandLineTool {
     scope.getName().set(ULocale.ROOT, "Datacore");
     scopeRepositoryProvider.get().createOrUpdateScope(scope);
 
-    // XXX: do we need a service?
+    Service service = new Service();
+    service.setLocal_id("playground");
+    service.setInstance_id(instance.getId());
+    service.setProvider_id(instance.getProvider_id());
+    service.setVisibility(Service.Visibility.HIDDEN);
+    service.setAccess_control(Service.AccessControl.RESTRICTED);
+    service.setStatus(Service.Status.AVAILABLE);
+    service.getName().set(ULocale.ROOT, "Ozwillo Datacore Playground");
+    service.getRedirect_uris().add(datacoreRedirectUri);
+    service.setService_uri(datacoreServiceUri);
+    service.getIcon().set(ULocale.ROOT, datacoreIcon);
+    serviceRepositoryProvider.get().createService(service);
 
     return clientSecret;
   }

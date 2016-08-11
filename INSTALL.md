@@ -159,15 +159,18 @@ Options are:
  * `-a` or `--admin`: **required**, the email address of the super administrator.
  * `-p` or `--password`: the administrator's password;
    one will be generated and printed to the standard output if not given.
- * `-r` or `--redirect-uri`: **required**, the Ozwillo Portal's `redirect_uri`.
- * `-plr` or `--post-logout-redirect-uri`: **required**, the Ozwillo Portal's `post_logout_redirect_uri`.
+ * `-pr` or `--portal-redirect-uri`: **required**, the Ozwillo Portal's `redirect_uri`.
+ * `-plr` or `--portal-post-logout-redirect-uri`: **required**, the Ozwillo Portal's `post_logout_redirect_uri`.
+ * `-dr` or `--datacore-redirect-uri`: **required**, the Ozwillo Datacore Playground's `redirect_uri`.
+ * `-ds` or `--datacore-service-uri`: **required**, the Ozwillo Datacore Playground's `service_uri`.
+ * `-di` or `--datacore-icon`: **required**, the Ozwillo Datacore Playground's icon.
 
 The tool will create:
  * the OpenID Connect 1.0 scopes,
  * a super administrator user,
  * an _“Ozwillo”_ organization, whose administrator will be the super administrator user,
  * the Ozwillo Portal application, instance, and service,
- * the Ozwillo DataCore application and instance (note: it does **not** create the _playground_ service.)
+ * the Ozwillo DataCore application, instance, and its Playground service
 
 Periodic tasks
 --------------
