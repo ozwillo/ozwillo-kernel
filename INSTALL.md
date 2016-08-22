@@ -164,13 +164,16 @@ Options are:
  * `-dr` or `--datacore-redirect-uri`: **required**, the Ozwillo Datacore Playground's `redirect_uri`.
  * `-ds` or `--datacore-service-uri`: **required**, the Ozwillo Datacore Playground's `service_uri`.
  * `-di` or `--datacore-icon`: **required**, the Ozwillo Datacore Playground's icon.
+ * `-der` or `--dcexporter-redirect-uri`: the Ozwillo Datacore Exporter's `redirect_uri`.
+ * `-des` or `--dcexporter-service-uri`: the Ozwillo Datacore Exporter's `service_uri`.
 
 The tool will create:
  * the OpenID Connect 1.0 scopes,
  * a super administrator user,
  * an _“Ozwillo”_ organization, whose administrator will be the super administrator user,
  * the Ozwillo Portal application, instance, and service,
- * the Ozwillo DataCore application, instance, and its Playground service
+ * the Ozwillo DataCore application, instance, and its Playground service,
+ * the Ozwillo DataCore Exporter application, instance and service
 
 Periodic tasks
 --------------

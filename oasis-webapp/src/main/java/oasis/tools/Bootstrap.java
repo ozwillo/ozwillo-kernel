@@ -95,6 +95,14 @@ public class Bootstrap extends CommandLineTool {
       usage = "Datacore Playground's icon")
   private String datacoreIcon;
 
+  @Option(name = "-der", aliases = "--dcexporter-redirect-uri",
+      usage = "Datacore Exporter's redirect_uri")
+  private String dcexporterRedirectUri;
+
+  @Option(name = "-des", aliases = "--dcexporter-service-uri",
+      usage = "Datacore Exporter's service_uri")
+  private String dcexporterServiceUri;
+
   @Inject JongoService jongoService;
   @Inject Provider<Jongo> jongoProvider;
   @Inject Provider<ScopeRepository> scopeRepositoryProvider;
@@ -148,6 +156,10 @@ public class Bootstrap extends CommandLineTool {
       logger().info("Generated client_secret for {} instance: {}", ClientIds.PORTAL, portalSecret);
       String dcSecret = createDatacore(oasisOrgId, adminAccountId);
       logger().info("Generated client_secret for {} instance: {}", ClientIds.DATACORE, dcSecret);
+      if (!Strings.isNullOrEmpty(dcexporterRedirectUri) && !Strings.isNullOrEmpty(dcexporterServiceUri)) {
+        String dcExporterSecret = createDcExporter(oasisOrgId, adminAccountId);
+        logger().info("Generated client_secret for {} instance: {}", ClientIds.DCEXPORTER, dcExporterSecret);
+      }
     } finally {
       jongoService.stop();
     }
@@ -388,5 +400,45 @@ public class Bootstrap extends CommandLineTool {
     serviceRepositoryProvider.get().createService(service);
 
     return clientSecret;
+  }
+
+  private String createDcExporter(String oasisOrgId, String adminAccountId) {
+    Application app = new Application();
+    app.getName().set(ULocale.ROOT, "Ozwillo Datacore Exporter");
+    app.setProvider_id(oasisOrgId);
+    app.setVisible(false);
+    app = applicationRepositoryProvider.get().createApplication(app);
+
+    JongoAppInstance instance = new JongoAppInstance();
+    instance.setId(ClientIds.DCEXPORTER);
+    instance.getName().set(ULocale.ROOT, "Ozwillo Datacore Exporter");
+    instance.setApplication_id(app.getId());
+    instance.setStatus(AppInstance.InstantiationStatus.RUNNING);
+    instance.setInstantiator_id(adminAccountId);
+    instance.setProvider_id(oasisOrgId);
+    for (String scopeId : new String[] { Scopes.OPENID, Scopes.PROFILE, Scopes.EMAIL, "datacore" }) {
+      AppInstance.NeededScope neededScope = new AppInstance.NeededScope();
+      neededScope.setScope_id(scopeId);
+      instance.getNeeded_scopes().add(neededScope);
+    }
+    jongoProvider.get().getCollection(JongoAppInstanceRepository.COLLECTION_NAME).insert(instance);
+
+    String clientSecret = passwordGeneratorProvider.get().generate();
+    credentialsServiceProvider.get().setPassword(ClientType.PROVIDER, instance.getId(), clientSecret);
+
+    Service service = new Service();
+    service.setLocal_id("dcexporter");
+    service.setInstance_id(instance.getId());
+    service.setProvider_id(instance.getProvider_id());
+    service.setVisibility(Service.Visibility.HIDDEN);
+    service.setAccess_control(Service.AccessControl.RESTRICTED);
+    service.setStatus(Service.Status.AVAILABLE);
+    service.getName().set(ULocale.ROOT, "Ozwillo Datacore Exporter");
+    service.getRedirect_uris().add(dcexporterRedirectUri);
+    service.setService_uri(dcexporterServiceUri);
+    serviceRepositoryProvider.get().createService(service);
+
+    return clientSecret;
+
   }
 }
