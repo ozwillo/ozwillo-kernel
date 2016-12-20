@@ -71,7 +71,7 @@ task generateSoyParseInfo(type: JavaExec) {
   def deps = sourceSets.main.resources.matching {
     include '**/Common.soy'
   }
-  inputs.source srcs
+  inputs.files srcs skipWhenEmpty()
   inputs.files deps
 
   ext.outputDir = "$buildDir/generated/source/soy/"
@@ -118,7 +118,7 @@ task extractMessagesFromTemplates(type: JavaExec) {
   def srcs = sourceSets.main.resources.matching {
     include '**/*.soy'
   }
-  inputs.source srcs
+  inputs.files srcs skipWhenEmpty()
 
   main = 'com.google.template.soy.SoyMsgExtractor'
   classpath = configurations.soy

@@ -87,27 +87,29 @@ task deb(dependsOn: [explodedDir, debControl]) {
   inputs.properties(oasis)
   inputs.property('debianVersion', debianVersion)
   outputs.files destfile, changesOut, configurations.jdeb
-} << {
-  ant.taskdef(name: "deb", classname: "org.vafer.jdeb.ant.DebAntTask", classpath: configurations.jdeb.asPath)
 
-  def pathTemplatesDir = "$buildDir/tmp/pathTemplates"
-  // HACK: jDeb Ant task doesn't support data(type:'template') so we fake it with empty folders and data(type:'directory')
-  delete(pathTemplatesDir)
-  mkdir("$pathTemplatesDir/var/log/${oasis.service}")
+  doLast {
+    ant.taskdef(name: "deb", classname: "org.vafer.jdeb.ant.DebAntTask", classpath: configurations.jdeb.asPath)
 
-  ant.deb(destfile: destfile, control: debControl.destinationDir, changesIn: 'CHANGES.txt', changesOut: changesOut, verbose: true) {
-    tarfileset(dir: explodedDir.destinationDir, includes: 'lib/**', prefix: oasis.home, username: oasis.user, group: oasis.group)
-    tarfileset(dir: new File(explodedDir.destinationDir, 'linux/etc'), prefix: "etc/${oasis.service}", username: oasis.user, group: oasis.group)
-    data(type: 'directory', src: pathTemplatesDir) { // Hack for lack of data(type:'template')
-      mapper(type: 'perm', user: oasis.user, group: oasis.group)
+    def pathTemplatesDir = "$buildDir/tmp/pathTemplates"
+    // HACK: jDeb Ant task doesn't support data(type:'template') so we fake it with empty folders and data(type:'directory')
+    delete(pathTemplatesDir)
+    mkdir("$pathTemplatesDir/var/log/${oasis.service}")
+
+    ant.deb(destfile: destfile, control: debControl.destinationDir, changesIn: 'CHANGES.txt', changesOut: changesOut, verbose: true) {
+      tarfileset(dir: explodedDir.destinationDir, includes: 'lib/**', prefix: oasis.home, username: oasis.user, group: oasis.group)
+      tarfileset(dir: new File(explodedDir.destinationDir, 'linux/etc'), prefix: "etc/${oasis.service}", username: oasis.user, group: oasis.group)
+      data(type: 'directory', src: pathTemplatesDir) { // Hack for lack of data(type:'template')
+        mapper(type: 'perm', user: oasis.user, group: oasis.group)
+      }
+      data(type: 'file', src: new File(explodedDir.destinationDir, 'linux/daemon.sh'), dst: oasis.service) {
+        mapper(type: 'perm', prefix: oasis.home, filemode: '775')
+      }
+      data(type: 'file', src: new File(explodedDir.destinationDir, 'linux/deb/etc/init.d/service.sh'), dst: "etc/init.d/${oasis.service}") {
+        mapper(type: 'perm', filemode: '755')
+      }
+      data(type: 'file', src: new File(explodedDir.destinationDir, 'linux/deb/etc/default/service-config'), dst: "etc/default/${oasis.service}")
     }
-    data(type: 'file', src: new File(explodedDir.destinationDir, 'linux/daemon.sh'), dst: oasis.service) {
-      mapper(type: 'perm', prefix: oasis.home, filemode: '775')
-    }
-    data(type: 'file', src: new File(explodedDir.destinationDir, 'linux/deb/etc/init.d/service.sh'), dst: "etc/init.d/${oasis.service}") {
-      mapper(type: 'perm', filemode: '755')
-    }
-    data(type: 'file', src: new File(explodedDir.destinationDir, 'linux/deb/etc/default/service-config'), dst: "etc/default/${oasis.service}")
   }
 }
 assemble.dependsOn deb
