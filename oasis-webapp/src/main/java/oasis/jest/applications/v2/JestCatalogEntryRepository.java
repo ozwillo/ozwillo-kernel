@@ -20,6 +20,7 @@ package oasis.jest.applications.v2;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
@@ -45,7 +46,6 @@ import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 import com.google.common.base.Strings;
 import com.google.common.base.Optional;
-import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.io.Resources;
 import com.google.common.util.concurrent.Futures;
@@ -112,8 +112,8 @@ public class JestCatalogEntryRepository implements CatalogEntryRepository, JestB
         return Collections.emptyList();
       }
       return transformSearchResultToCatalogEntries(searchResult, request.displayLocale());
-    } catch (Exception e) {
-      throw Throwables.propagate(e);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
 
@@ -194,7 +194,7 @@ public class JestCatalogEntryRepository implements CatalogEntryRepository, JestB
   }
 
   private Iterable<SimpleCatalogEntry> transformSearchResultToCatalogEntries(SearchResult searchResult, Optional<ULocale> displayLocale)
-      throws Exception {
+      throws IOException {
     JsonArray results = searchResult.getJsonObject()
         .getAsJsonObject("hits")
         .getAsJsonArray("hits");
@@ -300,8 +300,8 @@ public class JestCatalogEntryRepository implements CatalogEntryRepository, JestB
         // The error message is probably indicating that the index is already created
         logger.info(jestResult.getErrorMessage());
       }
-    } catch (Exception e) {
-      throw Throwables.propagate(e);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
 

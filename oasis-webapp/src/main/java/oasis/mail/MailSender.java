@@ -53,7 +53,7 @@ public class MailSender {
     MimeMessage msg = new MimeMessage(session);
     msg.setFrom(settings.from);
     msg.setRecipient(Message.RecipientType.TO, message.getRecipient());
-    msg.setSubject(CharMatcher.WHITESPACE.trimAndCollapseFrom(subject.toString(), ' '));
+    msg.setSubject(CharMatcher.whitespace().trimAndCollapseFrom(subject.toString(), ' '));
     msg.setText(body.toString(), StandardCharsets.UTF_8.name(), message.isHtml() ? "html" : "plain");
 
     Transport.send(msg);

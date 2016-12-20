@@ -24,7 +24,6 @@ import javax.annotation.Nullable;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 
-import com.google.common.base.Throwables;
 import com.google.template.soy.data.SoyMapData;
 import com.google.template.soy.parseinfo.SoyTemplateInfo;
 import com.ibm.icu.util.ULocale;
@@ -65,7 +64,7 @@ public class MailMessage {
       this.recipient = new InternetAddress(address, personal, StandardCharsets.UTF_8.name());
     } catch (UnsupportedEncodingException e) {
       // We use a Unicode charset, so that shouldn't happen.
-      Throwables.propagate(e);
+      throw new AssertionError(e);
     }
     return this;
   }

@@ -188,7 +188,7 @@ public class ServiceVisibilityAndAccessControlMigration2Test {
   }
 
   private void assertPresentAndTrue(ObjectNode node, String fieldName) {
-    assertThat(node.has(fieldName));
+    assertThat(node.has(fieldName)).isTrue();
     assertThat(node.get(fieldName).isBoolean()).isTrue();
     assertThat(node.get(fieldName).booleanValue()).isTrue();
   }

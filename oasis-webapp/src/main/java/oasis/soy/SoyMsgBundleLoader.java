@@ -87,7 +87,7 @@ class SoyMsgBundleLoader {
           try {
             bundle = soyMsgBundleHandler.createFromResource(resource);
           } catch (IOException e) {
-            throw Throwables.propagate(e);
+            throw new RuntimeException(e);
           }
           cache.put(candidateLocale, bundle);
           break;
