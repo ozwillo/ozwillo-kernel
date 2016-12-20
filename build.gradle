@@ -15,7 +15,7 @@ subprojects {
     mapping soy: 'JAVADOC_STYLE'
 
     ext.year = Calendar.getInstance().get(Calendar.YEAR)
-    ext.name = 'Atol Conseils & Développements'
+    ext.name = 'The Ozwillo Kernel Authors'
   }
   downloadLicenses {
     ext.apacheTwo = license('Apache License, Version 2.0', 'https://www.apache.org/licenses/LICENSE-2.0')
