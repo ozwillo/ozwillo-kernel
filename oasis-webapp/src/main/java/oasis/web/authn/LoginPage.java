@@ -193,6 +193,15 @@ public class LoginPage {
       // XXX: what if account is null?
       return reauthForm(builder, continueUrl, error, account);
     }
+
+    final ClientCertificate clientCertificate = clientCertificateHelper.getClientCertificate(headers.getRequestHeaders());
+    if (clientCertificate != null && clientCertificate.getClient_type() == ClientType.USER) {
+      UserAccount account = accountRepository.getUserAccountById(clientCertificate.getClient_id());
+      if (account != null) {
+        return reauthForm(builder, continueUrl, error, account);
+      }
+    }
+
     return loginForm(builder, continueUrl, locale, error);
   }
 

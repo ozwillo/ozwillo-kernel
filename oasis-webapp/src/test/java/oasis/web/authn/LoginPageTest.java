@@ -18,9 +18,7 @@
 package oasis.web.authn;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.any;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 import java.util.regex.Pattern;
@@ -177,7 +175,47 @@ public class LoginPageTest {
         .doesNotContain(">Cancel<");
   }
 
+  @SuppressWarnings("unchecked")
+  @Test public void loginPageWithKnownCertificate(ClientCertificateHelper clientCertificateHelper) {
+    when(clientCertificateHelper.getClientCertificate(any(MultivaluedMap.class))).thenReturn(someClientCertificate);
+
+    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(LoginPage.class)).request().get();
+
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
+    assertThat(response.getCookies()).doesNotContainKeys(cookieName, browserStateCookieName);
+    assertLoginForm(response)
+        .matches(reauthUser(someUserAccount.getEmail_address()));
+  }
+
   @Test public void loginPageWhileLoggedIn() {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(someSidToken));
+
+    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(LoginPage.class)).request().get();
+
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
+    assertThat(response.getCookies()).doesNotContainKeys(cookieName, browserStateCookieName);
+    assertLoginForm(response)
+        .matches(reauthUser(someUserAccount.getEmail_address()));
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test public void loginPageWhileLoggedInWithMismatchingCertificate(ClientCertificateHelper clientCertificateHelper) {
+    when(clientCertificateHelper.getClientCertificate(any(MultivaluedMap.class))).thenReturn(someClientCertificate);
+
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(otherSidToken));
+
+    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(LoginPage.class)).request().get();
+
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
+    assertThat(response.getCookies()).doesNotContainKeys(cookieName, browserStateCookieName);
+    assertLoginForm(response)
+        .matches(reauthUser(otherUserAccount.getEmail_address()));
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test public void loginPageWhileLoggedInWithServiceCertificate(ClientCertificateHelper clientCertificateHelper) {
+    when(clientCertificateHelper.getClientCertificate(any(MultivaluedMap.class))).thenReturn(serviceClientCertificate);
+
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(someSidToken));
 
     Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(LoginPage.class)).request().get();
