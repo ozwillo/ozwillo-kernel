@@ -18,6 +18,7 @@
 package oasis.web.authn;
 
 import java.net.URI;
+import java.util.Objects;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -50,6 +51,8 @@ import oasis.auditlog.AuditLogService;
 import oasis.auth.AuthModule;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
+import oasis.model.authn.ClientCertificate;
+import oasis.model.authn.ClientType;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
 import oasis.services.authn.TokenHandler;
@@ -84,10 +87,12 @@ public class LoginPage {
   @Inject Urls urls;
   @Inject LocaleHelper localeHelper;
   @Inject SessionManagementHelper sessionManagementHelper;
+  @Inject ClientCertificateHelper clientCertificateHelper;
 
   @Context SecurityContext securityContext;
   @Context UriInfo uriInfo;
   @Context Request request;
+  @Context HttpHeaders headers;
 
   @GET
   @Produces(MediaType.TEXT_HTML)
@@ -135,7 +140,7 @@ public class LoginPage {
 
   private Response authenticate(String userName, UserAccount account, URI continueUrl, byte[] fingerprint) {
     String pass = tokenHandler.generateRandom();
-    SidToken sidToken = tokenHandler.createSidToken(account.getId(), fingerprint, pass);
+    SidToken sidToken = tokenHandler.createSidToken(account.getId(), fingerprint, hasClientCertificate(account.getId()), pass);
     if (sidToken == null) {
       // XXX: This shouldn't be audited because it shouldn't be the user fault
       logger.error("No SidToken was created for Account {}.", account.getId());
@@ -150,6 +155,13 @@ public class LoginPage {
         .cookie(CookieFactory.createSessionCookie(UserFilter.COOKIE_NAME, TokenSerializer.serialize(sidToken, pass), securityContext.isSecure(), true)) // TODO: remember me
         .cookie(SessionManagementHelper.createBrowserStateCookie(securityContext.isSecure(), sessionManagementHelper.generateBrowserState()))
         .build();
+  }
+
+  private boolean hasClientCertificate(String accountId) {
+    final ClientCertificate clientCertificate = clientCertificateHelper.getClientCertificate(headers.getRequestHeaders());
+    return clientCertificate != null
+        && clientCertificate.getClient_type() == ClientType.USER
+        && Objects.equals(clientCertificate.getClient_id(), accountId);
   }
 
   private Response reAuthenticate(String userName, UserAccount account, URI continueUrl) {

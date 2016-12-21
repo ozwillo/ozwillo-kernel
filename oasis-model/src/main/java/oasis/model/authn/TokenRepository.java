@@ -26,7 +26,7 @@ public interface TokenRepository {
 
   boolean revokeToken(String tokenId);
 
-  boolean renewToken(String tokenId);
+  SidToken renewSidToken(String tokenId, boolean usingClientCertificate);
 
   boolean reAuthSidToken(String tokenId);
 

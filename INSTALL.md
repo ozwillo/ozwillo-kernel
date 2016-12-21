@@ -109,6 +109,9 @@ default values, if any, are defined in [`oasis-webapp/src/main/resources/referen
    If the files don't exist, they'll be created on first launch (RSA 2048 bits).
    If only the private key exists, the public key will be automatically extracted.
    It's an error if only the public key exists.
+ * `oasis.auth.enable-client-certificates`: a boolean (defaults to `false`) to turn authentication through client certificates on.
+   The reverse-proxy is expected to send the client certificate's Subject DN and Issuer DN as HTTP request headers `X-SSL-Client-Subject-DN` and `X-SSL-Client-Issuer-DN` respectively
+   (it must also ensure those won't came from the outside.)
  * `oasis.auth.authorization-code-duration`: duration of the OAuth 2.0 authorization codes.
  * `oasis.auth.access-token-duration`: duration of the OAuth 2.0 access tokens.
  * `oasis.auth.refresh-token-duration`: duration of the OAuth 2.0 refresh tokens (only delivered when using the `offline_access` scope)

@@ -218,7 +218,7 @@ public class TokenHandler {
     return refreshToken;
   }
 
-  public SidToken createSidToken(String accountId, byte[] userAgentFingerprint, String pass) {
+  public SidToken createSidToken(String accountId, byte[] userAgentFingerprint, boolean usingClientCertificate, String pass) {
     checkArgument(!Strings.isNullOrEmpty(accountId));
 
     SidToken sidToken = new SidToken();
@@ -227,6 +227,7 @@ public class TokenHandler {
     // TODO: remember me
     sidToken.setAuthenticationTime(sidToken.getCreationTime());
     sidToken.setUserAgentFingerprint(userAgentFingerprint);
+    sidToken.setUsingClientCertificate(usingClientCertificate);
 
     secureToken(sidToken, pass);
 

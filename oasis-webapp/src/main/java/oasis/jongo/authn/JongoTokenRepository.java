@@ -33,10 +33,10 @@ import com.mongodb.DuplicateKeyException;
 import com.mongodb.WriteResult;
 
 import oasis.jongo.JongoBootstrapper;
+import oasis.model.authn.SidToken;
 import oasis.model.authn.Token;
 import oasis.model.authn.TokenRepository;
 import oasis.auth.AuthModule;
-import oasis.model.authn.AbstractAccountToken;
 
 public class JongoTokenRepository implements TokenRepository, JongoBootstrapper {
   private final Jongo jongo;
@@ -82,15 +82,15 @@ public class JongoTokenRepository implements TokenRepository, JongoBootstrapper 
   }
 
   @Override
-  public boolean renewToken(String tokenId) {
+  public SidToken renewSidToken(String tokenId, boolean usingClientCertificate) {
     Instant expirationTime = Instant.now().plus(settings.sidTokenDuration);
 
-    WriteResult writeResult = this.getTokensCollection()
-        .update("{ id: # }", tokenId)
+    return this.getTokensCollection().findAndModify("{ id: # }", tokenId)
+        .returnNew()
         // TODO: Pass directly the instance of Instant
-        .with("{ $set: { expirationTime: # } }", expirationTime.toDate());
-
-    return writeResult.getN() > 0;
+        .with(usingClientCertificate ? "{ $set: { expirationTime: #, usingClientCertificate:# } }"      : "{ $set: { expirationTime: # }, $unset: { usingClientCertificate: 1 } }",
+              usingClientCertificate ? new Object[] { expirationTime.toDate(), usingClientCertificate } : new Object[] { expirationTime.toDate() })
+        .as(SidToken.class);
   }
 
   @Override

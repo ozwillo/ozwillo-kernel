@@ -20,6 +20,7 @@ package oasis.web.authn;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.annotation.Priority;
 import javax.inject.Inject;
@@ -34,6 +35,8 @@ import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.ext.Provider;
 
+import oasis.model.authn.ClientCertificate;
+import oasis.model.authn.ClientType;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
 import oasis.services.authn.TokenHandler;
@@ -51,6 +54,7 @@ public class UserFilter implements ContainerRequestFilter, ContainerResponseFilt
 
   @Inject TokenRepository tokenRepository;
   @Inject TokenHandler tokenHandler;
+  @Inject ClientCertificateHelper clientCertificateHelper;
   @Inject UserAgentFingerprinter fingerprinter;
   @Inject javax.inject.Provider<SessionManagementHelper> sessionManagementHelper;
 
@@ -76,9 +80,15 @@ public class UserFilter implements ContainerRequestFilter, ContainerResponseFilt
       return;
     }
 
+    final boolean usingClientCertificate = hasClientCertificate(requestContext, sidToken.getAccountId());
+
     // Renew the token each time the user tries to access a resource
-    // XXX: Renew only if the token hasn't been recently created/renewed?
-    tokenRepository.renewToken(sidToken.getId());
+    sidToken = tokenRepository.renewSidToken(sidToken.getId(), usingClientCertificate);
+    if (sidToken == null) {
+      // SidToken must have expired while we looked at it.
+      requestContext.removeProperty(SID_PROP);
+      return;
+    }
 
     final UserSessionPrincipal userSessionPrincipal = new UserSessionPrincipal(sidToken);
 
@@ -101,7 +111,7 @@ public class UserFilter implements ContainerRequestFilter, ContainerResponseFilt
 
       @Override
       public String getAuthenticationScheme() {
-        return SecurityContext.FORM_AUTH;
+        return usingClientCertificate ? SecurityContext.CLIENT_CERT_AUTH : SecurityContext.FORM_AUTH;
       }
     });
   }
@@ -133,5 +143,12 @@ public class UserFilter implements ContainerRequestFilter, ContainerResponseFilt
 
     responseContext.getHeaders().add(HttpHeaders.VARY, HttpHeaders.COOKIE);
     responseContext.getHeaders().add(HttpHeaders.CACHE_CONTROL, "private");
+  }
+
+  private boolean hasClientCertificate(ContainerRequestContext requestContext, String accountId) {
+    final ClientCertificate clientCertificate = clientCertificateHelper.getClientCertificate(requestContext.getHeaders());
+    return clientCertificate != null
+        && clientCertificate.getClient_type() == ClientType.USER
+        && Objects.equals(clientCertificate.getClient_id(), accountId);
   }
 }

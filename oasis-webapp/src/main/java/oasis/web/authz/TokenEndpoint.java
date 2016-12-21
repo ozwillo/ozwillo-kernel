@@ -273,10 +273,14 @@ public class TokenEndpoint {
     String access_token = TokenSerializer.serialize(accessToken, pass);
 
     // Unconditionally send auth_time, as per https://tools.ietf.org/html/draft-hunt-oauth-v2-user-a4c
+    // Unconditionally send acr
     Long authTime = null;
+    String acr = null;
     Token token = tokenRepository.getToken(Iterables.getLast(authorizationCode.getAncestorIds()));
     if (token instanceof SidToken) {
       authTime = TimeUnit.MILLISECONDS.toSeconds(((SidToken) token).getAuthenticationTime().getMillis());
+      // XXX: switch acr values (eIDAS, STORK-QAA, FICAM, etc.) depending on client_id and/or acr_values of the request
+      acr = ((SidToken) token).isUsingClientCertificate() ? "http://eidas.europa.eu/LoA/substantial" : "http://eidas.europa.eu/LoA/low";
     } // TODO: else, log error/warning
 
     // Compute whether the user is a "user of the app" and/or "admin of the app"
@@ -299,6 +303,9 @@ public class TokenEndpoint {
     claims.setClaim("nonce", authorizationCode.getNonce());
     if (authTime != null) {
       claims.setClaim("auth_time", authTime);
+    }
+    if (acr != null) {
+      claims.setStringClaim("acr", acr);
     }
     if (isAppUser) {
       claims.setClaim("app_user", Boolean.TRUE);

@@ -32,6 +32,7 @@ import javax.security.auth.login.LoginException;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
@@ -54,6 +55,8 @@ import oasis.auditlog.noop.NoopAuditLogModule;
 import oasis.http.testing.InProcessResteasy;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
+import oasis.model.authn.ClientCertificate;
+import oasis.model.authn.ClientType;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
 import oasis.services.authn.TokenHandler;
@@ -81,6 +84,7 @@ public class LoginPageTest {
       bindMock(UserPasswordAuthenticator.class).in(TestSingleton.class);
       bindMock(TokenHandler.class).in(TestSingleton.class);
       bindMock(SessionManagementHelper.class).in(TestSingleton.class);
+      bindMock(ClientCertificateHelper.class).in(TestSingleton.class);
     }
   }
 
@@ -105,6 +109,19 @@ public class LoginPageTest {
     setAccountId(otherUserAccount.getId());
     expiresIn(Duration.standardHours(1));
   }};
+  private static final ClientCertificate someClientCertificate = new ClientCertificate() {{
+    setSubject_dn("valid subject");
+    setIssuer_dn("valid issuer");
+    setClient_type(ClientType.USER);
+    setClient_id(someUserAccount.getId());
+  }};
+
+  private static final ClientCertificate serviceClientCertificate = new ClientCertificate() {{
+    setSubject_dn("service subject");
+    setIssuer_dn("valid issuer");
+    setClient_type(ClientType.PROVIDER);
+    setClient_id("service");
+  }};
 
   @Inject @Rule public InProcessResteasy resteasy;
 
@@ -117,8 +134,8 @@ public class LoginPageTest {
     when(userPasswordAuthenticator.authenticate(eq("unknown@example.com"), anyString())).thenThrow(AccountNotFoundException.class);
 
     when(tokenHandler.generateRandom()).thenReturn("pass");
-    when(tokenHandler.createSidToken(eq(someUserAccount.getId()), any(byte[].class), eq("pass"))).thenReturn(someSidToken);
-    when(tokenHandler.createSidToken(eq(otherUserAccount.getId()), any(byte[].class), eq("pass"))).thenReturn(otherSidToken);
+    when(tokenHandler.createSidToken(eq(someUserAccount.getId()), any(byte[].class), anyBoolean(), eq("pass"))).thenReturn(someSidToken);
+    when(tokenHandler.createSidToken(eq(otherUserAccount.getId()), any(byte[].class), anyBoolean(), eq("pass"))).thenReturn(otherSidToken);
 
     when(accountRepository.getUserAccountById(someUserAccount.getId())).thenReturn(someUserAccount);
     when(accountRepository.getUserAccountById(otherUserAccount.getId())).thenReturn(otherUserAccount);
@@ -171,7 +188,7 @@ public class LoginPageTest {
         .matches(reauthUser(someUserAccount.getEmail_address()));
   }
 
-  @Test public void signIn() {
+  @Test public void signIn(TokenHandler tokenHandler) {
     final String continueUrl = "/foo/bar?baz&qux=qu%26ux";
 
     Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(LoginPage.class))
@@ -186,6 +203,74 @@ public class LoginPageTest {
         .containsEntry(cookieName, CookieFactory.createSessionCookie(
             UserFilter.COOKIE_NAME, TokenSerializer.serialize(someSidToken, "pass"), true, true))
         .containsEntry(browserStateCookieName, SessionManagementHelper.createBrowserStateCookie(true, "browser-state"));
+
+    verify(tokenHandler).createSidToken(eq(someUserAccount.getId()), any(byte[].class), eq(false), anyString());
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test public void signInWithCertificate(ClientCertificateHelper clientCertificateHelper, TokenHandler tokenHandler) {
+    when(clientCertificateHelper.getClientCertificate(any(MultivaluedMap.class))).thenReturn(someClientCertificate);
+
+    final String continueUrl = "/foo/bar?baz&qux=qu%26ux";
+
+    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(LoginPage.class))
+        .request().post(Entity.form(new Form()
+            .param("continue", continueUrl)
+            .param("u", someUserAccount.getEmail_address())
+            .param("pwd", "password")));
+
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
+    assertThat(response.getLocation()).isEqualTo(resteasy.getBaseUri().resolve(continueUrl));
+    assertThat(response.getCookies())
+        .containsEntry(cookieName, CookieFactory.createSessionCookie(
+            UserFilter.COOKIE_NAME, TokenSerializer.serialize(someSidToken, "pass"), true, true))
+        .containsEntry(browserStateCookieName, SessionManagementHelper.createBrowserStateCookie(true, "browser-state"));
+
+    verify(tokenHandler).createSidToken(eq(someUserAccount.getId()), any(byte[].class), eq(true), anyString());
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test public void signInWithMismatchingCertificate(ClientCertificateHelper clientCertificateHelper, TokenHandler tokenHandler) {
+    when(clientCertificateHelper.getClientCertificate(any(MultivaluedMap.class))).thenReturn(someClientCertificate);
+
+    final String continueUrl = "/foo/bar?baz&qux=qu%26ux";
+
+    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(LoginPage.class))
+        .request().post(Entity.form(new Form()
+            .param("continue", continueUrl)
+            .param("u", otherUserAccount.getEmail_address())
+            .param("pwd", "password")));
+
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
+    assertThat(response.getLocation()).isEqualTo(resteasy.getBaseUri().resolve(continueUrl));
+    assertThat(response.getCookies())
+        .containsEntry(cookieName, CookieFactory.createSessionCookie(
+            UserFilter.COOKIE_NAME, TokenSerializer.serialize(otherSidToken, "pass"), true, true))
+        .containsEntry(browserStateCookieName, SessionManagementHelper.createBrowserStateCookie(true, "browser-state"));
+
+    verify(tokenHandler).createSidToken(eq(otherUserAccount.getId()), any(byte[].class), eq(false), anyString());
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test public void signInWithServiceCertificate(ClientCertificateHelper clientCertificateHelper, TokenHandler tokenHandler) {
+    when(clientCertificateHelper.getClientCertificate(any(MultivaluedMap.class))).thenReturn(serviceClientCertificate);
+
+    final String continueUrl = "/foo/bar?baz&qux=qu%26ux";
+
+    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(LoginPage.class))
+        .request().post(Entity.form(new Form()
+            .param("continue", continueUrl)
+            .param("u", someUserAccount.getEmail_address())
+            .param("pwd", "password")));
+
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
+    assertThat(response.getLocation()).isEqualTo(resteasy.getBaseUri().resolve(continueUrl));
+    assertThat(response.getCookies())
+        .containsEntry(cookieName, CookieFactory.createSessionCookie(
+            UserFilter.COOKIE_NAME, TokenSerializer.serialize(someSidToken, "pass"), true, true))
+        .containsEntry(browserStateCookieName, SessionManagementHelper.createBrowserStateCookie(true, "browser-state"));
+
+    verify(tokenHandler).createSidToken(eq(someUserAccount.getId()), any(byte[].class), eq(false), anyString());
   }
 
   @Test public void trySignInWithBadPassword() {

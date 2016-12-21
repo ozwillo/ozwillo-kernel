@@ -29,6 +29,7 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
@@ -46,6 +47,8 @@ import org.junit.runner.RunWith;
 import com.google.inject.Inject;
 
 import oasis.http.testing.InProcessResteasy;
+import oasis.model.authn.ClientCertificate;
+import oasis.model.authn.ClientType;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
 import oasis.services.authn.TokenHandler;
@@ -63,6 +66,7 @@ public class UserFilterTest {
       bindMock(TokenHandler.class).in(TestSingleton.class);
       bindMock(UserAgentFingerprinter.class).in(TestSingleton.class);
       bindMock(SessionManagementHelper.class).in(TestSingleton.class);
+      bindMock(ClientCertificateHelper.class).in(TestSingleton.class);
     }
   }
 
@@ -74,10 +78,38 @@ public class UserFilterTest {
   static final SidToken validSidToken = new SidToken();
   static {
     validSidToken.setId("validSession");
+    validSidToken.setAccountId("userAccount");
     validSidToken.setCreationTime(now.minus(Duration.standardHours(1)));
     validSidToken.setExpirationTime(now.plus(Duration.standardHours(1)));
     validSidToken.setUserAgentFingerprint("fingerprint".getBytes(StandardCharsets.UTF_8));
   }
+  static final SidToken validSidTokenUsingCertificate = new SidToken();
+  static {
+    validSidTokenUsingCertificate.setId(validSidToken.getId());
+    validSidTokenUsingCertificate.setAccountId(validSidToken.getAccountId());
+    validSidTokenUsingCertificate.setCreationTime(validSidToken.getCreationTime());
+    validSidTokenUsingCertificate.setExpirationTime(validSidToken.getExpirationTime());
+    validSidTokenUsingCertificate.setUserAgentFingerprint(validSidToken.getUserAgentFingerprint());
+    validSidTokenUsingCertificate.setUsingClientCertificate(true);
+  }
+  static final ClientCertificate userCertificate = new ClientCertificate() {{
+    setSubject_dn("valid subject");
+    setIssuer_dn("valid issuer");
+    setClient_type(ClientType.USER);
+    setClient_id(validSidToken.getAccountId());
+  }};
+  static final ClientCertificate otherUserCertificate = new ClientCertificate() {{
+    setSubject_dn("other valid subject");
+    setIssuer_dn("valid issuer");
+    setClient_type(ClientType.USER);
+    setClient_id("other user account");
+  }};
+  static final ClientCertificate serviceCertificate = new ClientCertificate() {{
+    setSubject_dn("service subject");
+    setIssuer_dn("valid issuer");
+    setClient_type(ClientType.PROVIDER);
+    setClient_id("client_id");
+  }};
 
   @Inject @Rule public InProcessResteasy resteasy;
 
@@ -86,7 +118,11 @@ public class UserFilterTest {
 
   @Before public void setUpMocks(TokenHandler tokenHandler, SessionManagementHelper sessionManagementHelper) {
     when(tokenHandler.getCheckedToken("valid", SidToken.class)).thenReturn(validSidToken);
+    when(tokenHandler.getCheckedToken("validUsingCertificate", SidToken.class)).thenReturn(validSidTokenUsingCertificate);
     when(tokenHandler.getCheckedToken("invalid", SidToken.class)).thenReturn(null);
+
+    when(tokenRepository.renewSidToken(validSidToken.getId(), false)).thenReturn(validSidToken);
+    when(tokenRepository.renewSidToken(validSidToken.getId(), true)).thenReturn(validSidTokenUsingCertificate);
 
     when(sessionManagementHelper.generateBrowserState()).thenReturn("browser-state");
   }
@@ -102,6 +138,25 @@ public class UserFilterTest {
 
   @Test public void testNoCookie(TokenHandler tokenHandler) {
     Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(DummyResource.class).build()).request().get();
+
+    commonAssertions(response);
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.NO_CONTENT);
+    assertThat(response.getCookies())
+        .doesNotContainKey(cookieName)
+        .containsKeys(browserStateCookieName);
+    assertThat(response.getCookies().get(browserStateCookieName)).isEqualTo(
+        SessionManagementHelper.createBrowserStateCookie(true, "browser-state"));
+    assertThat(response.readEntity(SidToken.class)).isNull();
+
+    verifyNoMoreInteractions(tokenHandler, tokenRepository);
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test public void testNoCookieWithCertificate(TokenHandler tokenHandler, ClientCertificateHelper clientCertificateHelper) {
+    when(clientCertificateHelper.getClientCertificate(any(MultivaluedMap.class))).thenReturn(userCertificate);
+
+    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(DummyResource.class).build()).request()
+        .get();
 
     commonAssertions(response);
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.NO_CONTENT);
@@ -141,7 +196,78 @@ public class UserFilterTest {
     assertThat(response.getCookies()).doesNotContainKeys(cookieName, browserStateCookieName);
     assertThat(response.readEntity(SidToken.class)).isEqualToComparingFieldByField(validSidToken);
 
-    verify(tokenRepository).renewToken(validSidToken.getId());
+    verify(tokenRepository).renewSidToken(validSidToken.getId(), false);
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test public void testAuthenticatedWithCertificate(ClientCertificateHelper clientCertificateHelper) {
+    when(fingerprinter.fingerprint(any(ContainerRequestContext.class))).thenReturn(validSidToken.getUserAgentFingerprint());
+    when(clientCertificateHelper.getClientCertificate(any(MultivaluedMap.class))).thenReturn(userCertificate);
+
+    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(DummyResource.class).build()).request()
+        .cookie(cookieName, "valid")
+        .cookie(browserStateCookieName, "browser-state")
+        .get();
+
+    commonAssertions(response);
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
+    assertThat(response.getCookies()).doesNotContainKeys(cookieName, browserStateCookieName);
+    assertThat(response.readEntity(SidToken.class)).isEqualToComparingFieldByField(validSidTokenUsingCertificate);
+
+    verify(tokenRepository).renewSidToken(validSidToken.getId(), true);
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test public void testAuthenticatedWithoutCertificate() {
+    when(fingerprinter.fingerprint(any(ContainerRequestContext.class))).thenReturn(validSidToken.getUserAgentFingerprint());
+
+    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(DummyResource.class).build()).request()
+        .cookie(cookieName, "validUsingCertificate")
+        .cookie(browserStateCookieName, "browser-state")
+        .get();
+
+    commonAssertions(response);
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
+    assertThat(response.getCookies()).doesNotContainKeys(cookieName, browserStateCookieName);
+    assertThat(response.readEntity(SidToken.class)).isEqualToComparingFieldByField(validSidToken);
+
+    verify(tokenRepository).renewSidToken(validSidToken.getId(), false);
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test public void testAuthenticatedWithMismatchingCertificate(ClientCertificateHelper clientCertificateHelper) {
+    when(fingerprinter.fingerprint(any(ContainerRequestContext.class))).thenReturn(validSidToken.getUserAgentFingerprint());
+    when(clientCertificateHelper.getClientCertificate(any(MultivaluedMap.class))).thenReturn(otherUserCertificate);
+
+    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(DummyResource.class).build()).request()
+        .cookie(cookieName, "valid")
+        .cookie(browserStateCookieName, "browser-state")
+        .get();
+
+    commonAssertions(response);
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
+    assertThat(response.getCookies()).doesNotContainKeys(cookieName, browserStateCookieName);
+    assertThat(response.readEntity(SidToken.class)).isEqualToComparingFieldByField(validSidToken);
+
+    verify(tokenRepository).renewSidToken(validSidToken.getId(), false);
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test public void testAuthenticatedWithServiceCertificate(ClientCertificateHelper clientCertificateHelper) {
+    when(fingerprinter.fingerprint(any(ContainerRequestContext.class))).thenReturn(validSidToken.getUserAgentFingerprint());
+    when(clientCertificateHelper.getClientCertificate(any(MultivaluedMap.class))).thenReturn(serviceCertificate);
+
+    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(DummyResource.class).build()).request()
+        .cookie(cookieName, "valid")
+        .cookie(browserStateCookieName, "browser-state")
+        .get();
+
+    commonAssertions(response);
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
+    assertThat(response.getCookies()).doesNotContainKeys(cookieName, browserStateCookieName);
+    assertThat(response.readEntity(SidToken.class)).isEqualToComparingFieldByField(validSidToken);
+
+    verify(tokenRepository).renewSidToken(validSidToken.getId(), false);
   }
 
   @Test public void testAuthenticatedNoBrowserState() {
@@ -160,7 +286,7 @@ public class UserFilterTest {
         SessionManagementHelper.createBrowserStateCookie(true, "browser-state"));
     assertThat(response.readEntity(SidToken.class)).isEqualToComparingFieldByField(validSidToken);
 
-    verify(tokenRepository).renewToken(validSidToken.getId());
+    verify(tokenRepository).renewSidToken(validSidToken.getId(), false);
   }
 
   @Test public void testWithInvalidCookie() {
@@ -174,7 +300,7 @@ public class UserFilterTest {
     assertThat(response.getCookies().get(cookieName).getExpiry()).isInThePast();
     assertThat(response.readEntity(SidToken.class)).isNull();
 
-    verify(tokenRepository, never()).renewToken(validSidToken.getId());
+    verify(tokenRepository, never()).renewSidToken(eq(validSidToken.getId()), anyBoolean());
   }
 
   @Test public void testWithInvalidFingerprint() {
@@ -190,7 +316,7 @@ public class UserFilterTest {
     assertThat(response.getCookies().get(cookieName).getExpiry()).isInThePast();
     assertThat(response.readEntity(SidToken.class)).isNull();
 
-    verify(tokenRepository, never()).renewToken(validSidToken.getId());
+    verify(tokenRepository, never()).renewSidToken(eq(validSidToken.getId()), anyBoolean());
   }
 
   private void commonAssertions(Response response) {

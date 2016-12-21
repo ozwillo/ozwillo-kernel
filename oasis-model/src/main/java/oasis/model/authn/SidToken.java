@@ -28,6 +28,9 @@ public class SidToken extends AbstractAccountToken {
   @JsonProperty
   private byte[] userAgentFingerprint;
 
+  @JsonProperty
+  private boolean usingClientCertificate;
+
   /**
    * Gets the last time the user authenticated by providing their credentials.
    *
@@ -49,5 +52,13 @@ public class SidToken extends AbstractAccountToken {
 
   public void setUserAgentFingerprint(byte[] userAgentFingerprint) {
     this.userAgentFingerprint = userAgentFingerprint;
+  }
+
+  public boolean isUsingClientCertificate() {
+    return usingClientCertificate;
+  }
+
+  public void setUsingClientCertificate(boolean usingClientCertificate) {
+    this.usingClientCertificate = usingClientCertificate;
   }
 }

@@ -58,6 +58,7 @@ public class AuthModule extends AbstractModule {
           .setChangePasswordTokenDuration(Duration.millis(config.getDuration("change-password-token-duration", TimeUnit.MILLISECONDS)))
           .setJwtBearerDuration(Duration.millis(config.getDuration("jwt-bearer-duration", TimeUnit.MILLISECONDS)))
           .setPasswordMinimumLength(config.getInt("password-minimum-length"))
+          .setEnableClientCertificates(config.getBoolean("enable-client-certificates"))
           .build();
     }
 
@@ -73,6 +74,7 @@ public class AuthModule extends AbstractModule {
       private Duration changePasswordTokenDuration;
       private Duration jwtBearerDuration;
       private int passwordMinimumLength;
+      private boolean enableClientCertificates;
 
       public Settings build() {
         return new Settings(this);
@@ -127,6 +129,11 @@ public class AuthModule extends AbstractModule {
         this.passwordMinimumLength = passwordMinimumLength;
         return this;
       }
+
+      public Builder setEnableClientCertificates(boolean enableClientCertificates) {
+        this.enableClientCertificates = enableClientCertificates;
+        return this;
+      }
     }
 
     public final KeyPair keyPair;
@@ -139,6 +146,7 @@ public class AuthModule extends AbstractModule {
     public final Duration changePasswordTokenDuration;
     public final Duration jwtBearerDuration;
     public final int passwordMinimumLength;
+    public final boolean enableClientCertificates;
 
     private Settings(Builder builder) {
       this.keyPair = builder.keyPair;
@@ -151,6 +159,7 @@ public class AuthModule extends AbstractModule {
       this.changePasswordTokenDuration = builder.changePasswordTokenDuration;
       this.jwtBearerDuration = builder.jwtBearerDuration;
       this.passwordMinimumLength = builder.passwordMinimumLength;
+      this.enableClientCertificates = builder.enableClientCertificates;
     }
   }
 
