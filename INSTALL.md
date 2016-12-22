@@ -13,7 +13,8 @@ is a Java Virtual Machine, version 1.7 at a minimum.
 The Ozwillo Kernel however depends on companion services:
  * A reverse proxy as a TLS termination endpoint.
    It must forward the `Host` header as-is (no `X-Forwarded-Host`)
-   and send an `X-Forwarded-Proto: https` header.
+   and send an `X-Forwarded-Proto: https` header
+   (it must also ensure `X-Forwarded-Proto` cannot be faked from the outside.)
    No need to say it must redirect HTTP traffic to HTTPS,
    with an appropriate `Strict-Transport-Security` header.
  * an SMTP server
