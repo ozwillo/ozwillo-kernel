@@ -36,6 +36,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
+import oasis.web.security.StrictReferer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,7 +76,7 @@ public class ForgotPasswordPage {
     return form(Response.ok(), localeHelper.selectLocale(locale, request), null);
   }
 
-  @POST
+  @POST @StrictReferer
   public Response post(
       @FormParam(LoginPage.LOCALE_PARAM) @Nullable ULocale locale,
       @FormParam("u") String email

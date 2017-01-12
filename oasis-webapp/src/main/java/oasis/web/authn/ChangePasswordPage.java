@@ -47,6 +47,7 @@ import oasis.soy.templates.ChangePasswordSoyInfo;
 import oasis.soy.templates.ChangePasswordSoyInfo.ChangePasswordSoyTemplateInfo;
 import oasis.soy.templates.ChangePasswordSoyInfo.PasswordChangedSoyTemplateInfo;
 import oasis.urls.Urls;
+import oasis.web.security.StrictReferer;
 
 @Path("/a/password")
 @Authenticated @User
@@ -68,7 +69,7 @@ public class ChangePasswordPage {
     return form(Response.ok(), account, null);
   }
 
-  @POST
+  @POST @StrictReferer
   public Response post(
       @FormParam("oldpwd") String oldpwd,
       @FormParam("newpwd") @DefaultValue("") String newpwd

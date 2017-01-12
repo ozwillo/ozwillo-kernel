@@ -50,6 +50,7 @@ import oasis.soy.templates.ChangePasswordSoyInfo;
 import oasis.soy.templates.RecoverSoyInfo;
 import oasis.urls.Urls;
 import oasis.web.i18n.LocaleHelper;
+import oasis.web.security.StrictReferer;
 
 @Path("/a/resetpwd/{token}")
 @Produces(MediaType.TEXT_HTML)
@@ -86,7 +87,7 @@ public class ResetPasswordPage {
     return form(Response.ok(), account, locale, null);
   }
 
-  @POST
+  @POST @StrictReferer
   public Response post(
       @FormParam(LoginPage.LOCALE_PARAM) @Nullable ULocale locale,
       @FormParam("newpwd") String newpwd
