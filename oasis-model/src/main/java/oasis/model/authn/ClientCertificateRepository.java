@@ -18,11 +18,12 @@
 package oasis.model.authn;
 
 public interface ClientCertificateRepository {
-  ClientCertificate saveClientCertificate(String subjectDN, String issuerDN, ClientType clientType, String clientId);
+  ClientCertificate saveClientCertificate(ClientCertificate clientCertificate);
 
   ClientCertificate getClientCertificate(String subjectDN, String issuerDN);
 
-  // ClientCertificate deleteClientCertificate(String subjectDN, String issuerDN);
+  /** Deletes by ID, but only if the clientType and clientId match. */
+  boolean deleteClientCertificate(ClientType clientType, String clientId, String certId);
 
-  // Iterable<ClientCertificate> getClientCertificatesForClient(ClientType clientType, String clientId);
+  Iterable<ClientCertificate> getClientCertificatesForClient(ClientType clientType, String clientId);
 }

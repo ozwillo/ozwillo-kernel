@@ -29,7 +29,9 @@ import com.google.common.base.Strings;
 import oasis.auth.AuthModule;
 import oasis.model.authn.ClientCertificate;
 import oasis.model.authn.ClientCertificateRepository;
+import org.immutables.value.Value;
 
+@Value.Enclosing
 public class ClientCertificateHelper {
   @VisibleForTesting static final String CLIENT_CERTIFICATE_SUBJECT_DN_HEADER_NAME = "X-SSL-Client-Subject-DN";
   @VisibleForTesting static final String CLIENT_CERTIFICATE_ISSUER_DN_HEADER_NAME = "X-SSL-Client-Issuer-DN";
@@ -44,7 +46,7 @@ public class ClientCertificateHelper {
   }
 
   @Nullable
-  public ClientCertificate getClientCertificate(MultivaluedMap<String, String> headers) {
+  public ClientCertificateData getClientCertificateData(MultivaluedMap<String, String> headers) {
     if (!settings.enableClientCertificates) {
       return null;
     }
@@ -53,7 +55,16 @@ public class ClientCertificateHelper {
     if (Strings.isNullOrEmpty(subjectDN) || Strings.isNullOrEmpty(issuerDN)) {
       return null;
     }
-    return clientCertificateRepository.getClientCertificate(subjectDN, issuerDN);
+    return ImmutableClientCertificateHelper.ClientCertificateData.of(subjectDN, issuerDN);
+  }
+
+  @Nullable
+  public ClientCertificate getClientCertificate(MultivaluedMap<String, String> headers) {
+    ClientCertificateData clientCertificateData = getClientCertificateData(headers);
+    if (clientCertificateData == null) {
+      return null;
+    }
+    return clientCertificateRepository.getClientCertificate(clientCertificateData.getSubjectDN(), clientCertificateData.getIssuerDN());
   }
 
   @Nullable
@@ -63,5 +74,11 @@ public class ClientCertificateHelper {
       return null;
     }
     return header.get(0).trim();
+  }
+
+  @Value.Immutable
+  public interface ClientCertificateData {
+    @Value.Parameter(order = 1) String getSubjectDN();
+    @Value.Parameter(order = 2) String getIssuerDN();
   }
 }

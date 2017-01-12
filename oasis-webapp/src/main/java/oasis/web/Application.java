@@ -52,6 +52,7 @@ import oasis.web.authn.ResetPasswordPage;
 import oasis.web.authn.SignUpPage;
 import oasis.web.authn.UserAuthenticationFilter;
 import oasis.web.authn.UserCanonicalBaseUriFilter;
+import oasis.web.authn.UserCertificatesPage;
 import oasis.web.authn.UserFilter;
 import oasis.web.authz.AuthorizationEndpoint;
 import oasis.web.authz.IntrospectionEndpoint;
@@ -108,6 +109,7 @@ public class Application extends javax.ws.rs.core.Application {
         ForgotPasswordPage.class,
         ResetPasswordPage.class,
         CheckSessionIframePage.class,
+        UserCertificatesPage.class,
         // Authorization
         OpenIdProviderConfigurationEndpoint.class,
         AuthorizationEndpoint.class,

@@ -17,6 +17,8 @@
  */
 package oasis.jongo.authn;
 
+import com.mongodb.DuplicateKeyException;
+
 import org.jongo.Jongo;
 import org.jongo.MongoCollection;
 
@@ -40,17 +42,30 @@ public class JongoClientCertificateRepository implements ClientCertificateReposi
   }
 
   @Override
-  public ClientCertificate saveClientCertificate(String subjectDN, String issuerDN, ClientType clientType, String clientId) {
-    return getClientCertificateCollection().findAndModify("{ subject_dn:#, issuer_dn:# }", subjectDN, issuerDN)
-        .upsert()
-        .returnNew()
-        .with("{ $set: { client_type:#, client_id:# } }", clientType, clientId)
-        .as(ClientCertificate.class);
+  public ClientCertificate saveClientCertificate(ClientCertificate clientCertificate) {
+    try {
+      getClientCertificateCollection().insert(clientCertificate);
+    } catch (DuplicateKeyException e) {
+      return null;
+    }
+    return clientCertificate;
   }
 
   @Override
   public ClientCertificate getClientCertificate(String subjectDN, String issuerDN) {
     return getClientCertificateCollection().findOne("{ subject_dn:#, issuer_dn:# }", subjectDN, issuerDN).as(ClientCertificate.class);
+  }
+
+  @Override
+  public boolean deleteClientCertificate(ClientType clientType, String clientId, String certId) {
+    return getClientCertificateCollection().remove("{ id:#, client_type:#, client_id:# }", certId, clientType, clientId)
+        .getN() > 0;
+  }
+
+  @Override
+  public Iterable<ClientCertificate> getClientCertificatesForClient(ClientType clientType, String clientId) {
+    return getClientCertificateCollection().find("{ client_type:#, client_id:# }", clientType, clientId)
+        .as(ClientCertificate.class);
   }
 
   @Override

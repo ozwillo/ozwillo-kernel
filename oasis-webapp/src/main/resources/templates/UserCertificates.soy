@@ -1,0 +1,162 @@
+/**
+ * Ozwillo Kernel
+ * Copyright (C) 2015  The Ozwillo Kernel Authors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+{namespace oasis autoescape="strict"}
+
+/**
+ * Manage client certificates for a user account.
+ */
+{template .userCertificates}
+{@param  error:            bool}   /** whether an error occurred. */
+{@param  email:            string} /** email of the logged-in user. */
+{@param  addFormAction:    string} /** URL to post the add form to. */
+{@param  deleteFormAction: string} /** URL to post the delete form to. */
+{@param  certs: list<[id: string, subject: string, issuer: string]>} /** certificates already linked to the account. */
+{@param? currentCert: [id: string|null, subject: string, issuer: string, linkedToOtherAccount: bool|null]} /** current certificate. If it has an 'id' then it's already registered.' */
+{@param? portalUrl:        string} /** URL of the Portal. */
+{call .header}
+  {param title kind="text"}{msg desc="User certificates page title"}Certificates{/msg}{/param}
+{/call}
+<style>{literal}
+h1 { font-weight: lighter; font-size: 1.8em; text-align: center; }
+h2 { font-weight: lighter; font-size: 1.8em; }
+button, a.portal {
+  margin: 5px 1em;
+  border: 1px solid #4c2d62;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+button {
+  background: #6f438e; color: white;
+  padding: .25em 1em;
+}
+a.portal {
+  background: white; color: #6f438e;
+  padding: .5em 2em;
+}
+
+.cert { display: flex; align-items: center; margin: 1em 0; }
+.certInfo { flex: auto; }
+.certInfo>p { margin: 0; }
+/* IE10 compat: */
+.cert { display: -ms-flexbox; -ms-flew-align: center; }
+.certInfo { -ms-flex: auto; }
+{/literal}</style>
+  <h1>{msg desc="Certificates for user (heading)"}Certificates for {$email}{/msg}</h1>
+  {if $error}
+    <p style="color: white; background: #d9534f; font-weight: bold; padding: 10px; text-align: center;">
+      {msg desc="Generic error message"}An error occurred. That's all we know.{/msg}
+    </p>
+  {/if}
+  <div class=currentCert>
+    <h2>{msg desc="Current certificate (heading)"}Current certificate{/msg}</h2>
+    {if $currentCert}
+      {call .currentCertificate data="$currentCert"}
+        {param addFormAction: $addFormAction /}
+      {/call}
+    {else}
+      <p style="text-align: center">{msg desc="Not current using a certificate"}
+        You're not currently using a certificate.
+      {/msg}</p>
+    {/if}
+  </div>
+  <div class=registeredCerts>
+    <h2>{msg desc="Registered certificate (heading)"}Registered certificates{/msg}</h2>
+    {if $certs and length($certs)}
+      <form method=POST action="{$deleteFormAction}">
+        <input type=hidden name=_utf8 value="&#9731;">
+
+        {foreach $cert in $certs}
+          {call .userCertificate data="$cert"}
+            {param button kind="html"}
+              {if $cert.id}
+                <button type=submit name=id value="{$cert.id}">{msg desc="Unregisters a certificate from account"}
+                  Remove
+                {/msg}</button>
+              {/if}
+            {/param}
+          {/call}
+        {/foreach}
+      </form>
+    {else}
+      <p>{msg desc="No registered certificates"}
+        You don't have any certificate registered with your account.
+      {/msg}</p>
+    {/if}
+    {if $portalUrl}
+      <div style="margin-top: 2.5em; text-align: center">
+        <a href="{$portalUrl}" class=portal>{msg desc="Back to My Ozwillo from user certificates page"}
+          Go back to My Ozwillo
+        {/msg}</a>
+      </div>
+    {/if}
+{call .footer /}
+{/template}
+
+/**
+ * Display the current certificate.
+ */
+{template .currentCertificate private="true"}
+{@param? id:                   string} /** certificate's id. Missing if already registered. */
+{@param  subject:              string} /** certificate's subject DN. */
+{@param  issuer:               string} /** certificate's issuer DN. */
+{@param? linkedToOtherAccount: bool}   /** whether the certificate is linked to another account. In this case, 'id' is irrelevant. */
+{@param  addFormAction:        string} /** URL to post the add form to. */
+
+  {call .userCertificate}
+    {param subject: $subject /}
+    {param issuer: $issuer /}
+    {param button kind="html"}
+      {if not $linkedToOtherAccount and not $id}
+        <form method=POST action="{$addFormAction}">
+          <input type=hidden name=_utf8 value="&#9731;">
+          <input type=hidden name=subject value="{$subject}">
+          <input type=hidden name=issuer value="{$issuer}">
+          <button type=submit>{msg desc="Registers the current certificate with the account"}
+            Add
+          {/msg}</button>
+        </form>
+      {/if}
+    {/param}
+  {/call}
+  {if $linkedToOtherAccount}
+    <p style="text-align: center; font-size: smaller;">
+      {msg desc="User certificate is linked to another account (error message)"}
+        This certificate is linked to another user account.
+      {/msg}
+    </p>
+  {/if}
+{/template}
+
+/**
+ * Display a single certificate.
+ */
+{template .userCertificate private="true"}
+{@param  subject: string} /** certificate's subject DN. */
+{@param  issuer:  string} /** certificate's issuer DN. */
+{@param? button:  html}   /** HTML for the (optional) button. */
+  <div class=cert>
+    <div class=certInfo>
+      <p><b>{msg desc="Client Certificate Subject DN"}Subject:{/msg}</b> {$subject}
+      <p><b>{msg desc="Client Certificate Issuer DN"}Issuer:{/msg}</b> {$issuer}
+    </div>
+    {if $button}
+      {$button}
+    {/if}
+  </div>
+{/template}

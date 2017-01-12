@@ -18,12 +18,22 @@
 package oasis.model.authn;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import oasis.model.annotations.Id;
 
 public class ClientCertificate {
+  @Id private String id;
   @JsonProperty private String subject_dn;
   @JsonProperty private String issuer_dn;
   @JsonProperty private ClientType client_type;
   @JsonProperty private String client_id;
+
+  public String getId() {
+    return id;
+  }
+
+  public void setId(String id) {
+    this.id = id;
+  }
 
   public String getSubject_dn() {
     return subject_dn;

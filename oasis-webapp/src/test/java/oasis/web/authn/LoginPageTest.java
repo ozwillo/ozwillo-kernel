@@ -108,6 +108,7 @@ public class LoginPageTest {
     expiresIn(Duration.standardHours(1));
   }};
   private static final ClientCertificate someClientCertificate = new ClientCertificate() {{
+    setId("some certificate");
     setSubject_dn("valid subject");
     setIssuer_dn("valid issuer");
     setClient_type(ClientType.USER);
@@ -115,6 +116,7 @@ public class LoginPageTest {
   }};
 
   private static final ClientCertificate serviceClientCertificate = new ClientCertificate() {{
+    setId("service certificate");
     setSubject_dn("service subject");
     setIssuer_dn("valid issuer");
     setClient_type(ClientType.PROVIDER);

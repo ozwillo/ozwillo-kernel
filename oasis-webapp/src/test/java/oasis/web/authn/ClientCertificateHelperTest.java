@@ -45,6 +45,7 @@ public class ClientCertificateHelperTest {
       .build();
 
   static final ClientCertificate validCertificate = new ClientCertificate() {{
+    setId("valid certificate");
     setSubject_dn("valid subject");
     setIssuer_dn("valid issuer");
     setClient_type(ClientType.USER);
@@ -66,7 +67,9 @@ public class ClientCertificateHelperTest {
   }
 
   @After public void verifyMocks() {
-    verify(clientCertificateRepository, never()).saveClientCertificate(anyString(), anyString(), any(ClientType.class), anyString());
+    verify(clientCertificateRepository, never()).saveClientCertificate(any(ClientCertificate.class));
+    verify(clientCertificateRepository, never()).deleteClientCertificate(any(ClientType.class), anyString(), anyString());
+    verify(clientCertificateRepository, never()).getClientCertificatesForClient(any(ClientType.class), anyString());
   }
 
   @Test public void testDisabledClientCertificates() {

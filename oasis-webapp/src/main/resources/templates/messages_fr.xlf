@@ -27,6 +27,11 @@
         <target>En finalisant votre inscription, vous déclarez avoir pris connaissance des <x id="START_LINK"/>CGU<x id="END_LINK"/> d'Ozwillo et que vous les acceptez.</target>
         <note priority="1" from="description">Accept terms of use when signing up</note>
       </trans-unit>
+      <trans-unit id="589090359214125348" datatype="html">
+        <source>Certificates</source>
+        <target>Certificats</target>
+        <note priority="1" from="description">User certificates page title</note>
+      </trans-unit>
       <trans-unit id="667496017372169371" datatype="html">
         <source>Password must be at least <x id="PWD_MIN_LENGTH"/> characters long.</source>
         <target>Mot de passe trop court (longueur minimale: <x id="PWD_MIN_LENGTH"/>).</target>
@@ -67,6 +72,11 @@
         <target>Une erreur empêche la création de votre compte. Vérifiez votre boîte mail et réessayez dans quelques minutes.</target>
         <note priority="1" from="description">Error message during sign-up</note>
       </trans-unit>
+      <trans-unit id="1333277581336758352" datatype="html">
+        <source>Current certificate</source>
+        <target>Certificat actuel</target>
+        <note priority="1" from="description">Current certificate (heading)</note>
+      </trans-unit>
       <trans-unit id="1375188762769896369" datatype="html">
         <source>Change your password</source>
         <target>Modification de mot de passe</target>
@@ -91,6 +101,11 @@
         <source>Incorrect email address or password.</source>
         <target>Adresse email ou mot de passe erroné.</target>
         <note priority="1" from="description">Error message during login</note>
+      </trans-unit>
+      <trans-unit id="1578741046646291108" datatype="html">
+        <source>Issuer:</source>
+        <target>Émetteur :</target>
+        <note priority="1" from="description">Client Certificate Issuer DN</note>
       </trans-unit>
       <trans-unit id="1589497881192767264" datatype="html">
         <source>OASIS is a project by the EU under the Program for Competitiveness and Innovation CIP ICT PSP - N°297210</source>
@@ -136,6 +151,11 @@
         <target>Votre désinscription de l'application <x id="APP_INSTANCE_NAME"/> a bien été enregistrée, vous avez une semaine pour annuler l'opération avant sa désinstallation.</target>
         <note priority="1" from="description">Stopped application instance owner notification message</note>
       </trans-unit>
+      <trans-unit id="2202861920228457443" datatype="html">
+        <source>You don't have any certificate registered with your account.</source>
+        <target>Vous n'avez aucun certificat associé à votre compte.</target>
+        <note priority="1" from="description">No registered certificates</note>
+      </trans-unit>
       <trans-unit id="2336550011721758066" datatype="html">
         <source>Log in</source>
         <target>Se connecter</target>
@@ -150,6 +170,11 @@
         <source>The information collected will be computer processed for the management of the website’s users and its services. The recipient of data is Pôle Numérique.<x id="START_BREAK"/>In accordance with the EU Data Protection Directive (95/46/EC), you benefit from an access and modification right for the information concerning you, which you can exercise by contacting Pôle Numérique, 1 avenue de la gare 26958 VALENCE Cedex 9, FRANCE.<x id="START_BREAK"/>You can also, for legitimate reasons, object to the processing of your personal data.</source>
         <target>Les informations recueillies font l’objet d’un traitement informatique destiné à la gestion des utilisateurs du site communautaire et à ses services. Le destinataire des données est le Pôle Numérique.<x id="START_BREAK"/>Conformément à la loi française n°78-17 du 6 janvier 1978 modifiée et à la directive européenne 95/46/EC sur la protection des données, vous bénéficiez d’un droit d’accès et de rectification aux informations qui vous concernent, que vous pouvez exercer en vous adressant à Pôle Numérique, 1 avenue de la gare 26958 VALENCE Cedex 9.<x id="START_BREAK"/>Vous pouvez également, pour des motifs légitimes, vous opposer au traitement des données vous concernant.</target>
         <note priority="1" from="description">privacy notice / small prints</note>
+      </trans-unit>
+      <trans-unit id="2496403555934573530" datatype="html">
+        <source>You're not currently using a certificate.</source>
+        <target>Vous n'utilisez pas actuellement un certificat.</target>
+        <note priority="1" from="description">Not current using a certificate</note>
       </trans-unit>
       <trans-unit id="2565164139557117651" datatype="html">
         <source>Password reset</source>
@@ -171,6 +196,11 @@
         <target><x id="REQUESTER_NAME"/> a demandé la suppression de l'organisation <x id="ORGANIZATION_NAME"/>. La suppression sera effective dans une semaine.</target>
         <note priority="1" from="description">Soflty deleted organization admin notification message</note>
       </trans-unit>
+      <trans-unit id="2861550198909909571" datatype="html">
+        <source>Subject:</source>
+        <target>Object :</target>
+        <note priority="1" from="description">Client Certificate Subject DN</note>
+      </trans-unit>
       <trans-unit id="2904061631873939197" datatype="html">
         <source>Go back to My Ozwillo</source>
         <target>Retourner à My Ozwillo</target>
@@ -185,6 +215,11 @@
         <source>Sign out</source>
         <target>Se déconnecter</target>
         <note priority="1" from="description">Form submit button; global sign-out</note>
+      </trans-unit>
+      <trans-unit id="3249513483374643425" datatype="html">
+        <source>Add</source>
+        <target>Associer</target>
+        <note priority="1" from="description">Registers the current certificate with the account</note>
       </trans-unit>
       <trans-unit id="3342471433315777526" datatype="html">
         <source>We've sent you an email with an activation link, click on that link to activate your account.</source>
@@ -241,10 +276,20 @@
         <target>Cette application est disponible et prête à l'emploi.</target>
         <note priority="1" from="description">App-instance provisioning notification message</note>
       </trans-unit>
+      <trans-unit id="4210092520941642501" datatype="html">
+        <source>This certificate is linked to another user account.</source>
+        <target>Ce certificat est associé à un autre utilisateur.</target>
+        <note priority="1" from="description">User certificate is linked to another account (error message)</note>
+      </trans-unit>
       <trans-unit id="4234642644438435485" datatype="html">
         <source>Accept or refuse membership invitation</source>
         <target>Accepter ou refuser l'invitation pour une organisation</target>
         <note priority="1" from="description">membership invitation page</note>
+      </trans-unit>
+      <trans-unit id="4435870627193845877" datatype="html">
+        <source>Registered certificates</source>
+        <target>Certificats associés</target>
+        <note priority="1" from="description">Registered certificate (heading)</note>
       </trans-unit>
       <trans-unit id="4503676110666500451" datatype="html">
         <source>Some required fields are not filled.</source>
@@ -265,6 +310,11 @@
         <source>Email</source>
         <target>Email</target>
         <note priority="1" from="description">Email field label</note>
+      </trans-unit>
+      <trans-unit id="4814285799071780083" datatype="html">
+        <source>Remove</source>
+        <target>Retirer</target>
+        <note priority="1" from="description">Unregisters a certificate from account</note>
       </trans-unit>
       <trans-unit id="4845769766826824513" datatype="html">
         <source><x id="APP_NAME"/> needs some authorizations</source>
@@ -410,6 +460,11 @@
         <source>I forgot my password.</source>
         <target>J'ai oublié mon mot de passe.</target>
         <note priority="1" from="description">Link to the 'for my password' page</note>
+      </trans-unit>
+      <trans-unit id="7886016692658008493" datatype="html">
+        <source>Certificates for <x id="EMAIL"/></source>
+        <target>Certificats pour <x id="EMAIL"/></target>
+        <note priority="1" from="description">Certificates for user (heading)</note>
       </trans-unit>
       <trans-unit id="8083850607833732083" datatype="html">
         <source>Authorize <x id="APP_NAME"/></source>
