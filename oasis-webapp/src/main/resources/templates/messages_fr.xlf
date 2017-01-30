@@ -126,6 +126,11 @@
         <target><x id="REQUESTER_NAME"/> vous invite à rejoindre l'organisation <x id="ORGANIZATION_NAME"/></target>
         <note priority="1" from="description">Organization membership invitation email subject</note>
       </trans-unit>
+      <trans-unit id="1773247370873144117" datatype="html">
+        <source>Note that you can continue without presenting a certificate. <x id="APP_NAME"/> will be informed so it could adapt its behavior accordingly.</source>
+        <target>Notez que vous pouvez continuer sans présenter un certificat. <x id="APP_NAME"/> en sera informé de façon à pouvoir s'adapter à la situation.</target>
+        <note priority="1" from="description">Authorization can continue without certificate (voluntary claim)</note>
+      </trans-unit>
       <trans-unit id="1905705329717211043" datatype="html">
         <source>The application <x id="APP_INSTANCE_NAME"/> was uninstalled successfully.</source>
         <target>L'application <x id="APP_INSTANCE_NAME"/> a été supprimée avec succès.</target>
@@ -296,6 +301,11 @@
         <target>Certains champs requis sont vides.</target>
         <note priority="1" from="description">Error message during account recovery</note>
       </trans-unit>
+      <trans-unit id="4540670165625286003" datatype="html">
+        <source>Please insert your certificate and refresh the page to take it into account.</source>
+        <target>Merci d'insérer votre certificat et recharger la page pour le prendre en compte.</target>
+        <note priority="1" from="description">Ask user to present client certificate</note>
+      </trans-unit>
       <trans-unit id="4608187185425458597" datatype="html">
         <source><x id="REQUESTER_NAME"/> unsubscribed of the application <x id="APP_INSTANCE_NAME"/>, uninstalling will be effective in a week.</source>
         <target><x id="REQUESTER_NAME"/> a demandé la suppression de l'application <x id="APP_INSTANCE_NAME"/>, elle sera effective dans une semaine.</target>
@@ -366,6 +376,11 @@
         <target><x id="START_PARAGRAPH"/>Vous (ou quelqu'un d'autre) avez saisi cette adresse email dans une demande de changement de mot de passe d'un compte Ozwillo.<x id="START_PARAGRAPH"/>Cependant, cette adresse n'est pas dans notre base de données utilisateurs et la tentative de changement de mot de passe a échoué.<x id="START_PARAGRAPH"/>Si vous êtes un utilisateur d'Ozwillo et que vous attendiez ce message, refaite la demande en utilisant l'adresse email que vous aviez donné à la création de votre compte.<x id="START_PARAGRAPH"/>Si vous n'êtes pas un utilisateur d'Ozwillo, ignorez ce message.<x id="START_PARAGRAPH"/>L'équipe d'Ozwillo</target>
         <note priority="1" from="description">Forgot-password email body, for an unknown account</note>
       </trans-unit>
+      <trans-unit id="5669015892066019430" datatype="html">
+        <source>You can manage your certificates <x id="START_LINK"/>here<x id="END_LINK"/>, then refresh this page to take your certificate into account.</source>
+        <target>Vous pouvez gérer vos certificats <x id="START_LINK"/>sur cette page<x id="END_LINK"/> ; rechargez ensuite cette page pour prendre votre certificat en compte.</target>
+        <note priority="1" from="description">Link to manage user's certificates</note>
+      </trans-unit>
       <trans-unit id="5905477645089564482" datatype="html">
         <source>The organization <x id="ORGANIZATION_NAME"/> was deleted successfully.</source>
         <target>L'organisation <x id="ORGANIZATION_NAME"/> a été supprimée avec succès.</target>
@@ -405,6 +420,11 @@
         <source>Sign up</source>
         <target>S'inscrire</target>
         <note priority="1" from="description">Form submit button</note>
+      </trans-unit>
+      <trans-unit id="7109158971663174515" datatype="html">
+        <source><x id="APP_NAME"/> asks that you authenticate using a certificate.</source>
+        <target><x id="APP_NAME"/> demande que vous vous authentifiez avec un certificat.</target>
+        <note priority="1" from="description">App asks for authentication using client certificate</note>
       </trans-unit>
       <trans-unit id="7155351833114954148" datatype="html">
         <source>Manage my network</source>
@@ -535,6 +555,11 @@
         <source><x id="REQUESTER_NAME_BOLD"/> has invited you to join the <x id="ORGANIZATION_NAME_BOLD"/> organization.</source>
         <target><x id="REQUESTER_NAME_BOLD"/> vous invite à rejoindre l'organization <x id="ORGANIZATION_NAME_BOLD"/>.</target>
         <note priority="1" from="description">membership invitation description</note>
+      </trans-unit>
+      <trans-unit id="9045441642750549176" datatype="html">
+        <source>Your current certificate is linked to another account.</source>
+        <target>Votre certificat actuel est associé à un autre utilisateur.</target>
+        <note priority="1" from="description">User certificate is linked to another account (error message)</note>
       </trans-unit>
       <trans-unit id="9118307257372703426" datatype="html">
         <source>Choose your new password</source>

@@ -20,7 +20,6 @@ package oasis.web.authz;
 import static java.util.Collections.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.eq;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -31,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Nullable;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
@@ -75,6 +75,10 @@ import oasis.model.applications.v2.ScopeRepository;
 import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.ServiceRepository;
 import oasis.model.authn.AuthorizationCode;
+import oasis.model.authn.AuthorizationContextClasses;
+import oasis.model.authn.ClientCertificate;
+import oasis.model.authn.ClientCertificateRepository;
+import oasis.model.authn.ClientType;
 import oasis.model.authn.SidToken;
 import oasis.model.authz.AuthorizationRepository;
 import oasis.model.authz.AuthorizedScopes;
@@ -89,6 +93,9 @@ import oasis.services.cookies.CookieFactory;
 import oasis.soy.TestingSoyGuiceModule;
 import oasis.urls.ImmutableUrls;
 import oasis.urls.UrlsModule;
+import oasis.web.authn.ClientCertificateHelper;
+import oasis.web.authn.ClientCertificateHelper.ClientCertificateData;
+import oasis.web.authn.ImmutableClientCertificateHelper;
 import oasis.web.authn.LoginPage;
 import oasis.web.authn.SessionManagementHelper;
 import oasis.web.authn.testing.TestUserFilter;
@@ -115,6 +122,7 @@ public class AuthorizationEndpointTest {
       bindMock(TokenHandler.class).in(TestSingleton.class);
       bindMock(AppAdminHelper.class).in(TestSingleton.class);
       bindMock(SessionManagementHelper.class).in(TestSingleton.class);
+      bindMock(ClientCertificateHelper.class).in(TestSingleton.class);
 
       bindManyNamedInstances(String.class, "bad redirect_uri",
           "https://application/callback#hash",  // has #hash
@@ -126,6 +134,7 @@ public class AuthorizationEndpointTest {
 
       bind(AuthModule.Settings.class).toInstance(AuthModule.Settings.builder()
           .setKeyPair(KeyPairLoader.generateRandomKeyPair())
+          .setEnableClientCertificates(true)
           .build());
     }
   }
@@ -145,6 +154,32 @@ public class AuthorizationEndpointTest {
     setAccountId(account.getId());
     setAuthenticationTime(now.minus(Duration.standardHours(1)));
   }};
+  private static final SidToken sidTokenUsingClientCertificate = new SidToken() {{
+    setId("sidToken");
+    setAccountId(account.getId());
+    setAuthenticationTime(now.minus(Duration.standardHours(1)));
+    setUsingClientCertificate(true);
+  }};
+
+  private static final ClientCertificate someClientCertificate = new ClientCertificate() {{
+    setId("some certificate");
+    setSubject_dn("valid subject");
+    setIssuer_dn("valid issuer");
+    setClient_type(ClientType.USER);
+    setClient_id(account.getId());
+  }};
+  private static final ClientCertificate serviceClientCertificate = new ClientCertificate() {{
+    setId("service certificate");
+    setSubject_dn("service subject");
+    setIssuer_dn("valid issuer");
+    setClient_type(ClientType.PROVIDER);
+    setClient_id("service");
+  }};
+
+  private static final ClientCertificateData someClientCertificateData =
+      ImmutableClientCertificateHelper.ClientCertificateData.of(someClientCertificate.getSubject_dn(), someClientCertificate.getIssuer_dn());
+  private static final ClientCertificateData serviceClientCertificateData =
+      ImmutableClientCertificateHelper.ClientCertificateData.of(serviceClientCertificate.getSubject_dn(), serviceClientCertificate.getIssuer_dn());
 
   private static final AppInstance appInstance = new AppInstance() {{
     setId("appInstance");
@@ -235,7 +270,8 @@ public class AuthorizationEndpointTest {
 
   @Before public void setUpMocks(AccountRepository accountRepository, AuthorizationRepository authorizationRepository,
       AppInstanceRepository appInstanceRepository, ServiceRepository serviceRepository,
-      ScopeRepository scopeRepository, TokenHandler tokenHandler, SessionManagementHelper sessionManagementHelper) {
+      ScopeRepository scopeRepository, TokenHandler tokenHandler, SessionManagementHelper sessionManagementHelper,
+      ClientCertificateRepository clientCertificateRepository) {
     when(accountRepository.getUserAccountById(account.getId())).thenReturn(account);
 
     when(appInstanceRepository.getAppInstance(appInstance.getId())).thenReturn(appInstance);
@@ -275,6 +311,8 @@ public class AuthorizationEndpointTest {
         anyString(), eq(Iterables.getOnlyElement(service.getRedirect_uris())), anyString(), anyString())).thenReturn(authorizationCode);
     when(tokenHandler.createAuthorizationCode(eq(sidToken), anySetOf(String.class), eq(appInstance.getId()),
         anyString(), eq(Iterables.getOnlyElement(privateService.getRedirect_uris())), anyString(), anyString())).thenReturn(authorizationCode);
+    when(tokenHandler.createAuthorizationCode(eq(sidTokenUsingClientCertificate), anySetOf(String.class), eq(appInstance.getId()),
+        anyString(), eq(Iterables.getOnlyElement(service.getRedirect_uris())), anyString(), anyString())).thenReturn(authorizationCode);
 
     // Portal special-case
     when(appInstanceRepository.getAppInstance(portalAppInstance.getId())).thenReturn(portalAppInstance);
@@ -289,6 +327,13 @@ public class AuthorizationEndpointTest {
         .thenReturn("session state");
     when(sessionManagementHelper.computeSessionState(portalAppInstance.getId(), Iterables.getOnlyElement(portalService.getRedirect_uris()), "browser-state"))
         .thenReturn("session state");
+
+    when(clientCertificateRepository.getClientCertificate(someClientCertificate.getSubject_dn(), someClientCertificate.getIssuer_dn()))
+        .thenReturn(someClientCertificate);
+    when(clientCertificateRepository.getClientCertificate(serviceClientCertificate.getSubject_dn(), serviceClientCertificate.getIssuer_dn()))
+        .thenReturn(serviceClientCertificate);
+    // TODO: check for various cases where user has certificates or not; for now simply avoid an NPE by returning an empty iterable.
+    when(clientCertificateRepository.getClientCertificatesForClient(ClientType.USER, account.getId())).thenReturn(Collections.<ClientCertificate>emptyList());
   }
 
   @Before public void setUp() {
@@ -579,6 +624,63 @@ public class AuthorizationEndpointTest {
         .request().get();
 
     assertRedirectError(response, service, "consent_required", null);
+  }
+
+  /** Same as {@link #testPromptUser()} except with acr_values asking for certificate (and no certificate presented). */
+  @SuppressWarnings("unchecked")
+  @Test public void testAskForCertificate_notUsingCertificate(ClientCertificateRepository clientCertificateRepository) {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(AuthorizationEndpoint.class))
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
+        .queryParam("state", encodedState)
+        .queryParam("response_type", "code")
+        .queryParam("scope", openidScope.getId())
+        .queryParam("acr_values", "ignored " + AuthorizationContextClasses.EIDAS_LOW + " " + AuthorizationContextClasses.EIDAS_SUBSTANTIAL + " foo bar")
+        .request().get();
+
+    assertConsentPage(response);
+    // TODO: assert page prompts for certificate
+  }
+
+  /** Same as {@link #testTransparentRedirection(TokenHandler)} except with acr_values asking for certificate (and certificate presented). */
+  @SuppressWarnings("unchecked")
+  @Test public void testAskForCertificate_usingCertificate(ClientCertificateHelper clientCertificateHelper) {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidTokenUsingClientCertificate));
+
+    when(clientCertificateHelper.getClientCertificateData(any(MultivaluedMap.class))).thenReturn(someClientCertificateData);
+
+    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(AuthorizationEndpoint.class))
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
+        .queryParam("state", encodedState)
+        .queryParam("response_type", "code")
+        .queryParam("scope", openidScope.getId())
+        .queryParam("acr_values", "ignored " + AuthorizationContextClasses.EIDAS_LOW + " " + AuthorizationContextClasses.EIDAS_SUBSTANTIAL + " foo bar")
+        .request().get();
+
+    assertRedirectToApplication(response, service);
+  }
+
+  /** Same as {@link #testAskForCertificate_usingCertificate(ClientCertificateHelper)} except the certificate is linked to another account. */
+  @SuppressWarnings("unchecked")
+  @Test public void testAskForCertificate_usingCertificateLinkedToOtherAccount(ClientCertificateHelper clientCertificateHelper) {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+    when(clientCertificateHelper.getClientCertificateData(any(MultivaluedMap.class))).thenReturn(serviceClientCertificateData);
+
+    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(AuthorizationEndpoint.class))
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
+        .queryParam("state", encodedState)
+        .queryParam("response_type", "code")
+        .queryParam("scope", openidScope.getId())
+        .queryParam("acr_values", "ignored " + AuthorizationContextClasses.EIDAS_LOW + " " + AuthorizationContextClasses.EIDAS_SUBSTANTIAL + " foo bar")
+        .request().get();
+
+    assertConsentPage(response);
+    // TODO: assert page prompts for certificate
   }
 
   @Test public void testStoppedClient() {

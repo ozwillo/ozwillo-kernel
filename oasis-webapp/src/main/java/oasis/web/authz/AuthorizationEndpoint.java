@@ -30,7 +30,6 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.CookieParam;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -55,6 +54,7 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.template.soy.data.SoyListData;
 import com.google.template.soy.data.SoyMapData;
@@ -73,6 +73,10 @@ import oasis.model.applications.v2.ScopeRepository;
 import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.ServiceRepository;
 import oasis.model.authn.AuthorizationCode;
+import oasis.model.authn.AuthorizationContextClasses;
+import oasis.model.authn.ClientCertificate;
+import oasis.model.authn.ClientCertificateRepository;
+import oasis.model.authn.ClientType;
 import oasis.model.authn.SidToken;
 import oasis.model.authz.AuthorizationRepository;
 import oasis.model.authz.AuthorizedScopes;
@@ -87,9 +91,12 @@ import oasis.soy.templates.AuthorizeSoyInfo;
 import oasis.soy.templates.AuthorizeSoyInfo.AuthorizeSoyTemplateInfo;
 import oasis.urls.Urls;
 import oasis.web.authn.Authenticated;
+import oasis.web.authn.ClientCertificateHelper;
+import oasis.web.authn.ClientCertificateHelper.ClientCertificateData;
 import oasis.web.authn.SessionManagementHelper;
 import oasis.web.authn.User;
 import oasis.web.authn.UserAuthenticationFilter;
+import oasis.web.authn.UserCertificatesPage;
 import oasis.web.authn.UserSessionPrincipal;
 import oasis.web.i18n.LocaleHelper;
 import oasis.web.openidconnect.IdTokenHintParser;
@@ -144,6 +151,8 @@ public class AuthorizationEndpoint {
   @Inject DateTimeUtils.MillisProvider clock;
   @Inject Urls urls;
   @Inject SessionManagementHelper sessionManagementHelper;
+  @Inject ClientCertificateHelper helper;
+  @Inject ClientCertificateRepository clientCertificateRepository;
 
   private MultivaluedMap<String, String> params;
   private String client_id;
@@ -247,6 +256,16 @@ public class AuthorizationEndpoint {
         throw invalidParam("code_challenge");
       }
     }
+    final String acr_values = getParameter("acr_values");
+    boolean askForClientCertificate = false;
+    if (settings.enableClientCertificates && acr_values != null) {
+      // XXX: switch acr values (eIDAS, STORK-QAA, FICAM, etc.) depending on client_id and/or acr_values of the request
+      // E.g. select a "scheme" based on input values (store it in auth code, use it for acr claim in TokenEndpoint)
+      if (Iterables.contains(SPACE_SPLITTER.split(acr_values), AuthorizationContextClasses.EIDAS_SUBSTANTIAL) &&
+          !sidToken.isUsingClientCertificate()) {
+        askForClientCertificate = true;
+      }
+    }
 
     Set<String> authorizedScopeIds = getAuthorizedScopeIds(appInstance.getId(), sidToken.getAccountId());
     if (ClientIds.PORTAL.equals(appInstance.getId()) && !authorizedScopeIds.containsAll(scopeIds)) {
@@ -262,7 +281,7 @@ public class AuthorizationEndpoint {
         authorizedScopeIds.addAll(portalScopeIds);
       }
     }
-    if (authorizedScopeIds.containsAll(scopeIds) && !prompt.consent) {
+    if (authorizedScopeIds.containsAll(scopeIds) && !prompt.consent && !askForClientCertificate) {
       // User already authorized all claimed scopes, let it be a "transparent" redirect
       return generateAuthorizationCodeAndRedirect(sidToken, scopeIds, appInstance.getId(), nonce, redirect_uri, code_challenge);
     }
@@ -270,7 +289,7 @@ public class AuthorizationEndpoint {
     if (!prompt.interactive) {
       throw error("consent_required", null);
     }
-    return promptUser(sidToken.getAccountId(), appInstance, scopeIds, authorizedScopeIds, redirect_uri, state, nonce, code_challenge);
+    return promptUser(sidToken.getAccountId(), appInstance, scopeIds, authorizedScopeIds, redirect_uri, state, nonce, code_challenge, askForClientCertificate);
   }
 
   @POST
@@ -347,7 +366,7 @@ public class AuthorizationEndpoint {
   }
 
   private Response promptUser(String accountId, AppInstance serviceProvider, Set<String> requiredScopeIds, Set<String> authorizedScopeIds,
-      String redirect_uri, @Nullable String state, @Nullable String nonce, @Nullable String code_challenge) {
+      String redirect_uri, @Nullable String state, @Nullable String nonce, @Nullable String code_challenge, boolean askForClientCertificate) {
     Set<String> globalClaimedScopeIds = Sets.newHashSet();
     Set<NeededScope> neededScopes = serviceProvider.getNeeded_scopes();
     if (neededScopes != null) {
@@ -390,6 +409,29 @@ public class AuthorizationEndpoint {
 
     // TODO: Get the application in order to have more information
 
+    SoyMapData askForClientCertificateData;
+    if (askForClientCertificate) {
+      boolean hasRegisteredCertificates = !Iterables.isEmpty(clientCertificateRepository.getClientCertificatesForClient(ClientType.USER, accountId));
+      boolean linkedToOtherAccount = false;
+      ClientCertificateData clientCertificateData = helper.getClientCertificateData(httpHeaders.getRequestHeaders());
+      if (clientCertificateData != null) {
+        ClientCertificate currentCertificate = clientCertificateRepository.getClientCertificate(
+            clientCertificateData.getSubjectDN(), clientCertificateData.getIssuerDN());
+        if (currentCertificate != null) {
+          linkedToOtherAccount = currentCertificate.getClient_type() != ClientType.USER ||
+              !currentCertificate.getClient_id().equals(accountId);
+        }
+      }
+      askForClientCertificateData = new SoyMapData(
+          AuthorizeSoyInfo.Param.MANAGE_CERTIFICATES_URL,
+          UriBuilder.fromResource(UserCertificatesPage.class).path(UserCertificatesPage.class, "get").build().toString(),
+          AuthorizeSoyInfo.Param.HAS_REGISTERED_CERTIFICATE, hasRegisteredCertificates,
+          AuthorizeSoyInfo.Param.LINKED_TO_OTHER_ACCOUNT, linkedToOtherAccount
+      );
+    } else {
+      askForClientCertificateData = null;
+    }
+
     // redirectUri is now used for creating the cancel Uri for the authorization step with the user
     redirectUri.setError("access_denied", null);
 
@@ -418,7 +460,8 @@ public class AuthorizationEndpoint {
                 AuthorizeSoyTemplateInfo.REDIRECT_URI, redirect_uri,
                 AuthorizeSoyTemplateInfo.STATE, state,
                 AuthorizeSoyTemplateInfo.NONCE, nonce,
-                AuthorizeSoyTemplateInfo.CODE_CHALLENGE, code_challenge
+                AuthorizeSoyTemplateInfo.CODE_CHALLENGE, code_challenge,
+                AuthorizeSoyTemplateInfo.ASK_FOR_CLIENT_CERTIFICATE, askForClientCertificateData
             )
         ))
         .build();

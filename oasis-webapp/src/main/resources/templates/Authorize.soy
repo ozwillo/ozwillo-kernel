@@ -33,6 +33,7 @@
 {@param? state:          string} /** 'state' request parameter */
 {@param? nonce:          string} /** 'nonce' request parameter */
 {@param? code_challenge: string} /** 'code_challenge' request parameter */
+{@param? askForClientCertificate: [manageCertificatesUrl: string, hasRegisteredCertificate: bool, linkedToOtherAccount: bool]}
 
 {call .header}
   {param title kind="text"}{msg desc="Authorization page title"}Authorize {$appName}{/msg}{/param}
@@ -58,6 +59,12 @@ a { color: #6f438e; }
   <h1>{msg desc="Some app needs authorizations"}
     {$appName} needs some authorizations
   {/msg}</h1>
+
+  {if $askForClientCertificate}
+    {call .askForClientCertificate data="$askForClientCertificate"}
+      {param appName: $appName /}
+    {/call}
+  {/if}
 
   <form method="POST" action="{$formAction}">
     <input type="hidden" name="_utf8" value="&#9731;">
@@ -126,6 +133,41 @@ a { color: #6f438e; }
     {/if}
   </form>
 {call .footer /}
+{/template}
+
+/**
+ * Asks for a client certificate.
+ */
+{template .askForClientCertificate private="true"}
+  {@param appName:                  string} /** application name. */
+  {@param manageCertificatesUrl:    string} /** URL to manage user's certificates. */
+  {@param hasRegisteredCertificate: bool}   /** Whether the user has registered certificate(s) */
+  {@param linkedToOtherAccount:     bool}   /** True if a certificate is presented and is linked to another account. */
+
+  <div style="background: #f0ad4e; color: white; border-radius: 10px; padding: .5em; margin: 2.5em auto; max-width: 500px">
+    <p>{msg desc="App asks for authentication using client certificate"}
+      {$appName} asks that you authenticate using a certificate.
+    {/msg}</p>
+    {if $hasRegisteredCertificate}
+      <p>{msg desc="Ask user to present client certificate"}
+        Please insert your certificate and refresh the page to take it into account.
+      {/msg}</p>
+    {/if}
+    {if $linkedToOtherAccount}
+      <p>{msg desc="User certificate is linked to another account (error message)"}
+        Your current certificate is linked to another account.
+      {/msg}</p>
+    {/if}
+    <p>{msg desc="Link to manage user's certificates"}
+      You can manage your certificates <a href="{$manageCertificatesUrl}" target=_blank>here</a>,
+      then refresh this page to take your certificate into account.
+    {/msg}</p>
+    <p>{msg desc="Authorization can continue without certificate (voluntary claim)"}
+      Note that you can continue without presenting a certificate.
+      {sp}
+      {$appName} will be informed so it could adapt its behavior accordingly.
+    {/msg}</p>
+  </div>
 {/template}
 
 /**

@@ -77,6 +77,7 @@ import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.authn.AbstractOAuthToken;
 import oasis.model.authn.AccessToken;
 import oasis.model.authn.AuthorizationCode;
+import oasis.model.authn.AuthorizationContextClasses;
 import oasis.model.authn.JtiRepository;
 import oasis.model.authn.RefreshToken;
 import oasis.model.authn.SidToken;
@@ -280,7 +281,7 @@ public class TokenEndpoint {
     if (token instanceof SidToken) {
       authTime = TimeUnit.MILLISECONDS.toSeconds(((SidToken) token).getAuthenticationTime().getMillis());
       // XXX: switch acr values (eIDAS, STORK-QAA, FICAM, etc.) depending on client_id and/or acr_values of the request
-      acr = ((SidToken) token).isUsingClientCertificate() ? "http://eidas.europa.eu/LoA/substantial" : "http://eidas.europa.eu/LoA/low";
+      acr = ((SidToken) token).isUsingClientCertificate() ? AuthorizationContextClasses.EIDAS_SUBSTANTIAL : AuthorizationContextClasses.EIDAS_LOW;
     } // TODO: else, log error/warning
 
     // Compute whether the user is a "user of the app" and/or "admin of the app"
