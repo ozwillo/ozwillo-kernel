@@ -90,6 +90,7 @@ import oasis.soy.SoyTemplate;
 import oasis.soy.templates.AuthorizeSoyInfo;
 import oasis.soy.templates.AuthorizeSoyInfo.AskForClientCertificateSoyTemplateInfo;
 import oasis.soy.templates.AuthorizeSoyInfo.AuthorizeSoyTemplateInfo;
+import oasis.soy.templates.UserCertificatesSoyInfo;
 import oasis.urls.Urls;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.ClientCertificateHelper;
@@ -286,7 +287,7 @@ public class AuthorizationEndpoint {
       // User already authorized all claimed scopes, let it be a "transparent" redirect
       if (askForClientCertificate) {
         // that is, unless we need to ask the user for a client certificate
-        return askForClientCertificate(sidToken.getAccountId(), appInstance, scopeIds, redirect_uri, state, nonce, code_challenge);
+        return askForClientCertificate(uriInfo, sidToken.getAccountId(), appInstance, scopeIds, redirect_uri, state, nonce, code_challenge);
       }
       return generateAuthorizationCodeAndRedirect(sidToken, scopeIds, appInstance.getId(), nonce, redirect_uri, code_challenge);
     }
@@ -294,7 +295,7 @@ public class AuthorizationEndpoint {
     if (!prompt.interactive) {
       throw error("consent_required", null);
     }
-    return promptUser(sidToken.getAccountId(), appInstance, scopeIds, authorizedScopeIds, redirect_uri, state, nonce, code_challenge, askForClientCertificate);
+    return promptUser(uriInfo, sidToken.getAccountId(), appInstance, scopeIds, authorizedScopeIds, redirect_uri, state, nonce, code_challenge, askForClientCertificate);
   }
 
   @POST
@@ -370,7 +371,7 @@ public class AuthorizationEndpoint {
     redirectUri.setSessionState(sessionManagementHelper.computeSessionState(client_id, redirect_uri, browserState));
   }
 
-  private Response askForClientCertificate(String accountId, AppInstance serviceProvider, Set<String> requiredScopeIds,
+  private Response askForClientCertificate(UriInfo uriInfo, String accountId, AppInstance serviceProvider, Set<String> requiredScopeIds,
       String redirect_uri, @Nullable String state, @Nullable String nonce, @Nullable String code_challenge) {
     UserAccount account = accountRepository.getUserAccountById(accountId);
 
@@ -400,13 +401,13 @@ public class AuthorizationEndpoint {
                 AskForClientCertificateSoyTemplateInfo.STATE, state,
                 AskForClientCertificateSoyTemplateInfo.NONCE, nonce,
                 AskForClientCertificateSoyTemplateInfo.CODE_CHALLENGE, code_challenge,
-                AskForClientCertificateSoyTemplateInfo.ASK_FOR_CLIENT_CERTIFICATE, getAskForClientCertificateData(accountId)
+                AskForClientCertificateSoyTemplateInfo.ASK_FOR_CLIENT_CERTIFICATE, getAskForClientCertificateData(uriInfo, accountId)
             )
         ))
         .build();
   }
 
-  private Response promptUser(String accountId, AppInstance serviceProvider, Set<String> requiredScopeIds, Set<String> authorizedScopeIds,
+  private Response promptUser(UriInfo uriInfo, String accountId, AppInstance serviceProvider, Set<String> requiredScopeIds, Set<String> authorizedScopeIds,
       String redirect_uri, @Nullable String state, @Nullable String nonce, @Nullable String code_challenge, boolean askForClientCertificate) {
     Set<String> globalClaimedScopeIds = Sets.newHashSet();
     Set<NeededScope> neededScopes = serviceProvider.getNeeded_scopes();
@@ -450,7 +451,7 @@ public class AuthorizationEndpoint {
 
     // TODO: Get the application in order to have more information
 
-    SoyMapData askForClientCertificateData = askForClientCertificate ? getAskForClientCertificateData(accountId) : null;
+    SoyMapData askForClientCertificateData = askForClientCertificate ? getAskForClientCertificateData(uriInfo, accountId) : null;
 
     // redirectUri is now used for creating the cancel Uri for the authorization step with the user
     redirectUri.setError("access_denied", null);
@@ -487,26 +488,41 @@ public class AuthorizationEndpoint {
         .build();
   }
 
-  private SoyMapData getAskForClientCertificateData(String accountId) {
-    SoyMapData askForClientCertificateData;
-    boolean hasRegisteredCertificates = !Iterables.isEmpty(clientCertificateRepository.getClientCertificatesForClient(ClientType.USER, accountId));
-    boolean linkedToOtherAccount = false;
+  private SoyMapData getAskForClientCertificateData(UriInfo uriInfo, String accountId) {
+    final boolean hasRegisteredCertificates = !Iterables.isEmpty(clientCertificateRepository.getClientCertificatesForClient(ClientType.USER, accountId));
+    final SoyMapData currentCert;
     ClientCertificateData clientCertificateData = helper.getClientCertificateData(httpHeaders.getRequestHeaders());
     if (clientCertificateData != null) {
       ClientCertificate currentCertificate = clientCertificateRepository.getClientCertificate(
           clientCertificateData.getSubjectDN(), clientCertificateData.getIssuerDN());
       if (currentCertificate != null) {
-        linkedToOtherAccount = currentCertificate.getClient_type() != ClientType.USER ||
+        boolean linkedToOtherAccount = currentCertificate.getClient_type() != ClientType.USER ||
             !currentCertificate.getClient_id().equals(accountId);
+        currentCert = new SoyMapData(
+            UserCertificatesSoyInfo.Param.SUBJECT, currentCertificate.getSubject_dn(),
+            UserCertificatesSoyInfo.Param.ISSUER, currentCertificate.getIssuer_dn(),
+            UserCertificatesSoyInfo.Param.LINKED_TO_OTHER_ACCOUNT, linkedToOtherAccount
+        );
+      } else {
+        currentCert = new SoyMapData(
+            UserCertificatesSoyInfo.Param.SUBJECT, clientCertificateData.getSubjectDN(),
+            UserCertificatesSoyInfo.Param.ISSUER, clientCertificateData.getIssuerDN()
+        );
       }
+      currentCert.put(
+          UserCertificatesSoyInfo.Param.ADD_FORM_ACTION,
+                  UriBuilder.fromResource(UserCertificatesPage.class).path(UserCertificatesPage.class, "addCurrent").build().toString(),
+          UserCertificatesSoyInfo.Param.CONTINUE_URL, uriInfo.getRequestUri().toString()
+      );
+    } else {
+      currentCert = null;
     }
-    askForClientCertificateData = new SoyMapData(
+    return new SoyMapData(
         AuthorizeSoyInfo.Param.MANAGE_CERTIFICATES_URL,
                 UriBuilder.fromResource(UserCertificatesPage.class).path(UserCertificatesPage.class, "get").build().toString(),
         AuthorizeSoyInfo.Param.HAS_REGISTERED_CERTIFICATE, hasRegisteredCertificates,
-        AuthorizeSoyInfo.Param.LINKED_TO_OTHER_ACCOUNT, linkedToOtherAccount
+        AuthorizeSoyInfo.Param.CURRENT_CERT, currentCert
     );
-    return askForClientCertificateData;
   }
 
   private AppInstance getAppInstance(String client_id) {

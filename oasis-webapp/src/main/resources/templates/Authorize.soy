@@ -33,7 +33,7 @@
 {@param? state:          string} /** 'state' request parameter */
 {@param? nonce:          string} /** 'nonce' request parameter */
 {@param? code_challenge: string} /** 'code_challenge' request parameter */
-{@param? askForClientCertificate: [manageCertificatesUrl: string, hasRegisteredCertificate: bool, linkedToOtherAccount: bool]}
+{@param? askForClientCertificate: [manageCertificatesUrl: string, hasRegisteredCertificate: bool, currentCert: null|[addFormAction: string, continueUrl: string, subject: string, issuer: string, linkedToOtherAccount: bool|null]]}
 
 {call .header}
   {param title kind="text"}{msg desc="Authorization page title"}Authorize {$appName}{/msg}{/param}
@@ -150,7 +150,7 @@ a { color: #6f438e; }
 {@param? state:                   string} /** 'state' request parameter */
 {@param? nonce:                   string} /** 'nonce' request parameter */
 {@param? code_challenge:          string} /** 'code_challenge' request parameter */
-{@param  askForClientCertificate: [manageCertificatesUrl: string, hasRegisteredCertificate: bool, linkedToOtherAccount: bool]}
+{@param  askForClientCertificate: [manageCertificatesUrl: string, hasRegisteredCertificate: bool, currentCert: null|[addFormAction: string, continueUrl: string, subject: string, issuer: string, linkedToOtherAccount: bool|null]]}
 
 {call .header}
   {param title kind="text"}{msg desc="Authorization page title"}Authorize {$appName}{/msg}{/param}
@@ -165,7 +165,10 @@ button, a.cancel {
   text-decoration: none;
   display: inline-block;
 }
-button, a.cancel {
+button {
+  background: #6f438e; color: white;
+}
+button.continue, a.cancel {
   background: white; color: #6f438e;
 }
 a { color: #6f438e; }
@@ -195,7 +198,7 @@ a { color: #6f438e; }
       <input type="hidden" name="code_challenge" value="{$code_challenge}">
     {/if}
     <div style="text-align: center">
-      <button type="submit">
+      <button type="submit" class=continue>
         {msg desc="Button to continue without client certificate"}Continue without certificate{/msg}
       </button>
       <a href="{$cancelUrl}" class=cancel>
@@ -210,10 +213,10 @@ a { color: #6f438e; }
  * Asks for a client certificate (partial shared between standalone page and 'authorize' page).
  */
 {template .askForClientCertificatePartial private="true"}
-  {@param appName:                  string} /** application name. */
-  {@param manageCertificatesUrl:    string} /** URL to manage user's certificates. */
-  {@param hasRegisteredCertificate: bool}   /** Whether the user has registered certificate(s) */
-  {@param linkedToOtherAccount:     bool}   /** True if a certificate is presented and is linked to another account. */
+  {@param  appName:                  string} /** application name. */
+  {@param  manageCertificatesUrl:    string} /** URL to manage user's certificates. */
+  {@param  hasRegisteredCertificate: bool}   /** Whether the user has registered certificate(s) */
+  {@param? currentCert: [addFormAction: string, continueUrl: string, subject: string, issuer: string, linkedToOtherAccount: bool|null]}
 
   <p>{msg desc="App asks for authentication using client certificate"}
     {$appName} asks that you authenticate using a certificate.
@@ -222,16 +225,37 @@ a { color: #6f438e; }
     <p>{msg desc="Ask user to present client certificate"}
       Please insert your certificate and refresh the page to take it into account.
     {/msg}</p>
-  {/if}
-  {if $linkedToOtherAccount}
-    <p>{msg desc="User certificate is linked to another account (error message)"}
-      Your current certificate is linked to another account.
+    {if $currentCert}
+      {if $currentCert.linkedToOtherAccount}
+        <p>{msg desc="User certificate is linked to another account (error message)"}
+          This certificate is linked to another account.
+          Insert another one and refresh the page to take it into account.
+        {/msg}</p>
+      {else}
+        <p>{msg desc="User certificate is not linked to account"}
+          This certificate is not linked to your account.
+          You can add it to start using it now.
+        {/msg}</p>
+      {/if}
+      <style>{literal}
+      .cert { display: flex; align-items: center; margin: 1em 0; }
+      .certInfo { flex: auto; }
+      .certInfo>p { margin: 0; }
+      /* IE10 compat: */
+      .cert { display: -ms-flexbox; -ms-flew-align: center; }
+      .certInfo { -ms-flex: auto; }
+      {/literal}</style>
+      {call .currentCertificate data="$currentCert" /}
+    {elseif $hasRegisteredCertificate}
+      <p>{msg desc="Ask user to present client certificate"}
+        Please insert your certificate and refresh the page to take it into account.
+      {/msg}</p>
+    {/if}
+    <p>{msg desc="Link to manage user's certificates"}
+      You can manage your certificates <a href="{$manageCertificatesUrl}" target=_blank>here</a>,
+      then refresh this page to take your certificate into account.
     {/msg}</p>
   {/if}
-  <p>{msg desc="Link to manage user's certificates"}
-    You can manage your certificates <a href="{$manageCertificatesUrl}" target=_blank>here</a>,
-    then refresh this page to take your certificate into account.
-  {/msg}</p>
   <p>{msg desc="Authorization can continue without certificate (voluntary claim)"}
     Note that you can continue without presenting a certificate.
     {sp}

@@ -138,6 +138,61 @@ public class UserCertificatesPageTest {
   }
 
   @SuppressWarnings("unchecked")
+  @Test public void testAddCurrent_withContinueUrl() {
+    when(clientCertificateHelper.getClientCertificateData(any(MultivaluedMap.class))).thenReturn(someCertificateData);
+    when(clientCertificateRepository.saveClientCertificate(any(ClientCertificate.class))).thenReturn(someCertificate);
+
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(someSidToken));
+
+    Response response = resteasy.getClient().target(
+        resteasy.getBaseUriBuilder()
+            .path(UserCertificatesPage.class)
+            .path(UserCertificatesPage.class, "addCurrent")
+    ).request().post(Entity.form(new Form()
+        .param("subject", someCertificateData.getSubjectDN())
+        .param("issuer", someCertificateData.getIssuerDN())
+        .param("continue", resteasy.getBaseUriBuilder().path("/foo/bar").build().toString())));
+
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
+    assertThat(response.getLocation()).isEqualTo(resteasy.getBaseUriBuilder().path("/foo/bar").build());
+
+    ArgumentCaptor<ClientCertificate> clientCert = ArgumentCaptor.forClass(ClientCertificate.class);
+    verify(clientCertificateRepository).saveClientCertificate(clientCert.capture());
+    assertThat(clientCert.getValue().getId()).isNull();
+    assertThat(clientCert.getValue()).isEqualToComparingOnlyGivenFields(someCertificate,
+        "client_type", "client_id", "subject_dn", "issuer_dn");
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test public void testAddCurrent_badContinueUrl() {
+    when(clientCertificateHelper.getClientCertificateData(any(MultivaluedMap.class))).thenReturn(someCertificateData);
+    when(clientCertificateRepository.saveClientCertificate(any(ClientCertificate.class))).thenReturn(someCertificate);
+
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(someSidToken));
+
+    Response response = resteasy.getClient().target(
+        resteasy.getBaseUriBuilder()
+            .path(UserCertificatesPage.class)
+            .path(UserCertificatesPage.class, "addCurrent")
+    ).request().post(Entity.form(new Form()
+        .param("subject", someCertificateData.getSubjectDN())
+        .param("issuer", someCertificateData.getIssuerDN())
+        .param("continue", "https://attacker.example.com/")));
+
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
+    assertThat(response.getLocation()).isEqualTo(resteasy.getBaseUriBuilder()
+        .path(UserCertificatesPage.class)
+        .path(UserCertificatesPage.class, "get")
+        .build());
+
+    ArgumentCaptor<ClientCertificate> clientCert = ArgumentCaptor.forClass(ClientCertificate.class);
+    verify(clientCertificateRepository).saveClientCertificate(clientCert.capture());
+    assertThat(clientCert.getValue().getId()).isNull();
+    assertThat(clientCert.getValue()).isEqualToComparingOnlyGivenFields(someCertificate,
+        "client_type", "client_id", "subject_dn", "issuer_dn");
+  }
+
+  @SuppressWarnings("unchecked")
   @Test public void testAddCurrent_alreadyUsingCert() {
     when(clientCertificateHelper.getClientCertificateData(any(MultivaluedMap.class))).thenReturn(someCertificateData);
 
@@ -165,6 +220,32 @@ public class UserCertificatesPageTest {
     verify(clientCertificateRepository, never()).saveClientCertificate(any(ClientCertificate.class));
   }
 
+  @SuppressWarnings("unchecked")
+  @Test public void testAddCurrent_alreadyUsingCert_withContinueUrl() {
+    when(clientCertificateHelper.getClientCertificateData(any(MultivaluedMap.class))).thenReturn(someCertificateData);
+
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(new SidToken() {{
+      setId("someSidTokenUsingClientCertificate");
+      setAccountId(someUserAccount.getId());
+      expiresIn(Duration.standardHours(1));
+      setUsingClientCertificate(true);
+    }}));
+
+    Response response = resteasy.getClient().target(
+        resteasy.getBaseUriBuilder()
+            .path(UserCertificatesPage.class)
+            .path(UserCertificatesPage.class, "addCurrent")
+    ).request().post(Entity.form(new Form()
+        .param("subject", someCertificateData.getSubjectDN())
+        .param("issuer", someCertificateData.getIssuerDN())
+        .param("continue", resteasy.getBaseUriBuilder().path("/foo/bar").build().toString())));
+
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
+    assertThat(response.getLocation()).isEqualTo(resteasy.getBaseUriBuilder().path("/foo/bar").build());
+
+    verify(clientCertificateRepository, never()).saveClientCertificate(any(ClientCertificate.class));
+  }
+
   @Test public void testAddCurrent_noCert() {
     when(clientCertificateRepository.getClientCertificatesForClient(ClientType.USER, someUserAccount.getId())).thenReturn(ImmutableList.<ClientCertificate>of());
 
@@ -179,6 +260,26 @@ public class UserCertificatesPageTest {
         .param("issuer", someCertificateData.getIssuerDN())));
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
+
+    verify(clientCertificateRepository, never()).saveClientCertificate(any(ClientCertificate.class));
+  }
+
+  @Test public void testAddCurrent_noCert_withContinueUrl() {
+    when(clientCertificateRepository.getClientCertificatesForClient(ClientType.USER, someUserAccount.getId())).thenReturn(ImmutableList.<ClientCertificate>of());
+
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(someSidToken));
+
+    Response response = resteasy.getClient().target(
+        resteasy.getBaseUriBuilder()
+            .path(UserCertificatesPage.class)
+            .path(UserCertificatesPage.class, "addCurrent")
+    ).request().post(Entity.form(new Form()
+        .param("subject", someCertificateData.getSubjectDN())
+        .param("issuer", someCertificateData.getIssuerDN())
+        .param("continue", resteasy.getBaseUriBuilder().path("/foo/bar").build().toString())));
+
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
+    assertThat(response.getLocation()).isEqualTo(resteasy.getBaseUriBuilder().path("/foo/bar").build());
 
     verify(clientCertificateRepository, never()).saveClientCertificate(any(ClientCertificate.class));
   }
@@ -203,6 +304,27 @@ public class UserCertificatesPageTest {
   }
 
   @SuppressWarnings("unchecked")
+  @Test public void testAddCurrent_mismatchingCertData_withContinueUrl() {
+    when(clientCertificateHelper.getClientCertificateData(any(MultivaluedMap.class))).thenReturn(someCertificateData);
+
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(someSidToken));
+
+    Response response = resteasy.getClient().target(
+        resteasy.getBaseUriBuilder()
+            .path(UserCertificatesPage.class)
+            .path(UserCertificatesPage.class, "addCurrent")
+    ).request().post(Entity.form(new Form()
+        .param("subject", "other subject")
+        .param("issuer", someCertificateData.getIssuerDN())
+        .param("continue", resteasy.getBaseUriBuilder().path("/foo/bar").build().toString())));
+
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
+    assertThat(response.getLocation()).isEqualTo(resteasy.getBaseUriBuilder().path("/foo/bar").build());
+
+    verify(clientCertificateRepository, never()).saveClientCertificate(any(ClientCertificate.class));
+  }
+
+  @SuppressWarnings("unchecked")
   @Test public void testAddCurrent_certLinkedToOtherAccount() {
     ClientCertificateData otherCertificateData = ImmutableClientCertificateHelper.ClientCertificateData.of("other subject", someCertificateData.getIssuerDN());
     when(clientCertificateHelper.getClientCertificateData(any(MultivaluedMap.class))).thenReturn(otherCertificateData);
@@ -219,6 +341,27 @@ public class UserCertificatesPageTest {
         .param("issuer", otherCertificateData.getIssuerDN())));
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test public void testAddCurrent_certLinkedToOtherAccount_withContinueUrl() {
+    ClientCertificateData otherCertificateData = ImmutableClientCertificateHelper.ClientCertificateData.of("other subject", someCertificateData.getIssuerDN());
+    when(clientCertificateHelper.getClientCertificateData(any(MultivaluedMap.class))).thenReturn(otherCertificateData);
+    when(clientCertificateRepository.saveClientCertificate(any(ClientCertificate.class))).thenReturn(null);
+
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(someSidToken));
+
+    Response response = resteasy.getClient().target(
+        resteasy.getBaseUriBuilder()
+            .path(UserCertificatesPage.class)
+            .path(UserCertificatesPage.class, "addCurrent")
+    ).request().post(Entity.form(new Form()
+        .param("subject", otherCertificateData.getSubjectDN())
+        .param("issuer", otherCertificateData.getIssuerDN())
+        .param("continue", resteasy.getBaseUriBuilder().path("/foo/bar").build().toString())));
+
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
+    assertThat(response.getLocation()).isEqualTo(resteasy.getBaseUriBuilder().path("/foo/bar").build());
   }
 
   @Test public void testRemove() {

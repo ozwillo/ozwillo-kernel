@@ -17,6 +17,8 @@
  */
 package oasis.web.authn;
 
+import java.net.URI;
+
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -30,6 +32,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
 
 import com.google.common.base.Functions;
 import com.google.template.soy.data.SoyListData;
@@ -70,25 +73,35 @@ public class UserCertificatesPage {
   @StrictReferer
   @Path("/add")
   public Response addCurrent(
+      @Context UriInfo uriInfo,
       @FormParam("subject") String subject,
-      @FormParam("issuer") String issuer
+      @FormParam("issuer") String issuer,
+      @FormParam("continue") @Nullable URI continueUrl
   ) {
+    if (continueUrl != null) {
+      continueUrl = uriInfo.getBaseUri().relativize(continueUrl);
+      if (continueUrl.isAbsolute() || continueUrl.isOpaque()) {
+        // continueUrl must have been absolute (or opaque) already; reject (ignore) it.
+        continueUrl = null;
+      }
+    }
+
     SidToken sidToken = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken();
 
     ClientCertificateData clientCertificateData = clientCertificateHelper.getClientCertificateData(headers.getRequestHeaders());
     if (clientCertificateData == null) {
       // No certificate, we shouldn't have received that request (unless the certificate was removed between page loads)
-      return form(true, sidToken.getAccountId(), null);
+      return redirectOrErrorForm(continueUrl, sidToken.getAccountId(), null);
     }
     if (!clientCertificateData.getSubjectDN().equals(subject) ||
         !clientCertificateData.getIssuerDN().equals(issuer)) {
       // Bad certificate (must have been swapped between page loads, or form data being tampered)
-      return form(true, sidToken.getAccountId(), clientCertificateData);
+      return redirectOrErrorForm(continueUrl, sidToken.getAccountId(), clientCertificateData);
     }
 
     if (sidToken.isUsingClientCertificate()) {
       // Certificate already registered with the account
-      return Response.seeOther(UriBuilder.fromResource(UserCertificatesPage.class).path(UserCertificatesPage.class, "get").build()).build();
+      return redirect(continueUrl);
     }
 
     ClientCertificate clientCertificate = new ClientCertificate();
@@ -98,10 +111,23 @@ public class UserCertificatesPage {
     clientCertificate.setClient_id(sidToken.getAccountId());
     clientCertificate = clientCertificateRepository.saveClientCertificate(clientCertificate);
     if (clientCertificate == null) {
-        // Certificate already linked (must be to other account), reject (we shouldn't have received that request)
-        return form(true, sidToken.getAccountId(), clientCertificateData);
+      // Certificate already linked (must be to other account), reject (we shouldn't have received that request)
+      return redirectOrErrorForm(continueUrl, sidToken.getAccountId(), clientCertificateData);
     }
-    return Response.seeOther(UriBuilder.fromResource(UserCertificatesPage.class).path(UserCertificatesPage.class, "get").build()).build();
+    return redirect(continueUrl);
+  }
+
+  private Response redirect(@Nullable URI continueUrl) {
+    return Response.seeOther(continueUrl != null
+        ? continueUrl
+        : UriBuilder.fromResource(UserCertificatesPage.class).path(UserCertificatesPage.class, "get").build()
+    ).build();
+  }
+
+  private Response redirectOrErrorForm(@Nullable URI continueUrl, String accountId, @Nullable ClientCertificateData clientCertificateData) {
+    return continueUrl != null
+        ? Response.seeOther(continueUrl).build()
+        : form(true, accountId, clientCertificateData);
   }
 
   @POST

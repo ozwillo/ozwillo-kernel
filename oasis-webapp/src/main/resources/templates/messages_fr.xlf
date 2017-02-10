@@ -256,6 +256,11 @@
         <target>Entrez à nouveau votre mot de passe</target>
         <note priority="1" from="description">re-auth page heading</note>
       </trans-unit>
+      <trans-unit id="3705045508232025597" datatype="html">
+        <source>This certificate is not linked to your account. You can add it to start using it now.</source>
+        <target>Ce certificat n'est pas associé à votre compte. Vous pouvez l'ajouter maintenant pour commencer à l'utiliser.</target>
+        <note priority="1" from="description">User certificate is not linked to account</note>
+      </trans-unit>
       <trans-unit id="3797778920049399855" datatype="html">
         <source>Logout</source>
         <target>Déconnexion</target>
@@ -405,6 +410,11 @@
         <source>Activate your Ozwillo account</source>
         <target>Activez votre compte Ozwillo</target>
         <note priority="1" from="description">Sign-up email subject</note>
+      </trans-unit>
+      <trans-unit id="6759710765038190526" datatype="html">
+        <source>This certificate is linked to another account. Insert another one and refresh the page to take it into account.</source>
+        <target>Ce certificate est associé à un autre utilisateur. Insérez un autre certificat et rafraîchissez la page pour le prendre en compte.</target>
+        <note priority="1" from="description">User certificate is linked to another account (error message)</note>
       </trans-unit>
       <trans-unit id="6773310109171539191" datatype="html">
         <source>This link has expired. Try again below.</source>
@@ -565,11 +575,6 @@
         <source><x id="REQUESTER_NAME_BOLD"/> has invited you to join the <x id="ORGANIZATION_NAME_BOLD"/> organization.</source>
         <target><x id="REQUESTER_NAME_BOLD"/> vous invite à rejoindre l'organization <x id="ORGANIZATION_NAME_BOLD"/>.</target>
         <note priority="1" from="description">membership invitation description</note>
-      </trans-unit>
-      <trans-unit id="9045441642750549176" datatype="html">
-        <source>Your current certificate is linked to another account.</source>
-        <target>Votre certificat actuel est associé à un autre utilisateur.</target>
-        <note priority="1" from="description">User certificate is linked to another account (error message)</note>
       </trans-unit>
       <trans-unit id="9118307257372703426" datatype="html">
         <source>Choose your new password</source>

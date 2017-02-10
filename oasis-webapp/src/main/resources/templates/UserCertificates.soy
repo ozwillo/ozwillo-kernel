@@ -69,6 +69,13 @@ a.portal {
       {call .currentCertificate data="$currentCert"}
         {param addFormAction: $addFormAction /}
       {/call}
+      {if $currentCert.linkedToOtherAccount}
+        <p style="text-align: center; font-size: smaller;">
+          {msg desc="User certificate is linked to another account (error message)"}
+            This certificate is linked to another user account.
+          {/msg}
+        </p>
+      {/if}
     {else}
       <p style="text-align: center">{msg desc="Not current using a certificate"}
         You're not currently using a certificate.
@@ -110,6 +117,8 @@ a.portal {
 
 /**
  * Display the current certificate.
+ *
+ * Note that this template is also called from Authorize.soy.
  */
 {template .currentCertificate private="true"}
 {@param? id:                   string} /** certificate's id. Missing if already registered. */
@@ -117,6 +126,7 @@ a.portal {
 {@param  issuer:               string} /** certificate's issuer DN. */
 {@param? linkedToOtherAccount: bool}   /** whether the certificate is linked to another account. In this case, 'id' is irrelevant. */
 {@param  addFormAction:        string} /** URL to post the add form to. */
+{@param? continueUrl:          string} /** URL to continue to after the add form is posted. */
 
   {call .userCertificate}
     {param subject: $subject /}
@@ -127,6 +137,9 @@ a.portal {
           <input type=hidden name=_utf8 value="&#9731;">
           <input type=hidden name=subject value="{$subject}">
           <input type=hidden name=issuer value="{$issuer}">
+          {if $continueUrl}
+            <input type=hidden name=continue value="{$continueUrl}">
+          {/if}
           <button type=submit>{msg desc="Registers the current certificate with the account"}
             Add
           {/msg}</button>
@@ -134,13 +147,6 @@ a.portal {
       {/if}
     {/param}
   {/call}
-  {if $linkedToOtherAccount}
-    <p style="text-align: center; font-size: smaller;">
-      {msg desc="User certificate is linked to another account (error message)"}
-        This certificate is linked to another user account.
-      {/msg}
-    </p>
-  {/if}
 {/template}
 
 /**
