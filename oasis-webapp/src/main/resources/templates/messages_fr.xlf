@@ -456,6 +456,11 @@
         <target><x id="START_PARAGRAPH"/>Vous (ou quelqu'un d'autre) avez saisi cette adresse email dans une demande de changement de mot de passe d'un compte Ozwillo.<x id="START_PARAGRAPH"/>Pour modifier votre mot de passe, cliquez sur le lien suivant :<x id="START_PARAGRAPH"/><x id="START_LINK"/><x id="RESET_PASSWORD_LINK"/><x id="END_LINK"/><x id="START_PARAGRAPH"/>L'équipe d'Ozwillo</target>
         <note priority="1" from="description">Forgot-password email body, for an existing account</note>
       </trans-unit>
+      <trans-unit id="7603232694942911189" datatype="html">
+        <source>Continue without certificate</source>
+        <target>Continuer sans certificat</target>
+        <note priority="1" from="description">Button to continue without client certificate</note>
+      </trans-unit>
       <trans-unit id="7603459055013836218" datatype="html">
         <source>Incorrect password.</source>
         <target>Mot de passe erroné.</target>
@@ -485,6 +490,11 @@
         <source>Certificates for <x id="EMAIL"/></source>
         <target>Certificats pour <x id="EMAIL"/></target>
         <note priority="1" from="description">Certificates for user (heading)</note>
+      </trans-unit>
+      <trans-unit id="7996570645474792441" datatype="html">
+        <source><x id="APP_NAME"/> asks for stronger authentication</source>
+        <target><x id="APP_NAME"/> demande une authentification forte</target>
+        <note priority="1" from="description">Some app asks for stronger authentication (client certificate)</note>
       </trans-unit>
       <trans-unit id="8083850607833732083" datatype="html">
         <source>Authorize <x id="APP_NAME"/></source>

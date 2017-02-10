@@ -61,9 +61,11 @@ a { color: #6f438e; }
   {/msg}</h1>
 
   {if $askForClientCertificate}
-    {call .askForClientCertificate data="$askForClientCertificate"}
-      {param appName: $appName /}
-    {/call}
+    <div style="background: #f0ad4e; color: white; border-radius: 10px; padding: .5em; margin: 2.5em auto; max-width: 500px">
+      {call .askForClientCertificatePartial data="$askForClientCertificate"}
+        {param appName: $appName /}
+      {/call}
+    </div>
   {/if}
 
   <form method="POST" action="{$formAction}">
@@ -138,36 +140,103 @@ a { color: #6f438e; }
 /**
  * Asks for a client certificate.
  */
-{template .askForClientCertificate private="true"}
+{template .askForClientCertificate}
+{@param  appId:                   string} /** application ID. */
+{@param  appName:                 string} /** application name. */
+{@param  formAction:              string} /** URL to post the form to. */
+{@param  cancelUrl:               string} /** URL to go to when cancelling. */
+{@param  scopes:                  list<string>} /** list of requested (and thus required) scope IDs. */
+{@param  redirect_uri:            string} /** 'redirect_uri' request parameter */
+{@param? state:                   string} /** 'state' request parameter */
+{@param? nonce:                   string} /** 'nonce' request parameter */
+{@param? code_challenge:          string} /** 'code_challenge' request parameter */
+{@param  askForClientCertificate: [manageCertificatesUrl: string, hasRegisteredCertificate: bool, linkedToOtherAccount: bool]}
+
+{call .header}
+  {param title kind="text"}{msg desc="Authorization page title"}Authorize {$appName}{/msg}{/param}
+{/call}
+<style>{literal}
+h1 { font-weight: lighter; font-size: 1.8em; text-align: center; }
+button, a.cancel {
+  margin: 5px 1em;
+  padding: .5em 2em;
+  border: 1px solid #4c2d62;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+button, a.cancel {
+  background: white; color: #6f438e;
+}
+a { color: #6f438e; }
+{/literal}</style>
+  <h1>{msg desc="Some app asks for stronger authentication (client certificate)"}
+    {$appName} asks for stronger authentication
+  {/msg}</h1>
+
+  {call .askForClientCertificatePartial data="$askForClientCertificate"}
+    {param appName: $appName /}
+  {/call}
+
+  <form method="POST" action="{$formAction}">
+    <input type="hidden" name="_utf8" value="&#9731;">
+    <input type="hidden" name="client_id" value="{$appId}">
+    {foreach $scope in $scopes}
+      <input type="hidden" name="scope" value="{$scope}">
+    {/foreach}
+    <input type="hidden" name="redirect_uri" value="{$redirect_uri}">
+    {if $state}
+      <input type="hidden" name="state" value="{$state}">
+    {/if}
+    {if $nonce}
+      <input type="hidden" name="nonce" value="{$nonce}">
+    {/if}
+    {if $code_challenge}
+      <input type="hidden" name="code_challenge" value="{$code_challenge}">
+    {/if}
+    <div style="text-align: center">
+      <button type="submit">
+        {msg desc="Button to continue without client certificate"}Continue without certificate{/msg}
+      </button>
+      <a href="{$cancelUrl}" class=cancel>
+        {msg desc="Button to cancel (and return error to the app)"}Cancel{/msg}
+      </a>
+    </div>
+  </form>
+{call .footer /}
+{/template}
+
+/**
+ * Asks for a client certificate (partial shared between standalone page and 'authorize' page).
+ */
+{template .askForClientCertificatePartial private="true"}
   {@param appName:                  string} /** application name. */
   {@param manageCertificatesUrl:    string} /** URL to manage user's certificates. */
   {@param hasRegisteredCertificate: bool}   /** Whether the user has registered certificate(s) */
   {@param linkedToOtherAccount:     bool}   /** True if a certificate is presented and is linked to another account. */
 
-  <div style="background: #f0ad4e; color: white; border-radius: 10px; padding: .5em; margin: 2.5em auto; max-width: 500px">
-    <p>{msg desc="App asks for authentication using client certificate"}
-      {$appName} asks that you authenticate using a certificate.
+  <p>{msg desc="App asks for authentication using client certificate"}
+    {$appName} asks that you authenticate using a certificate.
+  {/msg}</p>
+  {if $hasRegisteredCertificate}
+    <p>{msg desc="Ask user to present client certificate"}
+      Please insert your certificate and refresh the page to take it into account.
     {/msg}</p>
-    {if $hasRegisteredCertificate}
-      <p>{msg desc="Ask user to present client certificate"}
-        Please insert your certificate and refresh the page to take it into account.
-      {/msg}</p>
-    {/if}
-    {if $linkedToOtherAccount}
-      <p>{msg desc="User certificate is linked to another account (error message)"}
-        Your current certificate is linked to another account.
-      {/msg}</p>
-    {/if}
-    <p>{msg desc="Link to manage user's certificates"}
-      You can manage your certificates <a href="{$manageCertificatesUrl}" target=_blank>here</a>,
-      then refresh this page to take your certificate into account.
+  {/if}
+  {if $linkedToOtherAccount}
+    <p>{msg desc="User certificate is linked to another account (error message)"}
+      Your current certificate is linked to another account.
     {/msg}</p>
-    <p>{msg desc="Authorization can continue without certificate (voluntary claim)"}
-      Note that you can continue without presenting a certificate.
-      {sp}
-      {$appName} will be informed so it could adapt its behavior accordingly.
-    {/msg}</p>
-  </div>
+  {/if}
+  <p>{msg desc="Link to manage user's certificates"}
+    You can manage your certificates <a href="{$manageCertificatesUrl}" target=_blank>here</a>,
+    then refresh this page to take your certificate into account.
+  {/msg}</p>
+  <p>{msg desc="Authorization can continue without certificate (voluntary claim)"}
+    Note that you can continue without presenting a certificate.
+    {sp}
+    {$appName} will be informed so it could adapt its behavior accordingly.
+  {/msg}</p>
 {/template}
 
 /**
