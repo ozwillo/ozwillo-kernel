@@ -131,7 +131,7 @@ public class OrganizationMembershipEndpoint {
                 OrgMembership membership = new OrgMembership();
                 membership.id = input.getId();
                 membership.membership_uri = uriInfo.getBaseUriBuilder().path(MembershipEndpoint.class).build(input.getId()).toString();
-                membership.membership_etag = etagService.getEtag(input);
+                membership.membership_etag = etagService.getEtag(input).toString();
                 membership.account_id = input.getAccountId();
                 // TODO: check access rights to the user name
                 final UserAccount account = accountRepository.getUserAccountById(input.getAccountId());

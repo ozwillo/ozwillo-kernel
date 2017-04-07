@@ -17,6 +17,8 @@
  */
 package oasis.web.userdirectory;
 
+import java.util.List;
+
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -26,6 +28,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -83,7 +86,7 @@ public class UserEndpoint {
   @PUT
   @WithScopes(Scopes.PORTAL)
   public Response replace(
-      @HeaderParam(HttpHeaders.IF_MATCH) String ifMatch,
+      @HeaderParam(HttpHeaders.IF_MATCH) List<EntityTag> ifMatch,
       UserAccount account
   ) {
     if (!user_id.equals(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId())) {
@@ -95,7 +98,7 @@ public class UserEndpoint {
     }
     account.setId(user_id);
 
-    if (Strings.isNullOrEmpty(ifMatch)) {
+    if (ifMatch == null || ifMatch.isEmpty()) {
       return ResponseFactory.preconditionRequiredIfMatch();
     }
 

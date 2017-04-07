@@ -17,6 +17,8 @@
  */
 package oasis.web.applications;
 
+import java.util.List;
+
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -28,12 +30,12 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
-import com.google.common.base.Strings;
 import com.mongodb.DuplicateKeyException;
 
 import oasis.model.InvalidVersionException;
@@ -110,10 +112,10 @@ public class ServiceEndpoint {
   @Authenticated
   @WithScopes(Scopes.PORTAL)
   public Response update(
-      @HeaderParam(HttpHeaders.IF_MATCH) String ifMatch,
+      @HeaderParam(HttpHeaders.IF_MATCH) List<EntityTag> ifMatch,
       Service service
   ) {
-    if (Strings.isNullOrEmpty(ifMatch)) {
+    if (ifMatch == null || ifMatch.isEmpty()) {
       return ResponseFactory.preconditionRequiredIfMatch();
     }
     if (service.getId() != null && !service.getId().equals(serviceId)) {
@@ -157,9 +159,9 @@ public class ServiceEndpoint {
   @Authenticated
   @WithScopes(Scopes.PORTAL)
   public Response delete(
-      @HeaderParam(HttpHeaders.IF_MATCH) String ifMatch
+      @HeaderParam(HttpHeaders.IF_MATCH) List<EntityTag> ifMatch
   ) {
-    if (Strings.isNullOrEmpty(ifMatch)) {
+    if (ifMatch == null || ifMatch.isEmpty()) {
       return ResponseFactory.preconditionRequiredIfMatch();
     }
 

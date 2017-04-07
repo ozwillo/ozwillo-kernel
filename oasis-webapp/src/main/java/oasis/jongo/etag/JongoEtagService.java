@@ -20,11 +20,12 @@ package oasis.jongo.etag;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.ws.rs.core.EntityTag;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 import com.google.common.primitives.Longs;
 
 import oasis.services.etag.EtagService;
@@ -40,24 +41,24 @@ public class JongoEtagService implements EtagService {
   }
 
   @Override
-  public String getEtag(Object o) {
+  public EntityTag getEtag(Object o) {
     Preconditions.checkArgument(o instanceof HasModified);
-    return Long.toString(((HasModified) o).getModified());
+    return new EntityTag(Long.toString(((HasModified) o).getModified()));
   }
 
   @Override
-  public long[] parseEtag(String etagStr) {
+  public long[] parseEtag(List<EntityTag> ifMatch) {
 
-    if (Strings.isNullOrEmpty(etagStr)) {
+    if (ifMatch == null || ifMatch.isEmpty()) {
       return new long[0];
     }
 
     List<Long> etags = new ArrayList<>();
-    for (String etag : etagStr.split(",")) {
+    for (EntityTag etag : ifMatch) {
       try {
-        etags.add(Long.valueOf(etag));
+        etags.add(Long.valueOf(etag.getValue()));
       } catch (NumberFormatException nfe) {
-        logger.debug("Invalid etag {}", etag, nfe);
+        logger.debug("Invalid etag '{}'", etag, nfe);
       }
     }
 

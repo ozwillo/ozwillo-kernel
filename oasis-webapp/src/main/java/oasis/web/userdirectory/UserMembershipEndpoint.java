@@ -77,7 +77,7 @@ public class UserMembershipEndpoint {
                 UserMembership membership = new UserMembership();
                 membership.id = input.getId();
                 membership.membership_uri = uriInfo.getBaseUriBuilder().path(MembershipEndpoint.class).build(input.getId()).toString();
-                membership.membership_etag = etagService.getEtag(input);
+                membership.membership_etag = etagService.getEtag(input).toString();
                 membership.organization_id = input.getOrganizationId();
                 final Organization organization = directoryRepository.getOrganization(input.getOrganizationId());
                 membership.organization_name = organization == null ? null : organization.getName();

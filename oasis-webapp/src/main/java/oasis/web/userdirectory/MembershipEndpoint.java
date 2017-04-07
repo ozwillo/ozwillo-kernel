@@ -19,6 +19,8 @@ package oasis.web.userdirectory;
 
 import static oasis.soy.templates.DeletedOrganizationMembershipSoyInfo.DeletedMembershipMessageSoyTemplateInfo;
 
+import java.util.List;
+
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -29,6 +31,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -40,7 +43,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Strings;
 import com.google.template.soy.data.SanitizedContent;
 import com.google.template.soy.data.SoyMapData;
 import com.ibm.icu.util.ULocale;
@@ -105,8 +107,8 @@ public class MembershipEndpoint {
   }
 
   @DELETE
-  public Response delete(@HeaderParam(HttpHeaders.IF_MATCH) String ifMatch) {
-    if (Strings.isNullOrEmpty(ifMatch)) {
+  public Response delete(@HeaderParam(HttpHeaders.IF_MATCH) List<EntityTag> ifMatch) {
+    if (ifMatch == null || ifMatch.isEmpty()) {
       ResponseFactory.preconditionRequiredIfMatch();
     }
 
@@ -145,9 +147,9 @@ public class MembershipEndpoint {
 
   @PUT
   public Response put(
-      @HeaderParam(HttpHeaders.IF_MATCH) String ifMatch,
+      @HeaderParam(HttpHeaders.IF_MATCH) List<EntityTag> ifMatch,
       MembershipRequest request) {
-    if (Strings.isNullOrEmpty(ifMatch)) {
+    if (ifMatch == null || ifMatch.isEmpty()) {
       ResponseFactory.preconditionRequiredIfMatch();
     }
 

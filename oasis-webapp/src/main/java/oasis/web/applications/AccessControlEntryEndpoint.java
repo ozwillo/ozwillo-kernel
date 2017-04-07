@@ -17,6 +17,8 @@
  */
 package oasis.web.applications;
 
+import java.util.List;
+
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -26,13 +28,13 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Strings;
 
 import oasis.model.InvalidVersionException;
 import oasis.model.applications.v2.AccessControlEntry;
@@ -101,8 +103,8 @@ public class AccessControlEntryEndpoint {
 
   @DELETE
   @WithScopes(Scopes.PORTAL)
-  public Response revoke(@HeaderParam(HttpHeaders.IF_MATCH) String ifMatch) {
-    if (Strings.isNullOrEmpty(ifMatch)) {
+  public Response revoke(@HeaderParam(HttpHeaders.IF_MATCH) List<EntityTag> ifMatch) {
+    if (ifMatch == null || ifMatch.isEmpty()) {
       return ResponseFactory.preconditionRequiredIfMatch();
     }
 

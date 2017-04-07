@@ -88,7 +88,7 @@ public class AppInstancePendingAccessControlEndpoint {
                     .path(PendingAccessControlEntryEndpoint.class)
                     .build(accessControlEntry.getId())
                     .toString();
-                ace.pending_entry_etag = etagService.getEtag(accessControlEntry);
+                ace.pending_entry_etag = etagService.getEtag(accessControlEntry).toString();
                 ace.email = accessControlEntry.getEmail();
                 ace.created = accessControlEntry.getCreated();
                 return ace;

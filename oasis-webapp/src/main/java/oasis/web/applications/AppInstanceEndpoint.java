@@ -18,6 +18,7 @@
 package oasis.web.applications;
 
 import java.net.URI;
+import java.util.List;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -31,6 +32,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -187,10 +189,10 @@ public class AppInstanceEndpoint {
   @POST
   @WithScopes(Scopes.PORTAL)
   public Response changeStatus(
-      @HeaderParam(HttpHeaders.IF_MATCH) String ifMatch,
+      @HeaderParam(HttpHeaders.IF_MATCH) List<EntityTag> ifMatch,
       ModifyStatusRequest request
   ) {
-    if (Strings.isNullOrEmpty(ifMatch)) {
+    if (ifMatch == null || ifMatch.isEmpty()) {
       return ResponseFactory.preconditionRequiredIfMatch();
     }
 
@@ -240,9 +242,9 @@ public class AppInstanceEndpoint {
   @DELETE
   @WithScopes(Scopes.PORTAL)
   public Response deleteInstance(
-      @HeaderParam(HttpHeaders.IF_MATCH) String ifMatch
+      @HeaderParam(HttpHeaders.IF_MATCH) List<EntityTag> ifMatch
   ) {
-    if (Strings.isNullOrEmpty(ifMatch)) {
+    if (ifMatch == null || ifMatch.isEmpty()) {
       return ResponseFactory.preconditionRequiredIfMatch();
     }
 

@@ -82,7 +82,7 @@ public class OrganizationPendingMembershipEndpoint {
                     .path(PendingMembershipEndpoint.class)
                     .build(organizationMembership.getId())
                     .toString();
-                membership.pending_membership_etag = etagService.getEtag(organizationMembership);
+                membership.pending_membership_etag = etagService.getEtag(organizationMembership).toString();
                 membership.email = organizationMembership.getEmail();
                 membership.admin = organizationMembership.isAdmin();
                 return membership;

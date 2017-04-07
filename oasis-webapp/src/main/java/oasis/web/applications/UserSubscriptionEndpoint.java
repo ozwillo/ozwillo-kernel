@@ -90,7 +90,7 @@ public class UserSubscriptionEndpoint {
                 UserSub sub = new UserSub();
                 sub.id = input.getId();
                 sub.subscription_uri = uriInfo.getBaseUriBuilder().path(SubscriptionEndpoint.class).build(input.getId()).toString();
-                sub.subscription_etag = etagService.getEtag(input);
+                sub.subscription_etag = etagService.getEtag(input).toString();
                 sub.service_id = input.getService_id();
                 final Service service = serviceRepository.getService(input.getService_id());
                 sub.service_name = service == null ? null : service.getName();

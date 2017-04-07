@@ -129,7 +129,7 @@ public class AppInstanceAccessControlEndpoint {
       // Note: the *_name fields will be filled later
       ace.id = input.getId();
       ace.entry_uri = uriInfo.getBaseUriBuilder().path(AccessControlEntryEndpoint.class).build(input.getId()).toString();
-      ace.entry_etag = etagService.getEtag(input);
+      ace.entry_etag = etagService.getEtag(input).toString();
       ace.instance_id = input.getInstance_id();
       ace.user_id = input.getUser_id();
       ace.app_user = true;

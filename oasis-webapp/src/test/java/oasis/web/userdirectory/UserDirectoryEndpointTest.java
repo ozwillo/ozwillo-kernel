@@ -22,6 +22,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
@@ -70,7 +71,7 @@ public class UserDirectoryEndpointTest {
         return organization;
       }
     });
-    when(etagService.getEtag(any())).thenReturn("etag");
+    when(etagService.getEtag(any())).thenReturn(new EntityTag("etag"));
     resteasy.getDeployment().getProviderFactory().register(new TestOAuthFilter(new AccessToken() {{
       setAccountId("user");
     }}));

@@ -115,7 +115,7 @@ public class ServiceSubscriptionEndpoint {
                 ServiceSub sub = new ServiceSub();
                 sub.id = input.getId();
                 sub.subscription_uri = uriInfo.getBaseUriBuilder().path(SubscriptionEndpoint.class).build(input.getId()).toString();
-                sub.subscription_etag = etagService.getEtag(input);
+                sub.subscription_etag = etagService.getEtag(input).toString();
                 sub.user_id = input.getUser_id();
                 final UserAccount user = accountRepository.getUserAccountById(input.getUser_id());
                 sub.user_name = user == null ? null : user.getDisplayName();

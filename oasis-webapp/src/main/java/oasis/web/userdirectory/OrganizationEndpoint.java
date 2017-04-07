@@ -18,6 +18,7 @@
 package oasis.web.userdirectory;
 
 import java.net.URI;
+import java.util.List;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -29,13 +30,13 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Strings;
 
 import oasis.model.DuplicateKeyException;
 import oasis.model.InvalidVersionException;
@@ -84,10 +85,10 @@ public class OrganizationEndpoint {
   @WithScopes(Scopes.PORTAL)
   public Response updateOrganization(
       @Context UriInfo uriInfo,
-      @HeaderParam("If-Match") String etagStr,
+      @HeaderParam("If-Match") List<EntityTag> ifMatch,
       Organization organization) {
 
-    if (Strings.isNullOrEmpty(etagStr)) {
+    if (ifMatch == null || ifMatch.isEmpty()) {
       return ResponseFactory.preconditionRequiredIfMatch();
     }
 
@@ -97,7 +98,7 @@ public class OrganizationEndpoint {
 
     Organization updatedOrganization;
     try {
-      updatedOrganization = directory.updateOrganization(organizationId, organization, etagService.parseEtag(etagStr));
+      updatedOrganization = directory.updateOrganization(organizationId, organization, etagService.parseEtag(ifMatch));
     } catch (DuplicateKeyException e) {
       return Response.status(Response.Status.CONFLICT).build();
     } catch (InvalidVersionException e) {
@@ -122,10 +123,10 @@ public class OrganizationEndpoint {
   @Authenticated @OAuth
   @WithScopes(Scopes.PORTAL)
   public Response changeOrganizationStatus(
-      @HeaderParam("If-Match") String etagStr,
+      @HeaderParam("If-Match") List<EntityTag> ifMatch,
       ChangeOrganizationStatusRequest request
   ) {
-    if (Strings.isNullOrEmpty(etagStr)) {
+    if (ifMatch == null || ifMatch.isEmpty()) {
       return ResponseFactory.preconditionRequiredIfMatch();
     }
 
@@ -147,7 +148,7 @@ public class OrganizationEndpoint {
         .organization(organization)
         .requesterId(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId())
         .newStatus(request.status)
-        .ifMatch(etagService.parseEtag(etagStr))
+        .ifMatch(etagService.parseEtag(ifMatch))
         .build();
     ChangeOrganizationStatus.Response changeOrganizationStatusResponse = changeOrganizationStatus.updateStatus(changeOrganizationStatusRequest);
 

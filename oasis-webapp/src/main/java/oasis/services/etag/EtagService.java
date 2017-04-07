@@ -17,11 +17,15 @@
  */
 package oasis.services.etag;
 
+import java.util.List;
+
+import javax.ws.rs.core.EntityTag;
+
 public interface EtagService {
 
   boolean hasEtag(Object o, long[] versions);
 
-  String getEtag(Object o);
+  EntityTag getEtag(Object o);
 
-  long[] parseEtag(String etagStr);
+  long[] parseEtag(List<EntityTag> ifMatch);
 }

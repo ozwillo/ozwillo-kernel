@@ -17,6 +17,8 @@
  */
 package oasis.web.userdirectory;
 
+import java.util.List;
+
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -25,12 +27,11 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-
-import com.google.common.base.Strings;
 
 import oasis.model.InvalidVersionException;
 import oasis.model.authn.TokenRepository;
@@ -56,8 +57,8 @@ public class PendingMembershipEndpoint {
   @Context SecurityContext securityContext;
 
   @DELETE
-  public Response deletePendingMembership(@HeaderParam(HttpHeaders.IF_MATCH) String ifMatch) {
-    if (Strings.isNullOrEmpty(ifMatch)) {
+  public Response deletePendingMembership(@HeaderParam(HttpHeaders.IF_MATCH) List<EntityTag> ifMatch) {
+    if (ifMatch == null || ifMatch.isEmpty()) {
       return ResponseFactory.preconditionRequiredIfMatch();
     }
 

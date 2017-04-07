@@ -18,6 +18,7 @@
 package oasis.web.eventbus;
 
 import java.net.URI;
+import java.util.List;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -29,6 +30,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.InvocationCallback;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
@@ -166,10 +168,10 @@ public class EventBusEndpoint {
   @Consumes(MediaType.APPLICATION_JSON)
   public Response unsubscribe(
       @Context Request request,
-      @HeaderParam("If-Match") String etagStr,
+      @HeaderParam("If-Match") List<EntityTag> ifMatch,
       @PathParam("subscriptionId") String subscriptionId
   ) {
-    if (Strings.isNullOrEmpty(etagStr)) {
+    if (ifMatch == null || ifMatch.isEmpty()) {
       return ResponseFactory.preconditionRequiredIfMatch();
     }
 
@@ -183,7 +185,7 @@ public class EventBusEndpoint {
 
     boolean deleted;
     try {
-      deleted = subscriptionRepository.deleteSubscription(subscriptionId, etagService.parseEtag(etagStr));
+      deleted = subscriptionRepository.deleteSubscription(subscriptionId, etagService.parseEtag(ifMatch));
     } catch (InvalidVersionException e) {
       return ResponseFactory.preconditionFailed(e.getMessage());
     }
