@@ -121,7 +121,7 @@ a.portal {
  * Note that this template is also called from Authorize.soy.
  */
 {template .currentCertificate private="true"}
-{@param? id:                   string} /** certificate's id. Missing if already registered. */
+{@param? id:                   string} /** certificate's id. Missing if not already registered. */
 {@param  subject:              string} /** certificate's subject DN. */
 {@param  issuer:               string} /** certificate's issuer DN. */
 {@param? linkedToOtherAccount: bool}   /** whether the certificate is linked to another account. In this case, 'id' is irrelevant. */
