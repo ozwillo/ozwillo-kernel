@@ -49,6 +49,7 @@ import oasis.web.utils.UserAgentFingerprinter;
 public class UserFilter implements ContainerRequestFilter, ContainerResponseFilter {
 
   private static final String SID_PROP = UserFilter.class.getName() + ".sidToken";
+  private static final String NEED_REFRESH_BROWSER_STATE_PROP = UserFilter.class.getName() + ".needRefreshBrowserState";
 
   static final String COOKIE_NAME = "SID";
 
@@ -81,6 +82,9 @@ public class UserFilter implements ContainerRequestFilter, ContainerResponseFilt
     }
 
     final boolean usingClientCertificate = hasClientCertificate(requestContext, sidToken.getAccountId());
+
+    requestContext.setProperty(NEED_REFRESH_BROWSER_STATE_PROP,
+        sidToken.isUsingClientCertificate() != usingClientCertificate);
 
     // Renew the token each time the user tries to access a resource
     sidToken = tokenRepository.renewSidToken(sidToken.getId(), usingClientCertificate);
@@ -121,7 +125,7 @@ public class UserFilter implements ContainerRequestFilter, ContainerResponseFilt
     final String cookieName = CookieFactory.getCookieName(COOKIE_NAME, requestContext.getSecurityContext().isSecure());
     final Map<String, Cookie> requestCookies = requestContext.getCookies();
     final Map<String, NewCookie> responseCookies = responseContext.getCookies();
-    boolean needRefreshBrowserState = false;
+    boolean needRefreshBrowserState = Boolean.TRUE.equals(requestContext.getProperty(NEED_REFRESH_BROWSER_STATE_PROP));
     // XXX: do not use the SecurityContext as another filter might have replaced it
     if (requestContext.getProperty(SID_PROP) == null &&
         requestCookies.containsKey(cookieName) &&

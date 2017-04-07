@@ -115,8 +115,9 @@ public class UserFilterTest {
 
   @Inject UserAgentFingerprinter fingerprinter;
   @Inject TokenRepository tokenRepository;
+  @Inject SessionManagementHelper sessionManagementHelper;
 
-  @Before public void setUpMocks(TokenHandler tokenHandler, SessionManagementHelper sessionManagementHelper) {
+  @Before public void setUpMocks(TokenHandler tokenHandler) {
     when(tokenHandler.getCheckedToken("valid", SidToken.class)).thenReturn(validSidToken);
     when(tokenHandler.getCheckedToken("validUsingCertificate", SidToken.class)).thenReturn(validSidTokenUsingCertificate);
     when(tokenHandler.getCheckedToken("invalid", SidToken.class)).thenReturn(null);
@@ -127,7 +128,7 @@ public class UserFilterTest {
     when(sessionManagementHelper.generateBrowserState()).thenReturn("browser-state");
   }
 
-  @After public void verifyMocks(SessionManagementHelper sessionManagementHelper) {
+  @After public void verifyMocks() {
     verify(sessionManagementHelper, never()).computeSessionState(anyString(), anyString(), anyString());
   }
 
@@ -206,15 +207,20 @@ public class UserFilterTest {
 
     Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(DummyResource.class).build()).request()
         .cookie(cookieName, "valid")
-        .cookie(browserStateCookieName, "browser-state")
+        .cookie(browserStateCookieName, "old-browser-state")
         .get();
 
     commonAssertions(response);
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
-    assertThat(response.getCookies()).doesNotContainKeys(cookieName, browserStateCookieName);
+    assertThat(response.getCookies())
+        .doesNotContainKeys(cookieName)
+        .containsKeys(browserStateCookieName);
+    assertThat(response.getCookies().get(browserStateCookieName)).isEqualTo(
+        SessionManagementHelper.createBrowserStateCookie(true, "browser-state"));
     assertThat(response.readEntity(SidToken.class)).isEqualToComparingFieldByField(validSidTokenUsingCertificate);
 
     verify(tokenRepository).renewSidToken(validSidToken.getId(), true);
+    verify(sessionManagementHelper).generateBrowserState();
   }
 
   @SuppressWarnings("unchecked")
@@ -223,15 +229,20 @@ public class UserFilterTest {
 
     Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(DummyResource.class).build()).request()
         .cookie(cookieName, "validUsingCertificate")
-        .cookie(browserStateCookieName, "browser-state")
+        .cookie(browserStateCookieName, "old-browser-state")
         .get();
 
     commonAssertions(response);
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
-    assertThat(response.getCookies()).doesNotContainKeys(cookieName, browserStateCookieName);
+    assertThat(response.getCookies())
+        .doesNotContainKeys(cookieName)
+        .containsKeys(browserStateCookieName);
+    assertThat(response.getCookies().get(browserStateCookieName)).isEqualTo(
+        SessionManagementHelper.createBrowserStateCookie(true, "browser-state"));
     assertThat(response.readEntity(SidToken.class)).isEqualToComparingFieldByField(validSidToken);
 
     verify(tokenRepository).renewSidToken(validSidToken.getId(), false);
+    verify(sessionManagementHelper).generateBrowserState();
   }
 
   @SuppressWarnings("unchecked")
