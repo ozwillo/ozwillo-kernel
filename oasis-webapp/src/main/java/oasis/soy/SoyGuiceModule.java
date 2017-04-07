@@ -38,6 +38,7 @@ public class SoyGuiceModule extends AbstractModule {
 
   @Provides @Singleton SoyTofu provideSoyTofu(SoyFileSet.Builder builder) {
     return builder
+        .setStrictAutoescapingRequired(true)
         .add(getClass().getResource("/templates/Common.soy"))
         .add(getClass().getResource("/templates/Login.soy"))
         .add(getClass().getResource("/templates/Recover.soy"))
