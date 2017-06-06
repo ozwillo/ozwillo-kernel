@@ -36,8 +36,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
-import com.mongodb.DuplicateKeyException;
-
+import oasis.model.DuplicateKeyException;
 import oasis.model.InvalidVersionException;
 import oasis.model.applications.v2.AccessControlRepository;
 import oasis.model.applications.v2.AppInstanceRepository;

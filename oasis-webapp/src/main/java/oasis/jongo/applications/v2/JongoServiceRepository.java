@@ -139,13 +139,17 @@ public class JongoServiceRepository implements ServiceRepository, JongoBootstrap
     if (service.getRestricted() == null) {
       unsetObject.put("restricted", true);
     }
-    service = getServicesCollection()
-        .findAndModify("{ id: #, modified: { $in: # } }", serviceId, Longs.asList(versions))
-        // MongoDB rejects empty modifiers: https://jira.mongodb.org/browse/SERVER-12266
-        .with(unsetObject.isEmpty() ? "{ $set: # }"           : "{ $set: #, $unset: # }",
-              unsetObject.isEmpty() ? new Object[]{ service } : new Object[] { service, unsetObject })
-        .returnNew()
-        .as(JongoService.class);
+    try {
+      service = getServicesCollection()
+          .findAndModify("{ id: #, modified: { $in: # } }", serviceId, Longs.asList(versions))
+          // MongoDB rejects empty modifiers: https://jira.mongodb.org/browse/SERVER-12266
+          .with(unsetObject.isEmpty() ? "{ $set: # }" : "{ $set: #, $unset: # }",
+              unsetObject.isEmpty() ? new Object[]{service} : new Object[]{service, unsetObject})
+          .returnNew()
+          .as(JongoService.class);
+    } catch (DuplicateKeyException e) {
+      throw new oasis.model.DuplicateKeyException();
+    }
     if (service == null) {
       if (getServicesCollection().count("{ id: # }", serviceId) > 0) {
         throw new InvalidVersionException("service", serviceId);
