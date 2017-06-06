@@ -556,6 +556,11 @@
         <target>Autoriser</target>
         <note priority="1" from="description">Button to grant the scopes</note>
       </trans-unit>
+      <trans-unit id="8646197519278144938" datatype="html">
+        <source><x id="REQUESTER_NAME_BOLD"/> has invited you (<x id="INVITED_EMAIL_BOLD"/>) to join the <x id="ORGANIZATION_NAME_BOLD"/> organization.</source>
+        <target><x id="REQUESTER_NAME_BOLD"/> vous invite (<x id="INVITED_EMAIL_BOLD"/>) à rejoindre l'organization <x id="ORGANIZATION_NAME_BOLD"/>.</target>
+        <note priority="1" from="description">membership invitation description</note>
+      </trans-unit>
       <trans-unit id="8656531455531669663" datatype="html">
         <source>Join Us!</source>
         <target>Inscription</target>

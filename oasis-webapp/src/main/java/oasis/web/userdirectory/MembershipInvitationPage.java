@@ -227,7 +227,8 @@ public class MembershipInvitationPage {
                 MembershipInvitationSoyTemplateInfo.ACCEPT_FORM_ACTION, acceptFormAction.toString(),
                 MembershipInvitationSoyTemplateInfo.REFUSE_FORM_ACTION, refuseFormAction.toString(),
                 MembershipInvitationSoyTemplateInfo.ORGANIZATION_NAME, organization.getName(),
-                MembershipInvitationSoyTemplateInfo.REQUESTER_NAME, requester.getDisplayName()
+                MembershipInvitationSoyTemplateInfo.REQUESTER_NAME, requester.getDisplayName(),
+                MembershipInvitationSoyTemplateInfo.INVITED_EMAIL, pendingOrganizationMembership.getEmail()
             )
         ))
         .build();

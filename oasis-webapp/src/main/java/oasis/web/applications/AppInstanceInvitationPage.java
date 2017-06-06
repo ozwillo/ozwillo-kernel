@@ -230,7 +230,8 @@ public class AppInstanceInvitationPage {
                 AppInstanceInvitationSoyTemplateInfo.ACCEPT_FORM_ACTION, acceptFormAction.toString(),
                 AppInstanceInvitationSoyTemplateInfo.REFUSE_FORM_ACTION, refuseFormAction.toString(),
                 AppInstanceInvitationSoyTemplateInfo.APP_INSTANCE_NAME, appInstance.getName().get(locale),
-                AppInstanceInvitationSoyTemplateInfo.REQUESTER_NAME, requester.getDisplayName()
+                AppInstanceInvitationSoyTemplateInfo.REQUESTER_NAME, requester.getDisplayName(),
+                AppInstanceInvitationSoyTemplateInfo.INVITED_EMAIL, pendingAccessControlEntry.getEmail()
             )
         ))
         .build();

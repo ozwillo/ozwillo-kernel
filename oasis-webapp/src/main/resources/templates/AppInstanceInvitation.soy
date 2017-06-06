@@ -23,6 +23,7 @@
 {template .appInstanceInvitation}
 {@param  requesterName:    string} /** Requester name. */
 {@param  appInstanceName:  string} /** App-instance name. */
+{@param  invitedEmail:     string} /** Invited email address. */
 {@param  acceptFormAction: string} /** URL to post the accept form to. */
 {@param  refuseFormAction: string} /** URL to post the refuse form to. */
 
@@ -50,10 +51,13 @@ form {
 {let $requesterNameBold kind="html"}
   <b>{$requesterName}</b>
 {/let}
+{let $invitedEmailBold kind="html"}
+  <b>{$invitedEmail}</b>
+{/let}
 {let $appInstanceNameBold kind="html"}
   <b>{$appInstanceName}</b>
 {/let}
-<h1>{msg desc="app-instance invitation description"}{$requesterNameBold} has invited you to join the {$appInstanceNameBold} application.{/msg}</h1>
+<h1>{msg desc="app-instance invitation description"}{$requesterNameBold} has invited you ({$invitedEmailBold}) to join the {$appInstanceNameBold} application.{/msg}</h1>
 <div>
   <form method="POST" action="{$acceptFormAction}">
     <button type="submit">{msg desc="Accept app-instance invitation form submit button"}Accept{/msg}</button>
