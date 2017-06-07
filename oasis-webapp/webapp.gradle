@@ -91,6 +91,7 @@ task generateSoyParseInfo(type: JavaExec) {
       '--outputDirectory',      "$outputDir/${javaPackage.replace('.', '/')}/",
       '--srcs',                 srcs.files.join(','),
       '--deps',                 deps.files.join(','),
+      '--allowExternalCalls',   'false',
     ]
 }
 sourceSets.main.java {
