@@ -97,3 +97,63 @@ h1 { font-weight: lighter; font-size: 1.8em; }
 
 {call .footer /}
 {/template}
+
+
+/**
+ * Membership invitation page, already a member error.
+ */
+{template .membershipInvitationAlreadyMemberError}
+{@param  requesterName:    string} /** Requester name. */
+{@param  organizationName: string} /** Organization name. */
+{@param  invitedEmail:     string} /** Invited email address. */
+{@param  currentUser:      string} /** Current user. */
+{@param  logoutPageUrl:    string} /** URL to sign out of Ozwillo. */
+{@param  refuseFormAction: string} /** URL to post the refuse form to. */
+
+{call .header}
+  {param title kind="text"}{msg desc="membership invitation page"}Accept or refuse membership invitation{/msg}{/param}
+{/call}
+
+<style>{literal}
+main { text-align: center; }
+h1 { font-weight: lighter; font-size: 1.8em; }
+button, a {
+  background: #6f438e; color: white;
+  margin: 5px 1em;
+  padding: .5em 2em;
+  border: 1px solid #4c2d62;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+form {
+  display: inline-block;
+}
+{/literal}</style>
+
+{let $requesterNameBold kind="html"}
+  <b>{$requesterName}</b>
+{/let}
+{let $invitedEmailBold kind="html"}
+  <b>{$invitedEmail}</b>
+{/let}
+{let $organizationNameBold kind="html"}
+  <b>{$organizationName}</b>
+{/let}
+<h1>
+  {msg desc="membership invitation description"}
+    {$requesterNameBold} has invited you ({$invitedEmailBold}) to join the {$organizationNameBold} organization.
+  {fallbackmsg desc="membership invitation description"}
+    {$requesterNameBold} has invited you to join the {$organizationNameBold} organization.
+  {/msg}
+</h1>
+<p>{msg desc="membership invitation, already a member, error message"}You ({$currentUser}) are already a member of that organization. You might want to sign out of Ozwillo and try again with another account, or acknowledge and delete the invitation.{/msg}</p>
+<div>
+  <a href="{$logoutPageUrl}">{msg desc="Sign out form submit button"}Sign out{/msg}</a>
+  <form method="POST" action="{$refuseFormAction}">
+    <button type="submit">{msg desc="Delete membership invitation form submit button"}Delete invitation{/msg}</button>
+  </form>
+</div>
+
+{call .footer /}
+{/template}

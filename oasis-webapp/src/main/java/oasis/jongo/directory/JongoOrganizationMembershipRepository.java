@@ -153,12 +153,16 @@ public class JongoOrganizationMembershipRepository implements OrganizationMember
     checkArgument(!Strings.isNullOrEmpty(membershipId));
     checkArgument(!Strings.isNullOrEmpty(accountId));
 
-    return getOrganizationMembershipsCollection()
-        .findAndModify("{ id: #, status: # }", membershipId, OrganizationMembership.Status.PENDING)
-        .returnNew()
-        .with("{ $set: { status: #, accountId: #, accepted: # }, $unset: { email: '' } }",
-            OrganizationMembership.Status.ACCEPTED, accountId, System.currentTimeMillis())
-        .as(JongoOrganizationMembership.class);
+    try {
+      return getOrganizationMembershipsCollection()
+          .findAndModify("{ id: #, status: # }", membershipId, OrganizationMembership.Status.PENDING)
+          .returnNew()
+          .with("{ $set: { status: #, accountId: #, accepted: # }, $unset: { email: '' } }",
+              OrganizationMembership.Status.ACCEPTED, accountId, System.currentTimeMillis())
+          .as(JongoOrganizationMembership.class);
+    } catch (DuplicateKeyException e) {
+      throw new oasis.model.DuplicateKeyException();
+    }
   }
 
   @Override

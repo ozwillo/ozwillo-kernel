@@ -43,6 +43,7 @@ import com.google.template.soy.data.SoyMapData;
 import com.google.template.soy.parseinfo.SoyTemplateInfo;
 import com.ibm.icu.util.ULocale;
 
+import oasis.model.DuplicateKeyException;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.authn.MembershipInvitationToken;
@@ -63,8 +64,10 @@ import oasis.soy.templates.OrgMembershipInvitationNotificationSoyInfo.RejectedMe
 import oasis.soy.templates.OrgMembershipInvitationNotificationSoyInfo.RejectedMembershipInvitationRequesterMessageSoyTemplateInfo;
 import oasis.soy.templates.OrgMembershipInvitationSoyInfo;
 import oasis.soy.templates.OrgMembershipInvitationSoyInfo.MembershipInvitationSoyTemplateInfo;
+import oasis.soy.templates.OrgMembershipInvitationSoyInfo.MembershipInvitationAlreadyMemberErrorSoyTemplateInfo;
 import oasis.urls.Urls;
 import oasis.web.authn.Authenticated;
+import oasis.web.authn.LogoutPage;
 import oasis.web.authn.User;
 import oasis.web.authn.UserSessionPrincipal;
 import oasis.web.i18n.LocaleHelper;
@@ -117,6 +120,10 @@ public class MembershipInvitationPage {
       return generateNotFoundPage(userLocale);
     }
 
+    if (organizationMembershipRepository.getOrganizationMembership(userId, organization.getId()) != null) {
+      return generateAlreadyMemberErrorPage(user, pendingOrganizationMembership, organization);
+    }
+
     // XXX: if organization is in DELETED status, we allow the user to proceed, just in case it's later moved back to AVAILABLE
     return generatePage(userLocale, pendingOrganizationMembership, organization);
   }
@@ -138,8 +145,18 @@ public class MembershipInvitationPage {
     if (pendingOrganizationMembership == null) {
       return goBackToFirstStep();
     }
-    OrganizationMembership membership = organizationMembershipRepository
-        .acceptPendingOrganizationMembership(membershipInvitationToken.getOrganizationMembershipId(), currentAccountId);
+    OrganizationMembership membership;
+    try {
+      membership = organizationMembershipRepository
+          .acceptPendingOrganizationMembership(membershipInvitationToken.getOrganizationMembershipId(), currentAccountId);
+    } catch (DuplicateKeyException e) {
+      UserAccount user = accountRepository.getUserAccountById(currentAccountId);
+      Organization organization = directoryRepository.getOrganization(pendingOrganizationMembership.getOrganizationId());
+      if (organization == null) {
+        return goBackToFirstStep();
+      }
+      return generateAlreadyMemberErrorPage(user, pendingOrganizationMembership, organization);
+    }
     if (membership == null) {
       return goBackToFirstStep();
     }
@@ -254,6 +271,36 @@ public class MembershipInvitationPage {
         .path(MembershipInvitationPage.class, "showInvitation")
         .build(serializedToken);
     return Response.seeOther(showInvitationUri).build();
+  }
+
+  private Response generateAlreadyMemberErrorPage(UserAccount user, OrganizationMembership pendingOrganizationMembership, Organization organization) {
+    UserAccount requester = accountRepository.getUserAccountById(pendingOrganizationMembership.getCreator_id());
+
+    URI logoutPageUrl = uriInfo.getBaseUriBuilder().path(LogoutPage.class).build();
+    URI refuseFormAction = uriInfo.getBaseUriBuilder()
+        .path(MembershipInvitationPage.class)
+        .path(MembershipInvitationPage.class, "refuseInvitation")
+        .build(serializedToken);
+    return Response.ok()
+        .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store")
+        .header("Pragma", "no-cache")
+        // cf. https://www.owasp.org/index.php/List_of_useful_HTTP_headers
+        .header("X-Frame-Options", "DENY")
+        .header("X-Content-Type-Options", "nosniff")
+        .header("X-XSS-Protection", "1; mode=block")
+        .entity(new SoyTemplate(
+            OrgMembershipInvitationSoyInfo.MEMBERSHIP_INVITATION_ALREADY_MEMBER_ERROR,
+            user.getLocale(),
+            new SoyMapData(
+                MembershipInvitationAlreadyMemberErrorSoyTemplateInfo.LOGOUT_PAGE_URL, logoutPageUrl.toString(),
+                MembershipInvitationAlreadyMemberErrorSoyTemplateInfo.REFUSE_FORM_ACTION, refuseFormAction.toString(),
+                MembershipInvitationAlreadyMemberErrorSoyTemplateInfo.ORGANIZATION_NAME, organization.getName(),
+                MembershipInvitationAlreadyMemberErrorSoyTemplateInfo.REQUESTER_NAME, requester.getDisplayName(),
+                MembershipInvitationAlreadyMemberErrorSoyTemplateInfo.INVITED_EMAIL, pendingOrganizationMembership.getEmail(),
+                MembershipInvitationAlreadyMemberErrorSoyTemplateInfo.CURRENT_USER, user.getEmail_address()
+            )
+        ))
+        .build();
   }
 
   private void notifyAdmins(Organization organization, String invitedUserEmail, UserAccount requester, boolean acceptedInvitation) {

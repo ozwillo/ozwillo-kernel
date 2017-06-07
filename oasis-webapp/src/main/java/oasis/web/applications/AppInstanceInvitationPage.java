@@ -43,6 +43,7 @@ import com.google.template.soy.data.SoyMapData;
 import com.google.template.soy.parseinfo.SoyTemplateInfo;
 import com.ibm.icu.util.ULocale;
 
+import oasis.model.DuplicateKeyException;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.applications.v2.AccessControlEntry;
@@ -64,8 +65,10 @@ import oasis.soy.templates.AppInstanceInvitationNotificationSoyInfo.RejectedAppI
 import oasis.soy.templates.AppInstanceInvitationNotificationSoyInfo.RejectedAppInstanceInvitationRequesterMessageSoyTemplateInfo;
 import oasis.soy.templates.AppInstanceInvitationSoyInfo;
 import oasis.soy.templates.AppInstanceInvitationSoyInfo.AppInstanceInvitationSoyTemplateInfo;
+import oasis.soy.templates.AppInstanceInvitationSoyInfo.AppInstanceInvitationAlreadyUserErrorSoyTemplateInfo;
 import oasis.urls.Urls;
 import oasis.web.authn.Authenticated;
+import oasis.web.authn.LogoutPage;
 import oasis.web.authn.User;
 import oasis.web.authn.UserSessionPrincipal;
 import oasis.web.i18n.LocaleHelper;
@@ -119,6 +122,10 @@ public class AppInstanceInvitationPage {
       return generateNotFoundPage(userLocale);
     }
 
+    if (accessControlRepository.getAccessControlEntry(appInstance.getId(), userId) != null) {
+      return generateAlreadyUserErrorPage(user, pendingAccessControlEntry, appInstance);
+    }
+
     // XXX: if app-instance is in STOPPED status, we allow the user to proceed, just in case it's later moved back to RUNNING
     // app-instance should not be in PENDING state if we reach this code.
     return generatePage(userLocale, pendingAccessControlEntry, appInstance);
@@ -141,8 +148,18 @@ public class AppInstanceInvitationPage {
     if (pendingAccessControlEntry == null) {
       return goBackToFirstStep();
     }
-    AccessControlEntry entry = accessControlRepository
-        .acceptPendingAccessControlEntry(appInstanceInvitationToken.getAceId(), currentAccountId);
+    AccessControlEntry entry;
+    try {
+      entry = accessControlRepository
+          .acceptPendingAccessControlEntry(appInstanceInvitationToken.getAceId(), currentAccountId);
+    } catch (DuplicateKeyException e) {
+      UserAccount user = accountRepository.getUserAccountById(currentAccountId);
+      AppInstance appInstance = appInstanceRepository.getAppInstance(pendingAccessControlEntry.getInstance_id());
+      if (appInstance == null) {
+        return goBackToFirstStep();
+      }
+      return generateAlreadyUserErrorPage(user, pendingAccessControlEntry, appInstance);
+    }
     if (entry == null) {
       return goBackToFirstStep();
     }
@@ -257,6 +274,36 @@ public class AppInstanceInvitationPage {
         .path(AppInstanceInvitationPage.class, "showInvitation")
         .build(serializedToken);
     return Response.seeOther(showInvitationUri).build();
+  }
+
+  private Response generateAlreadyUserErrorPage(UserAccount user, AccessControlEntry pendingAccessControlEntry, AppInstance appInstance) {
+    UserAccount requester = accountRepository.getUserAccountById(pendingAccessControlEntry.getCreator_id());
+
+    URI logoutPageUrl = uriInfo.getBaseUriBuilder().path(LogoutPage.class).build();
+    URI refuseFormAction = uriInfo.getBaseUriBuilder()
+        .path(AppInstanceInvitationPage.class)
+        .path(AppInstanceInvitationPage.class, "refuseInvitation")
+        .build(serializedToken);
+    return Response.ok()
+        .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store")
+        .header("Pragma", "no-cache")
+        // cf. https://www.owasp.org/index.php/List_of_useful_HTTP_headers
+        .header("X-Frame-Options", "DENY")
+        .header("X-Content-Type-Options", "nosniff")
+        .header("X-XSS-Protection", "1; mode=block")
+        .entity(new SoyTemplate(
+            AppInstanceInvitationSoyInfo.APP_INSTANCE_INVITATION_ALREADY_USER_ERROR,
+            user.getLocale(),
+            new SoyMapData(
+                AppInstanceInvitationAlreadyUserErrorSoyTemplateInfo.LOGOUT_PAGE_URL, logoutPageUrl.toString(),
+                AppInstanceInvitationAlreadyUserErrorSoyTemplateInfo.REFUSE_FORM_ACTION, refuseFormAction.toString(),
+                AppInstanceInvitationAlreadyUserErrorSoyTemplateInfo.APP_INSTANCE_NAME, appInstance.getName().get(user.getLocale()),
+                AppInstanceInvitationAlreadyUserErrorSoyTemplateInfo.REQUESTER_NAME, requester.getDisplayName(),
+                AppInstanceInvitationAlreadyUserErrorSoyTemplateInfo.INVITED_EMAIL, pendingAccessControlEntry.getEmail(),
+                AppInstanceInvitationAlreadyUserErrorSoyTemplateInfo.CURRENT_USER, user.getEmail_address()
+            )
+        ))
+        .build();
   }
 
   private void notifyAdmins(AppInstance appInstance, String invitedUserEmail, UserAccount requester, boolean acceptedInvitation) {

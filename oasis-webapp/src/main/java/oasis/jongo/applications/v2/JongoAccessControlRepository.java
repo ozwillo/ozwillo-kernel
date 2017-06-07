@@ -99,12 +99,16 @@ public class JongoAccessControlRepository implements AccessControlRepository, Jo
     Preconditions.checkArgument(!Strings.isNullOrEmpty(aceId));
     Preconditions.checkArgument(!Strings.isNullOrEmpty(userId));
 
-    return getAccessControlEntriesCollection()
-        .findAndModify("{ id: #, status: # }", aceId, AccessControlEntry.Status.PENDING)
-        .returnNew()
-        .with("{ $set: { status: #, user_id: #, accepted: # }, $unset: { email: '' } }",
-            AccessControlEntry.Status.ACCEPTED, userId, System.currentTimeMillis())
-        .as(JongoAccessControlEntry.class);
+    try {
+      return getAccessControlEntriesCollection()
+          .findAndModify("{ id: #, status: # }", aceId, AccessControlEntry.Status.PENDING)
+          .returnNew()
+          .with("{ $set: { status: #, user_id: #, accepted: # }, $unset: { email: '' } }",
+              AccessControlEntry.Status.ACCEPTED, userId, System.currentTimeMillis())
+          .as(JongoAccessControlEntry.class);
+    } catch (DuplicateKeyException e) {
+      throw new oasis.model.DuplicateKeyException();
+    }
   }
 
   @Override

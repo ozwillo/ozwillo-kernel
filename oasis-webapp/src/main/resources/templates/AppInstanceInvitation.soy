@@ -91,3 +91,57 @@ h1 { font-weight: lighter; font-size: 1.8em; }
 
 {call .footer /}
 {/template}
+
+
+/**
+ * App-instance invitation page, already a user error.
+ */
+{template .appInstanceInvitationAlreadyUserError}
+{@param  requesterName:    string} /** Requester name. */
+{@param  appInstanceName:  string} /** App-instance name. */
+{@param  invitedEmail:     string} /** Invited email address. */
+{@param  currentUser:      string} /** Current user. */
+{@param  logoutPageUrl:    string} /** URL to sign out of Ozwillo. */
+{@param  refuseFormAction: string} /** URL to post the refuse form to. */
+
+{call .header}
+  {param title kind="text"}{msg desc="app-instance invitation page"}Accept or refuse application invitation{/msg}{/param}
+{/call}
+
+<style>{literal}
+main { text-align: center; }
+h1 { font-weight: lighter; font-size: 1.8em; }
+button, a {
+  background: #6f438e; color: white;
+  margin: 5px 1em;
+  padding: .5em 2em;
+  border: 1px solid #4c2d62;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+form {
+  display: inline-block;
+}
+{/literal}</style>
+
+{let $requesterNameBold kind="html"}
+  <b>{$requesterName}</b>
+{/let}
+{let $invitedEmailBold kind="html"}
+  <b>{$invitedEmail}</b>
+{/let}
+{let $appInstanceNameBold kind="html"}
+  <b>{$appInstanceName}</b>
+{/let}
+<h1>{msg desc="app-instance invitation description"}{$requesterNameBold} has invited you ({$invitedEmailBold}) to join the {$appInstanceNameBold} application.{/msg}</h1>
+<p>{msg desc="app-instance invitation, already a user, error message"}You ({$currentUser}) are already a user of that application. You might want to sign out of Ozwillo and try again with another account, or acknowledge and delete the invitation.{/msg}</p>
+<div>
+  <a href="{$logoutPageUrl}">{msg desc="Sign out form submit button"}Sign out{/msg}</a>
+  <form method="POST" action="{$refuseFormAction}">
+    <button type="submit">{msg desc="Delete app-instance invitation form submit button"}Delete invitation{/msg}</button>
+  </form>
+</div>
+
+{call .footer /}
+{/template}
