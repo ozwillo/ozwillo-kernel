@@ -41,6 +41,8 @@ public abstract class CommandLineTool {
   protected abstract Logger logger();
 
   protected Config init(String[] args) throws IOException {
+    System.setProperty("org.jboss.logging.provider", "slf4j");
+
     parseArgs(args);
 
     if (log4jConfig != null && Files.isRegularFile(log4jConfig) && Files.isReadable(log4jConfig)) {
