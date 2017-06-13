@@ -111,7 +111,7 @@ h1 { font-weight: lighter; font-size: 1.8em; }
 <style>{literal}
 main { text-align: center; }
 h1 { font-weight: lighter; font-size: 1.8em; }
-button, a {
+button, a.logout {
   background: #6f438e; color: white;
   margin: 5px 1em;
   padding: .5em 2em;
@@ -137,7 +137,7 @@ form {
 <h1>{msg desc="app-instance invitation description"}{$requesterNameBold} has invited you ({$invitedEmailBold}) to join the {$appInstanceNameBold} application.{/msg}</h1>
 <p>{msg desc="app-instance invitation, already a user, error message"}You ({$currentUser}) are already a user of that application. You might want to sign out of Ozwillo and try again with another account, or acknowledge and delete the invitation.{/msg}</p>
 <div>
-  <a href="{$logoutPageUrl}">{msg desc="Sign out form submit button"}Sign out{/msg}</a>
+  <a class=logout href="{$logoutPageUrl}">{msg desc="Sign out form submit button"}Sign out{/msg}</a>
   <form method="POST" action="{$refuseFormAction}">
     <button type="submit">{msg desc="Delete app-instance invitation form submit button"}Delete invitation{/msg}</button>
   </form>
