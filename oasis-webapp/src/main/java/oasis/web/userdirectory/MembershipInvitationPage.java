@@ -137,7 +137,6 @@ public class MembershipInvitationPage {
     if (membershipInvitationToken == null) {
       return goBackToFirstStep();
     }
-    tokenRepository.revokeToken(membershipInvitationToken.getId());
 
     String currentAccountId = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken().getAccountId();
     OrganizationMembership pendingOrganizationMembership = organizationMembershipRepository.getPendingOrganizationMembership(
@@ -150,12 +149,7 @@ public class MembershipInvitationPage {
       membership = organizationMembershipRepository
           .acceptPendingOrganizationMembership(membershipInvitationToken.getOrganizationMembershipId(), currentAccountId);
     } catch (DuplicateKeyException e) {
-      UserAccount user = accountRepository.getUserAccountById(currentAccountId);
-      Organization organization = directoryRepository.getOrganization(pendingOrganizationMembership.getOrganizationId());
-      if (organization == null) {
-        return goBackToFirstStep();
-      }
-      return generateAlreadyMemberErrorPage(user, pendingOrganizationMembership, organization);
+      return goBackToFirstStep();
     }
     if (membership == null) {
       return goBackToFirstStep();
@@ -173,10 +167,11 @@ public class MembershipInvitationPage {
       logger.error("Error notifying admins for accepted organization membership invitation.", e);
     }
 
-    if (urls.myNetwork().isPresent()) {
-      return Response.seeOther(urls.myNetwork().get()).build();
-    }
-    return Response.seeOther(uriInfo.getBaseUri()).build();
+    tokenRepository.revokeToken(membershipInvitationToken.getId());
+
+    return Response.seeOther(
+        urls.myNetwork().or(uriInfo.getBaseUri())
+    ).build();
   }
 
   @POST
@@ -188,7 +183,6 @@ public class MembershipInvitationPage {
     if (membershipInvitationToken == null) {
       return goBackToFirstStep();
     }
-    tokenRepository.revokeToken(membershipInvitationToken.getId());
 
     OrganizationMembership pendingOrganizationMembership = organizationMembershipRepository
         .getPendingOrganizationMembership(membershipInvitationToken.getOrganizationMembershipId());
@@ -213,10 +207,11 @@ public class MembershipInvitationPage {
       logger.error("Error notifying admins for accepted organization membership invitation.", e);
     }
 
-    if (urls.myNetwork().isPresent()) {
-      return Response.seeOther(urls.myNetwork().get()).build();
-    }
-    return Response.seeOther(uriInfo.getBaseUri()).build();
+    tokenRepository.revokeToken(membershipInvitationToken.getId());
+
+    return Response.seeOther(
+        urls.myNetwork().or(uriInfo.getBaseUri())
+    ).build();
   }
 
   private Response generatePage(ULocale locale, OrganizationMembership pendingOrganizationMembership, Organization organization) {

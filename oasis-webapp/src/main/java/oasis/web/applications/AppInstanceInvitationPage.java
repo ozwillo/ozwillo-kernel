@@ -140,7 +140,6 @@ public class AppInstanceInvitationPage {
     if (appInstanceInvitationToken == null) {
       return goBackToFirstStep();
     }
-    tokenRepository.revokeToken(appInstanceInvitationToken.getId());
 
     String currentAccountId = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken().getAccountId();
     AccessControlEntry pendingAccessControlEntry = accessControlRepository.getPendingAccessControlEntry(
@@ -153,12 +152,7 @@ public class AppInstanceInvitationPage {
       entry = accessControlRepository
           .acceptPendingAccessControlEntry(appInstanceInvitationToken.getAceId(), currentAccountId);
     } catch (DuplicateKeyException e) {
-      UserAccount user = accountRepository.getUserAccountById(currentAccountId);
-      AppInstance appInstance = appInstanceRepository.getAppInstance(pendingAccessControlEntry.getInstance_id());
-      if (appInstance == null) {
-        return goBackToFirstStep();
-      }
-      return generateAlreadyUserErrorPage(user, pendingAccessControlEntry, appInstance);
+      return goBackToFirstStep();
     }
     if (entry == null) {
       return goBackToFirstStep();
@@ -176,10 +170,11 @@ public class AppInstanceInvitationPage {
       logger.error("Error notifying admins for accepted app-instance invitation.", e);
     }
 
-    if (urls.myNetwork().isPresent()) {
-      return Response.seeOther(urls.myNetwork().get()).build();
-    }
-    return Response.seeOther(uriInfo.getBaseUri()).build();
+    tokenRepository.revokeToken(appInstanceInvitationToken.getId());
+
+    return Response.seeOther(
+        urls.myNetwork().or(uriInfo.getBaseUri())
+    ).build();
   }
 
   @POST
@@ -191,7 +186,6 @@ public class AppInstanceInvitationPage {
     if (appInstanceInvitationToken == null) {
       return goBackToFirstStep();
     }
-    tokenRepository.revokeToken(appInstanceInvitationToken.getId());
 
     AccessControlEntry pendingAccessControlEntry = accessControlRepository
         .getPendingAccessControlEntry(appInstanceInvitationToken.getAceId());
@@ -216,10 +210,11 @@ public class AppInstanceInvitationPage {
       logger.error("Error notifying admins for accepted app-instance invitation.", e);
     }
 
-    if (urls.myNetwork().isPresent()) {
-      return Response.seeOther(urls.myNetwork().get()).build();
-    }
-    return Response.seeOther(uriInfo.getBaseUri()).build();
+    tokenRepository.revokeToken(appInstanceInvitationToken.getId());
+
+    return Response.seeOther(
+        urls.myNetwork().or(uriInfo.getBaseUri())
+    ).build();
   }
 
   private Response generatePage(ULocale locale, AccessControlEntry pendingAccessControlEntry, AppInstance appInstance) {
