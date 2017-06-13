@@ -29,6 +29,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.primitives.Longs;
 import com.mongodb.DuplicateKeyException;
+import com.mongodb.ErrorCategory;
 import com.mongodb.MongoCommandException;
 
 import oasis.jongo.JongoBootstrapper;
@@ -106,6 +107,11 @@ public class JongoAccessControlRepository implements AccessControlRepository, Jo
           .with("{ $set: { status: #, user_id: #, accepted: # }, $unset: { email: '' } }",
               AccessControlEntry.Status.ACCEPTED, userId, System.currentTimeMillis())
           .as(JongoAccessControlEntry.class);
+    } catch (MongoCommandException e) {
+      if (ErrorCategory.fromErrorCode(e.getErrorCode()) == ErrorCategory.DUPLICATE_KEY) {
+        throw new oasis.model.DuplicateKeyException();
+      }
+      throw e;
     } catch (DuplicateKeyException e) {
       throw new oasis.model.DuplicateKeyException();
     }

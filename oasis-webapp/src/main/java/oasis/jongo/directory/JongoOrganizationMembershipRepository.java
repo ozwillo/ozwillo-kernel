@@ -31,6 +31,8 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Strings;
 import com.google.common.primitives.Longs;
 import com.mongodb.DuplicateKeyException;
+import com.mongodb.ErrorCategory;
+import com.mongodb.MongoCommandException;
 import com.mongodb.WriteResult;
 
 import oasis.jongo.JongoBootstrapper;
@@ -160,6 +162,11 @@ public class JongoOrganizationMembershipRepository implements OrganizationMember
           .with("{ $set: { status: #, accountId: #, accepted: # }, $unset: { email: '' } }",
               OrganizationMembership.Status.ACCEPTED, accountId, System.currentTimeMillis())
           .as(JongoOrganizationMembership.class);
+    } catch (MongoCommandException e) {
+      if (ErrorCategory.fromErrorCode(e.getErrorCode()) == ErrorCategory.DUPLICATE_KEY) {
+        throw new oasis.model.DuplicateKeyException();
+      }
+      throw e;
     } catch (DuplicateKeyException e) {
       throw new oasis.model.DuplicateKeyException();
     }
