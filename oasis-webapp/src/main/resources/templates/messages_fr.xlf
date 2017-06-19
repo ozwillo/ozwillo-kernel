@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="235553805622646291" datatype="html">
         <source>Your account has been created but needs to be activated by confirming your email address.</source>
-        <target>Veuillez confirmer votre adresse électronique pour active votre compte.</target>
+        <target>Veuillez confirmer votre adresse électronique pour activer votre compte.</target>
         <note priority="1" from="description">activation pending: what is it</note>
       </trans-unit>
       <trans-unit id="250539212474752292" datatype="html">
@@ -84,7 +84,7 @@
       </trans-unit>
       <trans-unit id="1381727944434957991" datatype="html">
         <source><x id="START_PARAGRAPH"/>We have sent an email to <x id="EMAIL_ADDRESS"/> with further instructions.<x id="START_PARAGRAPH"/>The email contains a link allowing you to choose a new password. The email link must be clicked within a limited time.</source>
-        <target><x id="START_PARAGRAPH"/>Nous avons envoyé un message à <x id="EMAIL_ADDRESS"/> avec les instructions à suivre.<x id="START_PARAGRAPH"/>Le message contient un lien vous permettant de choisir un nouveau mot de passe. Ce lien a n'est valide que pendant un temps limité.</target>
+        <target><x id="START_PARAGRAPH"/>Nous avons envoyé un message à <x id="EMAIL_ADDRESS"/> avec les instructions à suivre.<x id="START_PARAGRAPH"/>Le message contient un lien vous permettant de choisir un nouveau mot de passe. Ce lien n'est valide que pendant un temps limité.</target>
         <note priority="1" from="description">Password successfully changed: immediate consequences</note>
       </trans-unit>
       <trans-unit id="1399441502629336200" datatype="html">
@@ -208,7 +208,7 @@
       </trans-unit>
       <trans-unit id="2912423960746840762" datatype="html">
         <source>Your request to remove the organization <x id="ORGANIZATION_NAME"/> has been registered, you have a week to cancel the operation before its deletion.</source>
-        <target>Votre demande de suppression de l'organization <x id="ORGANIZATION_NAME"/> a été enregistrée. Vous avez une semaine pour annuler la suppression.</target>
+        <target>Votre demande de suppression de l'organisation <x id="ORGANIZATION_NAME"/> a été enregistrée. Vous avez une semaine pour annuler la suppression.</target>
         <note priority="1" from="description">Soflty deleted organization requester notification message</note>
       </trans-unit>
       <trans-unit id="2949848596707725099" datatype="html">
@@ -373,7 +373,7 @@
       </trans-unit>
       <trans-unit id="5641262489600335225" datatype="html">
         <source><x id="START_PARAGRAPH"/>You (or someone else) entered this email address when trying to change the password of an Ozwillo account.<x id="START_PARAGRAPH"/>However, this email address is not on our database of registered users and therefore the attempted password change has failed.<x id="START_PARAGRAPH"/>If you have an Ozwillo account and were expecting this email, please try again using the email address you gave when opening your account.<x id="START_PARAGRAPH"/>If you don't have an Ozwillo account, please ignore this email.<x id="START_PARAGRAPH"/>The Ozwillo team</source>
-        <target><x id="START_PARAGRAPH"/>Vous (ou quelqu'un d'autre) avez saisi cette adresse email dans une demande de changement de mot de passe d'un compte Ozwillo.<x id="START_PARAGRAPH"/>Cependant, cette adresse n'est pas dans notre base de données utilisateurs et la tentative de changement de mot de passe a échoué.<x id="START_PARAGRAPH"/>Si vous êtes un utilisateur d'Ozwillo et que vous attendiez ce message, refaite la demande en utilisant l'adresse email que vous aviez donné à la création de votre compte.<x id="START_PARAGRAPH"/>Si vous n'êtes pas un utilisateur d'Ozwillo, ignorez ce message.<x id="START_PARAGRAPH"/>L'équipe d'Ozwillo</target>
+        <target><x id="START_PARAGRAPH"/>Vous (ou quelqu'un d'autre) avez saisi cette adresse email dans une demande de changement de mot de passe d'un compte Ozwillo.<x id="START_PARAGRAPH"/>Cependant, cette adresse n'est pas dans notre base de données utilisateurs et la tentative de changement de mot de passe a échoué.<x id="START_PARAGRAPH"/>Si vous êtes un utilisateur d'Ozwillo et que vous attendiez ce message, refaites la demande en utilisant l'adresse email que vous aviez donné à la création de votre compte.<x id="START_PARAGRAPH"/>Si vous n'êtes pas un utilisateur d'Ozwillo, ignorez ce message.<x id="START_PARAGRAPH"/>L'équipe d'Ozwillo</target>
         <note priority="1" from="description">Forgot-password email body, for an unknown account</note>
       </trans-unit>
       <trans-unit id="5669015892066019430" datatype="html">
@@ -398,7 +398,7 @@
       </trans-unit>
       <trans-unit id="6255851471461697144" datatype="html">
         <source><x id="REQUESTER_NAME"/> has invited <x id="INVITED_USER_EMAIL"/> to join the <x id="ORGANIZATION_NAME"/> organization.</source>
-        <target><x id="REQUESTER_NAME"/> a invité <x id="INVITED_USER_EMAIL"/> à rejoindre l'organization <x id="ORGANIZATION_NAME"/>.</target>
+        <target><x id="REQUESTER_NAME"/> a invité <x id="INVITED_USER_EMAIL"/> à rejoindre l'organisation <x id="ORGANIZATION_NAME"/>.</target>
         <note priority="1" from="description">New organization membership invitation notification message for admins</note>
       </trans-unit>
       <trans-unit id="6263536566459432245" datatype="html">
@@ -418,7 +418,7 @@
       </trans-unit>
       <trans-unit id="6958276782575850559" datatype="html">
         <source><x id="INVITED_USER_EMAIL"/> has rejected <x id="REQUESTER_NAME"/> invitation to join the <x id="ORGANIZATION_NAME"/> organization.</source>
-        <target><x id="INVITED_USER_EMAIL"/> a refusé l'invitation de <x id="REQUESTER_NAME"/> à rejoindre l'organization <x id="ORGANIZATION_NAME"/>.</target>
+        <target><x id="INVITED_USER_EMAIL"/> a refusé l'invitation de <x id="REQUESTER_NAME"/> à rejoindre l'organisation <x id="ORGANIZATION_NAME"/>.</target>
         <note priority="1" from="description">Rejected organization membership invitation notification message for admins</note>
       </trans-unit>
       <trans-unit id="7028204981963450021" datatype="html">
@@ -453,7 +453,7 @@
       </trans-unit>
       <trans-unit id="7584118525039558774" datatype="html">
         <source><x id="INVITED_USER_EMAIL"/> has accepted <x id="REQUESTER_NAME"/> invitation to join the <x id="ORGANIZATION_NAME"/> organization.</source>
-        <target><x id="INVITED_USER_EMAIL"/> a accepté l'invitation de <x id="REQUESTER_NAME"/> à rejoindre l'organization <x id="ORGANIZATION_NAME"/>.</target>
+        <target><x id="INVITED_USER_EMAIL"/> a accepté l'invitation de <x id="REQUESTER_NAME"/> à rejoindre l'organisation <x id="ORGANIZATION_NAME"/>.</target>
         <note priority="1" from="description">Accepted organization membership invitation notification message for admins</note>
       </trans-unit>
       <trans-unit id="7601564290921092628" datatype="html">
@@ -528,7 +528,7 @@
       </trans-unit>
       <trans-unit id="8403676796644890469" datatype="html">
         <source><x id="INVITED_USER_EMAIL"/> has rejected your invitation to join the <x id="ORGANIZATION_NAME"/> organization.</source>
-        <target><x id="INVITED_USER_EMAIL"/> a refusé votre invitation à rejoindre l'organization <x id="ORGANIZATION_NAME"/>.</target>
+        <target><x id="INVITED_USER_EMAIL"/> a refusé votre invitation à rejoindre l'organisation <x id="ORGANIZATION_NAME"/>.</target>
         <note priority="1" from="description">Rejected organization membership invitation notification message for the requester</note>
       </trans-unit>
       <trans-unit id="8450994523775212991" datatype="html">
@@ -578,7 +578,7 @@
       </trans-unit>
       <trans-unit id="9037092558215129061" datatype="html">
         <source><x id="REQUESTER_NAME_BOLD"/> has invited you to join the <x id="ORGANIZATION_NAME_BOLD"/> organization.</source>
-        <target><x id="REQUESTER_NAME_BOLD"/> vous invite à rejoindre l'organization <x id="ORGANIZATION_NAME_BOLD"/>.</target>
+        <target><x id="REQUESTER_NAME_BOLD"/> vous invite à rejoindre l'organisation <x id="ORGANIZATION_NAME_BOLD"/>.</target>
         <note priority="1" from="description">membership invitation description</note>
       </trans-unit>
       <trans-unit id="9118307257372703426" datatype="html">
