@@ -31,7 +31,7 @@
     </RollingFile>
     <Socket name="Logstash"
       host="localhost" port="11111"
-      reconnectionDelay="30000">
+      reconnectDelayMillis="30000">
       <PatternLayout>
         <Pattern>%m%n</Pattern>
       </PatternLayout>
