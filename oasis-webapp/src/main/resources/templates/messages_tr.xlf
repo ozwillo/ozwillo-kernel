@@ -3,8 +3,8 @@
   <file original="SoyMsgBundle" datatype="x-soy-msg-bundle" xml:space="preserve" source-language="en-GB" target-language="tr-TR">
     <body>
       <trans-unit id="85256968653381481" datatype="html">
-        <source>https://www.ozwillo.com/en/terms</source>
-        <target>https://www.ozwillo.com/tr/sartlari</target>
+        <source>https://www.ozwillo.com/en/legal-notices</source>
+        <target>https://www.ozwillo.com/tr/yasal-uyarilar</target>
         <note priority="1" from="description">terms of use URL</note>
       </trans-unit>
       <trans-unit id="112067034614295505" datatype="html">
