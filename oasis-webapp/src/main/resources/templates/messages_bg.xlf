@@ -142,11 +142,6 @@
         <target>Вход</target>
         <note priority="1" from="description">Login page title</note>
       </trans-unit>
-      <trans-unit id="2455036635324175768" datatype="html">
-        <source>The information collected will be computer processed for the management of the website’s users and its services. The recipient of data is Pôle Numérique.<x id="START_BREAK"/>In accordance with the EU Data Protection Directive (95/46/EC), you benefit from an access and modification right for the information concerning you, which you can exercise by contacting Pôle Numérique, 1 avenue de la gare 26958 VALENCE Cedex 9, FRANCE.<x id="START_BREAK"/>You can also, for legitimate reasons, object to the processing of your personal data.</source>
-        <target>Събраната информация ще бъде компютърно обработена за управление потребителите на уебсайта и неговите услуги. Получателят на данните е „Пол Нюмерик“.<x id="START_BREAK"/>В съответствие с Европейската Директива за защита на данните (95/46/EC), имате правото на достъп и промяна на информацията, която ви засяга, което може да упражните като се свържете с „Пол Нюмерик“ - Pôle Numérique, 1 avenue de la gare 26958 VALENCE Cedex 9, FRANCE.<x id="START_BREAK"/>Можете също, по правни причини, да възразите срещу обработката на вашите лични данни.</target>
-        <note priority="1" from="description">privacy notice / small prints</note>
-      </trans-unit>
       <trans-unit id="2565164139557117651" datatype="html">
         <source>Password reset</source>
         <target>Възстановяване на парола</target>
@@ -466,6 +461,11 @@
         <source>Join Us!</source>
         <target>Присъедини се!</target>
         <note priority="1" from="description">Sign-up form heading</note>
+      </trans-unit>
+      <trans-unit id="8684213669198888405" datatype="html">
+        <source>The information collected will be computer processed for the management of the website’s users and its services. The recipient of data is Ozwillo.<x id="START_BREAK"/>In accordance with the EU Data Protection Directive (95/46/EC), you benefit from an access and modification right for the information concerning you, which you can exercise by contacting Ozwillo, 2323 Chemin de Saint-Bernard, 06225 Vallauris, FRANCE.<x id="START_BREAK"/>You can also, for legitimate reasons, object to the processing of your personal data.</source>
+        <target>Събраната информация ще бъде компютърно обработена за управление потребителите на уебсайта и неговите услуги. Получателят на данните е Ozwillo.<x id="START_BREAK"/>В съответствие с Европейската Директива за защита на данните (95/46/EC), имате правото на достъп и промяна на информацията, която ви засяга, което може да упражните като се свържете с Ozwillo, 2323 Chemin de Saint-Bernard, 06225 Vallauris, FRANCE.<x id="START_BREAK"/>Можете също, по правни причини, да възразите срещу обработката на вашите лични данни.</target>
+        <note priority="1" from="description">privacy notice / small prints</note>
       </trans-unit>
       <trans-unit id="8901230246167053053" datatype="html">
         <source>You've signed out of <x id="START_BOLD"/><x id="APP_NAME"/><x id="END_BOLD"/></source>
