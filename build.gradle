@@ -41,7 +41,7 @@ subprojects {
 
   apply plugin: 'net.ltgt.errorprone'
   configurations.errorprone {
-    resolutionStrategy.force "com.google.errorprone:error_prone_core:${JavaVersion.current().isJava8Compatible() ? '2.0.15' : '2.0.5'}"
+    resolutionStrategy.force "com.google.errorprone:error_prone_core:${JavaVersion.current().isJava8Compatible() ? '2.0.21' : '2.0.5'}"
   }
 
   apply plugin: 'idea' // IDEA needs extra configuration for generated sources *sigh*

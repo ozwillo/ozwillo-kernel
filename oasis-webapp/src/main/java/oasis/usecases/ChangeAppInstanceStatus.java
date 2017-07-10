@@ -71,6 +71,7 @@ public class ChangeAppInstanceStatus {
   @Inject Urls urls;
   @Inject Provider<Client> clientProvider;
 
+  @SuppressWarnings("FutureReturnValueIgnored")
   public Response updateStatus(final Request request) {
     ImmutableChangeAppInstanceStatus.Response.Builder responseBuilder = ImmutableChangeAppInstanceStatus.Response.builder();
 

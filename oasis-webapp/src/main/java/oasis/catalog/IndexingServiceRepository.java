@@ -49,7 +49,8 @@ public class IndexingServiceRepository implements ServiceRepository {
   public Service createService(Service service) {
     Service createdService = jongoServiceRepository.createService(service);
     if (shouldIndex(createdService)) {
-      jestCatalogEntryRepository.asyncIndex(createdService);
+      ListenableFuture<Void> listenableFuture = jestCatalogEntryRepository.asyncIndex(createdService);
+      Futures.addCallback(listenableFuture, indexedFutureCallback(service.getId(), CatalogEntry.EntryType.SERVICE));
     }
     return createdService;
   }

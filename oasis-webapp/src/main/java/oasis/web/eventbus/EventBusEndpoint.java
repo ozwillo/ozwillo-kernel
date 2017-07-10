@@ -71,6 +71,7 @@ public class EventBusEndpoint {
   @POST
   @Path("/publish")
   @Consumes(MediaType.APPLICATION_JSON)
+  @SuppressWarnings("FutureReturnValueIgnored")
   public Response publish(
       final Event event
   ) {
