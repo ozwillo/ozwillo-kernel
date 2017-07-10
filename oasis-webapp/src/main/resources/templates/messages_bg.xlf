@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="85256968653381481" datatype="html">
         <source>https://www.ozwillo.com/en/terms</source>
-        <target>https://www.ozwillo.com/bg/uslovia</target>
+        <target>https://www.ozwillo.com/bg/%D0%A3%D1%81%D0%BB%D0%BE%D0%B2%D0%B8%D1%8F-%D0%B7%D0%B0-%D0%BF%D0%BE%D0%BB%D0%B7%D0%B2%D0%B0%D0%BD%D0%B5</target>
         <note priority="1" from="description">terms of use URL</note>
       </trans-unit>
       <trans-unit id="112067034614295505" datatype="html">
