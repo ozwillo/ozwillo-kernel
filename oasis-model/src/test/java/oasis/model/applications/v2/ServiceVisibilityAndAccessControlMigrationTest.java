@@ -19,6 +19,7 @@ package oasis.model.applications.v2;
 
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.failBecauseExceptionWasNotThrown;
 import static org.junit.Assume.*;
 
 import org.junit.Test;
@@ -170,6 +171,7 @@ public class ServiceVisibilityAndAccessControlMigrationTest {
     node.put("visibility", "whatever");
     try {
       objectMapper.convertValue(node, Service.class);
+      failBecauseExceptionWasNotThrown(IllegalAccessException.class);
     } catch (IllegalArgumentException iae) {
       assertThat(iae)
           .hasCauseInstanceOf(InvalidFormatException.class)
@@ -181,6 +183,7 @@ public class ServiceVisibilityAndAccessControlMigrationTest {
     node.put("access_control", "nevermind");
     try {
       objectMapper.convertValue(node, Service.class);
+      failBecauseExceptionWasNotThrown(IllegalAccessException.class);
     } catch (IllegalArgumentException iae) {
       assertThat(iae)
           .hasCauseInstanceOf(InvalidFormatException.class)
