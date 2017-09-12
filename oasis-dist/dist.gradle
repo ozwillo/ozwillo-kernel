@@ -86,7 +86,8 @@ task deb(dependsOn: [explodedDir, debControl]) {
   inputs.files explodedDir.outputs, debControl.outputs, 'CHANGES.txt'
   inputs.properties(oasis)
   inputs.property('debianVersion', debianVersion)
-  outputs.files destfile, changesOut, configurations.jdeb
+  inputs.files configurations.jdeb
+  outputs.files destfile, changesOut
 
   doLast {
     ant.taskdef(name: "deb", classname: "org.vafer.jdeb.ant.DebAntTask", classpath: configurations.jdeb.asPath)

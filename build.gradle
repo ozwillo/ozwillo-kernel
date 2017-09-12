@@ -84,7 +84,3 @@ buildscript {
     classpath 'de.thetaphi:forbiddenapis:2.3'
   }
 }
-
-task wrapper(type: Wrapper) {
-  gradleVersion = '3.2.1'
-}
