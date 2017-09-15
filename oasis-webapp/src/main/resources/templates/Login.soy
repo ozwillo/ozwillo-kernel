@@ -25,6 +25,7 @@
 {@param  loginFormAction:  string} /** URL to post the sign-in form to. */
 {@param? forgotPassword:   string} /** URL to the form allowing for recovering your password. */
 {@param  continue:         string} /** URL to continue to after successful login/re-auth. */
+{@param? franceconnect:    string} /** URL to FranceConnect login. */
 {@param? error:            string} /** error; can be one of INCORRECT_USERNAME_OR_PASSWORD, MISSING_REQUIRED_FIELD, ACCOUNT_ALREADY_EXISTS, MESSAGING_ERROR, or PASSWORD_TOO_SHORT */
 {@param  locale_url_map:   map<string,string>}
 {@param? pwdMinLength:     int}    /** password minimum length; only used on sign-up errors. */
@@ -138,6 +139,16 @@ small {lb} display: block; margin-top: 2em; font-size: .65em; line-height: initi
           </button>
         </div>
       </form>
+      {if $franceconnect}
+        <form method=post action="{$franceconnect}" lang="fr-FR" class="btn-row">
+          <input type="hidden" name="_utf8" value="&#9731;">
+          <input type="hidden" name="continue" value="{$continue}">
+          <input type="hidden" name="hl" value="{$current_locale}">
+          <button type="submit" style="cursor: pointer; background: transparent; margin: 0; padding: 0; border: none;">
+            <img alt="S'identifier avec FranceConnect" src="/images/franceconnect.svg" width=172 height=50>
+          </button>
+        </form>
+      {/if}
     </section>
     <section>
       <h2><img alt="" src="/images/picto_pen.png" width=26 height=30> {msg desc="Sign-up form heading"}Join Us!{/msg}</h2>

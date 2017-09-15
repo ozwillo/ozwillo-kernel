@@ -70,6 +70,14 @@ public class JongoAccountRepository implements AccountRepository, JongoBootstrap
   }
 
   @Override
+  public UserAccount getUserAccountByFranceConnectSub(String franceconnect_sub) {
+    // XXX: accounts aren't activated until you verify the e-mail address
+    return this.getAccountCollection()
+        .findOne("{ franceconnect_sub: #, email_verified: true }", franceconnect_sub)
+        .as(JongoUserAccount.class);
+  }
+
+  @Override
   public UserAccount createUserAccount(UserAccount user) {
     JongoUserAccount jongoUserAccount = new JongoUserAccount(user);
     jongoUserAccount.initCreated_at();
@@ -166,6 +174,19 @@ public class JongoAccountRepository implements AccountRepository, JongoBootstrap
   }
 
   @Override
+  public boolean linkToFranceConnect(String id, String franceconnect_sub) {
+    // XXX: we use a JongoUserAccount to update the updated_at field
+    JongoUserAccount userAccount = new JongoUserAccount();
+    // reset ID (not copied over) to make sure we won't generate a new one
+    userAccount.setId(id);
+    userAccount.setFranceconnect_sub(franceconnect_sub);
+    return getAccountCollection()
+        .update("{ id: # }", id)
+        .with("{ $set: # }", userAccount)
+        .getN() > 0;
+  }
+
+  @Override
   public boolean deleteUserAccount(String id) {
     return getAccountCollection()
         .remove("{ id: # }", id)
@@ -176,6 +197,7 @@ public class JongoAccountRepository implements AccountRepository, JongoBootstrap
   public void bootstrap() {
     getAccountCollection().ensureIndex("{ id : 1 }", "{ unique: 1 }");
     getAccountCollection().ensureIndex("{ email_address : 1 }", "{ unique: 1, sparse: 1 }");
+    getAccountCollection().ensureIndex("{ franceconnect_sub : 1 }", "{ unique: 1, sparse: 1 }");
   }
 }
 

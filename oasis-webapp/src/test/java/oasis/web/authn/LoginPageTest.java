@@ -134,8 +134,8 @@ public class LoginPageTest {
     when(userPasswordAuthenticator.authenticate(eq("unknown@example.com"), anyString())).thenThrow(AccountNotFoundException.class);
 
     when(tokenHandler.generateRandom()).thenReturn("pass");
-    when(tokenHandler.createSidToken(eq(someUserAccount.getId()), any(byte[].class), anyBoolean(), eq("pass"))).thenReturn(someSidToken);
-    when(tokenHandler.createSidToken(eq(otherUserAccount.getId()), any(byte[].class), anyBoolean(), eq("pass"))).thenReturn(otherSidToken);
+    when(tokenHandler.createSidToken(eq(someUserAccount.getId()), any(byte[].class), anyBoolean(), isNull(), eq("pass"))).thenReturn(someSidToken);
+    when(tokenHandler.createSidToken(eq(otherUserAccount.getId()), any(byte[].class), anyBoolean(), isNull(), eq("pass"))).thenReturn(otherSidToken);
 
     when(accountRepository.getUserAccountById(someUserAccount.getId())).thenReturn(someUserAccount);
     when(accountRepository.getUserAccountById(otherUserAccount.getId())).thenReturn(otherUserAccount);
@@ -244,7 +244,7 @@ public class LoginPageTest {
             UserFilter.COOKIE_NAME, TokenSerializer.serialize(someSidToken, "pass"), true, true))
         .containsEntry(browserStateCookieName, SessionManagementHelper.createBrowserStateCookie(true, "browser-state"));
 
-    verify(tokenHandler).createSidToken(eq(someUserAccount.getId()), any(byte[].class), eq(false), anyString());
+    verify(tokenHandler).createSidToken(eq(someUserAccount.getId()), any(byte[].class), eq(false), isNull(), anyString());
   }
 
   @SuppressWarnings("unchecked")
@@ -266,7 +266,7 @@ public class LoginPageTest {
             UserFilter.COOKIE_NAME, TokenSerializer.serialize(someSidToken, "pass"), true, true))
         .containsEntry(browserStateCookieName, SessionManagementHelper.createBrowserStateCookie(true, "browser-state"));
 
-    verify(tokenHandler).createSidToken(eq(someUserAccount.getId()), any(byte[].class), eq(true), anyString());
+    verify(tokenHandler).createSidToken(eq(someUserAccount.getId()), any(byte[].class), eq(true), isNull(), anyString());
   }
 
   @SuppressWarnings("unchecked")
@@ -288,7 +288,7 @@ public class LoginPageTest {
             UserFilter.COOKIE_NAME, TokenSerializer.serialize(otherSidToken, "pass"), true, true))
         .containsEntry(browserStateCookieName, SessionManagementHelper.createBrowserStateCookie(true, "browser-state"));
 
-    verify(tokenHandler).createSidToken(eq(otherUserAccount.getId()), any(byte[].class), eq(false), anyString());
+    verify(tokenHandler).createSidToken(eq(otherUserAccount.getId()), any(byte[].class), eq(false), isNull(), anyString());
   }
 
   @SuppressWarnings("unchecked")
@@ -310,7 +310,7 @@ public class LoginPageTest {
             UserFilter.COOKIE_NAME, TokenSerializer.serialize(someSidToken, "pass"), true, true))
         .containsEntry(browserStateCookieName, SessionManagementHelper.createBrowserStateCookie(true, "browser-state"));
 
-    verify(tokenHandler).createSidToken(eq(someUserAccount.getId()), any(byte[].class), eq(false), anyString());
+    verify(tokenHandler).createSidToken(eq(someUserAccount.getId()), any(byte[].class), eq(false), isNull(), anyString());
   }
 
   @Test public void trySignInWithBadPassword() {

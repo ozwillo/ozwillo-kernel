@@ -46,6 +46,7 @@ import com.google.template.soy.data.SoyMapData;
 import com.ibm.icu.util.ULocale;
 
 import oasis.auth.AuthModule;
+import oasis.auth.FranceConnectModule;
 import oasis.mail.MailMessage;
 import oasis.mail.MailSender;
 import oasis.model.accounts.AccountRepository;
@@ -79,6 +80,7 @@ public class SignUpPage {
   @Inject MailSender mailSender;
   @Inject LocaleHelper localeHelper;
   @Inject AuthModule.Settings authSettings;
+  @Inject @Nullable FranceConnectModule.Settings franceConnectSettings;
   @Inject ServiceRepository serviceRepository;
 
   @Context SecurityContext securityContext;
@@ -102,11 +104,11 @@ public class SignUpPage {
     locale = localeHelper.selectLocale(locale, request);
 
     if (Strings.isNullOrEmpty(email) || Strings.isNullOrEmpty(password) || Strings.isNullOrEmpty(nickname)) {
-      return LoginPage.signupForm(Response.ok(), continueUrl, locale, authSettings, LoginPage.SignupError.MISSING_REQUIRED_FIELD);
+      return LoginPage.signupForm(Response.ok(), continueUrl, locale, authSettings, franceConnectSettings != null, LoginPage.SignupError.MISSING_REQUIRED_FIELD);
     }
     // TODO: Verify that the password as a sufficiently strong length or even a strong entropy
     if (password.length() < authSettings.passwordMinimumLength) {
-      return LoginPage.signupForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, locale, authSettings, LoginPage.SignupError.PASSWORD_TOO_SHORT);
+      return LoginPage.signupForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, locale, authSettings, franceConnectSettings != null, LoginPage.SignupError.PASSWORD_TOO_SHORT);
     }
 
     UserAccount account = new UserAccount();
@@ -118,7 +120,7 @@ public class SignUpPage {
     account = accountRepository.createUserAccount(account);
     if (account == null) {
       // TODO: Allow the user to retrieve their password
-      return LoginPage.signupForm(Response.ok(), continueUrl, locale, authSettings, LoginPage.SignupError.ACCOUNT_ALREADY_EXISTS);
+      return LoginPage.signupForm(Response.ok(), continueUrl, locale, authSettings, franceConnectSettings != null, LoginPage.SignupError.ACCOUNT_ALREADY_EXISTS);
     } else {
       userPasswordAuthenticator.setPassword(account.getId(), password);
     }
@@ -151,7 +153,7 @@ public class SignUpPage {
       logger.error("Error sending activation email", e);
       accountRepository.deleteUserAccount(account.getId());
       credentialsRepository.deleteCredentials(ClientType.USER, account.getId());
-      return LoginPage.signupForm(Response.ok(), continueUrl, locale, authSettings, LoginPage.SignupError.MESSAGING_ERROR);
+      return LoginPage.signupForm(Response.ok(), continueUrl, locale, authSettings, franceConnectSettings != null, LoginPage.SignupError.MESSAGING_ERROR);
     }
   }
 

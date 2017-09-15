@@ -1,0 +1,65 @@
+/**
+ * Ozwillo Kernel
+ * Copyright (C) 2017  The Ozwillo Kernel Authors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+{namespace oasis autoescape="strict"}
+
+/**
+ * Error during FranceConnect login.
+ */
+{template .franceconnectError}
+{@param? continue:       string} /** URL to continue to after successful login. */
+{@param  franceconnect:  string} /** URL to FranceConnect login. */
+{@inject current_locale: string} /** current locale. */
+{call .header}
+  {param title kind="text"}{msg desc="Login page title"}Login{/msg}{/param}
+{/call}
+<style>
+main {lb} text-align: center; {rb}
+
+h1, h2 {lb} font-weight: lighter; {rb}
+h2 {lb} font-size: 1.8em; {rb}
+
+h1 {lb} margin: 0; {rb}
+h2 {lb} margin-bottom: 2.5em; {rb}
+
+.btn-row {lb} margin-top: 1.8em; text-align: center; {rb}
+.btn-row button {lb}
+  border: 1px solid #4c2d62;
+  background: #6f438e; color: #fff;
+  cursor: pointer;
+  margin: 5px 1em;
+  padding: .5em 2em;
+  display: inline-block;
+{rb}
+</style>
+  <h1><img src="/images/ozwillo.png" alt="Ozwillo" width=200 height=55></h1>
+  <h2>{msg desc="FranceConnect login error page heading"}An error occurred.{/msg}</h2>
+  {if $continue}
+    <p>{msg desc="FranceConnect login error; try again message"}Try again below.{/msg}</p>
+    <form method=post action="{$franceconnect}" lang="fr-FR">
+      <input type="hidden" name="_utf8" value="&#9731;">
+      <input type="hidden" name="continue" value="{$continue}">
+      <input type="hidden" name="hl" value="{$current_locale}">
+      <button type="submit" style="cursor: pointer; background: transparent; margin: 0; padding: 0; border: none;">
+        <img alt="S'identifier avec FranceConnect" src="/images/franceconnect.svg" width=172 height=50>
+      </button>
+    </form>
+  {else}
+    <p>{msg desc="FranceConnect login error; go back and try again message"}Go back to the previous page and try again.{/msg}</p>
+  {/if}
+{call .footer /}
+{/template}

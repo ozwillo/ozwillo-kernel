@@ -18,7 +18,6 @@
 package oasis.web.authn;
 
 import java.net.URI;
-import java.util.Objects;
 import java.util.Optional;
 
 import javax.annotation.Nullable;
@@ -49,6 +48,7 @@ import com.ibm.icu.util.ULocale;
 import oasis.auditlog.AuditLogEvent;
 import oasis.auditlog.AuditLogService;
 import oasis.auth.AuthModule;
+import oasis.auth.FranceConnectModule;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.authn.ClientCertificate;
@@ -56,18 +56,16 @@ import oasis.model.authn.ClientType;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
 import oasis.services.authn.TokenHandler;
-import oasis.services.authn.TokenSerializer;
 import oasis.services.authn.UserPasswordAuthenticator;
-import oasis.services.cookies.CookieFactory;
 import oasis.soy.SoyTemplate;
 import oasis.soy.templates.LoginSoyInfo;
 import oasis.soy.templates.LoginSoyInfo.LoginSoyTemplateInfo;
 import oasis.soy.templates.LoginSoyInfo.ReauthSoyTemplateInfo;
 import oasis.urls.Urls;
 import oasis.web.StaticResources;
+import oasis.web.authn.franceconnect.FranceConnectLogin;
 import oasis.web.i18n.LocaleHelper;
 import oasis.web.security.StrictReferer;
-import oasis.web.utils.UserAgentFingerprinter;
 
 @User
 @Path("/a/login")
@@ -83,11 +81,11 @@ public class LoginPage {
   @Inject TokenHandler tokenHandler;
   @Inject AccountRepository accountRepository;
   @Inject AuditLogService auditLogService;
-  @Inject UserAgentFingerprinter fingerprinter;
   @Inject Urls urls;
   @Inject LocaleHelper localeHelper;
-  @Inject SessionManagementHelper sessionManagementHelper;
   @Inject ClientCertificateHelper clientCertificateHelper;
+  @Inject LoginHelper loginHelper;
+  @Inject @Nullable FranceConnectModule.Settings franceConnectSettings;
 
   @Context SecurityContext securityContext;
   @Context UriInfo uriInfo;
@@ -107,7 +105,6 @@ public class LoginPage {
   @StrictReferer
   @Produces(MediaType.TEXT_HTML)
   public Response post(
-      @Context HttpHeaders headers,
       @FormParam(LOCALE_PARAM) @Nullable ULocale locale,
       @FormParam("u") @DefaultValue("") String userName,
       @FormParam("pwd") @DefaultValue("") String password,
@@ -134,34 +131,9 @@ public class LoginPage {
       return reAuthenticate(userName, account, continueUrl);
     }
 
-    byte[] fingerprint = fingerprinter.fingerprint(headers);
-    return authenticate(userName, account, continueUrl, fingerprint);
-  }
-
-  private Response authenticate(String userName, UserAccount account, URI continueUrl, byte[] fingerprint) {
-    String pass = tokenHandler.generateRandom();
-    SidToken sidToken = tokenHandler.createSidToken(account.getId(), fingerprint, hasClientCertificate(account.getId()), pass);
-    if (sidToken == null) {
-      // XXX: This shouldn't be audited because it shouldn't be the user fault
-      logger.error("No SidToken was created for Account {}.", account.getId());
-      return Response.serverError().build();
-    }
-
-    log(auditLogService, userName, LoginLogEvent.LoginResult.AUTHENTICATION_SUCCEEDED);
-
-    // TODO: One-Time Password
-    return Response
-        .seeOther(continueUrl)
-        .cookie(CookieFactory.createSessionCookie(UserFilter.COOKIE_NAME, TokenSerializer.serialize(sidToken, pass), securityContext.isSecure(), true)) // TODO: remember me
-        .cookie(SessionManagementHelper.createBrowserStateCookie(securityContext.isSecure(), sessionManagementHelper.generateBrowserState()))
-        .build();
-  }
-
-  private boolean hasClientCertificate(String accountId) {
-    final ClientCertificate clientCertificate = clientCertificateHelper.getClientCertificate(headers.getRequestHeaders());
-    return clientCertificate != null
-        && clientCertificate.getClient_type() == ClientType.USER
-        && Objects.equals(clientCertificate.getClient_id(), accountId);
+    return loginHelper.authenticate(account, headers, securityContext, continueUrl, null, () -> {
+      log(auditLogService, userName, LoginPage.LoginLogEvent.LoginResult.AUTHENTICATION_SUCCEEDED);
+    }).build();
   }
 
   private Response reAuthenticate(String userName, UserAccount account, URI continueUrl) {
@@ -202,7 +174,7 @@ public class LoginPage {
       }
     }
 
-    return loginForm(builder, continueUrl, locale, error);
+    return loginForm(builder, continueUrl, locale, franceConnectSettings != null, error);
   }
 
   private static Response reauthForm(Response.ResponseBuilder builder, URI continueUrl, @Nullable LoginError error, UserAccount userAccount) {
@@ -216,16 +188,16 @@ public class LoginPage {
     return buildResponseFromView(builder, soyTemplate);
   }
 
-  private static Response loginForm(Response.ResponseBuilder builder, URI continueUrl, ULocale locale, @Nullable LoginError error) {
-    return loginAndSignupForm(builder, continueUrl, locale, null, error);
+  private static Response loginForm(Response.ResponseBuilder builder, URI continueUrl, ULocale locale, boolean withFranceConnect, @Nullable LoginError error) {
+    return loginAndSignupForm(builder, continueUrl, locale, null, withFranceConnect, error);
   }
 
-  static Response signupForm(Response.ResponseBuilder builder, URI continueUrl, ULocale locale, AuthModule.Settings authSettings, @Nullable SignupError error) {
-    return loginAndSignupForm(builder, continueUrl, locale, authSettings, error);
+  static Response signupForm(Response.ResponseBuilder builder, URI continueUrl, ULocale locale, AuthModule.Settings authSettings, boolean withFranceConnect, @Nullable SignupError error) {
+    return loginAndSignupForm(builder, continueUrl, locale, authSettings, withFranceConnect, error);
   }
 
   private static Response loginAndSignupForm(Response.ResponseBuilder builder, URI continueUrl,
-      ULocale locale, @Nullable AuthModule.Settings authSettings, @Nullable Enum<?> error) {
+      ULocale locale, @Nullable AuthModule.Settings authSettings, boolean withFranceConnect, @Nullable Enum<?> error) {
     SoyMapData localeUrlMap = new SoyMapData();
     for (ULocale supportedLocale : LocaleHelper.SUPPORTED_LOCALES) {
       String languageTag = supportedLocale.toLanguageTag();
@@ -240,6 +212,7 @@ public class LoginPage {
         LoginSoyTemplateInfo.LOGIN_FORM_ACTION, UriBuilder.fromResource(LoginPage.class).build().toString(),
         LoginSoyTemplateInfo.FORGOT_PASSWORD, UriBuilder.fromResource(ForgotPasswordPage.class).queryParam(LOCALE_PARAM, locale.toLanguageTag()).build().toString(),
         LoginSoyTemplateInfo.CONTINUE, continueUrl.toString(),
+        LoginSoyTemplateInfo.FRANCECONNECT, withFranceConnect ? UriBuilder.fromResource(FranceConnectLogin.class).build().toString() : null,
         LoginSoyTemplateInfo.ERROR, error == null ? null : error.name(),
         LoginSoyTemplateInfo.LOCALE_URL_MAP, localeUrlMap,
         LoginSoyTemplateInfo.PWD_MIN_LENGTH, authSettings == null ? null : authSettings.passwordMinimumLength
@@ -264,7 +237,7 @@ public class LoginPage {
     return defaultContinueUrl(urls.landingPage(), uriInfo);
   }
 
-  static URI defaultContinueUrl(Optional<URI> landingPage, UriInfo uriInfo) {
+  public static URI defaultContinueUrl(Optional<URI> landingPage, UriInfo uriInfo) {
     return landingPage.orElseGet(() -> uriInfo.getBaseUriBuilder().path(StaticResources.class).path(StaticResources.class, "home").build());
   }
 

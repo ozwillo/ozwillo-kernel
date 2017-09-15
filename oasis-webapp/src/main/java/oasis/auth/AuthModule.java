@@ -17,6 +17,8 @@
  */
 package oasis.auth;
 
+import static com.google.inject.multibindings.OptionalBinder.newOptionalBinder;
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyPair;
@@ -174,5 +176,8 @@ public class AuthModule extends AbstractModule {
   @Override
   protected void configure() {
     bind(Settings.class).toInstance(settings);
+
+    newOptionalBinder(binder(), FranceConnectModule.Settings.class)
+        .setDefault().toProvider(() -> null);
   }
 }

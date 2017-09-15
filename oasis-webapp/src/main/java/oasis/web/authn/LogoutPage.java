@@ -18,6 +18,7 @@
 package oasis.web.authn;
 
 import java.net.URI;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 
 import javax.annotation.Nullable;
@@ -44,6 +45,7 @@ import com.google.template.soy.data.SoyMapData;
 import com.ibm.icu.text.Collator;
 
 import oasis.auth.AuthModule;
+import oasis.auth.FranceConnectModule;
 import oasis.auth.RedirectUri;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
@@ -59,6 +61,8 @@ import oasis.soy.SoyTemplate;
 import oasis.soy.templates.LogoutSoyInfo;
 import oasis.soy.templates.LogoutSoyInfo.LogoutSoyTemplateInfo;
 import oasis.urls.Urls;
+import oasis.web.authn.franceconnect.FranceConnectLogoutCallback;
+import oasis.web.authn.franceconnect.FranceConnectLogoutState;
 import oasis.web.security.StrictReferer;
 import oasis.web.openidconnect.IdTokenHintParser;
 
@@ -72,11 +76,13 @@ public class LogoutPage {
 
   @Inject TokenRepository tokenRepository;
   @Inject AuthModule.Settings settings;
+  @Inject @Nullable FranceConnectModule.Settings franceConnectSettings;
   @Inject Urls urls;
   @Inject AppInstanceRepository appInstanceRepository;
   @Inject ServiceRepository serviceRepository;
   @Inject AccountRepository accountRepository;
   @Inject SessionManagementHelper sessionManagementHelper;
+  @Inject SecureRandom secureRandom;
 
   @GET
   @Produces(MediaType.TEXT_HTML)
@@ -124,12 +130,6 @@ public class LogoutPage {
       post_logout_redirect_uri = null;
     }
 
-    if (post_logout_redirect_uri != null && !Strings.isNullOrEmpty(state)) {
-      post_logout_redirect_uri = new RedirectUri(post_logout_redirect_uri)
-          .setState(state)
-          .toString();
-    }
-
     if (securityContext.getUserPrincipal() == null) {
       // Not authenticated (we'll assume the user already signed out but the app didn't caught it up)
       return redirectTo(post_logout_redirect_uri != null ? URI.create(post_logout_redirect_uri) : null);
@@ -141,9 +141,13 @@ public class LogoutPage {
     SoyMapData viewModel = new SoyMapData();
     viewModel.put(LogoutSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(LogoutPage.class).build().toString());
     if (post_logout_redirect_uri != null) {
-      viewModel.put(LogoutSoyTemplateInfo.CONTINUE, post_logout_redirect_uri);
+      viewModel.put(LogoutSoyTemplateInfo.POST_LOGOUT_REDIRECT_URI, post_logout_redirect_uri);
+      if (state != null) {
+        viewModel.put(LogoutSoyTemplateInfo.STATE, state);
+      }
     }
     if (appInstance != null) {
+      viewModel.put(LogoutSoyTemplateInfo.APP_ID, appInstance.getId());
       viewModel.put(LogoutSoyTemplateInfo.APP_NAME, appInstance.getName().get(account.getLocale()));
     }
     // FIXME: services don't all have a service_uri for now so we need to workaround it.
@@ -193,20 +197,48 @@ public class LogoutPage {
   @POST
   @Authenticated
   @StrictReferer
-  public Response post(@FormParam("continue") URI continueUrl) {
-    if (continueUrl == null) {
-      continueUrl = LoginPage.defaultContinueUrl(urls.landingPage(), uriInfo);
-    }
-
+  public Response post(
+      @Nullable @FormParam("app_id") String appId,
+      @Nullable @FormParam("post_logout_redirect_uri") String post_logout_redirect_uri,
+      @Nullable @FormParam("state") String state
+  ) {
     final SidToken sidToken = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken();
     boolean tokenRevoked = tokenRepository.revokeToken(sidToken.getId());
     if (!tokenRevoked) {
       logger.error("No SidToken was found when trying to revoke it.");
     }
 
+    if (sidToken.getFranceconnectIdToken() != null && franceConnectSettings != null) {
+      String fcState = FranceConnectLogoutState.generateStateKey(secureRandom);
+      return Response.seeOther(
+          franceConnectSettings.endSessionEndpoint().newBuilder()
+              .addQueryParameter("id_token_hint", sidToken.getFranceconnectIdToken())
+              .addQueryParameter("post_logout_redirect_uri", uriInfo.getBaseUriBuilder().path(FranceConnectLogoutCallback.class).build().toString())
+              .addQueryParameter("state", fcState)
+              .build().uri())
+          .cookie(CookieFactory.createExpiredCookie(UserFilter.COOKIE_NAME, securityContext.isSecure(), true))
+          .cookie(SessionManagementHelper.createBrowserStateCookie(securityContext.isSecure(), sessionManagementHelper.generateBrowserState()))
+          .cookie(FranceConnectLogoutState.createCookie(fcState, appId, post_logout_redirect_uri, state, securityContext.isSecure()))
+          .build();
+    }
+
+    // XXX: don't validate the post_logout_redirect_uri here; we assume no XSS and we have @StrictReferer
+    URI continueUrl;
+    if (post_logout_redirect_uri != null) {
+      if (!Strings.isNullOrEmpty(state)) {
+        continueUrl = URI.create(new RedirectUri(post_logout_redirect_uri)
+            .setState(state)
+            .toString());
+      } else {
+        continueUrl = URI.create(post_logout_redirect_uri);
+      }
+    } else {
+      continueUrl = LoginPage.defaultContinueUrl(urls.landingPage(), uriInfo);
+    }
     return Response.seeOther(continueUrl)
         .cookie(CookieFactory.createExpiredCookie(UserFilter.COOKIE_NAME, securityContext.isSecure(), true))
         .cookie(SessionManagementHelper.createBrowserStateCookie(securityContext.isSecure(), sessionManagementHelper.generateBrowserState()))
         .build();
   }
+
 }

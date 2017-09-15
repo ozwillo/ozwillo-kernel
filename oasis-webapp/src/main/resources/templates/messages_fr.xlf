@@ -281,6 +281,11 @@
         <target>Cette application est disponible et prête à l'emploi.</target>
         <note priority="1" from="description">App-instance provisioning notification message</note>
       </trans-unit>
+      <trans-unit id="4000264644788007413" datatype="html">
+        <source>Try again below.</source>
+        <target>Essayez à nouveau ci-dessous.</target>
+        <note priority="1" from="description">FranceConnect login error; try again message</note>
+      </trans-unit>
       <trans-unit id="4210092520941642501" datatype="html">
         <source>This certificate is linked to another user account.</source>
         <target>Ce certificat est associé à un autre utilisateur.</target>
@@ -345,6 +350,11 @@
         <source>This will sign you out of Ozwillo, on all your devices.</source>
         <target>Ceci vous déconnectera d'Ozwillo, sur tous vos appareils.</target>
         <note priority="1" from="description">Consequence of changing password</note>
+      </trans-unit>
+      <trans-unit id="5321335688371682440" datatype="html">
+        <source>An error occurred.</source>
+        <target>Une erreur est survenue.</target>
+        <note priority="1" from="description">FranceConnect login error page heading</note>
       </trans-unit>
       <trans-unit id="5363404118084293884" datatype="html">
         <source>Password reset requested</source>
@@ -480,6 +490,11 @@
         <source>An error occurred sending you an email. Check your email address and try again in a few minutes.</source>
         <target>Une erreur est survenue à l'envoi d'un message. Vérifiez votre boîte mail et réeesayez dans quelques minutes.</target>
         <note priority="1" from="description">Error message during account recovery</note>
+      </trans-unit>
+      <trans-unit id="7660806017482173219" datatype="html">
+        <source>Go back to the previous page and try again.</source>
+        <target>Retournez à la page précédente et essayez à nouveau.</target>
+        <note priority="1" from="description">FranceConnect login error; go back and try again message</note>
       </trans-unit>
       <trans-unit id="7771855748190435213" datatype="html">
         <source>You can now <x id="START_LINK"/>go back to the Ozwillo portal<x id="END_LINK"/> to sign in again with your new password.</source>

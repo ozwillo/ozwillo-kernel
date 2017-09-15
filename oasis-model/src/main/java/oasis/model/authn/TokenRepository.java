@@ -30,6 +30,8 @@ public interface TokenRepository {
 
   boolean reAuthSidToken(String tokenId);
 
+  boolean reAuthSidToken(String tokenId, String franceconnectIdToken);
+
   int revokeTokensForAccount(String accountId);
 
   int revokeTokensForAccountAndTokenType(String accountId, Class<? extends Token> tokenType);

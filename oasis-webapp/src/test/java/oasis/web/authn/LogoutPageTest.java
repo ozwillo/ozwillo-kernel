@@ -25,6 +25,8 @@ import java.util.Collections;
 import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.Form;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
@@ -35,6 +37,7 @@ import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.jwt.JwtClaims;
 import org.jukito.JukitoModule;
 import org.jukito.JukitoRunner;
+import org.jukito.TestSingleton;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -84,10 +87,13 @@ public class LogoutPageTest {
       bind(AuthModule.Settings.class).toInstance(AuthModule.Settings.builder()
           .setKeyPair(KeyPairLoader.generateRandomKeyPair())
           .build());
+
+      bindMock(SessionManagementHelper.class).in(TestSingleton.class);
     }
   }
 
   private static final String cookieName = CookieFactory.getCookieName(UserFilter.COOKIE_NAME, true);
+  private static final String browserStateCookieName = CookieFactory.getCookieName(SessionManagementHelper.COOKIE_NAME, true);
 
   private static final UserAccount account = new UserAccount() {{
     setId("accountId");
@@ -115,7 +121,8 @@ public class LogoutPageTest {
 
   @Inject @Rule public InProcessResteasy resteasy;
 
-  @Before public void setUpMocks(AccountRepository accountRepository, AppInstanceRepository appInstanceRepository, ServiceRepository serviceRepository) {
+  @Before public void setUpMocks(AccountRepository accountRepository, AppInstanceRepository appInstanceRepository,
+      ServiceRepository serviceRepository, SessionManagementHelper sessionManagementHelper) {
     when(accountRepository.getUserAccountById(account.getId())).thenReturn(account);
 
     when(appInstanceRepository.getAppInstance(appInstance.getId())).thenReturn(appInstance);
@@ -123,12 +130,15 @@ public class LogoutPageTest {
 
     when(serviceRepository.getServiceByPostLogoutRedirectUri(appInstance.getId(), Iterables.getOnlyElement(service.getPost_logout_redirect_uris())))
         .thenReturn(service);
+
+    when(sessionManagementHelper.generateBrowserState()).thenReturn("browser-state");
   }
 
   @Before public void setUp() {
     resteasy.getDeployment().getRegistry().addPerRequestResource(LogoutPage.class);
     resteasy.getDeployment().getProviderFactory().register(SoyTemplateBodyWriter.class);
   }
+
   @Test public void testGet_notLoggedIn_noParam(Urls urls) {
     Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(LogoutPage.class)).request().get();
 
@@ -137,6 +147,7 @@ public class LogoutPageTest {
     if (response.getCookies().containsKey(cookieName)) {
       assertThat(response.getCookies().get(cookieName).getExpiry()).isInThePast();
     }
+    assertThat(response.getCookies()).doesNotContainKey(browserStateCookieName);
   }
 
   @Test public void testGet_loggedIn_noIdTokenHint(TokenRepository tokenRepository) {
@@ -151,9 +162,10 @@ public class LogoutPageTest {
     if (response.getCookies().containsKey(cookieName)) {
       assertThat(response.getCookies().get(cookieName).getExpiry()).isInTheFuture();
     }
+    assertThat(response.getCookies()).doesNotContainKey(browserStateCookieName);
     assertLogoutPage(response)
         // post_logout_redirect_url should not be used
-        .doesNotMatch(hiddenInput("continue", "http://www.google.com"));
+        .doesNotMatch(hiddenInput("post_logout_redirect_uri", "http://www.google.com"));
 
     verify(tokenRepository, never()).revokeToken(sidToken.getId());
   }
@@ -183,12 +195,13 @@ public class LogoutPageTest {
     if (response.getCookies().containsKey(cookieName)) {
       assertThat(response.getCookies().get(cookieName).getExpiry()).isInTheFuture();
     }
+    assertThat(response.getCookies()).doesNotContainKey(browserStateCookieName);
     assertLogoutPage(response)
         .contains(appInstance.getName().get(ULocale.ROOT))
         .contains(service.getService_uri())
-        .matches(hiddenInput("continue", new RedirectUri(Iterables.getOnlyElement(service.getPost_logout_redirect_uris()))
-            .setState("some&state")
-            .toString()));
+        .matches(hiddenInput("app_id", appInstance.getId()))
+        .matches(hiddenInput("post_logout_redirect_uri", Iterables.getOnlyElement(service.getPost_logout_redirect_uris())))
+        .matches(hiddenInput("state", "some&state"));
 
     verify(tokenRepository, never()).revokeToken(sidToken.getId());
   }
@@ -218,9 +231,10 @@ public class LogoutPageTest {
     if (response.getCookies().containsKey(cookieName)) {
       assertThat(response.getCookies().get(cookieName).getExpiry()).isInTheFuture();
     }
+    assertThat(response.getCookies()).doesNotContainKey(browserStateCookieName);
     assertLogoutPage(response)
         .contains(appInstance.getName().get(ULocale.ROOT))
-        .doesNotMatch(hiddenInput("continue", "https://unregistered"));
+        .doesNotMatch(hiddenInput("post_logout_redirect_uri", "https://unregistered"));
 
     verify(tokenRepository, never()).revokeToken(sidToken.getId());
   }
@@ -239,10 +253,11 @@ public class LogoutPageTest {
     if (response.getCookies().containsKey(cookieName)) {
       assertThat(response.getCookies().get(cookieName).getExpiry()).isInTheFuture();
     }
+    assertThat(response.getCookies()).doesNotContainKey(browserStateCookieName);
     assertLogoutPage(response)
         .doesNotContain(appInstance.getName().get(ULocale.ROOT))
         .doesNotContain(service.getService_uri())
-        .doesNotMatch(hiddenInput("continue", "http://example.com"));
+        .doesNotMatch(hiddenInput("post_logout_redirect_uri", "http://example.com"));
 
     verify(tokenRepository, never()).revokeToken(sidToken.getId());
   }
@@ -259,6 +274,7 @@ public class LogoutPageTest {
     if (response.getCookies().containsKey(cookieName)) {
       assertThat(response.getCookies().get(cookieName).getExpiry()).isInTheFuture();
     }
+    assertThat(response.getCookies()).doesNotContainKey(browserStateCookieName);
   }
 
   @Test public void testGet_notLoggedIn_withIdTokenHint(AuthModule.Settings settings) throws Throwable {
@@ -284,6 +300,7 @@ public class LogoutPageTest {
     if (response.getCookies().containsKey(cookieName)) {
       assertThat(response.getCookies().get(cookieName).getExpiry()).isInTheFuture();
     }
+    assertThat(response.getCookies()).doesNotContainKey(browserStateCookieName);
   }
 
   @Test public void testGet_notLoggedIn_withIdTokenHintAndBadPostLogoutRedirectUri(AuthModule.Settings settings) throws Throwable {
@@ -309,6 +326,63 @@ public class LogoutPageTest {
     if (response.getCookies().containsKey(cookieName)) {
       assertThat(response.getCookies().get(cookieName).getExpiry()).isInTheFuture();
     }
+    assertThat(response.getCookies()).doesNotContainKey(browserStateCookieName);
+  }
+
+  @Test public void testPost_noPostLogoutRedirectUri(TokenRepository tokenRepository, Urls urls) throws Throwable {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(LogoutPage.class))
+        .request().post(Entity.form(new Form()
+            .param("app_id", appInstance.getId())));
+
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
+    assertThat(response.getLocation()).isEqualTo(urls.landingPage().get());
+    assertThat(response.getCookies())
+        .containsEntry(browserStateCookieName, SessionManagementHelper.createBrowserStateCookie(true, "browser-state"))
+        .containsKey(cookieName);
+    assertThat(response.getCookies().get(cookieName).getExpiry()).isInThePast();
+
+    verify(tokenRepository).revokeToken(sidToken.getId());
+  }
+
+  @Test public void testPost_withState(TokenRepository tokenRepository) throws Throwable {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(LogoutPage.class))
+        .request().post(Entity.form(new Form()
+            .param("app_id", appInstance.getId())
+            .param("post_logout_redirect_uri", Iterables.getOnlyElement(service.getPost_logout_redirect_uris()))
+            .param("state", "some&state")));
+
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
+    assertThat(response.getLocation()).isEqualTo(URI.create(new RedirectUri(Iterables.getOnlyElement(service.getPost_logout_redirect_uris()))
+        .setState("some&state")
+        .toString()));
+    assertThat(response.getCookies())
+        .containsEntry(browserStateCookieName, SessionManagementHelper.createBrowserStateCookie(true, "browser-state"))
+        .containsKey(cookieName);
+    assertThat(response.getCookies().get(cookieName).getExpiry()).isInThePast();
+
+    verify(tokenRepository).revokeToken(sidToken.getId());
+  }
+
+  @Test public void testPost_noState(TokenRepository tokenRepository) throws Throwable {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(LogoutPage.class))
+        .request().post(Entity.form(new Form()
+            .param("app_id", appInstance.getId())
+            .param("post_logout_redirect_uri", Iterables.getOnlyElement(service.getPost_logout_redirect_uris()))));
+
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
+    assertThat(response.getLocation()).isEqualTo(URI.create(Iterables.getOnlyElement(service.getPost_logout_redirect_uris())));
+    assertThat(response.getCookies())
+        .containsEntry(browserStateCookieName, SessionManagementHelper.createBrowserStateCookie(true, "browser-state"))
+        .containsKey(cookieName);
+    assertThat(response.getCookies().get(cookieName).getExpiry()).isInThePast();
+
+    verify(tokenRepository).revokeToken(sidToken.getId());
   }
 
   private AbstractCharSequenceAssert<?, String> assertLogoutPage(Response response) {

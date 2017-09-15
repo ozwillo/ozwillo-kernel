@@ -54,6 +54,9 @@ import oasis.web.authn.UserAuthenticationFilter;
 import oasis.web.authn.UserCanonicalBaseUriFilter;
 import oasis.web.authn.UserCertificatesPage;
 import oasis.web.authn.UserFilter;
+import oasis.web.authn.franceconnect.FranceConnectCallback;
+import oasis.web.authn.franceconnect.FranceConnectLogin;
+import oasis.web.authn.franceconnect.FranceConnectLogoutCallback;
 import oasis.web.authz.AuthorizationEndpoint;
 import oasis.web.authz.IntrospectionEndpoint;
 import oasis.web.authz.KeysEndpoint;
@@ -122,6 +125,10 @@ public class Application extends javax.ws.rs.core.Application {
         StrictRefererFilter.class,
         // UserInfo
         UserInfoEndpoint.class,
+        // FranceConnect
+        FranceConnectLogin.class,
+        FranceConnectCallback.class,
+        FranceConnectLogoutCallback.class,
         // AuditLog
         AuditLogEndpoint.class,
         HttpInterceptor.class,

@@ -21,13 +21,15 @@
  * Logout page.
  */
 {template .logout}
+{@param? appId:       string}       /** ID of the application that redirected to the logout page. */
 {@param? appName:     string}       /** name of the application that redirected to the logout page. */
 {@param? serviceUrl:  string}       /** URL where to return to log back in to the service. */
 {@param? otherApps:   list<string>} /** names of the other apps the user is currently signed in. */
 {@param? portalUrl:   string}       /** URL of the Portal. */
 {@param  isPortal:    bool}         /** Whether we're logging out of the Portal. */
 {@param  formAction:  string}       /** URL to post the form to. */
-{@param? continue:    string}       /** URL where to continue to after successful logout. */
+{@param? post_logout_redirect_uri: string} /** URL where to continue to after successful logout. */
+{@param? state:       string}       /** State associated with the post_logout_redirect_uri. */
 {call .header}
   {param title kind="text"}{msg desc="logout page title"}Logout{/msg}{/param}
 {/call}
@@ -83,8 +85,14 @@ p {lb} margin: 0; {rb}
 
   <form method="POST" action="{$formAction}">
     <input type="hidden" name="_utf8" value="&#9731;">
-    {if $continue}
-      <input type="hidden" name="continue" value="{$continue}">
+    {if $appId}
+      <input type="hidden" name="app_id" value="{$appId}">
+    {/if}
+    {if $post_logout_redirect_uri}
+      <input type="hidden" name="post_logout_redirect_uri" value="{$post_logout_redirect_uri}">
+      {if $state}
+          <input type="hidden" name="state" value="{$state}">
+      {/if}
     {/if}
     <button type="submit">{msg desc="Form submit button; global sign-out"}Sign out{/msg}</button>
 

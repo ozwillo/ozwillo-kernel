@@ -31,6 +31,9 @@ public class SidToken extends AbstractAccountToken {
   @JsonProperty
   private boolean usingClientCertificate;
 
+  @JsonProperty
+  private String franceconnectIdToken;
+
   /**
    * Gets the last time the user authenticated by providing their credentials.
    *
@@ -60,5 +63,13 @@ public class SidToken extends AbstractAccountToken {
 
   public void setUsingClientCertificate(boolean usingClientCertificate) {
     this.usingClientCertificate = usingClientCertificate;
+  }
+
+  public String getFranceconnectIdToken() {
+    return franceconnectIdToken;
+  }
+
+  public void setFranceconnectIdToken(String franceconnectIdToken) {
+    this.franceconnectIdToken = franceconnectIdToken;
   }
 }

@@ -23,11 +23,13 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.util.Modules;
 import com.typesafe.config.Config;
 
 import oasis.auditlog.log4j.Log4JAuditLogModule;
 import oasis.auditlog.noop.NoopAuditLogModule;
 import oasis.auth.AuthModule;
+import oasis.auth.FranceConnectModule;
 import oasis.catalog.CatalogModule;
 import oasis.elasticsearch.ElasticsearchModule;
 import oasis.http.HttpClientModule;
@@ -71,6 +73,9 @@ public class WebApp extends CommandLineTool {
         // TODO: store PKIs in DB to use a single subtree of the config
         AuthModule.create(config.getConfig("oasis.auth")
             .withFallback(config.withOnlyPath("oasis.conf-dir"))),
+        config.hasPath("oasis.franceconnect")
+            ? FranceConnectModule.create(config.getConfig("oasis.franceconnect"))
+            : Modules.EMPTY_MODULE,
         UrlsModule.create(config.getConfig("oasis.urls")),
         MailModule.create(config.getConfig("oasis.mail")),
         UserDirectoryModule.create(config.getConfig("oasis.userdirectory"))

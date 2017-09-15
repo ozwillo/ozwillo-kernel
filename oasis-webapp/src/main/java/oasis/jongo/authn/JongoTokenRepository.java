@@ -107,6 +107,18 @@ public class JongoTokenRepository implements TokenRepository, JongoBootstrapper 
   }
 
   @Override
+  public boolean reAuthSidToken(String tokenId, String franceconnectIdToken) {
+    Instant authenticationTime = Instant.now();
+
+    WriteResult writeResult = this.getTokensCollection()
+        .update("{ id: # }", tokenId)
+        // TODO: Pass directly the instance of Instant
+        .with("{ $set: { authenticationTime: #, franceconnectIdToken: # } }", Date.from(authenticationTime), franceconnectIdToken);
+
+    return writeResult.getN() > 0;
+  }
+
+  @Override
   public int revokeTokensForAccount(String accountId) {
     checkArgument(!Strings.isNullOrEmpty(accountId));
 

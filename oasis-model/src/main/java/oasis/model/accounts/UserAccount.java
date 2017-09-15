@@ -64,6 +64,8 @@ public class UserAccount {
 
   private Address address;
 
+  private String franceconnect_sub;
+
   private long updated_at;
 
   private Long created_at;
@@ -222,6 +224,14 @@ public class UserAccount {
 
   public void setAddress(Address address) {
     this.address = address;
+  }
+
+  public String getFranceconnect_sub() {
+    return franceconnect_sub;
+  }
+
+  public void setFranceconnect_sub(String franceconnect_sub) {
+    this.franceconnect_sub = franceconnect_sub;
   }
 
   public long getUpdated_at() {
