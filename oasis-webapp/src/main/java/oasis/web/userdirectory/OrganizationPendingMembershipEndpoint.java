@@ -17,6 +17,8 @@
  */
 package oasis.web.userdirectory;
 
+import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -32,8 +34,7 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.Streams;
 
 import oasis.model.directory.OrganizationMembership;
 import oasis.model.directory.OrganizationMembershipRepository;
@@ -72,21 +73,18 @@ public class OrganizationPendingMembershipEndpoint {
 
   private Response toResponse(Iterable<OrganizationMembership> memberships) {
     return Response.ok()
-        .entity(new GenericEntity<Iterable<PendingOrgMembership>>(Iterables.transform(memberships,
-            new Function<OrganizationMembership, PendingOrgMembership>() {
-              @Override
-              public PendingOrgMembership apply(OrganizationMembership organizationMembership) {
-                PendingOrgMembership membership = new PendingOrgMembership();
-                membership.id = organizationMembership.getId();
-                membership.pending_membership_uri = uriInfo.getBaseUriBuilder()
-                    .path(PendingMembershipEndpoint.class)
-                    .build(organizationMembership.getId())
-                    .toString();
-                membership.pending_membership_etag = etagService.getEtag(organizationMembership).toString();
-                membership.email = organizationMembership.getEmail();
-                membership.admin = organizationMembership.isAdmin();
-                return membership;
-              }
+        .entity(new GenericEntity<Stream<PendingOrgMembership>>(Streams.stream(memberships).map(
+            organizationMembership -> {
+              PendingOrgMembership membership = new PendingOrgMembership();
+              membership.id = organizationMembership.getId();
+              membership.pending_membership_uri = uriInfo.getBaseUriBuilder()
+                  .path(PendingMembershipEndpoint.class)
+                  .build(organizationMembership.getId())
+                  .toString();
+              membership.pending_membership_etag = etagService.getEtag(organizationMembership).toString();
+              membership.email = organizationMembership.getEmail();
+              membership.admin = organizationMembership.isAdmin();
+              return membership;
             })) {})
         .build();
   }

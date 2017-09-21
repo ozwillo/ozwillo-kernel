@@ -18,6 +18,7 @@
 package oasis.web.userdirectory;
 
 import java.util.Objects;
+import java.util.stream.Stream;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -34,8 +35,7 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.Streams;
 
 import oasis.model.authz.Scopes;
 import oasis.model.directory.DirectoryRepository;
@@ -70,20 +70,17 @@ public class UserMembershipEndpoint {
     }
     Iterable<OrganizationMembership> memberships = organizationMembershipRepository.getOrganizationsForUser(userId, start, limit);
     return Response.ok()
-        .entity(new GenericEntity<Iterable<UserMembership>>(Iterables.transform(memberships,
-            new Function<OrganizationMembership, UserMembership>() {
-              @Override
-              public UserMembership apply(OrganizationMembership input) {
-                UserMembership membership = new UserMembership();
-                membership.id = input.getId();
-                membership.membership_uri = uriInfo.getBaseUriBuilder().path(MembershipEndpoint.class).build(input.getId()).toString();
-                membership.membership_etag = etagService.getEtag(input).toString();
-                membership.organization_id = input.getOrganizationId();
-                final Organization organization = directoryRepository.getOrganization(input.getOrganizationId());
-                membership.organization_name = organization == null ? null : organization.getName();
-                membership.admin = input.isAdmin();
-                return membership;
-              }
+        .entity(new GenericEntity<Stream<UserMembership>>(Streams.stream(memberships).map(
+            input -> {
+              UserMembership membership = new UserMembership();
+              membership.id = input.getId();
+              membership.membership_uri = uriInfo.getBaseUriBuilder().path(MembershipEndpoint.class).build(input.getId()).toString();
+              membership.membership_etag = etagService.getEtag(input).toString();
+              membership.organization_id = input.getOrganizationId();
+              final Organization organization = directoryRepository.getOrganization(input.getOrganizationId());
+              membership.organization_name = organization == null ? null : organization.getName();
+              membership.admin = input.isAdmin();
+              return membership;
             })) {})
         .build();
   }

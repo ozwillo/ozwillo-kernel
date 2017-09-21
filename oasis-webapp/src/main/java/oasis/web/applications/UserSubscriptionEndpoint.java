@@ -17,6 +17,8 @@
  */
 package oasis.web.applications;
 
+import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -32,10 +34,9 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Function;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.Streams;
 
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
@@ -83,24 +84,21 @@ public class UserSubscriptionEndpoint {
 
     Iterable<UserSubscription> subscriptions = userSubscriptionRepository.getUserSubscriptions(userId);
     return Response.ok()
-        .entity(new GenericEntity<Iterable<UserSub>>(Iterables.transform(subscriptions,
-            new Function<UserSubscription, UserSub>() {
-              @Override
-              public UserSub apply(UserSubscription input) {
-                UserSub sub = new UserSub();
-                sub.id = input.getId();
-                sub.subscription_uri = uriInfo.getBaseUriBuilder().path(SubscriptionEndpoint.class).build(input.getId()).toString();
-                sub.subscription_etag = etagService.getEtag(input).toString();
-                sub.service_id = input.getService_id();
-                final Service service = serviceRepository.getService(input.getService_id());
-                sub.service_name = service == null ? null : service.getName();
-                sub.subscription_type = input.getSubscription_type();
-                sub.creator_id = MoreObjects.firstNonNull(input.getCreator_id(), input.getUser_id());
-                // TODO: check access rights to the user name
-                final UserAccount creator = accountRepository.getUserAccountById(sub.creator_id);
-                sub.creator_name = creator == null ? null : creator.getDisplayName();
-                return sub;
-              }
+        .entity(new GenericEntity<Stream<UserSub>>(Streams.stream(subscriptions).map(
+            input -> {
+              UserSub sub = new UserSub();
+              sub.id = input.getId();
+              sub.subscription_uri = uriInfo.getBaseUriBuilder().path(SubscriptionEndpoint.class).build(input.getId()).toString();
+              sub.subscription_etag = etagService.getEtag(input).toString();
+              sub.service_id = input.getService_id();
+              final Service service = serviceRepository.getService(input.getService_id());
+              sub.service_name = service == null ? null : service.getName();
+              sub.subscription_type = input.getSubscription_type();
+              sub.creator_id = MoreObjects.firstNonNull(input.getCreator_id(), input.getUser_id());
+              // TODO: check access rights to the user name
+              final UserAccount creator = accountRepository.getUserAccountById(sub.creator_id);
+              sub.creator_name = creator == null ? null : creator.getDisplayName();
+              return sub;
             })) {})
         .build();
   }

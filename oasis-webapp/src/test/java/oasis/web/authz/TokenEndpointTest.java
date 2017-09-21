@@ -17,8 +17,9 @@
  */
 package oasis.web.authz;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.jose4j.jwa.AlgorithmConstraints.ConstraintType.*;
+import static oasis.web.authz.TokenEndpoint.AUTHORIZED_JWT_BEARER_SCOPES;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.jose4j.jwa.AlgorithmConstraints.ConstraintType.WHITELIST;
 import static org.mockito.Mockito.*;
 
 import java.util.concurrent.TimeUnit;
@@ -26,7 +27,6 @@ import java.util.concurrent.TimeUnit;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeUtils;
@@ -46,7 +46,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -721,7 +720,7 @@ public class TokenEndpointTest {
     jws.setKey(settings.keyPair.getPrivate());
     jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
     jws.setPayload(claims.toJson());
-    Response resp = jwtBearer(jws.getCompactSerialization(), Joiner.on(" ").join(TokenEndpoint.AUTHORIZED_JWT_BEARER_SCOPES));
+    Response resp = jwtBearer(jws.getCompactSerialization(), String.join(" ", AUTHORIZED_JWT_BEARER_SCOPES));
 
     // then
     assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
@@ -745,7 +744,7 @@ public class TokenEndpointTest {
     jws.setKey(KeyPairLoader.generateRandomKeyPair().getPrivate());
     jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
     jws.setPayload(claims.toJson());
-    Response resp = jwtBearer(jws.getCompactSerialization(), Joiner.on(" ").join(TokenEndpoint.AUTHORIZED_JWT_BEARER_SCOPES));
+    Response resp = jwtBearer(jws.getCompactSerialization(), String.join(" ", AUTHORIZED_JWT_BEARER_SCOPES));
 
     // then
     assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
@@ -769,7 +768,7 @@ public class TokenEndpointTest {
     jws.setKey(settings.keyPair.getPrivate());
     jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
     jws.setPayload(claims.toJson());
-    Response resp = jwtBearer(jws.getCompactSerialization(), Joiner.on(" ").join(TokenEndpoint.AUTHORIZED_JWT_BEARER_SCOPES));
+    Response resp = jwtBearer(jws.getCompactSerialization(), String.join(" ", AUTHORIZED_JWT_BEARER_SCOPES));
 
     // then
     assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
@@ -793,7 +792,7 @@ public class TokenEndpointTest {
     jws.setKey(settings.keyPair.getPrivate());
     jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
     jws.setPayload(claims.toJson());
-    Response resp = jwtBearer(jws.getCompactSerialization(), Joiner.on(" ").join(TokenEndpoint.AUTHORIZED_JWT_BEARER_SCOPES));
+    Response resp = jwtBearer(jws.getCompactSerialization(), String.join(" ", TokenEndpoint.AUTHORIZED_JWT_BEARER_SCOPES));
 
     // then
     assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
@@ -817,7 +816,7 @@ public class TokenEndpointTest {
     jws.setKey(settings.keyPair.getPrivate());
     jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
     jws.setPayload(claims.toJson());
-    Response resp = jwtBearer(jws.getCompactSerialization(), Joiner.on(" ").join(TokenEndpoint.AUTHORIZED_JWT_BEARER_SCOPES));
+    Response resp = jwtBearer(jws.getCompactSerialization(), String.join(" ", AUTHORIZED_JWT_BEARER_SCOPES));
 
     // then
     assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
@@ -840,7 +839,7 @@ public class TokenEndpointTest {
     jws.setKey(settings.keyPair.getPrivate());
     jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
     jws.setPayload(claims.toJson());
-    Response resp = jwtBearer(jws.getCompactSerialization(), Joiner.on(" ").join(TokenEndpoint.AUTHORIZED_JWT_BEARER_SCOPES));
+    Response resp = jwtBearer(jws.getCompactSerialization(), String.join(" ", AUTHORIZED_JWT_BEARER_SCOPES));
 
     // then
     assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
@@ -864,7 +863,7 @@ public class TokenEndpointTest {
     jws.setKey(settings.keyPair.getPrivate());
     jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
     jws.setPayload(claims.toJson());
-    Response resp = jwtBearer(jws.getCompactSerialization(), Joiner.on(" ").join(TokenEndpoint.AUTHORIZED_JWT_BEARER_SCOPES));
+    Response resp = jwtBearer(jws.getCompactSerialization(), String.join(" ", AUTHORIZED_JWT_BEARER_SCOPES));
 
     // then
     assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
@@ -888,7 +887,7 @@ public class TokenEndpointTest {
     jws.setKey(settings.keyPair.getPrivate());
     jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
     jws.setPayload(claims.toJson());
-    Response resp = jwtBearer(jws.getCompactSerialization(), Joiner.on(" ").join(TokenEndpoint.AUTHORIZED_JWT_BEARER_SCOPES));
+    Response resp = jwtBearer(jws.getCompactSerialization(), String.join(" ", AUTHORIZED_JWT_BEARER_SCOPES));
 
     // then
     assertThat(resp.getStatusInfo()).isEqualTo(Response.Status.OK);

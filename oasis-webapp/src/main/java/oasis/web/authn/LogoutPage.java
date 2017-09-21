@@ -19,7 +19,6 @@ package oasis.web.authn;
 
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Collections;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;

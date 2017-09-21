@@ -37,9 +37,9 @@ import oasis.jest.applications.v2.JestCatalogEntryRepository;
 import oasis.jest.guice.JestModule;
 import oasis.jongo.JongoService;
 import oasis.jongo.guice.JongoModule;
-import oasis.model.applications.v2.CatalogEntry;
 import oasis.model.applications.v2.Application;
 import oasis.model.applications.v2.ApplicationRepository;
+import oasis.model.applications.v2.CatalogEntry;
 import oasis.soy.SoyGuiceModule;
 import oasis.urls.UrlsModule;
 
@@ -92,7 +92,7 @@ public class IndexApplication extends CommandLineTool {
         boolean success;
         try {
           if (!dryRun) {
-            jestCatalogEntryRepositoryProvider.get().asyncIndex(application).get();
+            jestCatalogEntryRepositoryProvider.get().asyncIndex(application).toCompletableFuture().get();
           }
           success = true;
         } catch (Exception e) {
@@ -110,6 +110,7 @@ public class IndexApplication extends CommandLineTool {
           if (!dryRun) {
             jestCatalogEntryRepositoryProvider.get()
                 .asyncDelete(applicationId, CatalogEntry.EntryType.APPLICATION)
+                .toCompletableFuture()
                 .get();
           }
           success = true;

@@ -24,7 +24,6 @@ import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -142,8 +141,8 @@ public class DeleteAppInstance extends CommandLineTool {
         ImmutableDeleteAppInstance.Request deleteAppInstanceRequest = ImmutableDeleteAppInstance.Request.builder()
             .instanceId(instance_id)
             .callProvider(false)
-            .checkStatus(Optional.absent())
-            .checkVersions(Optional.absent())
+            .checkStatus(null)
+            .checkVersions(null)
             .notifyAdmins(false)
             .build();
         usecaseProvider.get().deleteInstance(deleteAppInstanceRequest, stats);

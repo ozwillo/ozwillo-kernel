@@ -17,11 +17,8 @@
  */
 package oasis.web.auditlog;
 
-import static com.google.common.base.Predicates.*;
-
 import java.io.IOException;
 import java.security.Principal;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -36,7 +33,6 @@ import javax.ws.rs.ext.Provider;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
 
 import oasis.auditlog.AuditLogService;
 import oasis.auditlog.HttpAuditLogEvent;
@@ -77,8 +73,9 @@ public class HttpInterceptor implements ContainerRequestFilter, ContainerRespons
         .setUrl(requestContext.getUriInfo().getRequestUri().toString())
         .setMethod(requestContext.getMethod());
 
-    Map<String, List<String>> headers = Maps.filterKeys(requestContext.getHeaders(), in(HTTP_HEADERS_TO_LOG));
-    event.setHeaders(ImmutableMap.copyOf(headers));
+    event.setHeaders(requestContext.getHeaders().entrySet().stream()
+        .filter(entry -> HTTP_HEADERS_TO_LOG.contains(entry.getKey()))
+        .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue)));
 
     event.setStatus(responseContext.getStatus());
 

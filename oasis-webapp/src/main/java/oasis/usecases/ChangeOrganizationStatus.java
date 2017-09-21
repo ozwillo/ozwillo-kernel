@@ -17,6 +17,8 @@
  */
 package oasis.usecases;
 
+import java.net.URI;
+
 import javax.inject.Inject;
 
 import org.immutables.value.Value;
@@ -24,7 +26,6 @@ import org.joda.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Functions;
 import com.google.template.soy.data.SanitizedContent;
 import com.google.template.soy.data.SoyMapData;
 import com.ibm.icu.util.ULocale;
@@ -128,7 +129,7 @@ public class ChangeOrganizationStatus {
     Notification notificationPrototype = new Notification();
     notificationPrototype.setTime(Instant.now());
     notificationPrototype.setStatus(Notification.Status.UNREAD);
-    notificationPrototype.getAction_uri().set(ULocale.ROOT, urls.myNetwork().transform(Functions.toStringFunction()).orNull());
+    notificationPrototype.getAction_uri().set(ULocale.ROOT, urls.myNetwork().map(URI::toString).orElse(null));
 
     UserAccount requester = accountRepository.getUserAccountById(requesterId);
     SoyMapData data = new SoyMapData();
@@ -168,7 +169,7 @@ public class ChangeOrganizationStatus {
     notification.setTime(Instant.now());
     notification.setStatus(Notification.Status.UNREAD);
     notification.setUser_id(requesterId);
-    notification.getAction_uri().set(ULocale.ROOT, urls.myNetwork().transform(Functions.toStringFunction()).orNull());
+    notification.getAction_uri().set(ULocale.ROOT, urls.myNetwork().map(URI::toString).orElse(null));
 
     SoyMapData data = new SoyMapData();
     data.put(SoftlyDeletedOrganizationMessageForRequesterSoyTemplateInfo.ORGANIZATION_NAME, organization.getName());

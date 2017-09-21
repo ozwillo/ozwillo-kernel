@@ -19,14 +19,18 @@ package oasis.web.providers;
 
 import static org.assertj.core.api.Assertions.*;
 
+import java.util.List;
+import java.util.OptionalDouble;
+import java.util.stream.Stream;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
 
 import org.joda.time.Instant;
 import org.jukito.JukitoRunner;
@@ -36,6 +40,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 
 import oasis.http.testing.InProcessResteasy;
@@ -55,13 +60,14 @@ public class JacksonJsonProviderTest {
     DummyObject able = new DummyObject();
     able.instant = Instant.now();
     able.doubles = ImmutableList.of(Math.random(), Math.random());
+    able.optionalDouble = OptionalDouble.of(Math.random());
 
-    DummyObject baker = resteasy.getClient()
+    List<DummyObject> baker = resteasy.getClient()
         .target(resteasy.getBaseUriBuilder().path(DummyResource.class).build())
         .request()
-        .post(Entity.json(able), DummyObject.class);
+        .post(Entity.json(able), new GenericType<List<DummyObject>>() {});
 
-    assertThat(baker).isEqualToComparingFieldByField(able);
+    assertThat(Iterables.getOnlyElement(baker)).isEqualToComparingFieldByField(able);
   }
 
   @Test public void testJsonSyntaxError() {
@@ -81,7 +87,7 @@ public class JacksonJsonProviderTest {
         .post(Entity.json("{\"instant\": [] }"));
 
     assertThat(response.getStatus()).isEqualTo(ResponseFactory.SC_UNPROCESSABLE_ENTITY);
-    assertThat(response.readEntity(String.class)).contains("Can not deserialize instance of " + Instant.class.getName());
+    assertThat(response.readEntity(String.class)).contains("expected JSON Number or String");
   }
 
   @Path("/")
@@ -89,13 +95,14 @@ public class JacksonJsonProviderTest {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public DummyObject echo(DummyObject obj) {
-      return obj;
+    public Stream<DummyObject> echo(DummyObject obj) {
+      return Stream.of(obj);
     }
   }
 
   public static class DummyObject {
     public Instant instant;
     public ImmutableList<Double> doubles;
+    public OptionalDouble optionalDouble;
   }
 }

@@ -21,9 +21,10 @@ import java.net.URI;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import org.immutables.value.Value;
 
-import com.google.common.base.Optional;
 import com.ibm.icu.util.ULocale;
 
 @Value.Enclosing
@@ -32,10 +33,10 @@ public interface CatalogEntryRepository {
 
   @Value.Immutable
   interface SearchRequest {
-    Optional<ULocale> displayLocale();
+    @Nullable ULocale displayLocale();
     int start();
     int limit();
-    Optional<String> query();
+    @Nullable String query();
     List<ULocale> supported_locale();
     Set<URI> geographical_area();
     Set<URI> restricted_area();

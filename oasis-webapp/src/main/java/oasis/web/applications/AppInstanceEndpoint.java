@@ -19,6 +19,7 @@ package oasis.web.applications;
 
 import java.net.URI;
 import java.util.List;
+import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -41,9 +42,8 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Function;
 import com.google.common.base.Strings;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.Streams;
 
 import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstanceRepository;
@@ -132,14 +132,11 @@ public class AppInstanceEndpoint {
     Iterable<Service> services = serviceRepository.getServicesOfInstance(instanceId);
     // TODO: check that the instance exists and return a 404 otherwise
     return Response.ok()
-        .entity(new GenericEntity<Iterable<Service>>(Iterables.transform(services,
-            new Function<Service, Service>() {
-              @Override
-              public Service apply(Service input) {
-                // XXX: don't send secrets over the wire
-                input.setSubscription_secret(null);
-                return input;
-              }
+        .entity(new GenericEntity<Stream<Service>>(Streams.stream(services)
+            .map(input -> {
+              // XXX: don't send secrets over the wire
+              input.setSubscription_secret(null);
+              return input;
             })) {})
         .build();
   }

@@ -17,15 +17,12 @@
  */
 package oasis.catalog;
 
+import java.util.function.BiConsumer;
+
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
 
 import oasis.jest.applications.v2.JestCatalogEntryRepository;
 import oasis.jongo.applications.v2.JongoServiceRepository;
@@ -50,8 +47,8 @@ public class IndexingServiceRepository implements ServiceRepository {
   public Service createService(Service service) {
     Service createdService = jongoServiceRepository.createService(service);
     if (shouldIndex(createdService)) {
-      ListenableFuture<Void> listenableFuture = jestCatalogEntryRepository.asyncIndex(createdService);
-      Futures.addCallback(listenableFuture, indexedFutureCallback(service.getId(), CatalogEntry.EntryType.SERVICE), MoreExecutors.directExecutor());
+      jestCatalogEntryRepository.asyncIndex(createdService)
+          .whenComplete(indexedFutureCallback(service.getId(), CatalogEntry.EntryType.SERVICE));
     }
     return createdService;
   }
@@ -81,12 +78,12 @@ public class IndexingServiceRepository implements ServiceRepository {
     Service updatedService = jongoServiceRepository.updateService(service, versions);
 
     if (shouldIndex(updatedService)) {
-      ListenableFuture<Void> listenableFuture = jestCatalogEntryRepository.asyncIndex(updatedService);
-      Futures.addCallback(listenableFuture, indexedFutureCallback(service.getId(), CatalogEntry.EntryType.SERVICE), MoreExecutors.directExecutor());
+      jestCatalogEntryRepository.asyncIndex(updatedService)
+          .whenComplete(indexedFutureCallback(service.getId(), CatalogEntry.EntryType.SERVICE));
     } else if (shouldIndex(service)) {
       // It means it is no more indexable
-      ListenableFuture<Void> listenableFuture = jestCatalogEntryRepository.asyncDelete(updatedService.getId(), CatalogEntry.EntryType.SERVICE);
-      Futures.addCallback(listenableFuture, deleteIndexFutureCallback(service.getId(), CatalogEntry.EntryType.SERVICE), MoreExecutors.directExecutor());
+      jestCatalogEntryRepository.asyncDelete(updatedService.getId(), CatalogEntry.EntryType.SERVICE)
+          .whenComplete(deleteIndexFutureCallback(service.getId(), CatalogEntry.EntryType.SERVICE));
     }
     return updatedService;
   }
@@ -95,8 +92,8 @@ public class IndexingServiceRepository implements ServiceRepository {
   public boolean deleteService(String serviceId, long[] versions) throws InvalidVersionException {
     boolean deletedService = jongoServiceRepository.deleteService(serviceId, versions);
     if (deletedService) {
-      ListenableFuture<Void> listenableFuture = jestCatalogEntryRepository.asyncDelete(serviceId, CatalogEntry.EntryType.SERVICE);
-      Futures.addCallback(listenableFuture, deleteIndexFutureCallback(serviceId, CatalogEntry.EntryType.SERVICE), MoreExecutors.directExecutor());
+      jestCatalogEntryRepository.asyncDelete(serviceId, CatalogEntry.EntryType.SERVICE)
+          .whenComplete(deleteIndexFutureCallback(serviceId, CatalogEntry.EntryType.SERVICE));
     }
     return deletedService;
   }
@@ -104,8 +101,8 @@ public class IndexingServiceRepository implements ServiceRepository {
   @Override
   public int deleteServicesOfInstance(String instanceId) {
     int count = jongoServiceRepository.deleteServicesOfInstance(instanceId);
-    ListenableFuture<Void> listenableFuture = jestCatalogEntryRepository.asyncDeleteServiceByInstance(instanceId);
-    Futures.addCallback(listenableFuture, deleteIndexRelatedToInstanceFutureCallback(instanceId), MoreExecutors.directExecutor());
+    jestCatalogEntryRepository.asyncDeleteServiceByInstance(instanceId)
+        .whenComplete(deleteIndexRelatedToInstanceFutureCallback(instanceId));
     return count;
   }
 
@@ -116,14 +113,14 @@ public class IndexingServiceRepository implements ServiceRepository {
       case AVAILABLE:
         for (Service service : getServicesOfInstance(instanceId)) {
           if (shouldIndex(service)) {
-            ListenableFuture<Void> listenableFuture = jestCatalogEntryRepository.asyncIndex(service);
-            Futures.addCallback(listenableFuture, indexedFutureCallback(service.getId(), CatalogEntry.EntryType.SERVICE), MoreExecutors.directExecutor());
+            jestCatalogEntryRepository.asyncIndex(service)
+                .whenComplete(indexedFutureCallback(service.getId(), CatalogEntry.EntryType.SERVICE));
           }
         }
         break;
       case NOT_AVAILABLE:
-        ListenableFuture<Void> listenableFuture = jestCatalogEntryRepository.asyncDeleteServiceByInstance(instanceId);
-        Futures.addCallback(listenableFuture, deleteIndexRelatedToInstanceFutureCallback(instanceId), MoreExecutors.directExecutor());
+        jestCatalogEntryRepository.asyncDeleteServiceByInstance(instanceId)
+            .whenComplete(deleteIndexRelatedToInstanceFutureCallback(instanceId));
         break;
       default:
         throw new IllegalArgumentException();
@@ -135,38 +132,32 @@ public class IndexingServiceRepository implements ServiceRepository {
     return service.isVisible() && service.getStatus() != Service.Status.NOT_AVAILABLE;
   }
 
-  private FutureCallback<Void> indexedFutureCallback(final String id, final CatalogEntry.EntryType entryType) {
-    return new FutureCallback<Void>() {
-      @Override public void onSuccess(Void result) {
+  private BiConsumer<Void, Throwable> indexedFutureCallback(final String id, final CatalogEntry.EntryType entryType) {
+    return (result, throwable) -> {
+      if (throwable == null) {
         logger.trace("Successfully indexed {} {}", entryType.name(), id);
-      }
-
-      @Override public void onFailure(Throwable t) {
-        logger.error("Error when indexing {} {}", entryType.name(), id, t);
+      } else {
+        logger.error("Error when indexing {} {}", entryType.name(), id, throwable);
       }
     };
   }
 
-  private FutureCallback<Void> deleteIndexFutureCallback(final String id, final CatalogEntry.EntryType entryType) {
-    return new FutureCallback<Void>() {
-      @Override public void onSuccess(Void result) {
+  private BiConsumer<Void, Throwable> deleteIndexFutureCallback(final String id, final CatalogEntry.EntryType entryType) {
+    return (result, throwable) -> {
+      if (throwable == null) {
         logger.trace("Successfully removed {} {} from index", entryType.name(), id);
-      }
-
-      @Override public void onFailure(Throwable t) {
-        logger.error("Error when removing {} {} from index", entryType.name(), id, t);
+      } else {
+        logger.error("Error when removing {} {} from index", entryType.name(), id, throwable);
       }
     };
   }
 
-  private FutureCallback<Void> deleteIndexRelatedToInstanceFutureCallback(final String instanceId) {
-    return new FutureCallback<Void>() {
-      @Override public void onSuccess(Void result) {
+  private BiConsumer<Void, Throwable> deleteIndexRelatedToInstanceFutureCallback(final String instanceId) {
+    return (result, throwable) -> {
+      if (throwable == null) {
         logger.trace("Successfully removed catalog entries related to instance {} from index", instanceId);
-      }
-
-      @Override public void onFailure(Throwable t) {
-        logger.trace("Error when removing catalog entries related to instance {} from index", instanceId);
+      } else {
+        logger.trace("Error when removing catalog entries related to instance {} from index", instanceId, throwable);
       }
     };
   }

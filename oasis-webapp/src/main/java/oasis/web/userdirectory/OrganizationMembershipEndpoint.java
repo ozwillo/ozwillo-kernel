@@ -18,6 +18,7 @@
 package oasis.web.userdirectory;
 
 import java.net.URI;
+import java.util.stream.Stream;
 
 import javax.inject.Inject;
 import javax.mail.MessagingException;
@@ -41,8 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.Streams;
 import com.google.template.soy.data.SanitizedContent;
 import com.google.template.soy.data.SoyMapData;
 import com.ibm.icu.util.ULocale;
@@ -124,21 +124,18 @@ public class OrganizationMembershipEndpoint {
 
   private Response toResponse(Iterable<OrganizationMembership> memberships) {
     return Response.ok()
-        .entity(new GenericEntity<Iterable<OrgMembership>>(Iterables.transform(memberships,
-            new Function<OrganizationMembership, OrgMembership>() {
-              @Override
-              public OrgMembership apply(OrganizationMembership input) {
-                OrgMembership membership = new OrgMembership();
-                membership.id = input.getId();
-                membership.membership_uri = uriInfo.getBaseUriBuilder().path(MembershipEndpoint.class).build(input.getId()).toString();
-                membership.membership_etag = etagService.getEtag(input).toString();
-                membership.account_id = input.getAccountId();
-                // TODO: check access rights to the user name
-                final UserAccount account = accountRepository.getUserAccountById(input.getAccountId());
-                membership.account_name = account == null ? null : account.getDisplayName();
-                membership.admin = input.isAdmin();
-                return membership;
-              }
+        .entity(new GenericEntity<Stream<OrgMembership>>(Streams.stream(memberships).map(
+            input -> {
+              OrgMembership membership = new OrgMembership();
+              membership.id = input.getId();
+              membership.membership_uri = uriInfo.getBaseUriBuilder().path(MembershipEndpoint.class).build(input.getId()).toString();
+              membership.membership_etag = etagService.getEtag(input).toString();
+              membership.account_id = input.getAccountId();
+              // TODO: check access rights to the user name
+              final UserAccount account = accountRepository.getUserAccountById(input.getAccountId());
+              membership.account_name = account == null ? null : account.getDisplayName();
+              membership.admin = input.isAdmin();
+              return membership;
             })) {})
         .build();
   }

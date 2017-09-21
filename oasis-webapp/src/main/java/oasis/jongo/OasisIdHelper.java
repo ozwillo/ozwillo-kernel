@@ -19,10 +19,9 @@ package oasis.jongo;
 
 import java.lang.reflect.Field;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-
-import com.google.common.base.Optional;
 
 import oasis.model.annotations.Id;
 
@@ -60,7 +59,7 @@ public class OasisIdHelper {
     Optional<Field> oasisField = oasisFieldCache.get(clazz);
     if (oasisField != null) {
       // Present in the cache
-      return oasisField.orNull();
+      return oasisField.orElse(null);
     }
 
     for (Field f : clazz.getDeclaredFields()) {
@@ -70,7 +69,7 @@ public class OasisIdHelper {
       }
     }
     Field f = findOasisIdField(clazz.getSuperclass());
-    oasisFieldCache.put(clazz, Optional.fromNullable(f));
+    oasisFieldCache.put(clazz, Optional.ofNullable(f));
     return f;
   }
 }

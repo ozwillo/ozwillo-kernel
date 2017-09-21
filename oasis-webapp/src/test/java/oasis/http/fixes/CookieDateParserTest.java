@@ -24,6 +24,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
+import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 
@@ -36,27 +37,21 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.Streams;
 
 @RunWith(Parameterized.class)
 public class CookieDateParserTest {
   @Parameters(name = "{index}: parseCookieDate({0}) = {1}")
-  public static Iterable<Object[]> data() throws IOException {
+  public static Object[][] data() throws IOException {
     ObjectMapper mapper = new ObjectMapper(new JsonFactory().enable(JsonParser.Feature.ALLOW_COMMENTS));
     JsonNode examples = mapper.readTree(CookieDateParserTest.class.getResource("/http-state/tests/data/dates/examples.json"));
     JsonNode bsdExamples = mapper.readTree(CookieDateParserTest.class.getResource("/http-state/tests/data/dates/bsd-examples.json"));
-    return FluentIterable.from(Iterables.concat(examples, bsdExamples))
-        .transform(new Function<JsonNode, Object[]>() {
-          @Override
-          public Object[] apply(JsonNode input) {
-            return new Object[] {
-                input.get("test").textValue(),
-                input.get("expected").textValue()
-            };
-          }
-        });
+    return Stream.concat(Streams.stream(examples), Streams.stream(bsdExamples))
+        .map(input -> new Object[] {
+            input.get("test").textValue(),
+            input.get("expected").textValue()
+        })
+        .toArray(Object[][]::new);
   }
 
   private static final SimpleDateFormat rfc1123date;

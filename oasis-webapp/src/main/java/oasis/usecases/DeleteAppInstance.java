@@ -17,12 +17,13 @@
  */
 package oasis.usecases;
 
-import static java.util.Objects.*;
+import static java.util.Objects.requireNonNull;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -38,7 +39,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.template.soy.data.SanitizedContent;
 import com.google.template.soy.data.SoyMapData;
@@ -81,15 +81,15 @@ public class DeleteAppInstance {
     requireNonNull(stats);
 
     AppInstance appInstance = null;
-    Iterable<String> adminIds = null;
-    if (request.callProvider() || request.checkStatus().isPresent() || request.notifyAdmins()) {
+    Stream<String> adminIds = null;
+    if (request.callProvider() || request.checkStatus() != null || request.notifyAdmins()) {
       appInstance = appInstanceRepository.getAppInstance(request.instanceId());
       if (appInstance != null) {
-        if (request.checkVersions().isPresent() && !etagService.hasEtag(appInstance, request.checkVersions().get())) {
+        if (request.checkVersions() != null && !etagService.hasEtag(appInstance, request.checkVersions())) {
           return Status.BAD_INSTANCE_VERSION;
         }
-        if (request.checkStatus().isPresent()) {
-          @Nullable Status status = checkStatus(appInstance, request.checkStatus().get());
+        if (request.checkStatus() != null) {
+          @Nullable Status status = checkStatus(appInstance, request.checkStatus());
           if (status != null) {
             return status;
           }
@@ -108,9 +108,9 @@ public class DeleteAppInstance {
 
     // XXX: we first delete the instance, then all the orphan data: ACL, services, scopes, etc.
     // Only use checkVersions if we haven't issued a request to the provider yet!
-    if (request.checkVersions().isPresent() && !request.callProvider() && !request.checkStatus().isPresent()) {
+    if (request.checkVersions() != null && !request.callProvider() && request.checkStatus() == null) {
       try {
-        stats.appInstanceDeleted = appInstanceRepository.deleteInstance(request.instanceId(), request.checkVersions().get());
+        stats.appInstanceDeleted = appInstanceRepository.deleteInstance(request.instanceId(), request.checkVersions());
       } catch (InvalidVersionException e) {
         stats.appInstanceDeleted = false;
         return Status.BAD_INSTANCE_VERSION;
@@ -182,7 +182,7 @@ public class DeleteAppInstance {
     return null;
   }
 
-  private void notifyAdmins(AppInstance appInstance, Iterable<String> adminIds) {
+  private void notifyAdmins(AppInstance appInstance, Stream<String> adminIds) {
     Notification notificationPrototype = new Notification();
     notificationPrototype.setTime(Instant.now());
     notificationPrototype.setStatus(Notification.Status.UNREAD);
@@ -198,7 +198,7 @@ public class DeleteAppInstance {
           DeletedAppInstanceSoyInfo.DELETED_APP_INSTANCE_MESSAGE, locale, SanitizedContent.ContentKind.TEXT, data)));
     }
 
-    for (String adminId : adminIds) {
+    adminIds.forEach(adminId -> {
       try {
         Notification notification = new Notification(notificationPrototype);
         notification.setUser_id(adminId);
@@ -207,7 +207,7 @@ public class DeleteAppInstance {
         // Don't fail if we can't notify
         logger.error("Error notifying admin {} after deleting the instance {}", adminId, appInstance.getName().get(ULocale.ROOT), e);
       }
-    }
+    });
   }
 
   private @Nullable Status checkStatus(AppInstance appInstance, AppInstance.InstantiationStatus checkStatus) {
@@ -223,11 +223,11 @@ public class DeleteAppInstance {
 
     boolean callProvider();
 
-    public boolean notifyAdmins();
+    boolean notifyAdmins();
 
-    Optional<AppInstance.InstantiationStatus> checkStatus();
+    @Nullable AppInstance.InstantiationStatus checkStatus();
 
-    Optional<long[]> checkVersions();
+    @Nullable long[] checkVersions();
   }
 
   @NotThreadSafe

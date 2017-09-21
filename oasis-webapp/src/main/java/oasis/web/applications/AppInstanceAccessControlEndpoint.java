@@ -20,6 +20,7 @@ package oasis.web.applications;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import javax.inject.Inject;
 import javax.mail.MessagingException;
@@ -139,7 +140,7 @@ public class AppInstanceAccessControlEndpoint {
       acesByUser.put(ace.user_id, ace);
     }
     // Then update the app_admin flag or insert a new ACE
-    for (String app_admin : appAdminHelper.getAdmins(instance)) {
+    appAdminHelper.getAdmins(instance).forEach(app_admin -> {
       ACE ace = acesByUser.get(app_admin);
       if (ace == null) {
         ace = new ACE();
@@ -149,7 +150,7 @@ public class AppInstanceAccessControlEndpoint {
         ace.user_id = app_admin;
       }
       ace.app_admin = true;
-    }
+    });
     // Finally, compute the *_name fields for all entries
     // Use a cache as we're likely to see the same user several times
     Map<String, UserAccount> accountsById = new HashMap<>();
@@ -289,21 +290,18 @@ public class AppInstanceAccessControlEndpoint {
           AppInstanceInvitationNotificationSoyInfo.ACCEPTED_APP_INSTANCE_INVITATION_ADMIN_MESSAGE, locale, SanitizedContent.ContentKind.TEXT, data)));
     }
 
-    Iterable<String> admins = appAdminHelper.getAdmins(appInstance);
-    for (String admin : admins) {
-      if (admin.equals(requester.getId())) {
-        continue;
-      }
-
-      try {
-        Notification notification = new Notification(notificationPrototype);
-        notification.setUser_id(admin);
-        notificationRepository.createNotification(notification);
-      } catch (Exception e) {
-        // Don't fail if we can't notify
-        logger.error("Error notifying admin {} for accepted or refused app-instance invitation.", admin, e);
-      }
-    }
+    appAdminHelper.getAdmins(appInstance)
+        .filter(Predicate.isEqual(requester.getId()).negate())
+        .forEach(admin -> {
+          try {
+            Notification notification = new Notification(notificationPrototype);
+            notification.setUser_id(admin);
+            notificationRepository.createNotification(notification);
+          } catch (Exception e) {
+            // Don't fail if we can't notify
+            logger.error("Error notifying admin {} for accepted or refused app-instance invitation.", admin, e);
+          }
+        });
   }
 
   static class ACE {

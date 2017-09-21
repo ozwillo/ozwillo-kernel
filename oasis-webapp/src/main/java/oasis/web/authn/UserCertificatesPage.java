@@ -21,20 +21,19 @@ import java.net.URI;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
-import javax.ws.rs.GET;
 import javax.ws.rs.FormParam;
-import javax.ws.rs.Path;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
-import com.google.common.base.Functions;
 import com.google.template.soy.data.SoyListData;
 import com.google.template.soy.data.SoyMapData;
 
@@ -197,7 +196,7 @@ public class UserCertificatesPage {
                 UserCertificatesSoyInfo.UserCertificatesSoyTemplateInfo.DELETE_FORM_ACTION, UriBuilder.fromResource(UserCertificatesPage.class).path(UserCertificatesPage.class, "remove").build().toString(),
                 UserCertificatesSoyInfo.UserCertificatesSoyTemplateInfo.CERTS, clientCerts,
                 UserCertificatesSoyInfo.UserCertificatesSoyTemplateInfo.CURRENT_CERT, currentCert,
-                UserCertificatesSoyInfo.UserCertificatesSoyTemplateInfo.PORTAL_URL, urls.myProfile().transform(Functions.toStringFunction()).orNull()
+                UserCertificatesSoyInfo.UserCertificatesSoyTemplateInfo.PORTAL_URL, urls.myProfile().map(URI::toString).orElse(null)
             )
         ))
         .build();

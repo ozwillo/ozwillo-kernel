@@ -18,6 +18,7 @@
 package oasis.web.applications;
 
 import java.net.URI;
+import java.util.function.Predicate;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -64,8 +65,8 @@ import oasis.soy.templates.AppInstanceInvitationNotificationSoyInfo.AcceptedAppI
 import oasis.soy.templates.AppInstanceInvitationNotificationSoyInfo.RejectedAppInstanceInvitationAdminMessageSoyTemplateInfo;
 import oasis.soy.templates.AppInstanceInvitationNotificationSoyInfo.RejectedAppInstanceInvitationRequesterMessageSoyTemplateInfo;
 import oasis.soy.templates.AppInstanceInvitationSoyInfo;
-import oasis.soy.templates.AppInstanceInvitationSoyInfo.AppInstanceInvitationSoyTemplateInfo;
 import oasis.soy.templates.AppInstanceInvitationSoyInfo.AppInstanceInvitationAlreadyUserErrorSoyTemplateInfo;
+import oasis.soy.templates.AppInstanceInvitationSoyInfo.AppInstanceInvitationSoyTemplateInfo;
 import oasis.urls.Urls;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.LogoutPage;
@@ -173,7 +174,7 @@ public class AppInstanceInvitationPage {
     tokenRepository.revokeToken(appInstanceInvitationToken.getId());
 
     return Response.seeOther(
-        urls.myNetwork().or(uriInfo.getBaseUri())
+        urls.myNetwork().orElse(uriInfo.getBaseUri())
     ).build();
   }
 
@@ -213,7 +214,7 @@ public class AppInstanceInvitationPage {
     tokenRepository.revokeToken(appInstanceInvitationToken.getId());
 
     return Response.seeOther(
-        urls.myNetwork().or(uriInfo.getBaseUri())
+        urls.myNetwork().orElse(uriInfo.getBaseUri())
     ).build();
   }
 
@@ -330,21 +331,18 @@ public class AppInstanceInvitationPage {
           SanitizedContent.ContentKind.TEXT, data)));
     }
 
-    Iterable<String> admins = appAdminHelper.getAdmins(appInstance);
-    for (String admin : admins) {
-      if (admin.equals(requester.getId())) {
-        continue;
-      }
-
-      try {
-        Notification notification = new Notification(notificationPrototype);
-        notification.setUser_id(admin);
-        notificationRepository.createNotification(notification);
-      } catch (Exception e) {
-        // Don't fail if we can't notify
-        logger.error("Error notifying admin {} for accepted or refused app-instance invitation.", admin, e);
-      }
-    }
+    appAdminHelper.getAdmins(appInstance)
+        .filter(Predicate.isEqual(requester.getId()).negate())
+        .forEach(admin -> {
+          try {
+            Notification notification = new Notification(notificationPrototype);
+            notification.setUser_id(admin);
+            notificationRepository.createNotification(notification);
+          } catch (Exception e) {
+            // Don't fail if we can't notify
+            logger.error("Error notifying admin {} for accepted or refused app-instance invitation.", admin, e);
+          }
+        });
   }
 
   private void notifyRequester(AppInstance appInstance, String invitedUserEmail, String requesterId, boolean acceptedInvitation) {

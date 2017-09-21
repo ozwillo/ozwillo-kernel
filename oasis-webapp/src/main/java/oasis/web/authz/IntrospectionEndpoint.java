@@ -17,10 +17,14 @@
  */
 package oasis.web.authz;
 
+import static java.util.stream.Collectors.joining;
+
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -34,12 +38,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import com.google.common.collect.Streams;
 
 import oasis.model.applications.v2.AccessControlRepository;
 import oasis.model.applications.v2.AppInstance;
@@ -58,8 +59,6 @@ import oasis.web.authn.ClientPrincipal;
 @Authenticated @Client
 @Path("/a/tokeninfo")
 public class IntrospectionEndpoint {
-  private static final Joiner SCOPE_JOINER = Joiner.on(' ').skipNulls();
-
   @Inject TokenHandler tokenHandler;
   @Inject ScopeRepository scopeRepository;
   @Inject OrganizationMembershipRepository organizationMembershipRepository;
@@ -87,17 +86,12 @@ public class IntrospectionEndpoint {
     long issuedAtTime = accessToken.getCreationTime().getMillis();
     long expireAt = accessToken.getExpirationTime().getMillis();
 
-    final Set<String> scopeIds = Sets.newHashSet(accessToken.getScopeIds());
     // Remove all scopes which don't belong to the application instance
     String client_id = ((ClientPrincipal) securityContext.getUserPrincipal()).getClientId();
-    scopeIds.retainAll(FluentIterable.from(scopeRepository.getScopesOfAppInstance(client_id))
-        .transform(new Function<Scope, String>() {
-          @Override
-          public String apply(Scope scope) {
-            return scope.getId();
-          }
-        })
-        .toList());
+    final Set<String> scopeIds = Streams.stream(scopeRepository.getScopesOfAppInstance(client_id))
+        .map(Scope::getId)
+        .filter(accessToken.getScopeIds()::contains)
+        .collect(Collectors.toSet());
 
     if (scopeIds.isEmpty()) {
       return error();
@@ -107,7 +101,9 @@ public class IntrospectionEndpoint {
         .setActive(true)
         .setExp(TimeUnit.MILLISECONDS.toSeconds(expireAt))
         .setIat(TimeUnit.MILLISECONDS.toSeconds(issuedAtTime))
-        .setScope(SCOPE_JOINER.join(scopeIds))
+        .setScope(scopeIds.stream()
+                .filter(Objects::nonNull)
+                .collect(joining(" ")))
         .setClient_id(accessToken.getServiceProviderId())
         .setSub(accessToken.getAccountId())
         .setToken_type("Bearer");

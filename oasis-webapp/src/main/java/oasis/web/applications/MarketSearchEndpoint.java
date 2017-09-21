@@ -21,6 +21,7 @@ import java.net.URI;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -39,11 +40,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
-import com.google.common.base.Optional;
-import com.google.common.base.Predicates;
 import com.google.common.base.Strings;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.Iterables;
 import com.ibm.icu.util.ULocale;
 
 import oasis.model.accounts.AccountRepository;
@@ -107,10 +104,10 @@ public class MarketSearchEndpoint {
 
     // TODO: add information about apps the user has already "bought" (XXX: limit to client_id=portal! to avoid leaking data)
     CatalogEntryRepository.SearchRequest request = ImmutableCatalogEntryRepository.SearchRequest.builder()
-        .displayLocale(Optional.fromNullable(locale))
+        .displayLocale(locale)
         .start(start)
         .limit(limit)
-        .query(Optional.fromNullable(trimmedQuery))
+        .query(trimmedQuery)
         .addAllSupported_locale(preProcess(supported_locale))
         .addAllGeographical_area(preProcess(geographical_area))
         .addAllRestricted_area(preProcess(restricted_area))
@@ -125,15 +122,17 @@ public class MarketSearchEndpoint {
         .build();
   }
 
-  private Iterable<String> preProcessStr(@Nullable Collection<String> s) {
-    return Iterables.filter(preProcess(s), Predicates.not(Predicates.equalTo("")));
+  private Collection<String> preProcessStr(@Nullable Collection<String> strings) {
+    strings = preProcess(strings);
+    strings.removeIf(String::isEmpty);
+    return strings;
   }
 
-  private <T> Iterable<T> preProcess(@Nullable Collection<T> objects) {
+  private <T> Collection<T> preProcess(@Nullable Collection<T> objects) {
     if (objects == null) {
-      return Collections.emptySet();
+      return Collections.emptyList();
     }
-    return FluentIterable.from(objects)
-        .filter(Predicates.notNull());
+    objects.removeIf(Objects::isNull);
+    return objects;
   }
 }

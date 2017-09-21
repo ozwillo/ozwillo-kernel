@@ -17,12 +17,14 @@
  */
 package oasis.web.authz;
 
+import static java.util.function.Predicate.isEqual;
+
 import java.net.URI;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nonnull;
@@ -51,11 +53,11 @@ import javax.ws.rs.core.UriInfo;
 import org.joda.time.DateTimeUtils;
 
 import com.google.common.base.CharMatcher;
-import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+import com.google.common.collect.Streams;
 import com.google.template.soy.data.SoyListData;
 import com.google.template.soy.data.SoyMapData;
 import com.ibm.icu.util.ULocale;
@@ -128,11 +130,17 @@ public class AuthorizationEndpoint {
       if (!interactive) {
         return "none";
       }
-      return Joiner.on(' ').skipNulls().join(Arrays.asList(
-          login ? "login" : null,
-          consent ? "consent" : null,
-          selectAccount ? "select_account" : null
-      ));
+      StringJoiner joiner = new StringJoiner(" ");
+      if (login) {
+        joiner.add("login");
+      }
+      if (consent) {
+        joiner.add("consent");
+      }
+      if (selectAccount) {
+        joiner.add("select_account");
+      }
+      return joiner.toString();
     }
   }
 
@@ -263,7 +271,7 @@ public class AuthorizationEndpoint {
     if (settings.enableClientCertificates && acr_values != null) {
       // XXX: switch acr values (eIDAS, STORK-QAA, FICAM, etc.) depending on client_id and/or acr_values of the request
       // E.g. select a "scheme" based on input values (store it in auth code, use it for acr claim in TokenEndpoint)
-      if (Iterables.contains(SPACE_SPLITTER.split(acr_values), AuthorizationContextClasses.EIDAS_SUBSTANTIAL) &&
+      if (Streams.stream(SPACE_SPLITTER.split(acr_values)).anyMatch(isEqual(AuthorizationContextClasses.EIDAS_SUBSTANTIAL)) &&
           !sidToken.isUsingClientCertificate()) {
         askForClientCertificate = true;
       }
@@ -654,7 +662,7 @@ public class AuthorizationEndpoint {
    *
    * @param     paramName the parameter name
    * @return the parameter (unique) value or {@code null} if absent or empty
-   * @throws javax.ws.rs.WebApplicationException if the parameter is included more than once.
+   * @throws WebApplicationException if the parameter is included more than once.
    */
   @Nullable
   private String getParameter(String paramName) {
@@ -690,7 +698,7 @@ public class AuthorizationEndpoint {
    *
    * @param paramName     the parameter name
    * @return the parameter (unique) value (cannot be {@code null}
-   * @throws javax.ws.rs.WebApplicationException if the parameter is absent, empty, or included more than once.
+   * @throws WebApplicationException if the parameter is absent, empty, or included more than once.
    */
   @Nonnull
   private String getRequiredParameter(String paramName) {

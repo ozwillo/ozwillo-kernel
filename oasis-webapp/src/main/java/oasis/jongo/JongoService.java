@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 import com.google.common.base.Preconditions;
 import com.mongodb.Mongo;
@@ -71,6 +72,7 @@ public class JongoService implements Provider<Jongo> {
   public void start() throws Exception {
     mongoConnection = new MongoClient(settings.mongoURI);
     jongoConnection = new Jongo(mongoConnection.getDB(settings.mongoURI.getDatabase()), new OasisMapper.Builder()
+        .registerModule(new Jdk8Module())
         .registerModule(new CustomJodaModule())
         .registerModule(new GuavaModule())
         .registerModule(new LocalizableModule())

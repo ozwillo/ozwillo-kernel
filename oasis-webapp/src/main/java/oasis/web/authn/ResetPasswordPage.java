@@ -17,6 +17,8 @@
  */
 package oasis.web.authn;
 
+import java.net.URI;
+
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.ws.rs.FormParam;
@@ -33,7 +35,6 @@ import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
-import com.google.common.base.Functions;
 import com.google.common.base.Strings;
 import com.google.template.soy.data.SoyMapData;
 import com.ibm.icu.util.ULocale;
@@ -124,7 +125,7 @@ public class ResetPasswordPage {
         .entity(new SoyTemplate(ChangePasswordSoyInfo.PASSWORD_CHANGED,
             account.getLocale(),
             new SoyMapData(
-                ChangePasswordSoyInfo.PasswordChangedSoyTemplateInfo.CONTINUE, urls.myOasis().transform(Functions.toStringFunction()).orNull()
+                ChangePasswordSoyInfo.PasswordChangedSoyTemplateInfo.CONTINUE, urls.myOasis().map(URI::toString).orElse(null)
             )))
         .build();
   }

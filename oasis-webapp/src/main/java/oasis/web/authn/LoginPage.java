@@ -19,6 +19,7 @@ package oasis.web.authn;
 
 import java.net.URI;
 import java.util.Objects;
+import java.util.Optional;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -42,7 +43,6 @@ import javax.ws.rs.core.UriInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Optional;
 import com.google.template.soy.data.SoyMapData;
 import com.ibm.icu.util.ULocale;
 
@@ -265,10 +265,7 @@ public class LoginPage {
   }
 
   static URI defaultContinueUrl(Optional<URI> landingPage, UriInfo uriInfo) {
-    if (landingPage.isPresent()) {
-      return landingPage.get();
-    }
-    return uriInfo.getBaseUriBuilder().path(StaticResources.class).path(StaticResources.class, "home").build();
+    return landingPage.orElseGet(() -> uriInfo.getBaseUriBuilder().path(StaticResources.class).path(StaticResources.class, "home").build());
   }
 
   private void log(String userName, LoginLogEvent.LoginResult loginResult) {

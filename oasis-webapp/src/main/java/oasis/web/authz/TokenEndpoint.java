@@ -17,7 +17,7 @@
  */
 package oasis.web.authz;
 
-import static org.jose4j.jwa.AlgorithmConstraints.ConstraintType.*;
+import static org.jose4j.jwa.AlgorithmConstraints.ConstraintType.WHITELIST;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -59,7 +59,6 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
-import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
@@ -103,7 +102,6 @@ public class TokenEndpoint {
       .or(CharMatcher.inRange('0', '9')) // DIGIT
       .or(CharMatcher.anyOf("-._~"))
       .precomputed();
-  private static final Joiner SCOPE_JOINER = Joiner.on(' ').skipNulls();
   private static final Splitter SCOPE_SPLITTER = Splitter.on(' ');
 
   @VisibleForTesting static final String ANONYMOUS_ACCOUNT_ID = "anonymous";
@@ -195,7 +193,7 @@ public class TokenEndpoint {
     response.access_token = access_token;
     response.token_type = "Bearer";
     response.expires_in = accessToken.expiresIn().getStandardSeconds();
-    response.scope = SCOPE_JOINER.join(asked_scopes);
+    response.scope = String.join(" ", asked_scopes);
 
     return response(Response.Status.OK, response);
   }
@@ -292,7 +290,7 @@ public class TokenEndpoint {
     response.access_token = access_token;
     response.token_type = "Bearer";
     response.expires_in = accessToken.expiresIn().getStandardSeconds();
-    response.scope = SCOPE_JOINER.join(accessToken.getScopeIds());
+    response.scope = String.join(" ", accessToken.getScopeIds());
 
     long issuedAt = TimeUnit.MILLISECONDS.toSeconds(clock.getMillis());
     JwtClaims claims = new JwtClaims();
@@ -387,7 +385,7 @@ public class TokenEndpoint {
     response.access_token = access_token;
     response.token_type = "Bearer";
     response.expires_in = accessToken.expiresIn().getStandardSeconds();
-    response.scope = SCOPE_JOINER.join(asked_scopes);
+    response.scope = String.join(" ", asked_scopes);
 
     return response(Response.Status.OK, response);
   }

@@ -25,7 +25,10 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 import org.elasticsearch.ElasticsearchException;
@@ -43,14 +46,12 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
-import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import com.google.common.io.Resources;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.SettableFuture;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -77,6 +78,7 @@ import oasis.web.i18n.LocaleHelper;
 public class JestCatalogEntryRepository implements CatalogEntryRepository, JestBootstrapper {
   private static final Logger logger = LoggerFactory.getLogger(JestCatalogEntryRepository.class);
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
+      .registerModule(new Jdk8Module())
       .registerModule(new GuavaModule())
       .registerModule(new JodaModule())
       .registerModule(new LocalizableModule())
@@ -118,12 +120,12 @@ public class JestCatalogEntryRepository implements CatalogEntryRepository, JestB
   }
 
   private QueryBuilder generateQuery(SearchRequest request) {
-    if (!request.query().isPresent()) {
+    if (request.query() == null) {
       return QueryBuilders.matchAllQuery();
     }
 
     // FIXME: Elasticsearch seems to lower the score of entries with missing properties in multi match queries
-    List<ULocale> locales = getFallbackLocales(request.displayLocale().or(LocaleHelper.DEFAULT_LOCALE));
+    List<ULocale> locales = getFallbackLocales(MoreObjects.firstNonNull(request.displayLocale(), LocaleHelper.DEFAULT_LOCALE));
     String[] nameFields = new String[locales.size()];
     String[] descriptionFields = new String[locales.size()];
     for (int i = 0; i < locales.size(); i++) {
@@ -132,8 +134,8 @@ public class JestCatalogEntryRepository implements CatalogEntryRepository, JestB
     }
     // TODO: Manage boost of each key depending on its locale
     return QueryBuilders.boolQuery()
-        .should(QueryBuilders.multiMatchQuery(request.query().get(), nameFields))
-        .should(QueryBuilders.multiMatchQuery(request.query().get(), descriptionFields));
+        .should(QueryBuilders.multiMatchQuery(request.query(), nameFields))
+        .should(QueryBuilders.multiMatchQuery(request.query(), descriptionFields));
   }
 
   private FilterBuilder generateFilter(SearchRequest request) {
@@ -193,7 +195,7 @@ public class JestCatalogEntryRepository implements CatalogEntryRepository, JestB
     return mustFiltersBuilder;
   }
 
-  private Iterable<SimpleCatalogEntry> transformSearchResultToCatalogEntries(SearchResult searchResult, Optional<ULocale> displayLocale)
+  private Iterable<SimpleCatalogEntry> transformSearchResultToCatalogEntries(SearchResult searchResult, @Nullable ULocale displayLocale)
       throws IOException {
     JsonArray results = searchResult.getJsonObject()
         .getAsJsonObject("hits")
@@ -205,15 +207,15 @@ public class JestCatalogEntryRepository implements CatalogEntryRepository, JestB
       SimpleCatalogEntry catalogEntry = OBJECT_MAPPER.readValue(source.toString(), SimpleCatalogEntry.class);
       catalogEntry.setId(jsonObject.get("_id").getAsString());
       catalogEntry.setType(CatalogEntry.EntryType.valueOf(jsonObject.get("_type").getAsString()));
-      if (displayLocale.isPresent()) {
-        catalogEntry.restrictLocale(displayLocale.get());
+      if (displayLocale != null) {
+        catalogEntry.restrictLocale(displayLocale);
       }
       catalogEntries.add(catalogEntry);
     }
     return catalogEntries;
   }
 
-  public ListenableFuture<Void> asyncIndex(CatalogEntry catalogEntry) {
+  public CompletionStage<Void> asyncIndex(CatalogEntry catalogEntry) {
     checkArgument(catalogEntry.isVisible());
     checkNotNull(catalogEntry.getId());
 
@@ -228,11 +230,11 @@ public class JestCatalogEntryRepository implements CatalogEntryRepository, JestB
       return executeAsync(indexAction);
     } catch (Exception e) {
       logger.error("Error while indexing CatalogEntry {}", catalogEntry.getId(), e);
-      return Futures.immediateFailedFuture(e);
+      return error(e);
     }
   }
 
-  public ListenableFuture<Void> asyncDelete(String id, CatalogEntry.EntryType entryType) {
+  public CompletionStage<Void> asyncDelete(String id, CatalogEntry.EntryType entryType) {
     checkArgument(!Strings.isNullOrEmpty(id));
 
     try {
@@ -243,11 +245,11 @@ public class JestCatalogEntryRepository implements CatalogEntryRepository, JestB
       return executeAsync(deleteAction);
     } catch (Exception e) {
       logger.error("Error while deleting CatalogEntry {} from index", id, e);
-      return Futures.immediateFailedFuture(e);
+      return error(e);
     }
   }
 
-  public ListenableFuture<Void> asyncDeleteServiceByInstance(String instanceId) {
+  public CompletionStage<Void> asyncDeleteServiceByInstance(String instanceId) {
     checkArgument(!Strings.isNullOrEmpty(instanceId));
 
     try {
@@ -265,29 +267,35 @@ public class JestCatalogEntryRepository implements CatalogEntryRepository, JestB
       return executeAsync(deleteByQueryAction);
     } catch (Exception e) {
       logger.error("Error while deleting entries related to instance {} from index", instanceId, e);
-      return Futures.immediateFailedFuture(e);
+      return error(e);
     }
   }
 
-  private ListenableFuture<Void> executeAsync(final Action<? extends JestResult> action) throws Exception {
-    final SettableFuture<Void> settableFuture = SettableFuture.create();
+  private CompletionStage<Void> executeAsync(final Action<? extends JestResult> action) throws Exception {
+    CompletableFuture<Void> completableFuture = new CompletableFuture<>();
     jestClient.executeAsync(action, new JestResultHandler<JestResult>() {
       @Override
       public void completed(JestResult result) {
         if (!result.isSucceeded()) {
-          settableFuture.setException(new ElasticsearchException(result.getErrorMessage()));
+          completableFuture.completeExceptionally(new ElasticsearchException(result.getErrorMessage()));
           return;
         }
 
-        settableFuture.set(null);
+        completableFuture.complete(null);
       }
 
       @Override
       public void failed(Exception ex) {
-        settableFuture.setException(ex);
+        completableFuture.completeExceptionally(ex);
       }
     });
-    return settableFuture;
+    return completableFuture;
+  }
+
+  private CompletionStage<Void> error(Exception e) {
+    CompletableFuture<Void> error = new CompletableFuture<>();
+    error.completeExceptionally(e);
+    return error;
   }
 
   @Override

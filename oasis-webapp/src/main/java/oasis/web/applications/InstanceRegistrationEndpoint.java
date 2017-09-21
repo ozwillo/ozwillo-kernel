@@ -43,7 +43,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -226,7 +225,7 @@ public class InstanceRegistrationEndpoint {
         .instanceId(instanceId)
         .callProvider(false)
         .checkStatus(AppInstance.InstantiationStatus.PENDING)
-        .checkVersions(Optional.absent())
+        .checkVersions(null)
         .notifyAdmins(false)
         .build();
     DeleteAppInstance.Status status = deleteAppInstance.deleteInstance(request, new DeleteAppInstance.Stats());

@@ -63,8 +63,8 @@ import oasis.soy.templates.OrgMembershipInvitationNotificationSoyInfo.AcceptedMe
 import oasis.soy.templates.OrgMembershipInvitationNotificationSoyInfo.RejectedMembershipInvitationAdminMessageSoyTemplateInfo;
 import oasis.soy.templates.OrgMembershipInvitationNotificationSoyInfo.RejectedMembershipInvitationRequesterMessageSoyTemplateInfo;
 import oasis.soy.templates.OrgMembershipInvitationSoyInfo;
-import oasis.soy.templates.OrgMembershipInvitationSoyInfo.MembershipInvitationSoyTemplateInfo;
 import oasis.soy.templates.OrgMembershipInvitationSoyInfo.MembershipInvitationAlreadyMemberErrorSoyTemplateInfo;
+import oasis.soy.templates.OrgMembershipInvitationSoyInfo.MembershipInvitationSoyTemplateInfo;
 import oasis.urls.Urls;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.LogoutPage;
@@ -170,7 +170,7 @@ public class MembershipInvitationPage {
     tokenRepository.revokeToken(membershipInvitationToken.getId());
 
     return Response.seeOther(
-        urls.myNetwork().or(uriInfo.getBaseUri())
+        urls.myNetwork().orElse(uriInfo.getBaseUri())
     ).build();
   }
 
@@ -210,7 +210,7 @@ public class MembershipInvitationPage {
     tokenRepository.revokeToken(membershipInvitationToken.getId());
 
     return Response.seeOther(
-        urls.myNetwork().or(uriInfo.getBaseUri())
+        urls.myNetwork().orElse(uriInfo.getBaseUri())
     ).build();
   }
 

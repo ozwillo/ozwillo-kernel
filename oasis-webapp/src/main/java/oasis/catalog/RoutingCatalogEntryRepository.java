@@ -36,7 +36,7 @@ public class RoutingCatalogEntryRepository implements CatalogEntryRepository {
 
   @Override
   public Iterable<SimpleCatalogEntry> search(SearchRequest request) {
-    if (request.query().isPresent()) {
+    if (request.query() != null) {
       return jestCatalogEntryRepository.search(request);
     }
     // If the request doesn't have a query, fallback to the Jongo implementation

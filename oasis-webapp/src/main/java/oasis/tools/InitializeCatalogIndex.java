@@ -99,6 +99,7 @@ public class InitializeCatalogIndex extends CommandLineTool {
         try {
           jestCatalogEntryRepositoryProvider.get()
               .asyncIndex(catalogEntry)
+              .toCompletableFuture()
               .get();
           success = true;
         } catch (Exception e) {

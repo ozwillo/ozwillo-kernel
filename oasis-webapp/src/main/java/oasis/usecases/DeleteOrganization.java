@@ -19,6 +19,8 @@ package oasis.usecases;
 
 import static com.google.common.base.Preconditions.checkState;
 
+import java.util.Optional;
+
 import javax.inject.Inject;
 
 import org.immutables.value.Value;
@@ -26,7 +28,6 @@ import org.joda.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.template.soy.data.SanitizedContent;
 import com.google.template.soy.data.SoyMapData;
@@ -84,8 +85,8 @@ public class DeleteOrganization {
       ImmutableDeleteAppInstance.Request deleteAppInstanceRequest = ImmutableDeleteAppInstance.Request.builder()
           .instanceId(appInstance.getId())
           .callProvider(true)
-          .checkStatus(Optional.absent())
-          .checkVersions(Optional.absent())
+          .checkStatus(null)
+          .checkVersions(null)
           .notifyAdmins(false)
           .build();
       DeleteAppInstance.Status deleteAppInstanceStatus = deleteAppInstance.deleteInstance(deleteAppInstanceRequest, new DeleteAppInstance.Stats());

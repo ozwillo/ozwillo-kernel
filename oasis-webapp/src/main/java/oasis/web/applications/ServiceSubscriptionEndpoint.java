@@ -17,6 +17,8 @@
  */
 package oasis.web.applications;
 
+import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -32,13 +34,10 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Function;
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.Streams;
 
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
@@ -88,45 +87,34 @@ public class ServiceSubscriptionEndpoint {
       return ResponseFactory.forbidden("Current user is not an app_admin for the service");
     }
 
-    Iterable<UserSubscription> subscriptions = userSubscriptionRepository.getSubscriptionsForService(serviceId);
+    Stream<UserSubscription> subscriptions = Streams.stream(userSubscriptionRepository.getSubscriptionsForService(serviceId));
 
     // Filter the list to only the app_users and app_admins.
-    final ImmutableSet<String> app_users_and_admins = FluentIterable.from(accessControlRepository.getAccessControlListForAppInstance(instance.getId()))
-        .transform(new Function<AccessControlEntry, String>() {
-          @Override
-          public String apply(AccessControlEntry input) {
-            return input.getUser_id();
-          }
-        })
-        .append(appAdminHelper.getAdmins(instance))
-        .toSet();
-    subscriptions = Iterables.filter(subscriptions, new Predicate<UserSubscription>() {
-      @Override
-      public boolean apply(UserSubscription input) {
-        return app_users_and_admins.contains(input.getUser_id());
-      }
-    });
+    final ImmutableSet<String> app_users_and_admins = Stream.concat(
+        Streams.stream(accessControlRepository.getAccessControlListForAppInstance(instance.getId()))
+            .map(AccessControlEntry::getUser_id),
+        appAdminHelper.getAdmins(instance)
+    ).collect(ImmutableSet.toImmutableSet());
+    subscriptions = subscriptions
+        .filter(input -> app_users_and_admins.contains(input.getUser_id()));
 
     return Response.ok()
-        .entity(new GenericEntity<Iterable<ServiceSub>>(Iterables.transform(subscriptions,
-            new Function<UserSubscription, ServiceSub>() {
-              @Override
-              public ServiceSub apply(UserSubscription input) {
-                ServiceSub sub = new ServiceSub();
-                sub.id = input.getId();
-                sub.subscription_uri = uriInfo.getBaseUriBuilder().path(SubscriptionEndpoint.class).build(input.getId()).toString();
-                sub.subscription_etag = etagService.getEtag(input).toString();
-                sub.user_id = input.getUser_id();
-                final UserAccount user = accountRepository.getUserAccountById(input.getUser_id());
-                sub.user_name = user == null ? null : user.getDisplayName();
-                sub.subscription_type = input.getSubscription_type();
-                sub.creator_id = MoreObjects.firstNonNull(input.getCreator_id(), input.getUser_id());
-                // TODO: check access rights to the user name
-                // TODO: introduce some caching (it's not unlikely many subscriptions will have the same creator)
-                final UserAccount creator = accountRepository.getUserAccountById(sub.creator_id);
-                sub.creator_name = creator == null ? null : creator.getDisplayName();
-                return sub;
-              }
+        .entity(new GenericEntity<Stream<ServiceSub>>(subscriptions.map(
+            input -> {
+              ServiceSub sub = new ServiceSub();
+              sub.id = input.getId();
+              sub.subscription_uri = uriInfo.getBaseUriBuilder().path(SubscriptionEndpoint.class).build(input.getId()).toString();
+              sub.subscription_etag = etagService.getEtag(input).toString();
+              sub.user_id = input.getUser_id();
+              final UserAccount user = accountRepository.getUserAccountById(input.getUser_id());
+              sub.user_name = user == null ? null : user.getDisplayName();
+              sub.subscription_type = input.getSubscription_type();
+              sub.creator_id = MoreObjects.firstNonNull(input.getCreator_id(), input.getUser_id());
+              // TODO: check access rights to the user name
+              // TODO: introduce some caching (it's not unlikely many subscriptions will have the same creator)
+              final UserAccount creator = accountRepository.getUserAccountById(sub.creator_id);
+              sub.creator_name = creator == null ? null : creator.getDisplayName();
+              return sub;
             })) {})
         .build();
   }

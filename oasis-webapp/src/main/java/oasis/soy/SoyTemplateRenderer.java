@@ -17,13 +17,12 @@
  */
 package oasis.soy;
 
+import java.net.URI;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 
 import javax.inject.Inject;
 
-import com.google.common.base.Functions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -118,7 +117,7 @@ public class SoyTemplateRenderer {
         .setData(template.getData())
         .setMsgBundle(msgBundle)
         .setIjData(new SoyMapData(
-            "landing_page_url", urls.landingPage().transform(Functions.toStringFunction()).or(""),
+            "landing_page_url", urls.landingPage().map(URI::toString).orElse(""),
             "current_locale", msgBundle.getLocaleString(),
             "locale_name_map", LOCALE_NAMES,
             "supported_locales", SUPPORTED_LOCALES.getUnchecked(msgBundle.getLocaleString())

@@ -26,7 +26,7 @@ subprojects {
 }
 
 def guiceVersion = '4.1.0'
-def jacksonVersion = '2.8.5'
+def jacksonVersion = '2.9.1'
 def log4jVersion = '2.7'
 def resteasyVersion = '3.0.19.Final'
 
@@ -91,6 +91,7 @@ ext.libs = [
       "com.fasterxml.jackson.core:jackson-core:$jacksonVersion",
       "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion",
       "com.fasterxml.jackson.datatype:jackson-datatype-guava:$jacksonVersion",
+      "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$jacksonVersion",
       "com.fasterxml.jackson.jaxrs:jackson-jaxrs-base:$jacksonVersion",
       "com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:$jacksonVersion",
       "com.fasterxml.jackson.module:jackson-module-jaxb-annotations:$jacksonVersion",

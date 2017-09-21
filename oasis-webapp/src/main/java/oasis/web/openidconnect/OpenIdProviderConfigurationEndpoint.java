@@ -29,14 +29,12 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Function;
-import com.google.common.base.Functions;
-import com.google.common.collect.FluentIterable;
 import com.ibm.icu.util.ULocale;
 
 import oasis.model.authz.Scopes;
 import oasis.urls.Urls;
 import oasis.web.authn.CheckSessionIframePage;
+import oasis.web.authn.ClientAuthenticationFilter;
 import oasis.web.authn.LogoutPage;
 import oasis.web.authz.AuthorizationEndpoint;
 import oasis.web.authz.IntrospectionEndpoint;
@@ -51,14 +49,9 @@ import oasis.web.userinfo.UserInfoEndpoint;
  */
 @Path("/.well-known/openid-configuration")
 public class OpenIdProviderConfigurationEndpoint {
-  private static final String[] UI_LOCALES_SUPPORTED = FluentIterable.from(LocaleHelper.SUPPORTED_LOCALES)
-      .transform(new Function<ULocale, String>() {
-        @Override
-        public String apply(ULocale input) {
-          return input.toLanguageTag();
-        }
-      })
-      .toArray(String.class);
+  private static final String[] UI_LOCALES_SUPPORTED = LocaleHelper.SUPPORTED_LOCALES.stream()
+      .map(ULocale::toLanguageTag)
+      .toArray(String[]::new);
 
   @Inject Urls urls;
 
@@ -111,19 +104,19 @@ public class OpenIdProviderConfigurationEndpoint {
     @JsonProperty String[] userinfo_signing_alg_values_supported = { "RS256" };
     // userinfo_encryption_alg_values_supported, userinfo_encryption_enc_values_supported
     // request_object_signing_alg_values_supported, request_object_encryption_alg_values_supported, request_object_encryption_enc_values_supported
-    /** See {@link oasis.web.authn.ClientAuthenticationFilter}. */
+    /** See {@link ClientAuthenticationFilter}. */
     @JsonProperty String[] token_endpoint_auth_methods_supported = { "client_secret_basic" };
     // token_endpoint_auth_signing_alg_values_supported
     // display_values_supported, claim_types_supported, claims_supported
-    @JsonProperty String service_documentation = urls.developerDoc().transform(Functions.toStringFunction()).orNull();
+    @JsonProperty String service_documentation = urls.developerDoc().map(URI::toString).orElse(null);
     // claims_locales_supported
     @JsonProperty String[] ui_locales_supported = UI_LOCALES_SUPPORTED;
     // This is the default value: @JsonProperty boolean claims_parameter_supported = false;
     // This is the default value: @JsonProperty boolean request_parameter_supported = false;
     @JsonProperty boolean request_uri_parameter_supported = false;
     // This is the default value: @JsonProperty boolean require_request_uri_registration = false;
-    @JsonProperty String op_policy_uri = urls.privacyPolicy().transform(Functions.toStringFunction()).orNull();
-    @JsonProperty String op_tos_uri = urls.termsOfService().transform(Functions.toStringFunction()).orNull();
+    @JsonProperty String op_policy_uri = urls.privacyPolicy().map(URI::toString).orElse(null);
+    @JsonProperty String op_tos_uri = urls.termsOfService().map(URI::toString).orElse(null);
 
     // See http://openid.net/specs/openid-connect-session-1_0.html#EndpointDiscovery
     @JsonProperty String check_session_iframe = getBaseUriBuilder().path(CheckSessionIframePage.class).build().toString();
@@ -131,10 +124,10 @@ public class OpenIdProviderConfigurationEndpoint {
 
     // See https://tools.ietf.org/html/draft-ietf-oauth-discovery-01
     @JsonProperty String revocation_endpoint = getBaseUriBuilder().path(RevokeEndpoint.class).build().toString();
-    /** See {@link oasis.web.authn.ClientAuthenticationFilter}. */
+    /** See {@link ClientAuthenticationFilter}. */
     @JsonProperty String[] revocation_endpoint_auth_methods_supported = { "client_secret_basic" };
     @JsonProperty String introspection_endpoint = getBaseUriBuilder().path(IntrospectionEndpoint.class).build().toString();
-    /** See {@link oasis.web.authn.ClientAuthenticationFilter}. */
+    /** See {@link ClientAuthenticationFilter}. */
     @JsonProperty String[] introspection_endpoint_auth_methods_supported = { "client_secret_basic" };
   }
 }

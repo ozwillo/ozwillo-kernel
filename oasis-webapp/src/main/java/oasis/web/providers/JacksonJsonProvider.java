@@ -35,6 +35,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 
 import oasis.model.i18n.LocalizableModule;
@@ -52,6 +53,7 @@ public class JacksonJsonProvider extends com.fasterxml.jackson.jaxrs.json.Jackso
 
   public JacksonJsonProvider() {
     super(new ObjectMapper()
+        .registerModule(new Jdk8Module())
         .registerModule(new JodaModule())
         .registerModule(new GuavaModule())
         .registerModule(new LocalizableModule())

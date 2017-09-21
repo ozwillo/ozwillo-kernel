@@ -18,8 +18,8 @@
 package oasis.urls;
 
 import java.net.URI;
+import java.util.Optional;
 
-import com.google.common.base.Optional;
 import com.google.inject.AbstractModule;
 import com.typesafe.config.Config;
 
@@ -47,7 +47,7 @@ public class UrlsModule extends AbstractModule {
 
   private static Optional<URI> get(Config config, String key) {
     if (!config.hasPath(key)) {
-      return Optional.absent();
+      return Optional.empty();
     }
     return Optional.of(URI.create(config.getString(key)));
   }

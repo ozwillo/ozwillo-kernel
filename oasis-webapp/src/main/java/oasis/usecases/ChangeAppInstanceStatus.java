@@ -17,6 +17,10 @@
  */
 package oasis.usecases;
 
+import java.net.URI;
+import java.util.function.Predicate;
+
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.ws.rs.client.Client;
@@ -29,8 +33,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Functions;
-import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.template.soy.data.SanitizedContent;
 import com.google.template.soy.data.SoyMapData;
@@ -84,9 +86,9 @@ public class ChangeAppInstanceStatus {
     }
 
     final AppInstance instance;
-    if (request.ifMatch().isPresent()) {
+    if (request.ifMatch() != null) {
       try {
-        instance = appInstanceRepository.updateStatus(request.appInstance().getId(), request.newStatus(), request.requesterId(), request.ifMatch().get());
+        instance = appInstanceRepository.updateStatus(request.appInstance().getId(), request.newStatus(), request.requesterId(), request.ifMatch());
       } catch (InvalidVersionException e) {
         return responseBuilder.appInstance(request.appInstance())
             .responseStatus(ResponseStatus.VERSION_CONFLICT)
@@ -173,8 +175,7 @@ public class ChangeAppInstanceStatus {
     notificationPrototype.setTime(Instant.now());
     notificationPrototype.setStatus(Notification.Status.UNREAD);
 
-    Iterable<String> adminIds = appAdminHelper.getAdmins(instance);
-    for (String adminId : adminIds) {
+    appAdminHelper.getAdmins(instance).forEach(adminId -> {
       try {
         Notification notification = new Notification(notificationPrototype);
         for (ULocale locale : LocaleHelper.SUPPORTED_LOCALES) {
@@ -195,7 +196,7 @@ public class ChangeAppInstanceStatus {
         logger.error("Error notifying app admin {} after the user {} has stopped the instance {}", adminId, requesterId,
             instance.getName().get(ULocale.ROOT), e);
       }
-    }
+    });
   }
 
   private void notifyAdminsForStoppedInstance(String requesterId, AppInstance instance) {
@@ -228,25 +229,22 @@ public class ChangeAppInstanceStatus {
         notificationPrototype.getAction_label().set(actionLocale, templateRenderer.renderAsString(new SoyTemplate(
             ChangedAppInstanceStatusSoyInfo.STOPPED_APP_INSTANCE_ACTION, locale, SanitizedContent.ContentKind.TEXT)));
       }
-      notificationPrototype.getAction_uri().set(ULocale.ROOT, urls.myApps().transform(Functions.toStringFunction()).orNull());
+      notificationPrototype.getAction_uri().set(ULocale.ROOT, urls.myApps().map(URI::toString).orElse(null));
     }
 
-    Iterable<String> adminIds = appAdminHelper.getAdmins(instance);
-    for (String adminId : adminIds) {
-      if (adminId.equals(requesterId)) {
-        continue;
-      }
-
-      try {
-        Notification notification = new Notification(notificationPrototype);
-        notification.setUser_id(adminId);
-        notificationRepository.createNotification(notification);
-      } catch (Exception e) {
-        // Don't fail if we can't notify
-        logger.error("Error notifying app admin {} after the user {} has stopped the instance {}", adminId, requesterId,
-            instance.getName().get(ULocale.ROOT), e);
-      }
-    }
+    appAdminHelper.getAdmins(instance)
+        .filter(Predicate.isEqual(requesterId).negate())
+        .forEach(adminId -> {
+          try {
+            Notification notification = new Notification(notificationPrototype);
+            notification.setUser_id(adminId);
+            notificationRepository.createNotification(notification);
+          } catch (Exception e) {
+            // Don't fail if we can't notify
+            logger.error("Error notifying app admin {} after the user {} has stopped the instance {}", adminId, requesterId,
+                instance.getName().get(ULocale.ROOT), e);
+          }
+        });
   }
 
   private void notifyRequesterForStoppedInstance(String requesterId, AppInstance instance) {
@@ -272,7 +270,7 @@ public class ChangeAppInstanceStatus {
       }
     }
     if (urls.myApps().isPresent()) {
-      notification.getAction_uri().set(ULocale.ROOT, urls.myApps().transform(Functions.toStringFunction()).orNull());
+      notification.getAction_uri().set(ULocale.ROOT, urls.myApps().map(URI::toString).orElse(null));
     }
 
     try {
@@ -290,7 +288,7 @@ public class ChangeAppInstanceStatus {
 
     AppInstance appInstance();
 
-    Optional<long[]> ifMatch();
+    @Nullable long[] ifMatch();
 
     AppInstance.InstantiationStatus newStatus();
 

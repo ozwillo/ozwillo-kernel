@@ -17,6 +17,8 @@
  */
 package oasis.web.applications;
 
+import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -33,8 +35,7 @@ import javax.ws.rs.core.UriInfo;
 import org.joda.time.Instant;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.Streams;
 
 import oasis.model.applications.v2.AccessControlEntry;
 import oasis.model.applications.v2.AccessControlRepository;
@@ -78,22 +79,20 @@ public class AppInstancePendingAccessControlEndpoint {
 
   private Response toResponse(Iterable<AccessControlEntry> memberships) {
     return Response.ok()
-        .entity(new GenericEntity<Iterable<PendingACE>>(Iterables.transform(memberships,
-            new Function<AccessControlEntry, PendingACE>() {
-              @Override
-              public PendingACE apply(AccessControlEntry accessControlEntry) {
-                PendingACE ace = new PendingACE();
-                ace.id = accessControlEntry.getId();
-                ace.pending_entry_uri = uriInfo.getBaseUriBuilder()
-                    .path(PendingAccessControlEntryEndpoint.class)
-                    .build(accessControlEntry.getId())
-                    .toString();
-                ace.pending_entry_etag = etagService.getEtag(accessControlEntry).toString();
-                ace.email = accessControlEntry.getEmail();
-                ace.created = accessControlEntry.getCreated();
-                return ace;
-              }
-            })) {})
+        .entity(new GenericEntity<Stream<PendingACE>>(Streams.stream(memberships)
+            .map(accessControlEntry -> {
+              PendingACE ace = new PendingACE();
+              ace.id = accessControlEntry.getId();
+              ace.pending_entry_uri = uriInfo.getBaseUriBuilder()
+                  .path(PendingAccessControlEntryEndpoint.class)
+                  .build(accessControlEntry.getId())
+                  .toString();
+              ace.pending_entry_etag = etagService.getEtag(accessControlEntry).toString();
+              ace.email = accessControlEntry.getEmail();
+              ace.created = accessControlEntry.getCreated();
+              return ace;
+            })) {
+        })
         .build();
   }
 

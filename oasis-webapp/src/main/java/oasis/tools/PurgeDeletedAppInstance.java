@@ -27,7 +27,6 @@ import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Optional;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.typesafe.config.Config;
@@ -116,7 +115,7 @@ public class PurgeDeletedAppInstance extends CommandLineTool {
               .instanceId(instance.getId())
               .callProvider(true)
               .checkStatus(AppInstance.InstantiationStatus.STOPPED)
-              .checkVersions(Optional.absent())
+              .checkVersions(null)
               .notifyAdmins(true)
               .build();
           DeleteAppInstance.Status status = usecaseProvider.get().deleteInstance(request, stats);

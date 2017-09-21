@@ -21,6 +21,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -30,7 +31,6 @@ import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -49,7 +49,6 @@ import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.applications.v2.Application;
 import oasis.model.applications.v2.ApplicationRepository;
-import oasis.model.directory.Organization;
 import oasis.model.directory.OrganizationMembershipRepository;
 import oasis.soy.SoyGuiceModule;
 import oasis.urls.UrlsModule;
@@ -143,8 +142,8 @@ public class CleanUpOrganizations extends CommandLineTool {
       // Now we can delete the organization
       deleteOrganizationProvider.get().deleteOrganization(ImmutableDeleteOrganization.Request.builder()
           .organizationId(organizationId)
-          .organizationName(Optional.absent())
-          .checkStatus(Optional.absent())
+          .organizationName(Optional.empty())
+          .checkStatus(Optional.empty())
           .notifyAdmins(false)
           .build());
     }
@@ -176,7 +175,7 @@ public class CleanUpOrganizations extends CommandLineTool {
           .instanceId(instance.getId())
           .callProvider(cancellable)
           .checkStatus(instance.getStatus())
-          .checkVersions(Optional.absent())
+          .checkVersions(null)
           .notifyAdmins(false)
           .build();
       status = deleteAppInstanceProvider.get().deleteInstance(request, new DeleteAppInstance.Stats());

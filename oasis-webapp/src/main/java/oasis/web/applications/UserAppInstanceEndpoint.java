@@ -17,6 +17,8 @@
  */
 package oasis.web.applications;
 
+import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -30,8 +32,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
-import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Streams;
 
 import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstanceRepository;
@@ -83,18 +85,14 @@ public class UserAppInstanceEndpoint {
       }
     }
     return Response.ok()
-        .entity(new GenericEntity<Iterable<AppInstance>>(
-            Iterables.transform(appInstances,
-                new Function<AppInstance, AppInstance>() {
-                  @Override
-                  public AppInstance apply(AppInstance instance) {
-                    // XXX: Don't send secrets over the wire
-                    instance.setDestruction_secret(null);
-                    instance.setStatus_changed_secret(null);
-                    // XXX: keep the redirect_uri_validation_disabled "secret"
-                    instance.unsetRedirect_uri_validation_disabled();
-                    return instance;
-                  }
+        .entity(new GenericEntity<Stream<AppInstance>>(
+            Streams.stream(appInstances)
+                .peek(instance -> {
+                  // XXX: Don't send secrets over the wire
+                  instance.setDestruction_secret(null);
+                  instance.setStatus_changed_secret(null);
+                  // XXX: keep the redirect_uri_validation_disabled "secret"
+                  instance.unsetRedirect_uri_validation_disabled();
                 })) {})
         .build();
   }

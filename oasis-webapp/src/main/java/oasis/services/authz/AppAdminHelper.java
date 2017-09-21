@@ -17,13 +17,12 @@
  */
 package oasis.services.authz;
 
-import java.util.Collections;
+import java.util.stream.Stream;
 
 import javax.inject.Inject;
 
-import com.google.common.base.Function;
 import com.google.common.base.Strings;
-import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Streams;
 
 import oasis.model.applications.v2.AppInstance;
 import oasis.model.directory.OrganizationMembership;
@@ -48,18 +47,13 @@ public class AppAdminHelper {
     }
   }
 
-  public Iterable<String> getAdmins(AppInstance appInstance) {
+  public Stream<String> getAdmins(AppInstance appInstance) {
     if (Strings.isNullOrEmpty(appInstance.getProvider_id())) {
       // Application bought by an individual
-      return Collections.singletonList(appInstance.getInstantiator_id());
+      return Stream.of(appInstance.getInstantiator_id());
     }
     // Application bought by/for an organization
-    return FluentIterable.from(organizationMembershipRepository.getAdminsOfOrganization(appInstance.getProvider_id()))
-        .transform(new Function<OrganizationMembership, String>() {
-          @Override
-          public String apply(OrganizationMembership organizationMembership) {
-            return organizationMembership.getAccountId();
-          }
-        });
+    return Streams.stream(organizationMembershipRepository.getAdminsOfOrganization(appInstance.getProvider_id()))
+        .map(OrganizationMembership::getAccountId);
   }
 }
