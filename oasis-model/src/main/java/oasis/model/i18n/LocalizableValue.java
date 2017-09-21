@@ -54,7 +54,7 @@ public class LocalizableValue<T> {
 
   protected LocalizableValue(LocalizableValue<? extends T> src, boolean modifiable) {
     this.modifiable = modifiable;
-    this.values = modifiable ? new LinkedHashMap<ULocale,T>(src.values) : Collections.<ULocale,T>unmodifiableMap(src.values);
+    this.values = modifiable ? new LinkedHashMap<>(src.values) : Collections.unmodifiableMap(src.values);
     this.localeMatcher = src.localeMatcher;
   }
 

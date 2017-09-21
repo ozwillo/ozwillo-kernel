@@ -73,7 +73,7 @@ public class DeleteOrganization {
     // Save list of admins, to notify them afterwards.
     ImmutableList<OrganizationMembership> admins = request.notifyAdmins()
         ? ImmutableList.copyOf(organizationMembershipRepository.getAdminsOfOrganization(request.organizationId()))
-        : ImmutableList.<OrganizationMembership>of();
+        : ImmutableList.of();
 
     organizationMembershipRepository.deleteMembershipsInOrganization(request.organizationId());
 
@@ -84,8 +84,8 @@ public class DeleteOrganization {
       ImmutableDeleteAppInstance.Request deleteAppInstanceRequest = ImmutableDeleteAppInstance.Request.builder()
           .instanceId(appInstance.getId())
           .callProvider(true)
-          .checkStatus(Optional.<AppInstance.InstantiationStatus>absent())
-          .checkVersions(Optional.<long[]>absent())
+          .checkStatus(Optional.absent())
+          .checkVersions(Optional.absent())
           .notifyAdmins(false)
           .build();
       DeleteAppInstance.Status deleteAppInstanceStatus = deleteAppInstance.deleteInstance(deleteAppInstanceRequest, new DeleteAppInstance.Stats());

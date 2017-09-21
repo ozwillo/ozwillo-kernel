@@ -63,7 +63,7 @@ public class SoyTemplateRenderer {
             list.add(localeDesc);
           }
           // We need a consistent ordering for all locales, so sort on the native_name using a locale-independent collator.
-          Collections.sort(list, new Comparator<SoyMapData>() {
+          list.sort(new Comparator<SoyMapData>() {
             final Collator collator = Collator.getInstance(ULocale.ROOT);
             @Override
             public int compare(SoyMapData o1, SoyMapData o2) {

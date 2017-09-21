@@ -142,8 +142,8 @@ public class DeleteAppInstance extends CommandLineTool {
         ImmutableDeleteAppInstance.Request deleteAppInstanceRequest = ImmutableDeleteAppInstance.Request.builder()
             .instanceId(instance_id)
             .callProvider(false)
-            .checkStatus(Optional.<AppInstance.InstantiationStatus>absent())
-            .checkVersions(Optional.<long[]>absent())
+            .checkStatus(Optional.absent())
+            .checkVersions(Optional.absent())
             .notifyAdmins(false)
             .build();
         usecaseProvider.get().deleteInstance(deleteAppInstanceRequest, stats);

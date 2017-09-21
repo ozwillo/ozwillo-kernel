@@ -74,11 +74,8 @@ public class JongoService implements Provider<Jongo> {
         .registerModule(new CustomJodaModule())
         .registerModule(new GuavaModule())
         .registerModule(new LocalizableModule())
-        .addModifier(new MapperModifier() {
-          @Override
-          public void modify(ObjectMapper mapper) {
-            mapper.setSerializationInclusion(Include.NON_EMPTY); // instead of NON_NULL
-          }
+        .addModifier(mapper -> {
+          mapper.setSerializationInclusion(Include.NON_EMPTY); // instead of NON_NULL
         })
         .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
         .build());

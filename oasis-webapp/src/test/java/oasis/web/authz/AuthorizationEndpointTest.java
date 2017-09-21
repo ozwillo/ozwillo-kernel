@@ -51,8 +51,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
@@ -279,22 +277,19 @@ public class AuthorizationEndpointTest {
     when(serviceRepository.getServiceByRedirectUri(appInstance.getId(), Iterables.getOnlyElement(service.getRedirect_uris()))).thenReturn(service);
     when(serviceRepository.getServiceByRedirectUri(appInstance.getId(), Iterables.getOnlyElement(privateService.getRedirect_uris()))).thenReturn(privateService);
 
-    when(scopeRepository.getScopes(anyCollectionOf(String.class))).thenAnswer(new Answer<Iterable<Scope>>() {
-      @Override
-      public Iterable<Scope> answer(InvocationOnMock invocation) throws Throwable {
-        Collection<?> scopeIds = Sets.newHashSet((Collection<?>) invocation.getArguments()[0]);
-        ArrayList<Scope> ret = new ArrayList<>(3);
-        for (Scope scope : Arrays.asList(openidScope, profileScope, authorizedScope, unauthorizedScope, offlineAccessScope)) {
-          if (scopeIds.remove(scope.getId())) {
-            ret.add(scope);
-          }
+    when(scopeRepository.getScopes(anyCollectionOf(String.class))).thenAnswer(invocation -> {
+      Collection<?> scopeIds = Sets.newHashSet((Collection<?>) invocation.getArguments()[0]);
+      ArrayList<Scope> ret = new ArrayList<>(3);
+      for (Scope scope : Arrays.asList(openidScope, profileScope, authorizedScope, unauthorizedScope, offlineAccessScope)) {
+        if (scopeIds.remove(scope.getId())) {
+          ret.add(scope);
         }
-        // unknown scope:
-        if (!scopeIds.isEmpty()) {
-          throw new IllegalArgumentException();
-        }
-        return ret;
       }
+      // unknown scope:
+      if (!scopeIds.isEmpty()) {
+        throw new IllegalArgumentException();
+      }
+      return ret;
     });
     when(scopeRepository.getScopes(Sets.newHashSet(openidScope.getId())))
         .thenReturn(singletonList(openidScope));

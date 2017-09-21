@@ -119,7 +119,7 @@ public class LogoutPageTest {
     when(accountRepository.getUserAccountById(account.getId())).thenReturn(account);
 
     when(appInstanceRepository.getAppInstance(appInstance.getId())).thenReturn(appInstance);
-    when(appInstanceRepository.getAppInstances(anyCollectionOf(String.class))).thenReturn(Collections.<AppInstance>emptyList());
+    when(appInstanceRepository.getAppInstances(anyCollectionOf(String.class))).thenReturn(Collections.emptyList());
 
     when(serviceRepository.getServiceByPostLogoutRedirectUri(appInstance.getId(), Iterables.getOnlyElement(service.getPost_logout_redirect_uris())))
         .thenReturn(service);

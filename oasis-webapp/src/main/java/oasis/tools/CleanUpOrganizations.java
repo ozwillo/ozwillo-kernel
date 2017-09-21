@@ -143,8 +143,8 @@ public class CleanUpOrganizations extends CommandLineTool {
       // Now we can delete the organization
       deleteOrganizationProvider.get().deleteOrganization(ImmutableDeleteOrganization.Request.builder()
           .organizationId(organizationId)
-          .organizationName(Optional.<String>absent())
-          .checkStatus(Optional.<Organization.Status>absent())
+          .organizationName(Optional.absent())
+          .checkStatus(Optional.absent())
           .notifyAdmins(false)
           .build());
     }
@@ -176,7 +176,7 @@ public class CleanUpOrganizations extends CommandLineTool {
           .instanceId(instance.getId())
           .callProvider(cancellable)
           .checkStatus(instance.getStatus())
-          .checkVersions(Optional.<long[]>absent())
+          .checkVersions(Optional.absent())
           .notifyAdmins(false)
           .build();
       status = deleteAppInstanceProvider.get().deleteInstance(request, new DeleteAppInstance.Stats());

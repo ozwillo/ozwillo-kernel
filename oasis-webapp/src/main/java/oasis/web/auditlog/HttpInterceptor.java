@@ -78,7 +78,7 @@ public class HttpInterceptor implements ContainerRequestFilter, ContainerRespons
         .setMethod(requestContext.getMethod());
 
     Map<String, List<String>> headers = Maps.filterKeys(requestContext.getHeaders(), in(HTTP_HEADERS_TO_LOG));
-    event.setHeaders(ImmutableMap.<String, Object>copyOf(headers));
+    event.setHeaders(ImmutableMap.copyOf(headers));
 
     event.setStatus(responseContext.getStatus());
 

@@ -226,7 +226,7 @@ public class JongoCatalogEntryRepository implements CatalogEntryRepository {
                     new LocaleMatcher(entrySupportedLocales.build()).getBestMatch(this.requestedLocales));
               }
             }
-          : Predicates.<SimpleCatalogEntry>alwaysTrue();
+          : Predicates.alwaysTrue();
       this.displayLocaleFunction = displayLocale.isPresent()
           ? new Function<SimpleCatalogEntry, SimpleCatalogEntry>() {
               final ULocale locale = displayLocale.get();
@@ -237,7 +237,7 @@ public class JongoCatalogEntryRepository implements CatalogEntryRepository {
                 return catalogEntry;
               }
             }
-          : Functions.<SimpleCatalogEntry>identity();
+          : Functions.identity();
     }
 
     public Comparator<SimpleCatalogEntry> getComparator() {

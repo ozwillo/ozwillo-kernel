@@ -75,12 +75,7 @@ public class HttpClientModule extends AbstractModule {
         .connectTimeout(1, TimeUnit.MINUTES)
         .followRedirects(false)
         .addNetworkInterceptor(
-            new HttpLoggingInterceptor(new HttpLoggingInterceptor.Logger() {
-              @Override
-              public void log(String message) {
-                logger.info(message);
-              }
-            })
+            new HttpLoggingInterceptor(logger::info)
             .setLevel(settings.loggingLevel()))
         .build();
   }

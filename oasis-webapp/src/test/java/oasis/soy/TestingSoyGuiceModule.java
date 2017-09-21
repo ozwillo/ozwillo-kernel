@@ -34,11 +34,6 @@ import com.google.template.soy.soytree.SoyFileSetNode;
 public class TestingSoyGuiceModule extends SoyGuiceModule {
   @Provides @Singleton
   CheckConformance provideCheckConformance() {
-    return new CheckConformance() {
-      @Override
-      public ImmutableList<SoySyntaxException> getViolations(SoyFileSetNode root) {
-        return ImmutableList.of();
-      }
-    };
+    return root -> ImmutableList.of();
   }
 }

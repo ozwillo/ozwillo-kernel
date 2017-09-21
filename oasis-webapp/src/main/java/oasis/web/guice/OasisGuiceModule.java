@@ -27,12 +27,7 @@ import oasis.services.authn.login.SCryptPasswordHasher;
 public class OasisGuiceModule extends AbstractModule {
   @Override
   protected void configure() {
-    bind(DateTimeUtils.MillisProvider.class).toInstance(new DateTimeUtils.MillisProvider() {
-      @Override
-      public long getMillis() {
-        return System.currentTimeMillis();
-      }
-    });
+    bind(DateTimeUtils.MillisProvider.class).toInstance(System::currentTimeMillis);
 
     bind(PasswordHasher.class).to(SCryptPasswordHasher.class);
   }

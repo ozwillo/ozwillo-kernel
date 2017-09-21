@@ -86,7 +86,7 @@ public class OAuthFilterTest {
     accessTokenWithoutScope.setId("without_scope");
     accessTokenWithoutScope.setCreationTime(now.minus(Duration.standardHours(1)));
     accessTokenWithoutScope.setExpirationTime(now.plus(Duration.standardHours(1)));
-    accessTokenWithoutScope.setScopeIds(Collections.<String>emptySet());
+    accessTokenWithoutScope.setScopeIds(Collections.emptySet());
   }
   static final AccessToken accessTokenWithInsufficientScopes = new AccessToken();
   static {

@@ -80,14 +80,11 @@ public class WebApp extends CommandLineTool {
     final JongoService jongo = injector.getInstance(JongoService.class);
     final JestService jest = injector.getInstance(JestService.class);
 
-    Runtime.getRuntime().addShutdownHook(new Thread() {
-      @Override
-      public void run() {
-        server.stop();
-        jest.stop();
-        jongo.stop();
-      }
-    });
+    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+      server.stop();
+      jest.stop();
+      jongo.stop();
+    }));
 
     jongo.start();
     jest.start();

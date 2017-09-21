@@ -38,7 +38,7 @@ public class Log4JAuditLogService extends AuditLogService {
 
   @Override
   protected void log(AuditLogEvent auditLogEvent) {
-    ImmutableMap<String, Object> data = ImmutableMap.<String, Object>of(
+    ImmutableMap<String, Object> data = ImmutableMap.of(
         "type", auditLogEvent.getEventType(),
         "time", auditLogEvent.getDate(),
         "data", auditLogEvent.getContextMap()

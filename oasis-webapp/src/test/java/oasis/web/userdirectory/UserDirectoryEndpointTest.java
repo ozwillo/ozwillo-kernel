@@ -33,8 +33,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import com.google.inject.Inject;
 
@@ -61,15 +59,12 @@ public class UserDirectoryEndpointTest {
   }
 
   @Test public void testCreateOrganization(DirectoryRepository directoryRepository, EtagService etagService) throws Exception {
-    when(directoryRepository.createOrganization(any(Organization.class))).thenAnswer(new Answer<Organization>() {
-      @Override
-      public Organization answer(InvocationOnMock invocation) throws Throwable {
-        Organization organization = (Organization) invocation.getArguments()[0];
-        organization = new Organization(organization);
-        organization.setId("organization");
-        organization.setStatus(Organization.Status.AVAILABLE);
-        return organization;
-      }
+    when(directoryRepository.createOrganization(any(Organization.class))).thenAnswer(invocation -> {
+      Organization organization = (Organization) invocation.getArguments()[0];
+      organization = new Organization(organization);
+      organization.setId("organization");
+      organization.setStatus(Organization.Status.AVAILABLE);
+      return organization;
     });
     when(etagService.getEtag(any())).thenReturn(new EntityTag("etag"));
     resteasy.getDeployment().getProviderFactory().register(new TestOAuthFilter(new AccessToken() {{

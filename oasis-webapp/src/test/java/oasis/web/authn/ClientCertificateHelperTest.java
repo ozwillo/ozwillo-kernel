@@ -88,7 +88,7 @@ public class ClientCertificateHelperTest {
   @Test public void testNoCertificate() {
     ClientCertificateHelper clientCertificateHelper = new ClientCertificateHelper(enabledSettings, clientCertificateRepository);
 
-    ClientCertificate clientCertificate = clientCertificateHelper.getClientCertificate(new MultivaluedHashMap<String, String>());
+    ClientCertificate clientCertificate = clientCertificateHelper.getClientCertificate(new MultivaluedHashMap<>());
     assertThat(clientCertificate).isNull();
 
     verify(clientCertificateRepository, never()).getClientCertificate(anyString(), anyString());
@@ -104,7 +104,7 @@ public class ClientCertificateHelperTest {
   @Test public void testUnknownCertificate() {
     ClientCertificateHelper clientCertificateHelper = new ClientCertificateHelper(enabledSettings, clientCertificateRepository);
 
-    MultivaluedMap<String, String> h = new MultivaluedHashMap<String, String>(headers);
+    MultivaluedMap<String, String> h = new MultivaluedHashMap<>(headers);
     h.putSingle(ClientCertificateHelper.CLIENT_CERTIFICATE_SUBJECT_DN_HEADER_NAME, "unknown subject");
     assumeFalse(headers.equalsIgnoreValueOrder(h));
 
@@ -117,7 +117,7 @@ public class ClientCertificateHelperTest {
   @Test public void testMissingSubject() {
     ClientCertificateHelper clientCertificateHelper = new ClientCertificateHelper(enabledSettings, clientCertificateRepository);
 
-    MultivaluedMap<String, String> h = new MultivaluedHashMap<String, String>(headers);
+    MultivaluedMap<String, String> h = new MultivaluedHashMap<>(headers);
     h.remove(ClientCertificateHelper.CLIENT_CERTIFICATE_SUBJECT_DN_HEADER_NAME);
 
     ClientCertificate clientCertificate = clientCertificateHelper.getClientCertificate(h);
@@ -129,7 +129,7 @@ public class ClientCertificateHelperTest {
   @Test public void testMissingIssuer() {
     ClientCertificateHelper clientCertificateHelper = new ClientCertificateHelper(enabledSettings, clientCertificateRepository);
 
-    MultivaluedMap<String, String> h = new MultivaluedHashMap<String, String>(headers);
+    MultivaluedMap<String, String> h = new MultivaluedHashMap<>(headers);
     h.remove(ClientCertificateHelper.CLIENT_CERTIFICATE_ISSUER_DN_HEADER_NAME);
 
     ClientCertificate clientCertificate = clientCertificateHelper.getClientCertificate(h);
@@ -141,7 +141,7 @@ public class ClientCertificateHelperTest {
   @Test public void testTooManySubjects() {
     ClientCertificateHelper clientCertificateHelper = new ClientCertificateHelper(enabledSettings, clientCertificateRepository);
 
-    MultivaluedMap<String, String> h = new MultivaluedHashMap<String, String>(headers);
+    MultivaluedMap<String, String> h = new MultivaluedHashMap<>(headers);
     h.add(ClientCertificateHelper.CLIENT_CERTIFICATE_SUBJECT_DN_HEADER_NAME, "other subject");
 
     ClientCertificate clientCertificate = clientCertificateHelper.getClientCertificate(h);
@@ -153,7 +153,7 @@ public class ClientCertificateHelperTest {
   @Test public void testTooManyIssuers() {
     ClientCertificateHelper clientCertificateHelper = new ClientCertificateHelper(enabledSettings, clientCertificateRepository);
 
-    MultivaluedMap<String, String> h = new MultivaluedHashMap<String, String>(headers);
+    MultivaluedMap<String, String> h = new MultivaluedHashMap<>(headers);
     h.add(ClientCertificateHelper.CLIENT_CERTIFICATE_ISSUER_DN_HEADER_NAME, "other issuer");
 
     ClientCertificate clientCertificate = clientCertificateHelper.getClientCertificate(h);

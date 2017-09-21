@@ -31,14 +31,7 @@ def log4jVersion = '2.7'
 def resteasyVersion = '3.0.19.Final'
 
 ext.libs = [
-  guava:               [
-      dependencies.create('com.google.guava:guava:20.0') {
-        force = true
-      },
-      // Guava has ErrorProne annotations but depends on the annotations as optional=true,
-      // and ErrorProne chokes when it sees the annotations but cannot find them in classpath.
-      'com.google.errorprone:error_prone_annotations:2.0.15'
-    ],
+  guava:               'com.google.guava:guava:23.0',
   jsr305:              'com.google.code.findbugs:jsr305:3.0.1',
 
   immutables:          'org.immutables:value:2.3.10',
@@ -138,8 +131,8 @@ ext.libs = [
     ],
 
   assertj:             [
-      'org.assertj:assertj-core:2.6.0',
-      'org.assertj:assertj-guava:2.0.0',
-      'org.assertj:assertj-joda-time:1.1.0',
+      'org.assertj:assertj-core:3.8.0',
+      'org.assertj:assertj-guava:3.1.0',
+      'org.assertj:assertj-joda-time:2.0.0',
     ],
 ]

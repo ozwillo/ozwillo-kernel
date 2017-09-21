@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 
 import oasis.jest.applications.v2.JestCatalogEntryRepository;
 import oasis.jongo.applications.v2.JongoServiceRepository;
@@ -50,7 +51,7 @@ public class IndexingServiceRepository implements ServiceRepository {
     Service createdService = jongoServiceRepository.createService(service);
     if (shouldIndex(createdService)) {
       ListenableFuture<Void> listenableFuture = jestCatalogEntryRepository.asyncIndex(createdService);
-      Futures.addCallback(listenableFuture, indexedFutureCallback(service.getId(), CatalogEntry.EntryType.SERVICE));
+      Futures.addCallback(listenableFuture, indexedFutureCallback(service.getId(), CatalogEntry.EntryType.SERVICE), MoreExecutors.directExecutor());
     }
     return createdService;
   }
@@ -81,11 +82,11 @@ public class IndexingServiceRepository implements ServiceRepository {
 
     if (shouldIndex(updatedService)) {
       ListenableFuture<Void> listenableFuture = jestCatalogEntryRepository.asyncIndex(updatedService);
-      Futures.addCallback(listenableFuture, indexedFutureCallback(service.getId(), CatalogEntry.EntryType.SERVICE));
+      Futures.addCallback(listenableFuture, indexedFutureCallback(service.getId(), CatalogEntry.EntryType.SERVICE), MoreExecutors.directExecutor());
     } else if (shouldIndex(service)) {
       // It means it is no more indexable
       ListenableFuture<Void> listenableFuture = jestCatalogEntryRepository.asyncDelete(updatedService.getId(), CatalogEntry.EntryType.SERVICE);
-      Futures.addCallback(listenableFuture, deleteIndexFutureCallback(service.getId(), CatalogEntry.EntryType.SERVICE));
+      Futures.addCallback(listenableFuture, deleteIndexFutureCallback(service.getId(), CatalogEntry.EntryType.SERVICE), MoreExecutors.directExecutor());
     }
     return updatedService;
   }
@@ -95,7 +96,7 @@ public class IndexingServiceRepository implements ServiceRepository {
     boolean deletedService = jongoServiceRepository.deleteService(serviceId, versions);
     if (deletedService) {
       ListenableFuture<Void> listenableFuture = jestCatalogEntryRepository.asyncDelete(serviceId, CatalogEntry.EntryType.SERVICE);
-      Futures.addCallback(listenableFuture, deleteIndexFutureCallback(serviceId, CatalogEntry.EntryType.SERVICE));
+      Futures.addCallback(listenableFuture, deleteIndexFutureCallback(serviceId, CatalogEntry.EntryType.SERVICE), MoreExecutors.directExecutor());
     }
     return deletedService;
   }
@@ -104,7 +105,7 @@ public class IndexingServiceRepository implements ServiceRepository {
   public int deleteServicesOfInstance(String instanceId) {
     int count = jongoServiceRepository.deleteServicesOfInstance(instanceId);
     ListenableFuture<Void> listenableFuture = jestCatalogEntryRepository.asyncDeleteServiceByInstance(instanceId);
-    Futures.addCallback(listenableFuture, deleteIndexRelatedToInstanceFutureCallback(instanceId));
+    Futures.addCallback(listenableFuture, deleteIndexRelatedToInstanceFutureCallback(instanceId), MoreExecutors.directExecutor());
     return count;
   }
 
@@ -116,13 +117,13 @@ public class IndexingServiceRepository implements ServiceRepository {
         for (Service service : getServicesOfInstance(instanceId)) {
           if (shouldIndex(service)) {
             ListenableFuture<Void> listenableFuture = jestCatalogEntryRepository.asyncIndex(service);
-            Futures.addCallback(listenableFuture, indexedFutureCallback(service.getId(), CatalogEntry.EntryType.SERVICE));
+            Futures.addCallback(listenableFuture, indexedFutureCallback(service.getId(), CatalogEntry.EntryType.SERVICE), MoreExecutors.directExecutor());
           }
         }
         break;
       case NOT_AVAILABLE:
         ListenableFuture<Void> listenableFuture = jestCatalogEntryRepository.asyncDeleteServiceByInstance(instanceId);
-        Futures.addCallback(listenableFuture, deleteIndexRelatedToInstanceFutureCallback(instanceId));
+        Futures.addCallback(listenableFuture, deleteIndexRelatedToInstanceFutureCallback(instanceId), MoreExecutors.directExecutor());
         break;
       default:
         throw new IllegalArgumentException();

@@ -194,7 +194,7 @@ public class MarketBuyEndpoint {
             .instanceId(instance.getId())
             .callProvider(false)
             .checkStatus(AppInstance.InstantiationStatus.PENDING)
-            .checkVersions(Optional.<long[]>absent())
+            .checkVersions(Optional.absent())
             .notifyAdmins(false)
             .build();
         DeleteAppInstance.Status status = deleteAppInstance.deleteInstance(request, new DeleteAppInstance.Stats());

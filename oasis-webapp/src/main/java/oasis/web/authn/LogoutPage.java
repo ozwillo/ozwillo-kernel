@@ -159,7 +159,7 @@ public class LogoutPage {
       }
       otherApps.add(otherAppInstance.getName().get(account.getLocale()));
     }
-    Collections.sort(otherApps, Collator.getInstance(account.getLocale()));
+    otherApps.sort(Collator.getInstance(account.getLocale()));
     viewModel.put(LogoutSoyTemplateInfo.OTHER_APPS, new SoyListData(otherApps));
     viewModel.put(LogoutSoyTemplateInfo.IS_PORTAL, appInstance != null && appInstance.getId().equals(ClientIds.PORTAL));
     if (urls.myOasis().isPresent()) {

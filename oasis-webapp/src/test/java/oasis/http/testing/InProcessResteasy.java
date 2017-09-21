@@ -17,10 +17,8 @@
  */
 package oasis.http.testing;
 
-import java.io.IOException;
 import java.net.URI;
 
-import javax.ws.rs.client.ClientRequestContext;
 import javax.ws.rs.client.ClientRequestFilter;
 
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
@@ -66,11 +64,7 @@ public class InProcessResteasy extends net.ltgt.resteasy.testing.InProcessRestea
 
     // Simulate an SSL terminator in front of the application.
     // Works in conjunction with the SecureFilter added in configureDeployment
-    builder.register(new ClientRequestFilter() {
-      @Override
-      public void filter(ClientRequestContext requestContext) throws IOException {
-        requestContext.getHeaders().putSingle("X-Forwarded-Proto", "https");
-      }
-    });
+    builder.register((ClientRequestFilter) requestContext ->
+        requestContext.getHeaders().putSingle("X-Forwarded-Proto", "https"));
   }
 }

@@ -116,7 +116,7 @@ public class PurgeDeletedAppInstance extends CommandLineTool {
               .instanceId(instance.getId())
               .callProvider(true)
               .checkStatus(AppInstance.InstantiationStatus.STOPPED)
-              .checkVersions(Optional.<long[]>absent())
+              .checkVersions(Optional.absent())
               .notifyAdmins(true)
               .build();
           DeleteAppInstance.Status status = usecaseProvider.get().deleteInstance(request, stats);

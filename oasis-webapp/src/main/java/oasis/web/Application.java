@@ -84,7 +84,7 @@ public class Application extends javax.ws.rs.core.Application {
 
   @Override
   public Set<Class<?>> getClasses() {
-    return ImmutableSet.<Class<?>>of(
+    return ImmutableSet.of(
         // Hacks and workarounds
         UriParamConverterProvider.class,
         // Providers
