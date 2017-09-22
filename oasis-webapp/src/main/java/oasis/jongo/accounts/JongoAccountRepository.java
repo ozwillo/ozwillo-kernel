@@ -17,6 +17,7 @@
  */
 package oasis.jongo.accounts;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import javax.inject.Inject;
@@ -29,7 +30,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import com.google.common.collect.Maps;
 import com.google.common.primitives.Longs;
 import com.mongodb.DuplicateKeyException;
 
@@ -104,7 +104,7 @@ public class JongoAccountRepository implements AccountRepository, JongoBootstrap
     }
     // Allow resetting fields to null/empty
     // TODO: find a better way to do it! (leveraging Jackson)
-    Map<String, Boolean> unsetObject = Maps.newLinkedHashMap();
+    Map<String, Boolean> unsetObject = new LinkedHashMap<>();
     // NOTE: don't allow resetting the nickname and locale (set during account creation), and zoneinfo
     if (Strings.isNullOrEmpty(account.getName())) {
       unsetObject.put("name", true);

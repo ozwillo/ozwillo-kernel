@@ -20,7 +20,6 @@ package oasis.web.authz;
 import static java.util.stream.Collectors.joining;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -38,7 +37,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Streams;
 
 import oasis.model.applications.v2.AccessControlRepository;
@@ -105,7 +104,7 @@ public class IntrospectionEndpoint {
         .setSub(accessToken.getAccountId())
         .setToken_type("Bearer");
     if (ClientIds.DATACORE.equals(client_id)) {
-      ArrayList<String> groups = Lists.newArrayList(
+      ImmutableList.Builder<String> groups = ImmutableList.<String>builder().addAll(
           organizationMembershipRepository.getOrganizationIdsForUser(accessToken.getAccountId()));
       AppInstance appInstance = appInstanceRepository.getAppInstance(accessToken.getServiceProviderId());
       if (appInstance != null) {
@@ -120,7 +119,7 @@ public class IntrospectionEndpoint {
            ignore the situation (do not return error()) as that would result in a different answer (active/inactive token)
            depending on whether the request is coming from the DataCore vs. any other client.
          */
-      introspectionResponse.setSub_groups(groups);
+      introspectionResponse.setSub_groups(groups.build());
     }
 
     return Response.ok()

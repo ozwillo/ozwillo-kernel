@@ -62,7 +62,6 @@ import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
 import com.google.common.io.BaseEncoding;
 
@@ -168,7 +167,7 @@ public class TokenEndpoint {
 
     Set<String> asked_scopes;
     if (!Strings.isNullOrEmpty(asked_scopes_param)) {
-      asked_scopes = Sets.newHashSet(SCOPE_SPLITTER.splitToList(asked_scopes_param));
+      asked_scopes = ImmutableSet.copyOf(SCOPE_SPLITTER.split(asked_scopes_param));
 
       if (!refreshToken.getScopeIds().containsAll(asked_scopes)) {
         return errorResponse("invalid_scope", null);
@@ -360,7 +359,7 @@ public class TokenEndpoint {
 
     Set<String> asked_scopes;
     if (!Strings.isNullOrEmpty(asked_scopes_param)) {
-      asked_scopes = Sets.newHashSet(SCOPE_SPLITTER.splitToList(asked_scopes_param));
+      asked_scopes = ImmutableSet.copyOf(SCOPE_SPLITTER.split(asked_scopes_param));
 
       if (!AUTHORIZED_JWT_BEARER_SCOPES.containsAll(asked_scopes)) {
         return errorResponse("invalid_scope", null);

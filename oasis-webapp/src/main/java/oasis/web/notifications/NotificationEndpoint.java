@@ -36,7 +36,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
 
 import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.ServiceRepository;
@@ -148,7 +148,7 @@ public class NotificationEndpoint {
       return ResponseFactory.forbidden("Cannot change read status for another user's notifications");
     }
 
-    notificationRepository.markNotifications(userId, Lists.newArrayList(mark.message_ids), mark.status);
+    notificationRepository.markNotifications(userId, ImmutableList.copyOf(mark.message_ids), mark.status);
     return ResponseFactory.NO_CONTENT;
   }
 

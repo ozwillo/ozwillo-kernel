@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -56,7 +57,6 @@ import org.junit.runner.RunWith;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
 import com.google.common.net.UrlEscapers;
 import com.google.inject.Inject;
 import com.ibm.icu.util.ULocale;
@@ -276,7 +276,7 @@ public class AuthorizationEndpointTest {
     when(serviceRepository.getServiceByRedirectUri(appInstance.getId(), Iterables.getOnlyElement(privateService.getRedirect_uris()))).thenReturn(privateService);
 
     when(scopeRepository.getScopes(anyCollectionOf(String.class))).thenAnswer(invocation -> {
-      Collection<?> scopeIds = Sets.newHashSet((Collection<?>) invocation.getArguments()[0]);
+      Collection<?> scopeIds = new HashSet<>((Collection<?>) invocation.getArguments()[0]);
       ArrayList<Scope> ret = new ArrayList<>(3);
       for (Scope scope : Arrays.asList(openidScope, profileScope, authorizedScope, unauthorizedScope, offlineAccessScope)) {
         if (scopeIds.remove(scope.getId())) {
@@ -289,14 +289,14 @@ public class AuthorizationEndpointTest {
       }
       return ret;
     });
-    when(scopeRepository.getScopes(Sets.newHashSet(openidScope.getId())))
+    when(scopeRepository.getScopes(ImmutableSet.of(openidScope.getId())))
         .thenReturn(singletonList(openidScope));
-    when(scopeRepository.getScopes(Sets.newHashSet(openidScope.getId(), unauthorizedScope.getId())))
+    when(scopeRepository.getScopes(ImmutableSet.of(openidScope.getId(), unauthorizedScope.getId())))
         .thenReturn(singletonList(openidScope));
 
     when(authorizationRepository.getAuthorizedScopes(sidToken.getAccountId(), appInstance.getId()))
         .thenReturn(new AuthorizedScopes() {{
-          setScope_ids(Sets.newHashSet(openidScope.getId(), authorizedScope.getId()));
+          setScope_ids(ImmutableSet.of(openidScope.getId(), authorizedScope.getId()));
         }});
 
     when(tokenHandler.generateRandom()).thenReturn("pass");

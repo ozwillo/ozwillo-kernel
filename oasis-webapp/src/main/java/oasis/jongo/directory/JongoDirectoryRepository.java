@@ -19,6 +19,7 @@ package oasis.jongo.directory;
 
 import java.time.Instant;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import javax.inject.Inject;
@@ -28,7 +29,6 @@ import org.jongo.MongoCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.Maps;
 import com.google.common.primitives.Longs;
 import com.mongodb.DuplicateKeyException;
 import com.mongodb.WriteResult;
@@ -99,7 +99,7 @@ public class JongoDirectoryRepository implements DirectoryRepository, JongoBoots
     organization.setStatus_changed(null);
     organization.setStatus_change_requester_id(null);
 
-    Map<String, Boolean> unsetObject = Maps.newLinkedHashMap();
+    Map<String, Boolean> unsetObject = new LinkedHashMap<>();
     if (organization.getTerritory_id() == null) {
       unsetObject.put("territory_id", true);
     }

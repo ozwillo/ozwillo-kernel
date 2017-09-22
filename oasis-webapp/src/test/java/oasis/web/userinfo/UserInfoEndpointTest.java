@@ -31,7 +31,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.ibm.icu.util.ULocale;
 
@@ -83,7 +83,7 @@ public class UserInfoEndpointTest {
   @Test public void testJsonByDefault() {
     resteasy.getDeployment().getProviderFactory().register(new TestOAuthFilter(new AccessToken() {{
       setAccountId(citizenAccount.getId());
-      setScopeIds(Sets.newHashSet(Scopes.OPENID, Scopes.PROFILE));
+      setScopeIds(ImmutableSet.of(Scopes.OPENID, Scopes.PROFILE));
     }}));
 
     Response response = resteasy.getClient()

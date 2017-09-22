@@ -22,6 +22,7 @@ import static java.util.function.Predicate.isEqual;
 import java.net.URI;
 import java.time.Clock;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -415,7 +416,7 @@ public class AuthorizationEndpoint {
 
   private Response promptUser(UriInfo uriInfo, String accountId, AppInstance serviceProvider, Set<String> requiredScopeIds, Set<String> authorizedScopeIds,
       String redirect_uri, @Nullable String state, @Nullable String nonce, @Nullable String code_challenge, boolean askForClientCertificate) {
-    Set<String> globalClaimedScopeIds = Sets.newHashSet();
+    Set<String> globalClaimedScopeIds = new HashSet<>();
     Set<NeededScope> neededScopes = serviceProvider.getNeeded_scopes();
     if (neededScopes != null) {
       // TODO: display needed scope motivation

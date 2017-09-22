@@ -22,6 +22,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -50,7 +51,6 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
 import com.google.common.io.Resources;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -200,7 +200,7 @@ public class JestCatalogEntryRepository implements CatalogEntryRepository, JestB
     JsonArray results = searchResult.getJsonObject()
         .getAsJsonObject("hits")
         .getAsJsonArray("hits");
-    List<SimpleCatalogEntry> catalogEntries = Lists.newArrayList();
+    List<SimpleCatalogEntry> catalogEntries = new ArrayList<>();
     for (JsonElement jsonElement : results) {
       JsonObject jsonObject = jsonElement.getAsJsonObject();
       JsonElement source = jsonObject.get("_source");
@@ -314,7 +314,8 @@ public class JestCatalogEntryRepository implements CatalogEntryRepository, JestB
   }
 
   private static List<ULocale> getFallbackLocales(ULocale locale) {
-    List<ULocale> locales = Lists.newArrayList(locale);
+    List<ULocale> locales = new ArrayList<>();
+    locales.add(locale);
     for (ULocale fallbackLocale = locale.getFallback(); fallbackLocale != null; fallbackLocale = fallbackLocale.getFallback()) {
       locales.add(fallbackLocale);
     }
