@@ -19,6 +19,7 @@ package oasis.web.authz;
 
 import static java.util.Collections.*;
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.AdditionalMatchers.*;
 import static org.mockito.Mockito.*;
 
 import java.net.URI;
@@ -275,7 +276,7 @@ public class AuthorizationEndpointTest {
     when(serviceRepository.getServiceByRedirectUri(appInstance.getId(), Iterables.getOnlyElement(service.getRedirect_uris()))).thenReturn(service);
     when(serviceRepository.getServiceByRedirectUri(appInstance.getId(), Iterables.getOnlyElement(privateService.getRedirect_uris()))).thenReturn(privateService);
 
-    when(scopeRepository.getScopes(anyCollectionOf(String.class))).thenAnswer(invocation -> {
+    when(scopeRepository.getScopes(anyCollection())).thenAnswer(invocation -> {
       Collection<?> scopeIds = new HashSet<>((Collection<?>) invocation.getArguments()[0]);
       ArrayList<Scope> ret = new ArrayList<>(3);
       for (Scope scope : Arrays.asList(openidScope, profileScope, authorizedScope, unauthorizedScope, offlineAccessScope)) {
@@ -300,18 +301,18 @@ public class AuthorizationEndpointTest {
         }});
 
     when(tokenHandler.generateRandom()).thenReturn("pass");
-    when(tokenHandler.createAuthorizationCode(eq(sidToken), anySetOf(String.class), eq(appInstance.getId()),
-        anyString(), eq(Iterables.getOnlyElement(service.getRedirect_uris())), anyString(), anyString())).thenReturn(authorizationCode);
-    when(tokenHandler.createAuthorizationCode(eq(sidToken), anySetOf(String.class), eq(appInstance.getId()),
-        anyString(), eq(Iterables.getOnlyElement(privateService.getRedirect_uris())), anyString(), anyString())).thenReturn(authorizationCode);
-    when(tokenHandler.createAuthorizationCode(eq(sidTokenUsingClientCertificate), anySetOf(String.class), eq(appInstance.getId()),
-        anyString(), eq(Iterables.getOnlyElement(service.getRedirect_uris())), anyString(), anyString())).thenReturn(authorizationCode);
+    when(tokenHandler.createAuthorizationCode(eq(sidToken), anySet(), eq(appInstance.getId()),
+        or(isNull(), anyString()), eq(Iterables.getOnlyElement(service.getRedirect_uris())), or(isNull(), anyString()), anyString())).thenReturn(authorizationCode);
+    when(tokenHandler.createAuthorizationCode(eq(sidToken), anySet(), eq(appInstance.getId()),
+        or(isNull(), anyString()), eq(Iterables.getOnlyElement(privateService.getRedirect_uris())), or(isNull(), anyString()), anyString())).thenReturn(authorizationCode);
+    when(tokenHandler.createAuthorizationCode(eq(sidTokenUsingClientCertificate), anySet(), eq(appInstance.getId()),
+        or(isNull(), anyString()), eq(Iterables.getOnlyElement(service.getRedirect_uris())), or(isNull(), anyString()), anyString())).thenReturn(authorizationCode);
 
     // Portal special-case
     when(appInstanceRepository.getAppInstance(portalAppInstance.getId())).thenReturn(portalAppInstance);
     when(serviceRepository.getServiceByRedirectUri(portalAppInstance.getId(), Iterables.getOnlyElement(portalService.getRedirect_uris()))).thenReturn(portalService);
-    when(tokenHandler.createAuthorizationCode(eq(sidToken), anySetOf(String.class), eq(portalAppInstance.getId()),
-        anyString(), eq(Iterables.getOnlyElement(portalService.getRedirect_uris())), anyString(), anyString())).thenReturn(authorizationCode);
+    when(tokenHandler.createAuthorizationCode(eq(sidToken), anySet(), eq(portalAppInstance.getId()),
+        or(isNull(), anyString()), eq(Iterables.getOnlyElement(portalService.getRedirect_uris())), or(isNull(), anyString()), anyString())).thenReturn(authorizationCode);
 
     when(sessionManagementHelper.generateBrowserState()).thenReturn("browser-state");
     when(sessionManagementHelper.computeSessionState(appInstance.getId(), Iterables.getOnlyElement(service.getRedirect_uris()), "browser-state"))
@@ -326,7 +327,7 @@ public class AuthorizationEndpointTest {
     when(clientCertificateRepository.getClientCertificate(serviceClientCertificate.getSubject_dn(), serviceClientCertificate.getIssuer_dn()))
         .thenReturn(serviceClientCertificate);
     // TODO: check for various cases where user has certificates or not; for now simply avoid an NPE by returning an empty iterable.
-    when(clientCertificateRepository.getClientCertificatesForClient(ClientType.USER, account.getId())).thenReturn(Collections.<ClientCertificate>emptyList());
+    when(clientCertificateRepository.getClientCertificatesForClient(ClientType.USER, account.getId())).thenReturn(Collections.emptyList());
   }
 
   @Before public void setUp() {
