@@ -20,12 +20,12 @@ package oasis.web.authz;
 import static java.util.function.Predicate.isEqual;
 
 import java.net.URI;
+import java.time.Clock;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.StringJoiner;
-import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -49,8 +49,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
-
-import org.joda.time.DateTimeUtils;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
@@ -158,7 +156,7 @@ public class AuthorizationEndpoint {
   @Inject ScopeRepository scopeRepository;
   @Inject TokenHandler tokenHandler;
   @Inject LocaleHelper localeHelper;
-  @Inject DateTimeUtils.MillisProvider clock;
+  @Inject Clock clock;
   @Inject Urls urls;
   @Inject SessionManagementHelper sessionManagementHelper;
   @Inject ClientCertificateHelper helper;
@@ -250,7 +248,7 @@ public class AuthorizationEndpoint {
       } catch (NumberFormatException nfe) {
         throw invalidParam("max_age");
       }
-      if (sidToken.getAuthenticationTime().plus(TimeUnit.SECONDS.toMillis(maxAge)).isBefore(clock.getMillis())) {
+      if (sidToken.getAuthenticationTime().plusSeconds(maxAge).isBefore(clock.instant())) {
         return redirectToLogin(uriInfo, prompt);
       }
     }

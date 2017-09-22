@@ -19,11 +19,12 @@ package oasis.jongo.authn;
 
 import static com.google.common.base.Preconditions.*;
 
+import java.time.Instant;
 import java.util.Collection;
+import java.util.Date;
 
 import javax.inject.Inject;
 
-import org.joda.time.Instant;
 import org.jongo.Jongo;
 import org.jongo.MongoCollection;
 
@@ -32,11 +33,11 @@ import com.google.common.collect.ImmutableSet;
 import com.mongodb.DuplicateKeyException;
 import com.mongodb.WriteResult;
 
+import oasis.auth.AuthModule;
 import oasis.jongo.JongoBootstrapper;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.Token;
 import oasis.model.authn.TokenRepository;
-import oasis.auth.AuthModule;
 
 public class JongoTokenRepository implements TokenRepository, JongoBootstrapper {
   private final Jongo jongo;
@@ -88,8 +89,8 @@ public class JongoTokenRepository implements TokenRepository, JongoBootstrapper 
     return this.getTokensCollection().findAndModify("{ id: # }", tokenId)
         .returnNew()
         // TODO: Pass directly the instance of Instant
-        .with(usingClientCertificate ? "{ $set: { expirationTime: #, usingClientCertificate:# } }"      : "{ $set: { expirationTime: # }, $unset: { usingClientCertificate: 1 } }",
-              usingClientCertificate ? new Object[] { expirationTime.toDate(), usingClientCertificate } : new Object[] { expirationTime.toDate() })
+        .with(usingClientCertificate ? "{ $set: { expirationTime: #, usingClientCertificate:# } }"        : "{ $set: { expirationTime: # }, $unset: { usingClientCertificate: 1 } }",
+              usingClientCertificate ? new Object[]{ Date.from(expirationTime), usingClientCertificate }  : new Object[]{ Date.from(expirationTime) })
         .as(SidToken.class);
   }
 
@@ -100,7 +101,7 @@ public class JongoTokenRepository implements TokenRepository, JongoBootstrapper 
     WriteResult writeResult = this.getTokensCollection()
         .update("{ id: # }", tokenId)
         // TODO: Pass directly the instance of Instant
-        .with("{ $set: { authenticationTime: # } }", authenticationTime.toDate());
+        .with("{ $set: { authenticationTime: # } }", Date.from(authenticationTime));
 
     return writeResult.getN() > 0;
   }

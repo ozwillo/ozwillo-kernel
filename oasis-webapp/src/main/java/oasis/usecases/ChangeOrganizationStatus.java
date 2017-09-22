@@ -18,11 +18,11 @@
 package oasis.usecases;
 
 import java.net.URI;
+import java.time.Instant;
 
 import javax.inject.Inject;
 
 import org.immutables.value.Value;
-import org.joda.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

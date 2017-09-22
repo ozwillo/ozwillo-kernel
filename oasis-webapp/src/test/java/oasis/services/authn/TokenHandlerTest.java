@@ -21,11 +21,12 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeUtils;
-import org.joda.time.Duration;
-import org.joda.time.Instant;
 import org.jukito.JukitoModule;
 import org.jukito.JukitoRunner;
 import org.junit.Before;
@@ -45,30 +46,27 @@ public class TokenHandlerTest {
   public static class Module extends JukitoModule {
     @Override
     protected void configureTest() {
-      bind(DateTimeUtils.MillisProvider.class).toInstance(new DateTimeUtils.MillisProvider() {
-        @Override
-        public long getMillis() {
-          return now.getMillis();
-        }
-      });
+      bind(Clock.class).toInstance(Clock.fixed(now, zone));
     }
   }
 
   @Inject TokenHandler sut;
 
-  static final Instant now = new DateTime(2014, 7, 17, 14, 30).toInstant();
+  private static final ZoneId zone = ZoneId.of("Europe/Paris");
+
+  static final Instant now = ZonedDateTime.of(2014, 7, 17, 14, 30, 0, 0, zone).toInstant();
 
   static final Token validToken = new Token() {{
     setId("validToken");
-    setCreationTime(now.minus(Duration.standardHours(1)));
-    expiresIn(Duration.standardHours(2));
+    setCreationTime(now.minus(Duration.ofHours(1)));
+    expiresIn(Duration.ofHours(2));
     setHash("valid".getBytes(StandardCharsets.UTF_8));
     setSalt("salt".getBytes(StandardCharsets.UTF_8));
   }};
   static final Token expiredToken = new Token() {{
     setId("expiredToken");
-    setCreationTime(new DateTime(2008, 1, 20, 11, 10).toInstant());
-    setExpirationTime(new DateTime(2013, 10, 30, 19, 42).toInstant());
+    setCreationTime(ZonedDateTime.of(2008, 1, 20, 11, 10, 0, 0, zone).toInstant());
+    setExpirationTime(ZonedDateTime.of(2013, 10, 30, 19, 42, 0, 0, zone).toInstant());
     setHash("valid".getBytes(StandardCharsets.UTF_8));
     setSalt("salt".getBytes(StandardCharsets.UTF_8));
   }};

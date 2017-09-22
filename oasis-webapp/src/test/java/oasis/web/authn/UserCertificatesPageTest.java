@@ -21,6 +21,8 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
+import java.time.Duration;
+
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.MultivaluedMap;
@@ -29,7 +31,6 @@ import javax.ws.rs.core.Response;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 
-import org.joda.time.Duration;
 import org.jukito.JukitoModule;
 import org.jukito.JukitoRunner;
 import org.jukito.TestSingleton;
@@ -79,7 +80,7 @@ public class UserCertificatesPageTest {
   private static final SidToken someSidToken = new SidToken() {{
     setId("someSidToken");
     setAccountId(someUserAccount.getId());
-    expiresIn(Duration.standardHours(1));
+    expiresIn(Duration.ofHours(1));
   }};
   private static final ClientCertificate someCertificate = new ClientCertificate() {{
     setId("some certificate");
@@ -199,7 +200,7 @@ public class UserCertificatesPageTest {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(new SidToken() {{
       setId("someSidTokenUsingClientCertificate");
       setAccountId(someUserAccount.getId());
-      expiresIn(Duration.standardHours(1));
+      expiresIn(Duration.ofHours(1));
       setUsingClientCertificate(true);
     }}));
 
@@ -227,7 +228,7 @@ public class UserCertificatesPageTest {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(new SidToken() {{
       setId("someSidTokenUsingClientCertificate");
       setAccountId(someUserAccount.getId());
-      expiresIn(Duration.standardHours(1));
+      expiresIn(Duration.ofHours(1));
       setUsingClientCertificate(true);
     }}));
 

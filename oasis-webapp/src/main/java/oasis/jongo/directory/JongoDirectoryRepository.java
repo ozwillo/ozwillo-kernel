@@ -17,11 +17,12 @@
  */
 package oasis.jongo.directory;
 
+import java.time.Instant;
+import java.util.Date;
 import java.util.Map;
 
 import javax.inject.Inject;
 
-import org.joda.time.Instant;
 import org.jongo.Jongo;
 import org.jongo.MongoCollection;
 import org.slf4j.Logger;
@@ -72,7 +73,7 @@ public class JongoDirectoryRepository implements DirectoryRepository, JongoBoots
   @SuppressWarnings("unchecked")
   public Iterable<Organization> findOrganizationsDeletedBefore(Instant deletedBefore) {
     return (Iterable<Organization>) (Iterable<?>) getOrganizationCollection()
-        .find("{ status: #, status_changed: { $lt: # } }", Organization.Status.DELETED, deletedBefore.toDate())
+        .find("{ status: #, status_changed: { $lt: # } }", Organization.Status.DELETED, Date.from(deletedBefore))
         .as(JongoOrganization.class);
   }
 
@@ -143,7 +144,7 @@ public class JongoDirectoryRepository implements DirectoryRepository, JongoBoots
     return getOrganizationCollection()
         .findAndModify("{ id: # }", organizationId)
         .returnNew()
-        .with("{ $set: { status: #, status_changed: #, status_change_requester_id: #, modified: # } }", newStatus, now.toDate(), requesterId, now.getMillis())
+        .with("{ $set: { status: #, status_changed: #, status_change_requester_id: #, modified: # } }", newStatus, Date.from(now), requesterId, now.toEpochMilli())
         .as(JongoOrganization.class);
   }
 
@@ -153,7 +154,7 @@ public class JongoDirectoryRepository implements DirectoryRepository, JongoBoots
     JongoOrganization organization = getOrganizationCollection()
         .findAndModify("{id: #, modified: { $in: # } }", organizationId, Longs.asList(versions))
         .returnNew()
-        .with("{ $set: { status: #, status_changed: #, status_change_requester_id: #, modified: # } }", newStatus, now.toDate(), requesterId, now.getMillis())
+        .with("{ $set: { status: #, status_changed: #, status_change_requester_id: #, modified: # } }", newStatus, Date.from(now), requesterId, now.toEpochMilli())
         .as(JongoOrganization.class);
     if (organization == null) {
       if (getOrganizationCollection().count("{ id: # }", organizationId) != 0) {

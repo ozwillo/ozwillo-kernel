@@ -17,6 +17,7 @@
  */
 package oasis.web.notifications;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,8 +34,6 @@ import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-
-import org.joda.time.Instant;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Lists;

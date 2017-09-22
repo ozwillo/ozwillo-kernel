@@ -17,12 +17,13 @@
  */
 package oasis.tools;
 
+import java.time.Duration;
+import java.time.Instant;
+
 import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.ws.rs.client.Client;
 
-import org.joda.time.Duration;
-import org.joda.time.Instant;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +48,7 @@ import oasis.usecases.DeleteAppInstance;
 import oasis.usecases.ImmutableDeleteAppInstance;
 
 public class PurgeDeletedAppInstance extends CommandLineTool {
-  private static final Duration APP_INSTANCE_EXPIRATION_DURATION = Duration.standardDays(7);
+  private static final Duration APP_INSTANCE_EXPIRATION_DURATION = Duration.ofDays(7);
 
   public static void main(String[] args) throws Exception {
     new PurgeDeletedAppInstance().run(args);
@@ -92,7 +93,7 @@ public class PurgeDeletedAppInstance extends CommandLineTool {
     jongoService.start();
     jestService.start();
     try {
-      logger().info("Deleting stopped instances for {} days", APP_INSTANCE_EXPIRATION_DURATION.getStandardDays());
+      logger().info("Deleting stopped instances for {} days", APP_INSTANCE_EXPIRATION_DURATION.toDays());
       int n = deleteStoppedInstances();
       logger().info("  Deleted {} instances.", n);
     } finally {

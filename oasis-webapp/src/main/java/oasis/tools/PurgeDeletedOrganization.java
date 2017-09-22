@@ -17,11 +17,12 @@
  */
 package oasis.tools;
 
+import java.time.Duration;
+import java.time.Instant;
+
 import javax.inject.Inject;
 import javax.inject.Provider;
 
-import org.joda.time.Duration;
-import org.joda.time.Instant;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +48,7 @@ import oasis.usecases.DeleteOrganization;
 import oasis.usecases.ImmutableDeleteOrganization;
 
 public class PurgeDeletedOrganization extends CommandLineTool {
-  private static final Duration ORGANIZATION_EXPIRATION_DURATION = Duration.standardDays(7);
+  private static final Duration ORGANIZATION_EXPIRATION_DURATION = Duration.ofDays(7);
 
   public static void main(String[] args) throws Exception {
     new PurgeDeletedOrganization().run(args);
@@ -91,7 +92,7 @@ public class PurgeDeletedOrganization extends CommandLineTool {
     jongoService.start();
     jestService.start();
     try {
-      logger().info("Hard-deleting the organizations softly-deleted for {} days", ORGANIZATION_EXPIRATION_DURATION.getStandardDays());
+      logger().info("Hard-deleting the organizations softly-deleted for {} days", ORGANIZATION_EXPIRATION_DURATION.toDays());
       int n = deleteStoppedOrganizations();
       logger().info("  Deleted {} organizations.", n);
     } finally {

@@ -20,6 +20,8 @@ package oasis.web.authn;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.regex.Pattern;
 
@@ -31,10 +33,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriBuilder;
 
-import org.joda.time.Duration;
-import org.joda.time.Instant;
 import org.jukito.JukitoModule;
 import org.jukito.JukitoRunner;
 import org.jukito.TestSingleton;
@@ -71,35 +70,35 @@ public class OAuthFilterTest {
   static final AccessToken validAccessToken = new AccessToken();
   static {
     validAccessToken.setId("valid");
-    validAccessToken.setCreationTime(now.minus(Duration.standardHours(1)));
-    validAccessToken.setExpirationTime(now.plus(Duration.standardHours(1)));
+    validAccessToken.setCreationTime(now.minus(Duration.ofHours(1)));
+    validAccessToken.setExpirationTime(now.plus(Duration.ofHours(1)));
     validAccessToken.setScopeIds(ImmutableSet.of(SCOPE_DATA, SCOPE_MIND));
   }
   static final AccessToken invalidAccessToken = new AccessToken();
   static {
     invalidAccessToken.setId("invalid");
-    invalidAccessToken.setCreationTime(now.minus(Duration.standardHours(1)));
-    invalidAccessToken.setExpirationTime(now.plus(Duration.standardHours(1)));
+    invalidAccessToken.setCreationTime(now.minus(Duration.ofHours(1)));
+    invalidAccessToken.setExpirationTime(now.plus(Duration.ofHours(1)));
   }
   static final AccessToken accessTokenWithoutScope = new AccessToken();
   static {
     accessTokenWithoutScope.setId("without_scope");
-    accessTokenWithoutScope.setCreationTime(now.minus(Duration.standardHours(1)));
-    accessTokenWithoutScope.setExpirationTime(now.plus(Duration.standardHours(1)));
+    accessTokenWithoutScope.setCreationTime(now.minus(Duration.ofHours(1)));
+    accessTokenWithoutScope.setExpirationTime(now.plus(Duration.ofHours(1)));
     accessTokenWithoutScope.setScopeIds(Collections.emptySet());
   }
   static final AccessToken accessTokenWithInsufficientScopes = new AccessToken();
   static {
     accessTokenWithInsufficientScopes.setId("insufficient_scope");
-    accessTokenWithInsufficientScopes.setCreationTime(now.minus(Duration.standardHours(1)));
-    accessTokenWithInsufficientScopes.setExpirationTime(now.plus(Duration.standardHours(1)));
+    accessTokenWithInsufficientScopes.setCreationTime(now.minus(Duration.ofHours(1)));
+    accessTokenWithInsufficientScopes.setExpirationTime(now.plus(Duration.ofHours(1)));
     accessTokenWithInsufficientScopes.setScopeIds(ImmutableSet.of(SCOPE_DATA));
   }
   static final AccessToken accessTokenWithTooMuchScopes = new AccessToken();
   static {
     accessTokenWithTooMuchScopes.setId("too_much_scope");
-    accessTokenWithTooMuchScopes.setCreationTime(now.minus(Duration.standardHours(1)));
-    accessTokenWithTooMuchScopes.setExpirationTime(now.plus(Duration.standardHours(1)));
+    accessTokenWithTooMuchScopes.setCreationTime(now.minus(Duration.ofHours(1)));
+    accessTokenWithTooMuchScopes.setExpirationTime(now.plus(Duration.ofHours(1)));
     accessTokenWithTooMuchScopes.setScopeIds(ImmutableSet.of(SCOPE_DATA, SCOPE_MIND, SCOPE_COOKIES));
   }
 

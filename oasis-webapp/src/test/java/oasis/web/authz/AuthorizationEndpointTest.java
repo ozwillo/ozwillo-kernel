@@ -22,6 +22,11 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.net.URI;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -36,10 +41,6 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
 import org.jboss.resteasy.spi.ResteasyUriInfo;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeUtils;
-import org.joda.time.Duration;
-import org.joda.time.Instant;
 import org.jose4j.jws.AlgorithmIdentifiers;
 import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.jwt.JwtClaims;
@@ -110,12 +111,7 @@ public class AuthorizationEndpointTest {
       install(new TestingSoyGuiceModule());
       install(new UrlsModule(ImmutableUrls.builder().build()));
 
-      bind(DateTimeUtils.MillisProvider.class).toInstance(new DateTimeUtils.MillisProvider() {
-        @Override
-        public long getMillis() {
-          return now.getMillis();
-        }
-      });
+      bind(Clock.class).toInstance(Clock.fixed(now, zone));
 
       bindMock(TokenHandler.class).in(TestSingleton.class);
       bindMock(AppAdminHelper.class).in(TestSingleton.class);
@@ -139,7 +135,9 @@ public class AuthorizationEndpointTest {
 
   static final String browserStateCookieName = CookieFactory.getCookieName(SessionManagementHelper.COOKIE_NAME, true);
 
-  static final Instant now = new DateTime(2014, 7, 17, 14, 30).toInstant();
+  private static final ZoneId zone = ZoneId.of("Europe/Paris");
+
+  static final Instant now = ZonedDateTime.of(2014, 7, 17, 14, 30, 0, 0, zone).toInstant();
 
   private static final UserAccount account = new UserAccount() {{
     setId("accountId");
@@ -150,12 +148,12 @@ public class AuthorizationEndpointTest {
   private static final SidToken sidToken = new SidToken() {{
     setId("sidToken");
     setAccountId(account.getId());
-    setAuthenticationTime(now.minus(Duration.standardHours(1)));
+    setAuthenticationTime(now.minus(Duration.ofHours(1)));
   }};
   private static final SidToken sidTokenUsingClientCertificate = new SidToken() {{
     setId("sidToken");
     setAccountId(account.getId());
-    setAuthenticationTime(now.minus(Duration.standardHours(1)));
+    setAuthenticationTime(now.minus(Duration.ofHours(1)));
     setUsingClientCertificate(true);
   }};
 
@@ -234,7 +232,7 @@ public class AuthorizationEndpointTest {
     setId("authCode");
     setAccountId(sidToken.getAccountId());
     setCreationTime(Instant.now());
-    expiresIn(Duration.standardMinutes(10));
+    expiresIn(Duration.ofMinutes(10));
   }};
 
   private static final AppInstance portalAppInstance = new AppInstance() {{

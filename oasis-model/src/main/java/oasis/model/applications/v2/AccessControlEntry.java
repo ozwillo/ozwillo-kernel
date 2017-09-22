@@ -17,10 +17,10 @@
  */
 package oasis.model.applications.v2;
 
+import java.time.Instant;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
-import org.joda.time.Instant;
 
 import oasis.model.annotations.Id;
 

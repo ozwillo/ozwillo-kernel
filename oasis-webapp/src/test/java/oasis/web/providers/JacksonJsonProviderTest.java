@@ -19,6 +19,7 @@ package oasis.web.providers;
 
 import static org.assertj.core.api.Assertions.*;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.OptionalDouble;
 import java.util.stream.Stream;
@@ -32,7 +33,6 @@ import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.joda.time.Instant;
 import org.jukito.JukitoRunner;
 import org.junit.Before;
 import org.junit.Rule;
@@ -87,7 +87,7 @@ public class JacksonJsonProviderTest {
         .post(Entity.json("{\"instant\": [] }"));
 
     assertThat(response.getStatus()).isEqualTo(ResponseFactory.SC_UNPROCESSABLE_ENTITY);
-    assertThat(response.readEntity(String.class)).contains("expected JSON Number or String");
+    assertThat(response.readEntity(String.class)).contains("Cannot deserialize instance of " + Instant.class.getCanonicalName());
   }
 
   @Path("/")

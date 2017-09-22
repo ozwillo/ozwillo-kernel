@@ -17,9 +17,11 @@
  */
 package oasis.jongo.authn;
 
+import java.time.Instant;
+import java.util.Date;
+
 import javax.inject.Inject;
 
-import org.joda.time.Instant;
 import org.jongo.Jongo;
 import org.jongo.MongoCollection;
 
@@ -43,7 +45,7 @@ public class JongoJtiRepository implements JtiRepository, JongoBootstrapper {
   public boolean markAsUsed(String jti, Instant expirationTime) {
     try {
       // TODO: Pass directly the instance of Instant
-      getUsedJtisCollection().insert("{ id: #, expirationTime: # }", jti, expirationTime.toDate());
+      getUsedJtisCollection().insert("{ id: #, expirationTime: # }", jti, Date.from(expirationTime));
     } catch (DuplicateKeyException e) {
       return false;
     }

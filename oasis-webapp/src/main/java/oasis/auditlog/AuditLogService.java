@@ -19,8 +19,7 @@ package oasis.auditlog;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-
-import org.joda.time.Instant;
+import java.time.Instant;
 
 public abstract class AuditLogService {
   /**

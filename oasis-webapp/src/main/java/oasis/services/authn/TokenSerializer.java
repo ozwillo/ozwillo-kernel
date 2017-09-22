@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.joda.JodaModule;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.io.BaseEncoding;
 
 import oasis.model.authn.Token;
@@ -32,7 +32,7 @@ import oasis.model.authn.Token;
 public class TokenSerializer {
   private static final Logger logger = LoggerFactory.getLogger(TokenSerializer.class);
   private static final BaseEncoding BASE_ENCODING = BaseEncoding.base64Url().omitPadding();
-  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().registerModule(new JodaModule());
+  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().registerModule(new JavaTimeModule());
 
   public static String serialize(Token token, String pass) {
     // We can't serialize a null token

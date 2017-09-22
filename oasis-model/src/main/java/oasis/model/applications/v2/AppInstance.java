@@ -17,10 +17,9 @@
  */
 package oasis.model.applications.v2;
 
+import java.time.Instant;
 import java.util.LinkedHashSet;
 import java.util.Set;
-
-import org.joda.time.Instant;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;

@@ -17,6 +17,7 @@
  */
 package oasis.web.applications;
 
+import java.time.Instant;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
@@ -31,8 +32,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
-
-import org.joda.time.Instant;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Streams;

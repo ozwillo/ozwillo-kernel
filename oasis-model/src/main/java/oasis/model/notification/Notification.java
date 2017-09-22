@@ -17,9 +17,9 @@
  */
 package oasis.model.notification;
 
-import javax.annotation.Nonnull;
+import java.time.Instant;
 
-import org.joda.time.Instant;
+import javax.annotation.Nonnull;
 
 import oasis.model.annotations.Id;
 import oasis.model.i18n.LocalizableString;

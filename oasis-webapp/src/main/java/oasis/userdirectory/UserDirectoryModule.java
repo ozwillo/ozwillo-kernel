@@ -17,10 +17,9 @@
  */
 package oasis.userdirectory;
 
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
 
 import org.immutables.value.Value;
-import org.joda.time.Duration;
 
 import com.google.inject.AbstractModule;
 import com.typesafe.config.Config;
@@ -34,7 +33,7 @@ public class UserDirectoryModule extends AbstractModule {
 
   public static UserDirectoryModule create(Config config) {
     return new UserDirectoryModule(ImmutableUserDirectoryModule.Settings.builder()
-        .invitationTokenDuration(Duration.millis(config.getDuration("invitation-token-duration", TimeUnit.MILLISECONDS)))
+        .invitationTokenDuration(config.getDuration("invitation-token-duration"))
         .build());
   }
 

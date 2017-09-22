@@ -17,7 +17,7 @@
  */
 package oasis.web.guice;
 
-import org.joda.time.DateTimeUtils;
+import java.time.Clock;
 
 import com.google.inject.AbstractModule;
 
@@ -27,7 +27,7 @@ import oasis.services.authn.login.SCryptPasswordHasher;
 public class OasisGuiceModule extends AbstractModule {
   @Override
   protected void configure() {
-    bind(DateTimeUtils.MillisProvider.class).toInstance(System::currentTimeMillis);
+    bind(Clock.class).toInstance(Clock.systemUTC());
 
     bind(PasswordHasher.class).to(SCryptPasswordHasher.class);
   }

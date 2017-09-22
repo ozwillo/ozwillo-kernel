@@ -29,7 +29,6 @@ import org.jongo.MongoCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.Iterables;
 import com.mongodb.DuplicateKeyException;
 import com.mongodb.WriteResult;
 

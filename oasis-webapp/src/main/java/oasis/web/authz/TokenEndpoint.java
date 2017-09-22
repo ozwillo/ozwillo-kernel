@@ -20,9 +20,10 @@ package oasis.web.authz;
 import static org.jose4j.jwa.AlgorithmConstraints.ConstraintType.WHITELIST;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Clock;
+import java.time.Instant;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -42,8 +43,6 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
-import org.joda.time.DateTimeUtils;
-import org.joda.time.Instant;
 import org.jose4j.jwa.AlgorithmConstraints;
 import org.jose4j.jws.AlgorithmIdentifiers;
 import org.jose4j.jws.JsonWebSignature;
@@ -108,7 +107,7 @@ public class TokenEndpoint {
   @VisibleForTesting static final ImmutableSet<String> AUTHORIZED_JWT_BEARER_SCOPES = ImmutableSet.of("datacore");
 
   @Inject AuthModule.Settings settings;
-  @Inject DateTimeUtils.MillisProvider clock;
+  @Inject Clock clock;
 
   @Inject TokenRepository tokenRepository;
   @Inject JtiRepository jtiRepository;
@@ -192,7 +191,7 @@ public class TokenEndpoint {
     TokenResponse response = new TokenResponse();
     response.access_token = access_token;
     response.token_type = "Bearer";
-    response.expires_in = accessToken.expiresIn().getStandardSeconds();
+    response.expires_in = accessToken.expiresIn().getSeconds();
     response.scope = String.join(" ", asked_scopes);
 
     return response(Response.Status.OK, response);
@@ -277,7 +276,7 @@ public class TokenEndpoint {
     String acr = null;
     Token token = tokenRepository.getToken(Iterables.getLast(authorizationCode.getAncestorIds()));
     if (token instanceof SidToken) {
-      authTime = TimeUnit.MILLISECONDS.toSeconds(((SidToken) token).getAuthenticationTime().getMillis());
+      authTime = ((SidToken) token).getAuthenticationTime().getEpochSecond();
       // XXX: switch acr values (eIDAS, STORK-QAA, FICAM, etc.) depending on client_id and/or acr_values of the request
       acr = ((SidToken) token).isUsingClientCertificate() ? AuthorizationContextClasses.EIDAS_SUBSTANTIAL : AuthorizationContextClasses.EIDAS_LOW;
     } // TODO: else, log error/warning
@@ -289,16 +288,16 @@ public class TokenEndpoint {
 
     response.access_token = access_token;
     response.token_type = "Bearer";
-    response.expires_in = accessToken.expiresIn().getStandardSeconds();
+    response.expires_in = accessToken.expiresIn().getSeconds();
     response.scope = String.join(" ", accessToken.getScopeIds());
 
-    long issuedAt = TimeUnit.MILLISECONDS.toSeconds(clock.getMillis());
+    long issuedAt = clock.instant().getEpochSecond();
     JwtClaims claims = new JwtClaims();
     claims.setIssuer(getIssuer());
     claims.setSubject(accessToken.getAccountId());
     claims.setAudience(client_id);
     claims.setIssuedAt(NumericDate.fromSeconds(issuedAt));
-    claims.setExpirationTime(NumericDate.fromSeconds(issuedAt + settings.idTokenDuration.getStandardSeconds()));
+    claims.setExpirationTime(NumericDate.fromSeconds(issuedAt + settings.idTokenDuration.getSeconds()));
     claims.setClaim("nonce", authorizationCode.getNonce());
     if (authTime != null) {
       claims.setClaim("auth_time", authTime);
@@ -341,14 +340,14 @@ public class TokenEndpoint {
           .setExpectedIssuer(issuer)        // we issued the JWT
           .setExpectedAudience(issuer, UriBuilder.fromUri(issuer).path(getClass()).build().toString())
           .setExpectedSubject(client_id)    // client_id is used as subject
-          .setEvaluationTime(NumericDate.fromMilliseconds(clock.getMillis()))
+          .setEvaluationTime(NumericDate.fromMilliseconds(clock.millis()))
           .setAllowedClockSkewInSeconds(0)  // we issued the JWT, so we assume our clocks are OK
           .setRequireExpirationTime()
           .setRequireJwtId()                // we issued the JWT, so we can mandate it
           .build()
           .processToClaims(assertion);
       jti = claims.getJwtId();
-      expirationTime = new Instant(claims.getExpirationTime().getValueInMillis());
+      expirationTime = Instant.ofEpochSecond(claims.getExpirationTime().getValue());
     } catch (MalformedClaimException | InvalidJwtException e) {
       return errorResponse("invalid_grant", null);
     }
@@ -384,7 +383,7 @@ public class TokenEndpoint {
     TokenResponse response = new TokenResponse();
     response.access_token = access_token;
     response.token_type = "Bearer";
-    response.expires_in = accessToken.expiresIn().getStandardSeconds();
+    response.expires_in = accessToken.expiresIn().getSeconds();
     response.scope = String.join(" ", asked_scopes);
 
     return response(Response.Status.OK, response);

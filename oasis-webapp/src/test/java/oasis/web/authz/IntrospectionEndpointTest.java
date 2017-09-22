@@ -20,16 +20,14 @@ package oasis.web.authz;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.concurrent.TimeUnit;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
 
-import org.joda.time.Duration;
 import org.jukito.JukitoModule;
 import org.jukito.JukitoRunner;
 import org.jukito.TestSingleton;
@@ -93,7 +91,7 @@ public class IntrospectionEndpointTest {
     setAccountId("account");
     setServiceProviderId("application");
     setScopeIds(ImmutableSet.of(Scopes.OPENID, "datacore", "dp1:s1", "dp1:s3", "dp3:s1"));
-    expiresIn(Duration.standardDays(1));
+    expiresIn(Duration.ofDays(1));
   }};
 
   static final AppInstance appInstance = new AppInstance() {{
@@ -224,8 +222,8 @@ public class IntrospectionEndpointTest {
 
   private void assertValidResponse(IntrospectionResponse response, String... expectedScopes) {
     assertThat(response.isActive()).isTrue();
-    assertThat(response.getIat()).isEqualTo((Long) TimeUnit.MILLISECONDS.toSeconds(validToken.getCreationTime().getMillis()));
-    assertThat(response.getExp()).isEqualTo((Long) TimeUnit.MILLISECONDS.toSeconds(validToken.getExpirationTime().getMillis()));
+    assertThat(response.getIat()).isEqualTo(validToken.getCreationTime().getEpochSecond());
+    assertThat(response.getExp()).isEqualTo(validToken.getExpirationTime().getEpochSecond());
     assertThat(response.getClient_id()).isEqualTo(validToken.getServiceProviderId());
     assertThat(response.getScope().split(" ")).containsOnly(expectedScopes);
     assertThat(response.getSub()).isEqualTo("account");

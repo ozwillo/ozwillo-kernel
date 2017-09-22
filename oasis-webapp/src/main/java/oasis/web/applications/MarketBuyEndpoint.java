@@ -18,6 +18,7 @@
 package oasis.web.applications;
 
 import java.net.URI;
+import java.time.Clock;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -40,7 +41,6 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
-import org.joda.time.DateTimeUtils;
 import org.jose4j.jws.AlgorithmIdentifiers;
 import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.jwt.JwtClaims;
@@ -96,7 +96,7 @@ public class MarketBuyEndpoint {
   @Inject Client client;
   @Inject AuthModule.Settings settings;
   @Inject Urls urls;
-  @Inject DateTimeUtils.MillisProvider clock;
+  @Inject Clock clock;
 
   @Context UriInfo uriInfo;
   @Context SecurityContext securityContext;
@@ -214,13 +214,13 @@ public class MarketBuyEndpoint {
 
   private String createJwtBearer(AppInstance appInstance) {
     String issuer = getIssuer();
-    long issuedAt = TimeUnit.MILLISECONDS.toSeconds(clock.getMillis());
+    long issuedAt = clock.instant().getEpochSecond();
     JwtClaims claims = new JwtClaims();
     claims.setIssuer(issuer);
     claims.setAudience(UriBuilder.fromUri(issuer).path(TokenEndpoint.class).build().toString());
     claims.setSubject(appInstance.getId());
     claims.setIssuedAt(NumericDate.fromSeconds(issuedAt));
-    claims.setExpirationTime(NumericDate.fromSeconds(issuedAt + settings.jwtBearerDuration.getStandardSeconds()));
+    claims.setExpirationTime(NumericDate.fromSeconds(issuedAt + settings.jwtBearerDuration.getSeconds()));
     claims.setJwtId(OasisIdHelper.generateId());
     JsonWebSignature jws = new JsonWebSignature();
     jws.setKey(settings.keyPair.getPrivate());

@@ -18,6 +18,7 @@
 package oasis.web.userdirectory;
 
 import java.net.URI;
+import java.time.Instant;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
@@ -37,7 +38,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
-import org.joda.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

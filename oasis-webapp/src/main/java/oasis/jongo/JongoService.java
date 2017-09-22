@@ -18,26 +18,27 @@
 package oasis.jongo;
 
 import java.io.IOException;
+import java.time.Instant;
+import java.util.Date;
 import java.util.Set;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
-import org.joda.time.Instant;
 import org.jongo.Jongo;
-import org.jongo.marshall.jackson.configuration.MapperModifier;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.datatype.joda.JodaModule;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.base.Preconditions;
 import com.mongodb.Mongo;
 import com.mongodb.MongoClient;
@@ -73,13 +74,16 @@ public class JongoService implements Provider<Jongo> {
     mongoConnection = new MongoClient(settings.mongoURI);
     jongoConnection = new Jongo(mongoConnection.getDB(settings.mongoURI.getDatabase()), new OasisMapper.Builder()
         .registerModule(new Jdk8Module())
-        .registerModule(new CustomJodaModule())
+        .registerModule(new JavaTimeModule())
+        .registerModule(new CustomJavaTimeInstantModule())
         .registerModule(new GuavaModule())
         .registerModule(new LocalizableModule())
         .addModifier(mapper -> {
           mapper.setSerializationInclusion(Include.NON_EMPTY); // instead of NON_NULL
         })
         .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
+        .disable(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)
+        .disable(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS)
         .build());
 
     for (JongoBootstrapper bootstrapper : bootstrappers.get()) {
@@ -91,20 +95,20 @@ public class JongoService implements Provider<Jongo> {
     mongoConnection.close();
   }
 
-  static class CustomJodaModule extends JodaModule {
-    CustomJodaModule() {
+  static class CustomJavaTimeInstantModule extends SimpleModule {
+    CustomJavaTimeInstantModule() {
       super();
       addSerializer(Instant.class, new BsonSerializer<Instant>() {
         @Override
         public void serialize(Instant instant, BsonGenerator bsonGenerator, SerializerProvider serializerProvider)
             throws IOException {
-          bsonGenerator.writeDateTime(instant.toDate());
+          bsonGenerator.writeDateTime(Date.from(instant));
         }
       });
       addDeserializer(Instant.class, new JsonDeserializer<Instant>() {
         @Override
         public Instant deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
-          return new Instant(jp.getEmbeddedObject());
+          return ((Date) jp.getEmbeddedObject()).toInstant();
         }
       });
     }

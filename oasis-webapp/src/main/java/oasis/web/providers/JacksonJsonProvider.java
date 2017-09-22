@@ -36,7 +36,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.datatype.joda.JodaModule;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import oasis.model.i18n.LocalizableModule;
 import oasis.web.utils.ResponseFactory;
@@ -54,7 +54,7 @@ public class JacksonJsonProvider extends com.fasterxml.jackson.jaxrs.json.Jackso
   public JacksonJsonProvider() {
     super(new ObjectMapper()
         .registerModule(new Jdk8Module())
-        .registerModule(new JodaModule())
+        .registerModule(new JavaTimeModule())
         .registerModule(new GuavaModule())
         .registerModule(new LocalizableModule())
         .disable(FAIL_ON_UNKNOWN_PROPERTIES)

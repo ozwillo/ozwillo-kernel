@@ -20,6 +20,8 @@ package oasis.web.authn;
 import static org.assertj.core.api.Assertions.*;
 
 import java.net.URI;
+import java.time.Duration;
+import java.time.Instant;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -31,8 +33,6 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
 import org.jboss.resteasy.spi.ResteasyUriInfo;
-import org.joda.time.Duration;
-import org.joda.time.Instant;
 import org.jukito.JukitoModule;
 import org.jukito.JukitoRunner;
 import org.junit.Before;
@@ -62,8 +62,8 @@ public class UserAuthenticationFilterTest {
   static final SidToken validSidToken = new SidToken();
   static {
     validSidToken.setId("validSession");
-    validSidToken.setCreationTime(now.minus(Duration.standardHours(1)));
-    validSidToken.setExpirationTime(now.plus(Duration.standardHours(1)));
+    validSidToken.setCreationTime(now.minus(Duration.ofHours(1)));
+    validSidToken.setExpirationTime(now.plus(Duration.ofHours(1)));
   }
 
   @Inject @Rule public InProcessResteasy resteasy;

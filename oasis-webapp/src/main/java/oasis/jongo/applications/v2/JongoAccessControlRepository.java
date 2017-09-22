@@ -17,9 +17,10 @@
  */
 package oasis.jongo.applications.v2;
 
+import java.time.Instant;
+
 import javax.inject.Inject;
 
-import org.joda.time.Instant;
 import org.jongo.Jongo;
 import org.jongo.MongoCollection;
 import org.slf4j.Logger;

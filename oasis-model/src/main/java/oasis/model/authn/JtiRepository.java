@@ -17,7 +17,7 @@
  */
 package oasis.model.authn;
 
-import org.joda.time.Instant;
+import java.time.Instant;
 
 public interface JtiRepository {
   /**

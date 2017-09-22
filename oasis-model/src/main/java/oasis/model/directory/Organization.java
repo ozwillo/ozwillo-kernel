@@ -18,10 +18,9 @@
 package oasis.model.directory;
 
 import java.net.URI;
+import java.time.Instant;
 
 import javax.annotation.Nonnull;
-
-import org.joda.time.Instant;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;

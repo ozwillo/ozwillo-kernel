@@ -20,13 +20,14 @@ package oasis.jongo.applications.v2;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import javax.inject.Inject;
 
-import org.joda.time.Instant;
 import org.jongo.Jongo;
 import org.jongo.MongoCollection;
 import org.slf4j.Logger;
@@ -125,7 +126,7 @@ public class JongoAppInstanceRepository implements AppInstanceRepository, JongoB
   @SuppressWarnings("unchecked")
   public Iterable<AppInstance> findStoppedBefore(Instant stoppedBefore) {
     return (Iterable<AppInstance>) (Iterable<?>) getAppInstancesCollection()
-        .find("{ status: #, status_changed: { $lt: # } }", AppInstance.InstantiationStatus.STOPPED, stoppedBefore.toDate())
+        .find("{ status: #, status_changed: { $lt: # } }", AppInstance.InstantiationStatus.STOPPED, Date.from(stoppedBefore))
         .as(JongoAppInstance.class);
   }
 
@@ -138,7 +139,7 @@ public class JongoAppInstanceRepository implements AppInstanceRepository, JongoB
         // let's ensure that the updated app instance is not pending
         .findAndModify("{ id: #, status: { $ne: # } }", instanceId, AppInstance.InstantiationStatus.PENDING)
         .returnNew()
-        .with("{ $set: { status: #, status_changed: #, status_change_requester_id: #, modified: # } }", newStatus, now.toDate(), statusChangeRequesterId, now.getMillis())
+        .with("{ $set: { status: #, status_changed: #, status_change_requester_id: #, modified: # } }", newStatus, Date.from(now), statusChangeRequesterId, now.toEpochMilli())
         .as(JongoAppInstance.class);
   }
 
@@ -152,7 +153,7 @@ public class JongoAppInstanceRepository implements AppInstanceRepository, JongoB
         // let's ensure that the updated app instance is not pending
         .findAndModify("{ id: #, status: { $ne: # }, modified: { $in: # } }", instanceId, AppInstance.InstantiationStatus.PENDING, Longs.asList(versions))
         .returnNew()
-        .with("{ $set: { status: #, status_changed: #, status_change_requester_id: #, modified: # } }", newStatus, now.toDate(), statusChangeRequesterId, now.getMillis())
+        .with("{ $set: { status: #, status_changed: #, status_change_requester_id: #, modified: # } }", newStatus, Date.from(now), statusChangeRequesterId, now.toEpochMilli())
         .as(JongoAppInstance.class);
 
     if (appInstance == null) {

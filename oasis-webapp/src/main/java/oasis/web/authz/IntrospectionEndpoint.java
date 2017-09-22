@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -83,8 +82,6 @@ public class IntrospectionEndpoint {
     }
 
     IntrospectionResponse introspectionResponse;
-    long issuedAtTime = accessToken.getCreationTime().getMillis();
-    long expireAt = accessToken.getExpirationTime().getMillis();
 
     // Remove all scopes which don't belong to the application instance
     String client_id = ((ClientPrincipal) securityContext.getUserPrincipal()).getClientId();
@@ -99,8 +96,8 @@ public class IntrospectionEndpoint {
 
     introspectionResponse = new IntrospectionResponse()
         .setActive(true)
-        .setExp(TimeUnit.MILLISECONDS.toSeconds(expireAt))
-        .setIat(TimeUnit.MILLISECONDS.toSeconds(issuedAtTime))
+        .setExp(accessToken.getExpirationTime().getEpochSecond())
+        .setIat(accessToken.getCreationTime().getEpochSecond())
         .setScope(scopeIds.stream()
                 .filter(Objects::nonNull)
                 .collect(joining(" ")))

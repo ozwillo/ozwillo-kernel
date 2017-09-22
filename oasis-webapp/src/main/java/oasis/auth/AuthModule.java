@@ -20,9 +20,7 @@ package oasis.auth;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyPair;
-import java.util.concurrent.TimeUnit;
-
-import org.joda.time.Duration;
+import java.time.Duration;
 
 import com.google.inject.AbstractModule;
 import com.typesafe.config.Config;
@@ -49,14 +47,14 @@ public class AuthModule extends AbstractModule {
 
       return Settings.builder()
           .setKeyPair(KeyPairLoader.loadOrGenerateKeyPair(privateKeyPath, publicKeyPath))
-          .setAuthorizationCodeDuration(Duration.millis(config.getDuration("authorization-code-duration", TimeUnit.MILLISECONDS)))
-          .setAccessTokenDuration(Duration.millis(config.getDuration("access-token-duration", TimeUnit.MILLISECONDS)))
-          .setRefreshTokenDuration(Duration.millis(config.getDuration("refresh-token-duration", TimeUnit.MILLISECONDS)))
-          .setIdTokenDuration(Duration.millis(config.getDuration("id-token-duration", TimeUnit.MILLISECONDS)))
-          .setSidTokenDuration(Duration.millis(config.getDuration("sid-token-duration", TimeUnit.MILLISECONDS)))
-          .setAccountActivationTokenDuration(Duration.millis(config.getDuration("account-activation-token-duration", TimeUnit.MILLISECONDS)))
-          .setChangePasswordTokenDuration(Duration.millis(config.getDuration("change-password-token-duration", TimeUnit.MILLISECONDS)))
-          .setJwtBearerDuration(Duration.millis(config.getDuration("jwt-bearer-duration", TimeUnit.MILLISECONDS)))
+          .setAuthorizationCodeDuration(config.getDuration("authorization-code-duration"))
+          .setAccessTokenDuration(config.getDuration("access-token-duration"))
+          .setRefreshTokenDuration(config.getDuration("refresh-token-duration"))
+          .setIdTokenDuration(config.getDuration("id-token-duration"))
+          .setSidTokenDuration(config.getDuration("sid-token-duration"))
+          .setAccountActivationTokenDuration(config.getDuration("account-activation-token-duration"))
+          .setChangePasswordTokenDuration(config.getDuration("change-password-token-duration"))
+          .setJwtBearerDuration(config.getDuration("jwt-bearer-duration"))
           .setPasswordMinimumLength(config.getInt("password-minimum-length"))
           .setEnableClientCertificates(config.getBoolean("enable-client-certificates"))
           .build();

@@ -19,6 +19,7 @@ package oasis.usecases;
 
 import static java.util.Objects.requireNonNull;
 
+import java.time.Instant;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -34,7 +35,6 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
 
 import org.immutables.value.Value;
-import org.joda.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

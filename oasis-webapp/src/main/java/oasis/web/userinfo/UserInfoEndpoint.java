@@ -34,8 +34,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
-import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.ISODateTimeFormat;
 import org.jose4j.jws.AlgorithmIdentifiers;
 import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.jwt.JwtClaims;
@@ -57,7 +55,6 @@ import oasis.web.authz.KeysEndpoint;
 @Authenticated @OAuth @WithScopes(Scopes.OPENID)
 @Path("/a/userinfo")
 public class UserInfoEndpoint {
-  private static final DateTimeFormatter BIRTHDATE_FORMATTER = ISODateTimeFormat.date().withDefaultYear(0);
   /** Note: we'd prefer JWT, but OpenID Connect wants us to prefer JSON, so using qs&lt;1.0 here. */
   private static final String APPLICATION_JWT = "application/jwt; qs=0.99";
 
@@ -144,7 +141,7 @@ public class UserInfoEndpoint {
       setClaimIfNotNull(userInfo, "picture", userAccount.getPicture());
       setClaimIfNotNull(userInfo, "gender", userAccount.getGender());
       if (userAccount.getBirthdate() != null) {
-        userInfo.setClaim("birthdate", userAccount.getBirthdate().toString(BIRTHDATE_FORMATTER));
+        userInfo.setClaim("birthdate", userAccount.getBirthdate().toString());
       }
       setClaimIfNotNull(userInfo, "zoneinfo", userAccount.getZoneinfo());
       if (userAccount.getLocale() != null) {

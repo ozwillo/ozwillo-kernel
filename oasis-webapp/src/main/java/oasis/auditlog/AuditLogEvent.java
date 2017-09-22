@@ -17,7 +17,7 @@
  */
 package oasis.auditlog;
 
-import org.joda.time.Instant;
+import java.time.Instant;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -29,7 +29,7 @@ public abstract class AuditLogEvent {
   private AuditLogService auditLogService;
 
   public AuditLogEvent(String eventType) {
-    this(eventType, new Instant());
+    this(eventType, Instant.now());
   }
 
   public AuditLogEvent(String eventType, Instant date) {

@@ -18,6 +18,7 @@
 package oasis.usecases;
 
 import java.net.URI;
+import java.time.Instant;
 import java.util.function.Predicate;
 
 import javax.annotation.Nullable;
@@ -28,7 +29,6 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.InvocationCallback;
 
 import org.immutables.value.Value;
-import org.joda.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

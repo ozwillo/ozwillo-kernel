@@ -17,9 +17,9 @@
  */
 package oasis.model.accounts;
 
-import javax.annotation.Nonnull;
+import java.time.LocalDate;
 
-import org.joda.time.LocalDate;
+import javax.annotation.Nonnull;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;

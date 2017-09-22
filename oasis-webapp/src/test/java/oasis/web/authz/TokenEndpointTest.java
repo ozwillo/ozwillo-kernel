@@ -22,16 +22,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.jose4j.jwa.AlgorithmConstraints.ConstraintType.WHITELIST;
 import static org.mockito.Mockito.*;
 
-import java.util.concurrent.TimeUnit;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.Response;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeUtils;
-import org.joda.time.Duration;
-import org.joda.time.Instant;
 import org.jose4j.jwa.AlgorithmConstraints;
 import org.jose4j.jws.AlgorithmIdentifiers;
 import org.jose4j.jws.JsonWebSignature;
@@ -92,23 +92,20 @@ public class TokenEndpointTest {
       bindMock(TokenHandler.class).in(TestSingleton.class);
       bindMock(AppAdminHelper.class).in(TestSingleton.class);
 
-      bind(DateTimeUtils.MillisProvider.class).toInstance(new DateTimeUtils.MillisProvider() {
-        @Override
-        public long getMillis() {
-          return now.getMillis();
-        }
-      });
+      bind(Clock.class).toInstance(Clock.fixed(now, zone));
 
       bind(AuthModule.Settings.class).toInstance(AuthModule.Settings.builder()
-          .setIdTokenDuration(Duration.standardMinutes(1))
+          .setIdTokenDuration(Duration.ofMinutes(1))
           .setKeyPair(KeyPairLoader.generateRandomKeyPair())
           .build());
     }
   }
 
-  static final Instant now = new DateTime(2014, 7, 17, 14, 30).toInstant();
-  static final Instant tomorrow = now.plus(Duration.standardDays(1));
-  static final Instant oneHourAgo = now.minus(Duration.standardHours(1));
+  private static final ZoneId zone = ZoneId.of("Europe/Paris");
+
+  static final Instant now = ZonedDateTime.of(2014, 7, 17, 14, 30, 0, 0, zone).toInstant();
+  static final Instant tomorrow = now.plus(Duration.ofDays(1));
+  static final Instant oneHourAgo = now.minus(Duration.ofHours(1));
 
   static final String validCodeVerifier = "let-this-test-string-be-a-valid-code-verifier";
   static final String validCodeChallenge = "X4qcuPsv3LQP2ZS7toD1-TWQUUMtscLgKhAUhVqatJw";
@@ -131,8 +128,8 @@ public class TokenEndpointTest {
   static final AuthorizationCode validAuthCode = new AuthorizationCode() {{
     setId("validAuthCode");
     setAccountId(account.getId());
-    setCreationTime(now.minus(Duration.standardHours(1)));
-    expiresIn(Duration.standardHours(2));
+    setCreationTime(now.minus(Duration.ofHours(1)));
+    expiresIn(Duration.ofHours(2));
     setParent(sidToken);
     setServiceProviderId(appInstance.getId());
     setScopeIds(ImmutableSet.of("dp1s1", "dp1s3", "dp3s1"));
@@ -142,8 +139,8 @@ public class TokenEndpointTest {
   static final AuthorizationCode validAuthCodeWithOfflineAccess = new AuthorizationCode() {{
     setId("validAuthCodeWithOfflineAccess");
     setAccountId(account.getId());
-    setCreationTime(now.minus(Duration.standardHours(1)));
-    expiresIn(Duration.standardHours(2));
+    setCreationTime(now.minus(Duration.ofHours(1)));
+    expiresIn(Duration.ofHours(2));
     setParent(sidToken);
     setServiceProviderId(appInstance.getId());
     setScopeIds(ImmutableSet.of(Scopes.OFFLINE_ACCESS, "dp1s1", "dp1s3", "dp3s1"));
@@ -153,8 +150,8 @@ public class TokenEndpointTest {
   static final AuthorizationCode validAuthCodeWithCodeChallenge = new AuthorizationCode() {{
     setId("validAuthCode");
     setAccountId(account.getId());
-    setCreationTime(now.minus(Duration.standardHours(1)));
-    expiresIn(Duration.standardHours(2));
+    setCreationTime(now.minus(Duration.ofHours(1)));
+    expiresIn(Duration.ofHours(2));
     setParent(sidToken);
     setServiceProviderId(appInstance.getId());
     setScopeIds(ImmutableSet.of("dp1s1", "dp1s3", "dp3s1"));
@@ -167,7 +164,7 @@ public class TokenEndpointTest {
     setId("accessToken");
     setAccountId(account.getId());
     setCreationTime(now);
-    expiresIn(Duration.standardDays(1));
+    expiresIn(Duration.ofDays(1));
     setParent(validAuthCode);
     setServiceProviderId(validAuthCode.getServiceProviderId());
     setScopeIds(validAuthCode.getScopeIds());
@@ -176,7 +173,7 @@ public class TokenEndpointTest {
     setId("refreshToken");
     setAccountId(account.getId());
     setCreationTime(now);
-    expiresIn(Duration.standardDays(100));
+    expiresIn(Duration.ofDays(100));
     setAncestorIds(ImmutableList.of(validAuthCodeWithOfflineAccess.getId()));
     setServiceProviderId(validAuthCodeWithOfflineAccess.getServiceProviderId());
     setScopeIds(validAuthCodeWithOfflineAccess.getScopeIds());
@@ -185,7 +182,7 @@ public class TokenEndpointTest {
     setId("accessTokenWithOfflineAccess");
     setAccountId(account.getId());
     setCreationTime(now);
-    expiresIn(Duration.standardDays(1));
+    expiresIn(Duration.ofDays(1));
     setParent(refreshToken);
     setServiceProviderId(refreshToken.getServiceProviderId());
     setScopeIds(refreshToken.getScopeIds());
@@ -194,7 +191,7 @@ public class TokenEndpointTest {
     setId("refreshedAccessToken");
     setAccountId(account.getId());
     setCreationTime(tomorrow);
-    expiresIn(Duration.standardDays(1));
+    expiresIn(Duration.ofDays(1));
     setParent(refreshToken);
     setServiceProviderId(refreshToken.getServiceProviderId());
     setScopeIds(ImmutableSet.of("dp1s1", "dp3s1"));
@@ -203,7 +200,7 @@ public class TokenEndpointTest {
     setId("accessTokenFromJwtBearer");
     setAccountId(TokenEndpoint.ANONYMOUS_ACCOUNT_ID);
     setCreationTime(now);
-    expiresIn(Duration.standardDays(1));
+    expiresIn(Duration.ofDays(1));
     setAncestorIds(ImmutableList.of("jti"));
     setServiceProviderId(appInstance.getId());
     setScopeIds(TokenEndpoint.AUTHORIZED_JWT_BEARER_SCOPES);
@@ -343,7 +340,7 @@ public class TokenEndpointTest {
     TokenResponse response = resp.readEntity(TokenResponse.class);
     assertThat(response.token_type).isEqualTo("Bearer");
     assertThat(response.scope.split(" ")).containsOnly("dp1s1", "dp1s3", "dp3s1");
-    assertThat(response.expires_in).isEqualTo(new Duration(now, accessToken.getExpirationTime()).getStandardSeconds());
+    assertThat(response.expires_in).isEqualTo(Duration.between(now, accessToken.getExpirationTime()).getSeconds());
     assertThat(response.access_token).isEqualTo(TokenSerializer.serialize(accessToken, "pass"));
     assertThat(response.refresh_token).isNullOrEmpty();
     assertThat(response.id_token).isNotEmpty();
@@ -356,15 +353,14 @@ public class TokenEndpointTest {
         .setExpectedAudience(appInstance.getId())
         .setRequireIssuedAt()
         .setRequireExpirationTime()
-        .setEvaluationTime(NumericDate.fromMilliseconds(now.getMillis()))
+        .setEvaluationTime(NumericDate.fromSeconds(now.getEpochSecond()))
         .build()
         .processToClaims(response.id_token);
 
-    assertThat(claims.getIssuedAt().getValue()).isEqualTo(TimeUnit.MILLISECONDS.toSeconds(now.getMillis()));
-    assertThat(claims.getExpirationTime().getValue()).isEqualTo(claims.getIssuedAt().getValue() + settings.idTokenDuration.getStandardSeconds());
+    assertThat(claims.getIssuedAt().getValue()).isEqualTo(now.getEpochSecond());
+    assertThat(claims.getExpirationTime().getValue()).isEqualTo(claims.getIssuedAt().getValue() + settings.idTokenDuration.getSeconds());
     assertThat(claims.getStringClaimValue("nonce")).isEqualTo("nonce");
-    assertThat(claims.getNumericDateClaimValue("auth_time").getValue()).isEqualTo(
-        TimeUnit.MILLISECONDS.toSeconds(sidToken.getAuthenticationTime().getMillis()));
+    assertThat(claims.getNumericDateClaimValue("auth_time").getValue()).isEqualTo(sidToken.getAuthenticationTime().getEpochSecond());
     if (claims.hasClaim("app_user")) {
       assertThat(claims.getClaimValue("app_user")).isEqualTo(Boolean.FALSE);
     }
@@ -391,7 +387,7 @@ public class TokenEndpointTest {
     TokenResponse response = resp.readEntity(TokenResponse.class);
     assertThat(response.token_type).isEqualTo("Bearer");
     assertThat(response.scope.split(" ")).containsOnly("dp1s1", "dp1s3", "dp3s1");
-    assertThat(response.expires_in).isEqualTo(new Duration(now, accessToken.getExpirationTime()).getStandardSeconds());
+    assertThat(response.expires_in).isEqualTo(Duration.between(now, accessToken.getExpirationTime()).getSeconds());
     assertThat(response.access_token).isEqualTo(TokenSerializer.serialize(accessToken, "pass"));
     assertThat(response.refresh_token).isNullOrEmpty();
 
@@ -403,15 +399,14 @@ public class TokenEndpointTest {
         .setExpectedAudience(appInstance.getId())
         .setRequireIssuedAt()
         .setRequireExpirationTime()
-        .setEvaluationTime(NumericDate.fromMilliseconds(now.getMillis()))
+        .setEvaluationTime(NumericDate.fromSeconds(now.getEpochSecond()))
         .build()
         .processToClaims(response.id_token);
 
-    assertThat(claims.getIssuedAt().getValue()).isEqualTo(TimeUnit.MILLISECONDS.toSeconds(now.getMillis()));
-    assertThat(claims.getExpirationTime().getValue()).isEqualTo(claims.getIssuedAt().getValue() + settings.idTokenDuration.getStandardSeconds());
+    assertThat(claims.getIssuedAt().getValue()).isEqualTo(now.getEpochSecond());
+    assertThat(claims.getExpirationTime().getValue()).isEqualTo(claims.getIssuedAt().getValue() + settings.idTokenDuration.getSeconds());
     assertThat(claims.getStringClaimValue("nonce")).isEqualTo("nonce");
-    assertThat(claims.getNumericDateClaimValue("auth_time").getValue()).isEqualTo(
-        TimeUnit.MILLISECONDS.toSeconds(sidToken.getAuthenticationTime().getMillis()));
+    assertThat(claims.getNumericDateClaimValue("auth_time").getValue()).isEqualTo(sidToken.getAuthenticationTime().getEpochSecond());
     assertThat(claims.getClaimValue("app_user")).isEqualTo(Boolean.TRUE);
     if (claims.hasClaim("app_admin")) {
       assertThat(claims.getClaimValue("app_admin")).isEqualTo(Boolean.FALSE);
@@ -433,7 +428,7 @@ public class TokenEndpointTest {
     TokenResponse response = resp.readEntity(TokenResponse.class);
     assertThat(response.token_type).isEqualTo("Bearer");
     assertThat(response.scope.split(" ")).containsOnly("dp1s1", "dp1s3", "dp3s1");
-    assertThat(response.expires_in).isEqualTo(new Duration(now, accessToken.getExpirationTime()).getStandardSeconds());
+    assertThat(response.expires_in).isEqualTo(Duration.between(now, accessToken.getExpirationTime()).getSeconds());
     assertThat(response.access_token).isEqualTo(TokenSerializer.serialize(accessToken, "pass"));
     assertThat(response.refresh_token).isNullOrEmpty();
 
@@ -445,15 +440,14 @@ public class TokenEndpointTest {
         .setExpectedAudience(appInstance.getId())
         .setRequireIssuedAt()
         .setRequireExpirationTime()
-        .setEvaluationTime(NumericDate.fromMilliseconds(now.getMillis()))
+        .setEvaluationTime(NumericDate.fromSeconds(now.getEpochSecond()))
         .build()
         .processToClaims(response.id_token);
 
-    assertThat(claims.getIssuedAt().getValue()).isEqualTo(TimeUnit.MILLISECONDS.toSeconds(now.getMillis()));
-    assertThat(claims.getExpirationTime().getValue()).isEqualTo(claims.getIssuedAt().getValue() + settings.idTokenDuration.getStandardSeconds());
+    assertThat(claims.getIssuedAt().getValue()).isEqualTo(now.getEpochSecond());
+    assertThat(claims.getExpirationTime().getValue()).isEqualTo(claims.getIssuedAt().getValue() + settings.idTokenDuration.getSeconds());
     assertThat(claims.getStringClaimValue("nonce")).isEqualTo("nonce");
-    assertThat(claims.getNumericDateClaimValue("auth_time").getValue()).isEqualTo(
-        TimeUnit.MILLISECONDS.toSeconds(sidToken.getAuthenticationTime().getMillis()));
+    assertThat(claims.getNumericDateClaimValue("auth_time").getValue()).isEqualTo(sidToken.getAuthenticationTime().getEpochSecond());
     if (claims.hasClaim("app_user")) {
       assertThat(claims.getClaimValue("app_user")).isEqualTo(Boolean.FALSE);
     }
@@ -473,7 +467,7 @@ public class TokenEndpointTest {
     assertThat(response.token_type).isEqualTo("Bearer");
     assertThat(response.scope.split(" ")).containsOnly(Scopes.OFFLINE_ACCESS, "dp1s1", "dp1s3", "dp3s1");
     assertThat(response.expires_in).isEqualTo(
-        new Duration(now, accessTokenWithOfflineAccess.getExpirationTime()).getStandardSeconds());
+        Duration.between(now, accessTokenWithOfflineAccess.getExpirationTime()).getSeconds());
     assertThat(response.access_token).isEqualTo(TokenSerializer.serialize(accessTokenWithOfflineAccess, "pass"));
     assertThat(response.refresh_token).isEqualTo(TokenSerializer.serialize(refreshToken, "pass"));
 
@@ -485,12 +479,12 @@ public class TokenEndpointTest {
         .setExpectedAudience(appInstance.getId())
         .setRequireIssuedAt()
         .setRequireExpirationTime()
-        .setEvaluationTime(NumericDate.fromMilliseconds(now.getMillis()))
+        .setEvaluationTime(NumericDate.fromSeconds(now.getEpochSecond()))
         .build()
         .processToClaims(response.id_token);
 
-    assertThat(claims.getIssuedAt().getValue()).isEqualTo(TimeUnit.MILLISECONDS.toSeconds(now.getMillis()));
-    assertThat(claims.getExpirationTime().getValue()).isEqualTo(claims.getIssuedAt().getValue() + settings.idTokenDuration.getStandardSeconds());
+    assertThat(claims.getIssuedAt().getValue()).isEqualTo(now.getEpochSecond());
+    assertThat(claims.getExpirationTime().getValue()).isEqualTo(claims.getIssuedAt().getValue() + settings.idTokenDuration.getSeconds());
     assertThat(claims.getStringClaimValue("nonce")).isEqualTo("nonce");
   }
 
@@ -515,7 +509,7 @@ public class TokenEndpointTest {
     assertThat(response.token_type).isEqualTo("Bearer");
     assertThat(response.scope.split(" ")).containsOnly("dp1s1", "dp1s3", "dp3s1");
     assertThat(response.expires_in).isEqualTo(
-        new Duration(now, accessToken.getExpirationTime()).getStandardSeconds());
+        Duration.between(now, accessToken.getExpirationTime()).getSeconds());
     assertThat(response.access_token).isEqualTo(TokenSerializer.serialize(accessToken, "pass"));
     assertThat(response.refresh_token).isNullOrEmpty();
 
@@ -527,15 +521,14 @@ public class TokenEndpointTest {
         .setExpectedAudience(appInstance.getId())
         .setRequireIssuedAt()
         .setRequireExpirationTime()
-        .setEvaluationTime(NumericDate.fromMilliseconds(now.getMillis()))
+        .setEvaluationTime(NumericDate.fromSeconds(now.getEpochSecond()))
         .build()
         .processToClaims(response.id_token);
 
-    assertThat(claims.getIssuedAt().getValue()).isEqualTo(TimeUnit.MILLISECONDS.toSeconds(now.getMillis()));
-    assertThat(claims.getExpirationTime().getValue()).isEqualTo(claims.getIssuedAt().getValue() + settings.idTokenDuration.getStandardSeconds());
+    assertThat(claims.getIssuedAt().getValue()).isEqualTo(now.getEpochSecond());
+    assertThat(claims.getExpirationTime().getValue()).isEqualTo(claims.getIssuedAt().getValue() + settings.idTokenDuration.getSeconds());
     assertThat(claims.getStringClaimValue("nonce")).isEqualTo("nonce");
-    assertThat(claims.getNumericDateClaimValue("auth_time").getValue()).isEqualTo(
-        TimeUnit.MILLISECONDS.toSeconds(sidToken.getAuthenticationTime().getMillis()));
+    assertThat(claims.getNumericDateClaimValue("auth_time").getValue()).isEqualTo(sidToken.getAuthenticationTime().getEpochSecond());
     if (claims.hasClaim("app_user")) {
       assertThat(claims.getClaimValue("app_user")).isEqualTo(Boolean.FALSE);
     }
@@ -691,7 +684,7 @@ public class TokenEndpointTest {
     TokenResponse response = resp.readEntity(TokenResponse.class);
     assertThat(response.token_type).isEqualTo("Bearer");
     assertThat(response.scope.split(" ")).containsOnly("dp1s1", "dp3s1");
-    assertThat(response.expires_in).isEqualTo(new Duration(tomorrow, refreshedAccessToken.getExpirationTime()).getStandardSeconds());
+    assertThat(response.expires_in).isEqualTo(Duration.between(tomorrow, refreshedAccessToken.getExpirationTime()).getSeconds());
     assertThat(response.access_token).isEqualTo(TokenSerializer.serialize(refreshedAccessToken, "pass"));
     assertThat(response.refresh_token).isNullOrEmpty();
   }
@@ -713,8 +706,8 @@ public class TokenEndpointTest {
     claims.setIssuer(resteasy.getBaseUri().toString());
     claims.setAudience(resteasy.getBaseUriBuilder().path(TokenEndpoint.class).build().toString());
     claims.setSubject(appInstance.getId());
-    claims.setIssuedAt(NumericDate.fromMilliseconds(oneHourAgo.getMillis()));
-    claims.setExpirationTime(NumericDate.fromMilliseconds(tomorrow.getMillis()));
+    claims.setIssuedAt(NumericDate.fromSeconds(oneHourAgo.getEpochSecond()));
+    claims.setExpirationTime(NumericDate.fromSeconds(tomorrow.getEpochSecond()));
     claims.setJwtId("reused");
     JsonWebSignature jws = new JsonWebSignature();
     jws.setKey(settings.keyPair.getPrivate());
@@ -737,8 +730,8 @@ public class TokenEndpointTest {
     claims.setIssuer(resteasy.getBaseUri().toString());
     claims.setAudience(resteasy.getBaseUriBuilder().path(TokenEndpoint.class).build().toString());
     claims.setSubject(appInstance.getId());
-    claims.setIssuedAt(NumericDate.fromMilliseconds(oneHourAgo.getMillis()));
-    claims.setExpirationTime(NumericDate.fromMilliseconds(tomorrow.getMillis()));
+    claims.setIssuedAt(NumericDate.fromSeconds(oneHourAgo.getEpochSecond()));
+    claims.setExpirationTime(NumericDate.fromSeconds(tomorrow.getEpochSecond()));
     claims.setJwtId("jti");
     JsonWebSignature jws = new JsonWebSignature();
     jws.setKey(KeyPairLoader.generateRandomKeyPair().getPrivate());
@@ -761,8 +754,8 @@ public class TokenEndpointTest {
     claims.setIssuer("http://example.com");
     claims.setAudience(resteasy.getBaseUriBuilder().path(TokenEndpoint.class).build().toString());
     claims.setSubject(appInstance.getId());
-    claims.setIssuedAt(NumericDate.fromMilliseconds(oneHourAgo.getMillis()));
-    claims.setExpirationTime(NumericDate.fromMilliseconds(tomorrow.getMillis()));
+    claims.setIssuedAt(NumericDate.fromSeconds(oneHourAgo.getEpochSecond()));
+    claims.setExpirationTime(NumericDate.fromSeconds(tomorrow.getEpochSecond()));
     claims.setJwtId("jti");
     JsonWebSignature jws = new JsonWebSignature();
     jws.setKey(settings.keyPair.getPrivate());
@@ -785,8 +778,8 @@ public class TokenEndpointTest {
     claims.setIssuer(resteasy.getBaseUri().toString());
     claims.setAudience("http://example.com");
     claims.setSubject(appInstance.getId());
-    claims.setIssuedAt(NumericDate.fromMilliseconds(oneHourAgo.getMillis()));
-    claims.setExpirationTime(NumericDate.fromMilliseconds(tomorrow.getMillis()));
+    claims.setIssuedAt(NumericDate.fromSeconds(oneHourAgo.getEpochSecond()));
+    claims.setExpirationTime(NumericDate.fromSeconds(tomorrow.getEpochSecond()));
     claims.setJwtId("jti");
     JsonWebSignature jws = new JsonWebSignature();
     jws.setKey(settings.keyPair.getPrivate());
@@ -809,8 +802,8 @@ public class TokenEndpointTest {
     claims.setIssuer(resteasy.getBaseUri().toString());
     claims.setAudience(resteasy.getBaseUriBuilder().path(TokenEndpoint.class).build().toString());
     claims.setSubject("foo");
-    claims.setIssuedAt(NumericDate.fromMilliseconds(oneHourAgo.getMillis()));
-    claims.setExpirationTime(NumericDate.fromMilliseconds(tomorrow.getMillis()));
+    claims.setIssuedAt(NumericDate.fromSeconds(oneHourAgo.getEpochSecond()));
+    claims.setExpirationTime(NumericDate.fromSeconds(tomorrow.getEpochSecond()));
     claims.setJwtId("jti");
     JsonWebSignature jws = new JsonWebSignature();
     jws.setKey(settings.keyPair.getPrivate());
@@ -833,7 +826,7 @@ public class TokenEndpointTest {
     claims.setIssuer(resteasy.getBaseUri().toString());
     claims.setAudience(resteasy.getBaseUriBuilder().path(TokenEndpoint.class).build().toString());
     claims.setSubject(appInstance.getId());
-    claims.setIssuedAt(NumericDate.fromMilliseconds(oneHourAgo.getMillis()));
+    claims.setIssuedAt(NumericDate.fromSeconds(oneHourAgo.getEpochSecond()));
     claims.setJwtId("jti");
     JsonWebSignature jws = new JsonWebSignature();
     jws.setKey(settings.keyPair.getPrivate());
@@ -856,8 +849,8 @@ public class TokenEndpointTest {
     claims.setIssuer(resteasy.getBaseUri().toString());
     claims.setAudience(resteasy.getBaseUriBuilder().path(TokenEndpoint.class).build().toString());
     claims.setSubject(appInstance.getId());
-    claims.setIssuedAt(NumericDate.fromMilliseconds(oneHourAgo.minus(Duration.standardDays(1)).getMillis()));
-    claims.setExpirationTime(NumericDate.fromMilliseconds(oneHourAgo.getMillis()));
+    claims.setIssuedAt(NumericDate.fromSeconds(oneHourAgo.minus(Duration.ofDays(1)).getEpochSecond()));
+    claims.setExpirationTime(NumericDate.fromSeconds(oneHourAgo.getEpochSecond()));
     claims.setJwtId("jti");
     JsonWebSignature jws = new JsonWebSignature();
     jws.setKey(settings.keyPair.getPrivate());
@@ -881,7 +874,7 @@ public class TokenEndpointTest {
     claims.setAudience(resteasy.getBaseUriBuilder().path(TokenEndpoint.class).build().toString());
     claims.setSubject(appInstance.getId());
     // Note: no "issued at"
-    claims.setExpirationTime(NumericDate.fromMilliseconds(tomorrow.getMillis()));
+    claims.setExpirationTime(NumericDate.fromSeconds(tomorrow.getEpochSecond()));
     claims.setJwtId("jti");
     JsonWebSignature jws = new JsonWebSignature();
     jws.setKey(settings.keyPair.getPrivate());
@@ -894,7 +887,7 @@ public class TokenEndpointTest {
     TokenResponse response = resp.readEntity(TokenResponse.class);
     assertThat(response.token_type).isEqualTo("Bearer");
     assertThat(response.scope.split(" ")).containsOnly(Iterables.toArray(TokenEndpoint.AUTHORIZED_JWT_BEARER_SCOPES, String.class));
-    assertThat(response.expires_in).isEqualTo(new Duration(now, accessTokenFromJwtBearer.getExpirationTime()).getStandardSeconds());
+    assertThat(response.expires_in).isEqualTo(Duration.between(now, accessTokenFromJwtBearer.getExpirationTime()).getSeconds());
     assertThat(response.access_token).isEqualTo(TokenSerializer.serialize(accessTokenFromJwtBearer, "pass"));
     assertThat(response.refresh_token).isNullOrEmpty();
     assertThat(response.id_token).isNullOrEmpty();

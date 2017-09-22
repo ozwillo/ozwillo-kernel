@@ -19,10 +19,11 @@ package oasis.jongo.directory;
 
 import static com.google.common.base.Preconditions.*;
 
+import java.time.Instant;
+
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
-import org.joda.time.Instant;
 import org.jongo.Jongo;
 import org.jongo.MongoCollection;
 import org.slf4j.Logger;

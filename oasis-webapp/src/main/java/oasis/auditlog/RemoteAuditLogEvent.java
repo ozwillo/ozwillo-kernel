@@ -17,9 +17,8 @@
  */
 package oasis.auditlog;
 
+import java.time.Instant;
 import java.util.Map;
-
-import org.joda.time.Instant;
 
 public class RemoteAuditLogEvent extends AuditLogEvent {
   private static final String TYPE = "remote";

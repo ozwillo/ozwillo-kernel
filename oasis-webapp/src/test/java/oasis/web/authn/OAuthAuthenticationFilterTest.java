@@ -18,10 +18,9 @@
 package oasis.web.authn;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
-import java.util.Collections;
-import java.util.regex.Pattern;
+import java.time.Duration;
+import java.time.Instant;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -31,24 +30,18 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriBuilder;
 
-import org.joda.time.Duration;
-import org.joda.time.Instant;
 import org.jukito.JukitoModule;
 import org.jukito.JukitoRunner;
-import org.jukito.TestSingleton;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 
 import oasis.http.testing.InProcessResteasy;
 import oasis.model.authn.AccessToken;
-import oasis.services.authn.TokenHandler;
 import oasis.web.authn.testing.TestOAuthFilter;
 
 @RunWith(JukitoRunner.class)
@@ -66,8 +59,8 @@ public class OAuthAuthenticationFilterTest {
   static final AccessToken validAccessToken = new AccessToken();
   static {
     validAccessToken.setId("valid");
-    validAccessToken.setCreationTime(now.minus(Duration.standardHours(1)));
-    validAccessToken.setExpirationTime(now.plus(Duration.standardHours(1)));
+    validAccessToken.setCreationTime(now.minus(Duration.ofHours(1)));
+    validAccessToken.setExpirationTime(now.plus(Duration.ofHours(1)));
   }
 
   @Inject @Rule public InProcessResteasy resteasy;

@@ -19,12 +19,12 @@ package oasis.usecases;
 
 import static com.google.common.base.Preconditions.checkState;
 
+import java.time.Instant;
 import java.util.Optional;
 
 import javax.inject.Inject;
 
 import org.immutables.value.Value;
-import org.joda.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

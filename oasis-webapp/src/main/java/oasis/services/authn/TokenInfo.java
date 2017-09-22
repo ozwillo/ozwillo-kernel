@@ -19,7 +19,7 @@ package oasis.services.authn;
 
 import static oasis.services.authn.TokenHandler.makeId;
 
-import org.joda.time.Instant;
+import java.time.Instant;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

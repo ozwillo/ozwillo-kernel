@@ -17,16 +17,15 @@
  */
 package oasis.services.cookies;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Date;
 
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.NewCookie;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-
 public class CookieFactory {
-  private static final Date FAR_PAST = new DateTime(2008, 1, 20, 11, 10, DateTimeZone.forID("Europe/Paris")).toDate();
+  private static final Date FAR_PAST = Date.from(ZonedDateTime.of(2008, 1, 20, 11, 10, 0, 0, ZoneId.of("Europe/Paris")).toInstant());
 
   public static String getCookieName(String cookieName, boolean secure) {
     assert !cookieName.startsWith("__Host-") && !cookieName.startsWith("__Secure-");

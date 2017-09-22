@@ -21,12 +21,11 @@ import static com.google.common.base.Preconditions.*;
 
 import java.net.URI;
 import java.security.SecureRandom;
+import java.time.Clock;
 import java.util.Set;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
-
-import org.joda.time.DateTimeUtils;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
@@ -56,11 +55,11 @@ public class TokenHandler {
   private final UserDirectoryModule.Settings userDirectorySettings;
   private final PasswordHasher passwordHasher;
   private final SecureRandom secureRandom;
-  private final DateTimeUtils.MillisProvider clock;
+  private final Clock clock;
 
   @Inject TokenHandler(TokenRepository tokenRepository, AuthModule.Settings oidcSettings,
       UserDirectoryModule.Settings userDirectorySettings, PasswordHasher passwordHasher,
-      SecureRandom secureRandom, DateTimeUtils.MillisProvider clock) {
+      SecureRandom secureRandom, Clock clock) {
     this.tokenRepository = tokenRepository;
     this.authSettings = oidcSettings;
     this.userDirectorySettings = userDirectorySettings;
@@ -277,7 +276,7 @@ public class TokenHandler {
 
     // If someone fakes a token, at least they should ensure it hasn't expired
     // It saves us a database lookup.
-    if (tokenInfo.getExp().isBefore(clock.getMillis())) {
+    if (tokenInfo.getExp().isBefore(clock.instant())) {
       return null;
     }
 
@@ -336,7 +335,7 @@ public class TokenHandler {
       return false;
     }
 
-    if (token.getExpirationTime().isBefore(clock.getMillis())) {
+    if (token.getExpirationTime().isBefore(clock.instant())) {
       // Token is expired
       return false;
     }

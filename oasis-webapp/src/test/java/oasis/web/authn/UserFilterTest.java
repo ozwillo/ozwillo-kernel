@@ -21,6 +21,8 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.Instant;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -33,8 +35,6 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
-import org.joda.time.Duration;
-import org.joda.time.Instant;
 import org.jukito.JukitoModule;
 import org.jukito.JukitoRunner;
 import org.jukito.TestSingleton;
@@ -79,8 +79,8 @@ public class UserFilterTest {
   static {
     validSidToken.setId("validSession");
     validSidToken.setAccountId("userAccount");
-    validSidToken.setCreationTime(now.minus(Duration.standardHours(1)));
-    validSidToken.setExpirationTime(now.plus(Duration.standardHours(1)));
+    validSidToken.setCreationTime(now.minus(Duration.ofHours(1)));
+    validSidToken.setExpirationTime(now.plus(Duration.ofHours(1)));
     validSidToken.setUserAgentFingerprint("fingerprint".getBytes(StandardCharsets.UTF_8));
   }
   static final SidToken validSidTokenUsingCertificate = new SidToken();

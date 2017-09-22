@@ -47,7 +47,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.datatype.joda.JodaModule;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -80,7 +80,7 @@ public class JestCatalogEntryRepository implements CatalogEntryRepository, JestB
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
       .registerModule(new Jdk8Module())
       .registerModule(new GuavaModule())
-      .registerModule(new JodaModule())
+      .registerModule(new JavaTimeModule())
       .registerModule(new LocalizableModule())
       .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
       .enable(DeserializationFeature.FAIL_ON_NUMBERS_FOR_ENUMS)

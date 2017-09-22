@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.joda.JodaModule;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 public class JsonMessage implements Message {
   private static final Logger logger = LoggerFactory.getLogger(JsonMessage.class);
@@ -47,7 +47,7 @@ public class JsonMessage implements Message {
   @Override
   public String getFormattedMessage() {
     ObjectMapper objectMapper = new ObjectMapper();
-    objectMapper.registerModule(new JodaModule());
+    objectMapper.registerModule(new JavaTimeModule());
     if (dateFormat != null) {
       objectMapper.setDateFormat(dateFormat);
     }

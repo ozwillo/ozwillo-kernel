@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
+import java.time.Duration;
 import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
@@ -35,7 +36,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
 import org.assertj.core.api.AbstractCharSequenceAssert;
-import org.joda.time.Duration;
 import org.jukito.JukitoModule;
 import org.jukito.JukitoRunner;
 import org.jukito.TestSingleton;
@@ -100,12 +100,12 @@ public class LoginPageTest {
   private static final SidToken someSidToken = new SidToken() {{
     setId("someSidToken");
     setAccountId(someUserAccount.getId());
-    expiresIn(Duration.standardHours(1));
+    expiresIn(Duration.ofHours(1));
   }};
   private static final SidToken otherSidToken = new SidToken() {{
     setId("otherSidToken");
     setAccountId(otherUserAccount.getId());
-    expiresIn(Duration.standardHours(1));
+    expiresIn(Duration.ofHours(1));
   }};
   private static final ClientCertificate someClientCertificate = new ClientCertificate() {{
     setId("some certificate");

@@ -17,7 +17,7 @@
  */
 package oasis.model.directory;
 
-import org.joda.time.Instant;
+import java.time.Instant;
 
 import oasis.model.InvalidVersionException;
 

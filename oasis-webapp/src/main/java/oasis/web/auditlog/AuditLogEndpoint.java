@@ -17,6 +17,7 @@
  */
 package oasis.web.auditlog;
 
+import java.time.Instant;
 import java.util.Map;
 
 import javax.inject.Inject;
@@ -25,8 +26,6 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import org.joda.time.Instant;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

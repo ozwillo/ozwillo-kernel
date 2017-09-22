@@ -17,14 +17,12 @@
  */
 package oasis.model.authn;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.joda.time.Duration;
-import org.joda.time.Instant;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
@@ -100,7 +98,7 @@ public abstract class Token {
   }
 
   public Duration expiresIn() {
-    return new Duration(creationTime, expirationTime);
+    return Duration.between(creationTime, expirationTime);
   }
 
   public void expiresIn(Duration duration) {
