@@ -111,7 +111,13 @@ project.afterEvaluate {
 task run(type: JavaExec, dependsOn: classes) {
   main = 'oasis.web.WebApp'
   classpath = sourceSets.main.runtimeClasspath
-  systemProperties = System.getProperties()
+  systemProperties = System.getProperties().findAll { it.key.startsWith("oasis.") } \
+      + [ 'oasis.conf-dir': "${buildDir}" ]
+  args = [
+      '-c', "${rootDir}/dev.conf",
+      '-l', "${rootDir}/log4j2-dev.xml",
+    ]
+}
 }
 
 task extractMessagesFromTemplates(type: JavaExec) {
