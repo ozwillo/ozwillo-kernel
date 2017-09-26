@@ -118,6 +118,52 @@ task run(type: JavaExec, dependsOn: classes) {
       '-l', "${rootDir}/log4j2-dev.xml",
     ]
 }
+
+task bootstrap(type: JavaExec, dependsOn: classes) {
+  main = 'oasis.tools.Bootstrap'
+  classpath = sourceSets.main.runtimeClasspath
+  systemProperties = System.getProperties().findAll { it.key.startsWith("oasis.") } \
+      + [ 'oasis.conf-dir': "${buildDir}" ]
+  args = [
+      '-c',                         "${rootDir}/dev.conf",
+      '-l',                         "${rootDir}/log4j2-dev.xml",
+      '--admin',                    'localdev@ozwillo.com',
+      '--password',                 'admin',
+      '--redirect-uri',             'http://localhost:8081/callback',
+      '--post-logout-redirect-uri', 'http://localhost:8081/',
+    ]
+}
+
+task setPassword(type: JavaExec, dependsOn: classes) {
+  main = 'oasis.tools.SetPassword'
+  classpath = sourceSets.main.runtimeClasspath
+  systemProperties = System.getProperties().findAll { it.key.startsWith("oasis.") } \
+      + [ 'oasis.conf-dir': "${buildDir}" ]
+  args = [
+      '-c',              "${rootDir}/dev.conf",
+      '-l',              "${rootDir}/log4j2-dev.xml",
+    ]
+  if (project.hasProperty('dryRun')) {
+    args '--dry-run'
+  }
+
+  doFirst {
+    if (!project.hasProperty('clientType')) {
+      logger.error("property 'clientType' is mandatory for $name;\ninvoke as ./gradlew -PclientType=...")
+    }
+    if (!project.hasProperty('clientId')) {
+      logger.error("property 'clientId' is mandatory for $name;\ninvoke as ./gradlew -PclientId=...")
+    }
+    if (!project.hasProperty('clientSecret')) {
+      logger.error("property 'clientSecret' is mandatory for $name;\ninvoke as ./gradlew -PclientSecret=...")
+    }
+
+    args += [
+        '--type',          project.findProperty('clientType'),
+        '--client-id',     project.findProperty('clientId'),
+        '--client-secret', project.findProperty('clientSecret'),
+      ]
+  }
 }
 
 task extractMessagesFromTemplates(type: JavaExec) {
