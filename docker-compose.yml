@@ -1,20 +1,29 @@
-mongo:
-  image: mongo:2.6
-  ports:
-    - "27017:27017"
-  volumes:
-    - .docker/mongo:/data/db
+version: '3'
 
-elasticsearch:
-  image: elasticsearch:1.3
-  ports:
-    - "9200:9200"
-  volumes:
-    - .docker/elasticsearch:/usr/share/elasticsearch/data
+volumes:
+  mongo_data:
+  elastic_data:
 
-mailhog:
-  image: mailhog/mailhog:latest
-  ports:
-    - "1025:1025"
-    - "8025:8025"
+services:
+  mongo:
+    image: mongo:2.6
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    network_mode: "bridge"
 
+  elasticsearch:
+    image: elasticsearch:1.3
+    ports:
+      - "9200:9200"
+    volumes:
+      - elastic_data:/usr/share/elasticsearch/data
+    network_mode: "bridge"
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    network_mode: "bridge"
