@@ -48,7 +48,7 @@ import oasis.model.authn.ClientCertificate;
 import oasis.model.authn.ClientCertificateRepository;
 import oasis.model.authn.ClientType;
 import oasis.model.authn.SidToken;
-import oasis.soy.TestingSoyGuiceModule;
+import oasis.soy.SoyGuiceModule;
 import oasis.urls.ImmutableUrls;
 import oasis.urls.UrlsModule;
 import oasis.web.authn.ClientCertificateHelper.ClientCertificateData;
@@ -64,7 +64,7 @@ public class UserCertificatesPageTest {
       bind(UserCertificatesPage.class);
 
       install(new NoopAuditLogModule());
-      install(new TestingSoyGuiceModule());
+      install(new SoyGuiceModule());
       install(new UrlsModule(ImmutableUrls.builder().build()));
 
       bindMock(AccountRepository.class).in(TestSingleton.class);

@@ -90,7 +90,7 @@ import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.services.authz.AppAdminHelper;
 import oasis.services.cookies.CookieFactory;
-import oasis.soy.TestingSoyGuiceModule;
+import oasis.soy.SoyGuiceModule;
 import oasis.urls.ImmutableUrls;
 import oasis.urls.UrlsModule;
 import oasis.web.authn.ClientCertificateHelper;
@@ -109,7 +109,7 @@ public class AuthorizationEndpointTest {
     protected void configureTest() {
       bind(AuthorizationEndpoint.class);
 
-      install(new TestingSoyGuiceModule());
+      install(new SoyGuiceModule());
       install(new UrlsModule(ImmutableUrls.builder().build()));
 
       bind(Clock.class).toInstance(Clock.fixed(now, zone));

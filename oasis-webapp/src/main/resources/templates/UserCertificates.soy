@@ -120,7 +120,7 @@ a.portal {
  *
  * Note that this template is also called from Authorize.soy.
  */
-{template .currentCertificate private="true"}
+{template .currentCertificate}
 {@param? id:                   string} /** certificate's id. Missing if not already registered. */
 {@param  subject:              string} /** certificate's subject DN. */
 {@param  issuer:               string} /** certificate's issuer DN. */
@@ -152,7 +152,7 @@ a.portal {
 /**
  * Display a single certificate.
  */
-{template .userCertificate private="true"}
+{template .userCertificate visibility="private"}
 {@param  subject: string} /** certificate's subject DN. */
 {@param  issuer:  string} /** certificate's issuer DN. */
 {@param? button:  html}   /** HTML for the (optional) button. */

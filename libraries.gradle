@@ -75,12 +75,9 @@ ext.libs = [
 
   jaxrs_webhook:      'net.ltgt.jaxrs:jaxrs-webhook:0.1',
 
-  closure_templates_standalone: [
-      'com.google.template:soy:2015-04-10',
-      'args4j:args4j:2.33',
-    ],
+  closure_templates_standalone: 'com.google.template:soy:2017-08-08',
   closure_templates:   [
-      'com.google.template:soy:2015-04-10',
+      'com.google.template:soy:2017-08-08',
       "com.google.inject.extensions:guice-assistedinject:$guiceVersion",
       "com.google.inject.extensions:guice-multibindings:$guiceVersion",
     ],

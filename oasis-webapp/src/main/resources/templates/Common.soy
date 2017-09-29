@@ -20,7 +20,7 @@
 /**
  * Common header for OASIS
  */
-{template .header private="true"}
+{template .header}
 {@param? title:            string} /** title for this page. */
 {@param? locale_url_map:   map<string,string>}
 {@inject landing_page_url: string}
@@ -137,7 +137,7 @@ label { font-weight: lighter; }
 /**
  * Locale selector.
  */
-{template .locale_selector private="true"}
+{template .locale_selector visibility="private"}
 {@param  locale_url_map:    map<string,string>}
 {@inject current_locale:    string} /** current locale. */
 {@inject locale_name_map:   map<string,string>} /** map between language-tag and locale name. */
@@ -160,7 +160,7 @@ label { font-weight: lighter; }
 /**
  * Locale-selector item.
  */
-{template .locale_selector_item private="true"}
+{template .locale_selector_item visibility="private"}
 {@param locale:          string}
 {@param native_name:     string}
 {@param translated_name: string}
@@ -178,7 +178,7 @@ label { font-weight: lighter; }
 /**
  * Common footer for OASIS.
  */
-{template .footer private="true"}
+{template .footer}
 </main>
 </div>
 <footer>

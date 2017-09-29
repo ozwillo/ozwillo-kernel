@@ -61,7 +61,7 @@ import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.services.authn.UserPasswordAuthenticator;
 import oasis.services.cookies.CookieFactory;
-import oasis.soy.TestingSoyGuiceModule;
+import oasis.soy.SoyGuiceModule;
 import oasis.urls.ImmutableUrls;
 import oasis.urls.UrlsModule;
 import oasis.web.authn.testing.TestUserFilter;
@@ -76,7 +76,7 @@ public class LoginPageTest {
       bind(LoginPage.class);
 
       install(new NoopAuditLogModule());
-      install(new TestingSoyGuiceModule());
+      install(new SoyGuiceModule());
       install(new UrlsModule(ImmutableUrls.builder().build()));
 
       bindMock(UserPasswordAuthenticator.class).in(TestSingleton.class);

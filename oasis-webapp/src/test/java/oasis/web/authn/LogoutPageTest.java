@@ -60,7 +60,7 @@ import oasis.model.authn.TokenRepository;
 import oasis.model.i18n.LocalizableString;
 import oasis.security.KeyPairLoader;
 import oasis.services.cookies.CookieFactory;
-import oasis.soy.TestingSoyGuiceModule;
+import oasis.soy.SoyGuiceModule;
 import oasis.urls.ImmutableUrls;
 import oasis.urls.Urls;
 import oasis.urls.UrlsModule;
@@ -76,7 +76,7 @@ public class LogoutPageTest {
     protected void configureTest() {
       bind(LogoutPage.class);
 
-      install(new TestingSoyGuiceModule());
+      install(new SoyGuiceModule());
       install(new UrlsModule(ImmutableUrls.builder()
           .landingPage(URI.create("https://oasis/landing-page"))
           .build()));

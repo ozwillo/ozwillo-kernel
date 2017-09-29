@@ -212,7 +212,7 @@ a { color: #6f438e; }
 /**
  * Asks for a client certificate (partial shared between standalone page and 'authorize' page).
  */
-{template .askForClientCertificatePartial private="true"}
+{template .askForClientCertificatePartial visibility="private"}
   {@param  appName:                  string} /** application name. */
   {@param  manageCertificatesUrl:    string} /** URL to manage user's certificates. */
   {@param  hasRegisteredCertificate: bool}   /** Whether the user has registered certificate(s) */
@@ -266,7 +266,7 @@ a { color: #6f438e; }
 /**
  * Displays a single scope field in the Authorization page.
  */
-{template .scopeField private="true"}
+{template .scopeField visibility="private"}
   {@param  inputType:   string} /** type of the 'selected_scope' input field. */
   {@param  id:          string} /** identifier for the scope. */
   {@param? title:       string} /** scope's title. */
@@ -295,7 +295,7 @@ a { color: #6f438e; }
 /**
  * Displays a single scope in the Authorization page.
  */
-{template .scope private="true"}
+{template .scope visibility="private"}
   {@param  id:          string}      /** scope's id. */
   {@param? title:       string|html} /** scope's title. */
   {@param? description: string}      /** scope's description. */
