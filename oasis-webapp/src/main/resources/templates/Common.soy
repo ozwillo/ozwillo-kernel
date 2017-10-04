@@ -31,35 +31,35 @@
   <meta charset=utf-8>
   <title>Ozwillo{if $title} – {$title}{/if}</title>
   <meta name=viewport content="width=device-width, initial-scale=1">
-<style>{literal}
-@font-face {
+<style>
+@font-face {lb}
   font-family: Roboto;
   src: url('/fonts/Roboto-Regular-webfont.woff') format('woff'),
        url('/fonts/Roboto-Regular-webfont.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
-}
+{rb}
 
-@font-face {
+@font-face {lb}
   font-family: Roboto;
   src: url('/fonts/Roboto-Light-webfont.woff') format('woff'),
        url('/fonts/Roboto-Light-webfont.ttf') format('truetype');
   font-weight: lighter;
   font-style: normal;
-}
+{rb}
 
-@font-face {
+@font-face {lb}
   font-family: Roboto;
   src: url('/fonts/Roboto-Bold-webfont.woff') format('woff'),
        url('/fonts/Roboto-Bold-webfont.ttf') format('truetype');
   font-weight: bold;
   font-style: normal;
-}
+{rb}
 
-* { box-sizing: border-box; }
+* {lb} box-sizing: border-box; {rb}
 /* IE compat: */
-header,main,section { display: block; }
-img { border: none; }
+header,main,section {lb} display: block; {rb}
+img {lb} border: none; {rb}
 /*
  * We use three layers:
  *  - the bottom-most one is only visible through the footer
@@ -67,35 +67,35 @@ img { border: none; }
  *  - and finally the header appears at the top
  * This gives the illusion of a sticky-footer that works even though it doesn't have a fixed height.
  */
-html,body { height: 100%; margin: 0; }
-.page-wrap { min-height: calc(100% - 70px); } /* 70px is 50px of EU logo + 2 * 10px of padding */
-header > nav { max-width: 1170px; padding: 0 15px; /* values from portal's bootstrap */; margin: 0 auto; }
-main { max-width: 700px; margin: 0 auto; border-width: 50px 15px 15px; border-style: solid }
-footer { max-width: 500px; margin: 0 auto; }
+html,body {lb} height: 100%; margin: 0; {rb}
+.page-wrap {lb} min-height: calc(100% - 70px); {rb} /* 70px is 50px of EU logo + 2 * 10px of padding */
+header > nav {lb} max-width: 1170px; padding: 0 15px; /* values from portal's bootstrap */; margin: 0 auto; {rb}
+main {lb} max-width: 700px; margin: 0 auto; border-width: 50px 15px 15px; border-style: solid {rb}
+footer {lb} max-width: 500px; margin: 0 auto; {rb}
 
-html,body { background: #dfcae2; color: #4f5a65; }
-.page-wrap { background: #6f438e; }
-header,main { background: white; color: #636884; }
-main { border-color: #6f438e; }
+html,body {lb} background: #dfcae2; color: #4f5a65; {rb}
+.page-wrap {lb} background: #6f438e; {rb}
+header,main {lb} background: white; color: #636884; {rb}
+main {lb} border-color: #6f438e; {rb}
 
-header > nav { display: flex; justify-content: space-between; }
-main { padding: 25px 10px; }
-footer { padding: 10px; }
-footer::after { display: block; content: " "; clear: both; }
+header > nav {lb} display: flex; justify-content: space-between; {rb}
+main {lb} padding: 25px 10px; {rb}
+footer {lb} padding: 10px; {rb}
+footer::after {lb} display: block; content: " "; clear: both; {rb}
 
-* { font-family: Roboto, Arial, sans-serif; font-size: 100%; }
+* {lb} font-family: Roboto, Arial, sans-serif; font-size: 100%; {rb}
 
-input { border: 1px solid #6f438e; border-radius: 3px; padding: 7px 10px; }
-input:focus { border-color: #4c2d62; color: #4c2d62; }
+input {lb} border: 1px solid #6f438e; border-radius: 3px; padding: 7px 10px; {rb}
+input:focus {lb} border-color: #4c2d62; color: #4c2d62; {rb}
 
-input:not([type=checkbox]) { font-weight: normal; width: 100%; max-width: 200px; }
-label { font-weight: lighter; }
+input:not([type=checkbox]) {lb} font-weight: normal; width: 100%; max-width: 200px; {rb}
+label {lb} font-weight: lighter; {rb}
 
 /* most styles copied from Bootstrap */
-#localeselector { position: relative; }
-#localeselector > button { padding: 14px 15px; border: none; color: #636884; background: transparent; }
-#localeselector:not(:hover) > #locales-menu { display: none; }
-#locales-menu {
+#localeselector {lb} position: relative; {rb}
+#localeselector > button {lb} padding: 14px 15px; border: none; color: #636884; background: transparent; {rb}
+#localeselector:not(:hover) > #locales-menu {lb} display: none; {rb}
+#locales-menu {lb}
   list-style: none;
   position: absolute; right: 0;
   margin: 0; padding: 5px 0;
@@ -106,14 +106,14 @@ label { font-weight: lighter; }
   border-radius: 0 0 4px 4px;
   font-size: 16px;
   min-width: 160px;
-}
-#locales-menu > li > a { display: block; padding: 5px 20px; color: #333; background: white; text-decoration: none }
+{rb}
+#locales-menu > li > a {lb} display: block; padding: 5px 20px; color: #333; background: white; text-decoration: none {rb}
 #localeselector:hover > button,
 #locales-menu:not(:hover) > li > a.selected,
-#locales-menu > li > a:hover {
+#locales-menu > li > a:hover {lb}
   color: #555; background: #eee;
-}
-{/literal}</style>
+{rb}
+</style>
 /* BUILD WILL INSERT FAVICONS SNIPPET HERE */
 </head>
 <body>

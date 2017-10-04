@@ -31,32 +31,32 @@
 {call .header}
   {param title kind="text"}{msg desc="User certificates page title"}Certificates{/msg}{/param}
 {/call}
-<style>{literal}
-h1 { font-weight: lighter; font-size: 1.8em; text-align: center; }
-h2 { font-weight: lighter; font-size: 1.8em; }
-button, a.portal {
+<style>
+h1 {lb} font-weight: lighter; font-size: 1.8em; text-align: center; {rb}
+h2 {lb} font-weight: lighter; font-size: 1.8em; {rb}
+button, a.portal {lb}
   margin: 5px 1em;
   border: 1px solid #4c2d62;
   cursor: pointer;
   text-decoration: none;
   display: inline-block;
-}
-button {
+{rb}
+button {lb}
   background: #6f438e; color: white;
   padding: .25em 1em;
-}
-a.portal {
+{rb}
+a.portal {lb}
   background: white; color: #6f438e;
   padding: .5em 2em;
-}
+{rb}
 
-.cert { display: flex; align-items: center; margin: 1em 0; }
-.certInfo { flex: auto; }
-.certInfo>p { margin: 0; }
+.cert {lb} display: flex; align-items: center; margin: 1em 0; {rb}
+.certInfo {lb} flex: auto; {rb}
+.certInfo>p {lb} margin: 0; {rb}
 /* IE10 compat: */
-.cert { display: -ms-flexbox; -ms-flew-align: center; }
-.certInfo { -ms-flex: auto; }
-{/literal}</style>
+.cert {lb} display: -ms-flexbox; -ms-flew-align: center; {rb}
+.certInfo {lb} -ms-flex: auto; {rb}
+</style>
   <h1>{msg desc="Certificates for user (heading)"}Certificates for {$email}{/msg}</h1>
   {if $error}
     <p style="color: white; background: #d9534f; font-weight: bold; padding: 10px; text-align: center;">

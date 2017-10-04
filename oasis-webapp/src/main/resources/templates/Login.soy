@@ -33,37 +33,36 @@
   {param title kind="text"}{msg desc="Login page title"}Login{/msg}{/param}
   {param locale_url_map: $locale_url_map /}
 {/call}
-<style>{literal}
-h1, h2 { text-align: center; font-weight: lighter; }
-h2 { font-size: 1.8em; }
+<style>
+h1, h2 {lb} text-align: center; font-weight: lighter; {rb}
+h2 {lb} font-size: 1.8em; {rb}
 
-h1 { margin: 0; }
+h1 {lb} margin: 0; {rb}
 
-h2 img { vertical-align: bottom; }
+h2 img {lb} vertical-align: bottom; {rb}
 
-label { display: block; }
+label {lb} display: block; {rb}
 
-main>div { line-height: 1.5em; }
+main>div {lb} line-height: 1.5em; {rb}
 
-.two-cols { display: flex;flex-direction:row-reverse;  flex-wrap: wrap; justify-content: space-around; }
-.two-cols>* { display: block; flex: auto; max-width: 200px; }
+.two-cols {lb} display: flex;flex-direction:row-reverse;  flex-wrap: wrap; justify-content: space-around; {rb}
+.two-cols>* {lb} display: block; flex: auto; max-width: 200px; {rb}
 /* IE10 compat: */
-.two-cols { display: -ms-flexbox; -ms-flex-direction: row-reverse; -ms-flex-wrap: wrap; -ms-flex-pack: distribute; }
+.two-cols {lb} display: -ms-flexbox; -ms-flex-direction: row-reverse; -ms-flex-wrap: wrap; -ms-flex-pack: distribute; {rb}
 /** IE compat: -ms-flex for IE10, margin-left and margin-right for better IE9 display */
-.two-cols>* { -ms-flex: auto; margin-left: auto; margin-right: auto; }
+.two-cols>* {lb} -ms-flex: auto; margin-left: auto; margin-right: auto; {rb}
 
-.btn-row { margin-top: 1.8em; text-align: center; }
-.btn-row button {
+.btn-row {lb} margin-top: 1.8em; text-align: center; {rb}
+.btn-row button {lb}
   border: 1px solid #4c2d62;
   background: #6f438e; color: #fff;
   cursor: pointer;
   margin: 5px 1em;
   padding: .5em 2em;
   display: inline-block;
-}
+{rb}
 
-small { display: block; margin-top: 2em; font-size: .65em; line-height: initial; }
-{/literal}
+small {lb} display: block; margin-top: 2em; font-size: .65em; line-height: initial; {rb}
 </style>
   <h1><img src="/images/ozwillo.png" alt="Ozwillo" width=200 height=55></h1>
   <p id="isWebview" style="display: none; color: white; background: #d9534f; font-weight: bold; padding: 10px; text-align: center;">
@@ -75,17 +74,15 @@ small { display: block; margin-top: 2em; font-size: .65em; line-height: initial;
     // See https://wzrd.in/standalone/is-webview@1.0.1 for bundled (browserified) sources
     // Code originally licensed under Apache License, Version 2.0
     // Note that the script executes inline/blocking on-purpose, we really do want the information ASAP!
-    {literal}
     if ((navigator.userAgent.indexOf(' Mobile/') > 0 && navigator.userAgent.indexOf(' Safari/') < 0) ||
         'webView' in window ||
         'Android' in window ||
         'ondeviceready' in document ||
         ('external' in window && 'notify' in window.external) ||
         'Ti' in window ||
-        '_cordovaNative' in window) {
+        '_cordovaNative' in window) {lb}
       document.getElementById("isWebview").style.display = '';
-    }
-    {/literal}
+    {rb}
   </script>
   {if $error}
     <p style="color: white; background: #d9534f; font-weight: bold; padding: 10px; text-align: center;">
@@ -196,25 +193,25 @@ small { display: block; margin-top: 2em; font-size: .65em; line-height: initial;
 {call .header}
   {param title kind="text"}{msg desc="Login page title"}Login{/msg}{/param}
 {/call}
-<style>{literal}
-main { text-align: center; }
+<style>
+main {lb} text-align: center; {rb}
 
-h1, h2 { font-weight: lighter; }
-h2 { font-size: 1.8em; }
+h1, h2 {lb} font-weight: lighter; {rb}
+h2 {lb} font-size: 1.8em; {rb}
 
-h1 { margin: 0; }
-h2 { margin-bottom: 2.5em; }
+h1 {lb} margin: 0; {rb}
+h2 {lb} margin-bottom: 2.5em; {rb}
 
-.btn-row { margin-top: 1.8em; text-align: center; }
-.btn-row button {
+.btn-row {lb} margin-top: 1.8em; text-align: center; {rb}
+.btn-row button {lb}
   border: 1px solid #4c2d62;
   background: #6f438e; color: #fff;
   cursor: pointer;
   margin: 5px 1em;
   padding: .5em 2em;
   display: inline-block;
-}
-{/literal}</style>
+{rb}
+</style>
   <h1><img src="/images/ozwillo.png" alt="Ozwillo" width=200 height=55></h1>
   {if $error}
     <p style="color: white; background: #d9534f; font-weight: bold; padding: 10px; text-align: center;">
@@ -253,9 +250,9 @@ h2 { margin-bottom: 2.5em; }
 {call .header}
   {param title kind="text"}{msg desc="activation pending title"}Account pending activation{/msg}{/param}
 {/call}
-<style>{literal}
-h1 { text-align: center; font-weight: lighter; font-size: 1.8em; }
-{/literal}</style>
+<style>
+h1 {lb} text-align: center; font-weight: lighter; font-size: 1.8em; {rb}
+</style>
   <h1>{msg desc="activation pending title"}Account pending activation{/msg}</h1>
   <p>{msg desc="activation pending: what is it"}Your account has been created but needs to be activated by confirming your email address.{/msg}
   <p>{msg desc="activation pending: next steps"}We've sent you an email with an activation link, click on that link to activate your account.{/msg}

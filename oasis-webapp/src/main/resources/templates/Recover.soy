@@ -29,26 +29,26 @@
   {param title kind="text"}{msg desc="Forgot password page title"}Forgot password{/msg}{/param}
   {param locale_url_map: $locale_url_map /}
 {/call}
-<style>{literal}
-main { text-align: center; }
+<style>
+main {lb} text-align: center; {rb}
 
-h1, h2 { font-weight: lighter; }
-h2 { font-size: 1.8em; }
+h1, h2 {lb} font-weight: lighter; {rb}
+h2 {lb} font-size: 1.8em; {rb}
 
-h1 { margin: 0; }
-h2 { margin-bottom: 2.5em; }
+h1 {lb} margin: 0; {rb}
+h2 {lb} margin-bottom: 2.5em; {rb}
 
-.btn-row { margin-top: 1.8em; text-align: center; }
-.btn-row button {
+.btn-row {lb} margin-top: 1.8em; text-align: center; {rb}
+.btn-row button {lb}
   border: 1px solid #4c2d62;
   background: #6f438e; color: #fff;
   cursor: pointer;
   margin: 5px 1em;
   padding: .5em 2em;
   display: inline-block;
-}
-.btn-row button img { vertical-align: middle; margin-right: 10px; }
-{/literal}</style>
+{rb}
+.btn-row button img {lb} vertical-align: middle; margin-right: 10px; {rb}
+</style>
   <h1><img src="/images/ozwillo.png" alt="Ozwillo" width=200 height=55></h1>
   {if $error}
     <p style="color: white; background: #d9534f; font-weight: bold; padding: 10px; text-align: center;">
@@ -92,9 +92,9 @@ h2 { margin-bottom: 2.5em; }
 {call .header}
   {param title kind="text"}{msg desc="Password reset requested (title)"}Password reset requested{/msg}{/param}
 {/call}
-<style>{literal}
-h1 { text-align: center; font-weight: lighter; font-size: 1.8em; }
-{/literal}</style>
+<style>
+h1 {lb} text-align: center; font-weight: lighter; font-size: 1.8em; {rb}
+</style>
   <h1>{msg desc="Password reset requested (heading)"}Password reset requested{/msg}</h1>
 
   {msg desc="Password successfully changed: immediate consequences"}
@@ -115,26 +115,26 @@ h1 { text-align: center; font-weight: lighter; font-size: 1.8em; }
 {call .header}
   {param title kind="text"}{msg desc="Reset password page title"}Password reset{/msg}{/param}
 {/call}
-<style>{literal}
-main { text-align: center; }
+<style>
+main {lb} text-align: center; {rb}
 
-h1, h2 { font-weight: lighter; }
-h2 { font-size: 1.8em; }
+h1, h2 {lb} font-weight: lighter; {rb}
+h2 {lb} font-size: 1.8em; {rb}
 
-h1 { margin: 0; }
-h2 { margin-bottom: 2.5em; }
+h1 {lb} margin: 0; {rb}
+h2 {lb} margin-bottom: 2.5em; {rb}
 
-.btn-row { margin-top: 1.8em; text-align: center; }
-.btn-row button {
+.btn-row {lb} margin-top: 1.8em; text-align: center; {rb}
+.btn-row button {lb}
   border: 1px solid #4c2d62;
   background: #6f438e; color: #fff;
   cursor: pointer;
   margin: 5px 1em;
   padding: .5em 2em;
   display: inline-block;
-}
-.btn-row button img { vertical-align: middle; margin-right: 10px; }
-{/literal}</style>
+{rb}
+.btn-row button img {lb} vertical-align: middle; margin-right: 10px; {rb}
+</style>
   <h1><img src="/images/ozwillo.png" alt="Ozwillo" width=200 height=55></h1>
   {if $error}
     <p style="color: white; background: #d9534f; font-weight: bold; padding: 10px; text-align: center;">

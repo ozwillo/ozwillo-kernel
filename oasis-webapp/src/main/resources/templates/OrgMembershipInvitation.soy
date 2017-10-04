@@ -31,10 +31,10 @@
   {param title kind="text"}{msg desc="membership invitation page"}Accept or refuse membership invitation{/msg}{/param}
 {/call}
 
-<style>{literal}
-main { text-align: center; }
-h1 { font-weight: lighter; font-size: 1.8em; }
-button {
+<style>
+main {lb} text-align: center; {rb}
+h1 {lb} font-weight: lighter; font-size: 1.8em; {rb}
+button {lb}
   background: #6f438e; color: white;
   margin: 5px 1em;
   padding: .5em 2em;
@@ -42,11 +42,11 @@ button {
   cursor: pointer;
   text-decoration: none;
   display: inline-block;
-}
-form {
+{rb}
+form {lb}
   display: inline-block;
-}
-{/literal}</style>
+{rb}
+</style>
 
 {let $requesterNameBold kind="html"}
   <b>{$requesterName}</b>
@@ -86,10 +86,10 @@ form {
   {param title kind="text"}{msg desc="membership invitation page error"}Expired invitation{/msg}{/param}
 {/call}
 
-<style>{literal}
-main { text-align: center; }
-h1 { font-weight: lighter; font-size: 1.8em; }
-{/literal}</style>
+<style>
+main {lb} text-align: center; {rb}
+h1 {lb} font-weight: lighter; font-size: 1.8em; {rb}
+</style>
 
 <h1>{msg desc="membership invitation error title"}Your invitation is expired{/msg}</h1>
 
@@ -114,10 +114,10 @@ h1 { font-weight: lighter; font-size: 1.8em; }
   {param title kind="text"}{msg desc="membership invitation page"}Accept or refuse membership invitation{/msg}{/param}
 {/call}
 
-<style>{literal}
-main { text-align: center; }
-h1 { font-weight: lighter; font-size: 1.8em; }
-button, a.logout {
+<style>
+main {lb} text-align: center; {rb}
+h1 {lb} font-weight: lighter; font-size: 1.8em; {rb}
+button, a.logout {lb}
   background: #6f438e; color: white;
   margin: 5px 1em;
   padding: .5em 2em;
@@ -125,11 +125,11 @@ button, a.logout {
   cursor: pointer;
   text-decoration: none;
   display: inline-block;
-}
-form {
+{rb}
+form {lb}
   display: inline-block;
-}
-{/literal}</style>
+{rb}
+</style>
 
 {let $requesterNameBold kind="html"}
   <b>{$requesterName}</b>

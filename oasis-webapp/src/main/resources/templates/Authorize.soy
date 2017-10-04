@@ -38,24 +38,24 @@
 {call .header}
   {param title kind="text"}{msg desc="Authorization page title"}Authorize {$appName}{/msg}{/param}
 {/call}
-<style>{literal}
-h1 { font-weight: lighter; font-size: 1.8em; text-align: center; }
-button, a.cancel {
+<style>
+h1 {lb} font-weight: lighter; font-size: 1.8em; text-align: center; {rb}
+button, a.cancel {lb}
   margin: 5px 1em;
   padding: .5em 2em;
   border: 1px solid #4c2d62;
   cursor: pointer;
   text-decoration: none;
   display: inline-block;
-}
-button {
+{rb}
+button {lb}
   background: #6f438e; color: white;
-}
-a.cancel {
+{rb}
+a.cancel {lb}
   background: white; color: #6f438e;
-}
-a { color: #6f438e; }
-{/literal}</style>
+{rb}
+a {lb} color: #6f438e; {rb}
+</style>
   <h1>{msg desc="Some app needs authorizations"}
     {$appName} needs some authorizations
   {/msg}</h1>
@@ -155,24 +155,24 @@ a { color: #6f438e; }
 {call .header}
   {param title kind="text"}{msg desc="Authorization page title"}Authorize {$appName}{/msg}{/param}
 {/call}
-<style>{literal}
-h1 { font-weight: lighter; font-size: 1.8em; text-align: center; }
-button, a.cancel {
+<style>
+h1 {lb} font-weight: lighter; font-size: 1.8em; text-align: center; {rb}
+button, a.cancel {lb}
   margin: 5px 1em;
   padding: .5em 2em;
   border: 1px solid #4c2d62;
   cursor: pointer;
   text-decoration: none;
   display: inline-block;
-}
-button {
+{rb}
+button {lb}
   background: #6f438e; color: white;
-}
-button.continue, a.cancel {
+{rb}
+button.continue, a.cancel {lb}
   background: white; color: #6f438e;
-}
-a { color: #6f438e; }
-{/literal}</style>
+{rb}
+a {lb} color: #6f438e; {rb}
+</style>
   <h1>{msg desc="Some app asks for stronger authentication (client certificate)"}
     {$appName} asks for stronger authentication
   {/msg}</h1>
@@ -237,14 +237,14 @@ a { color: #6f438e; }
           You can add it to start using it now.
         {/msg}</p>
       {/if}
-      <style>{literal}
-      .cert { display: flex; align-items: center; margin: 1em 0; }
-      .certInfo { flex: auto; }
-      .certInfo>p { margin: 0; }
+      <style>
+      .cert {lb} display: flex; align-items: center; margin: 1em 0; {rb}
+      .certInfo {lb} flex: auto; {rb}
+      .certInfo>p {lb} margin: 0; {rb}
       /* IE10 compat: */
-      .cert { display: -ms-flexbox; -ms-flew-align: center; }
-      .certInfo { -ms-flex: auto; }
-      {/literal}</style>
+      .cert {lb} display: -ms-flexbox; -ms-flew-align: center; {rb}
+      .certInfo {lb} -ms-flex: auto; {rb}
+      </style>
       {call .currentCertificate data="$currentCert" /}
     {elseif $hasRegisteredCertificate}
       <p>{msg desc="Ask user to present client certificate"}
