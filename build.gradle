@@ -78,9 +78,9 @@ buildscript {
     }
   }
   dependencies {
-    classpath 'net.ltgt.gradle:gradle-errorprone-plugin:0.0.11'
+    classpath 'net.ltgt.gradle:gradle-errorprone-plugin:0.0.12'
     classpath 'net.ltgt.gradle:gradle-apt-plugin:0.12'
     classpath('gradle.plugin.nl.javadude.gradle.plugins:license-gradle-plugin:0.14.0')
-    classpath 'de.thetaphi:forbiddenapis:2.3'
+    classpath 'de.thetaphi:forbiddenapis:2.4.1'
   }
 }
