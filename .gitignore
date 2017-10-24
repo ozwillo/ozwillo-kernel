@@ -1,6 +1,5 @@
 gradle.properties
 build/
 .gradle/
-.docker/
 local.conf
 log4j2-dev.xml
