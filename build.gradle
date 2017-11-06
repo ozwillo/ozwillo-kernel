@@ -41,7 +41,7 @@ subprojects {
 
   apply plugin: 'net.ltgt.errorprone'
   dependencies {
-    errorprone 'com.google.errorprone:error_prone_core:2.1.1'
+    errorprone 'com.google.errorprone:error_prone_core:2.1.2'
   }
 
   apply plugin: 'idea' // IDEA needs extra configuration for generated sources *sigh*
@@ -78,8 +78,8 @@ buildscript {
     }
   }
   dependencies {
-    classpath 'net.ltgt.gradle:gradle-errorprone-plugin:0.0.12'
-    classpath 'net.ltgt.gradle:gradle-apt-plugin:0.12'
+    classpath 'net.ltgt.gradle:gradle-errorprone-plugin:0.0.13'
+    classpath 'net.ltgt.gradle:gradle-apt-plugin:0.13'
     classpath('gradle.plugin.nl.javadude.gradle.plugins:license-gradle-plugin:0.14.0')
     classpath 'de.thetaphi:forbiddenapis:2.4.1'
   }
