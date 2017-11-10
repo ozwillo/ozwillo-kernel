@@ -43,7 +43,7 @@ import com.ibm.icu.util.ULocale;
 
 @User
 @Path("/a/franceconnect/login")
-@StrictReferer // TODO: find a way to whitelist the portal
+@StrictReferer(allowPortal = true)
 public class FranceConnectLogin {
 
   @Inject FranceConnectModule.Settings settings;

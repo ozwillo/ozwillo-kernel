@@ -31,9 +31,11 @@ import javax.ws.rs.NameBinding;
  *
  * @see <a href="http://seclab.stanford.edu/websec/csrf/csrf.pdf">http://seclab.stanford.edu/websec/csrf/csrf.pdf</a>
  * @see StrictRefererFilter
+ * @see StrictRefererFeature
  */
 @NameBinding
 @Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
 public @interface StrictReferer {
+  boolean allowPortal() default false;
 }

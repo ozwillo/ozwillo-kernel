@@ -33,16 +33,18 @@ import oasis.web.providers.JacksonJsonProvider;
 import oasis.web.security.SecureFilter;
 
 /**
- * Creates an in-process Resteasy container and client. Depends on Jukito.
+ * Creates an in-process Resteasy container and client. Depends on Guice (possibly via Jukito).
  */
 public class InProcessResteasy extends net.ltgt.resteasy.testing.InProcessResteasy {
+
+  // Set the scheme do HTTPS to match what the SecureFilter (added in configureDeployment) will do.
+  public static final String BASE_URI = "https://localhost/";
 
   private final Injector injector;
 
   @Inject
-  InProcessResteasy(Injector injector) {
-    // Set the scheme do HTTPS to match what the SecureFilter (added in configureDeployment) will do.
-    super(URI.create("https://localhost/"));
+  public InProcessResteasy(Injector injector) {
+    super(URI.create(BASE_URI));
     this.injector = injector;
   }
 

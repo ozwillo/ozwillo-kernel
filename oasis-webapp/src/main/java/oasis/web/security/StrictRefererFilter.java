@@ -22,34 +22,44 @@ import java.io.IOException;
 import javax.inject.Inject;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.container.ResourceInfo;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.Provider;
+
+import com.google.common.collect.ImmutableSet;
 
 import oasis.auditlog.AuditLogEvent;
 import oasis.auditlog.AuditLogService;
+import oasis.auth.AuthModule;
 import oasis.services.security.OriginHelper;
 
-@Provider
-@StrictReferer
+/** @see StrictRefererFeature */
 public class StrictRefererFilter implements ContainerRequestFilter {
-  private static final String REFERER_HEADER = "Referer";
-  private static final String ORIGIN_HEADER = "Origin";
+  static final String REFERER_HEADER = "Referer";
+  static final String ORIGIN_HEADER = "Origin";
 
+  @Inject AuthModule.Settings settings;
   @Inject AuditLogService auditLogService;
+
+  @Context ResourceInfo resourceInfo;
 
   @Override
   public void filter(ContainerRequestContext requestContext) throws IOException {
+    ImmutableSet<String> expectedOrigins = getExpectedOrigins(requestContext);
+    if (expectedOrigins.isEmpty()) {
+      // We somehow managed to get here without a StrictReferer annotation at all!
+      return;
+    }
     String origin = requestContext.getHeaderString(ORIGIN_HEADER);
-    String expectedOrigin = OriginHelper.originFromUri(requestContext.getUriInfo().getRequestUri().toString());
-    boolean valid = false;
+    final boolean valid;
     if (origin != null) {
-      valid = expectedOrigin.equals(origin);
+      valid = expectedOrigins.contains(origin);
 
       if (!valid) {
         auditLogService.event(StrictRefererErrorLogEvent.class)
             .setEndpoint(requestContext.getUriInfo().getPath())
             .setActualOrigin(origin)
-            .setExpectedOrigin(expectedOrigin)
+            .setExpectedOrigins(expectedOrigins)
             .setFrom(StrictRefererErrorLogEvent.OriginFrom.ORIGIN)
             .log();
       }
@@ -57,25 +67,43 @@ public class StrictRefererFilter implements ContainerRequestFilter {
       String referer = requestContext.getHeaderString(REFERER_HEADER);
       if (referer != null) {
         String originFromReferer = OriginHelper.originFromUri(referer);
-        valid = expectedOrigin.equals(originFromReferer);
+        valid = expectedOrigins.contains(originFromReferer);
 
         if (!valid) {
           auditLogService.event(StrictRefererErrorLogEvent.class)
               .setEndpoint(requestContext.getUriInfo().getPath())
               .setActualOrigin(originFromReferer)
-              .setExpectedOrigin(expectedOrigin)
+              .setExpectedOrigins(expectedOrigins)
               .setFrom(StrictRefererErrorLogEvent.OriginFrom.REFERER)
               .log();
         }
       } else {
+        valid = false;
         auditLogService.event(StrictRefererErrorLogEvent.class)
             .setEndpoint(requestContext.getUriInfo().getPath())
-            .setExpectedOrigin(expectedOrigin)
+            .setExpectedOrigins(expectedOrigins)
             .log();
       }
     }
     if (!valid) {
       requestContext.abortWith(Response.status(Response.Status.BAD_REQUEST).build());
+    }
+  }
+
+  private ImmutableSet<String> getExpectedOrigins(ContainerRequestContext requestContext) {
+    String expectedOrigin = OriginHelper.originFromUri(requestContext.getUriInfo().getRequestUri().toString());
+
+    StrictReferer strictReferer = resourceInfo.getResourceMethod().getAnnotation(StrictReferer.class);
+    if (strictReferer == null) {
+      strictReferer = resourceInfo.getResourceClass().getAnnotation(StrictReferer.class);
+      if (strictReferer == null) {
+        return ImmutableSet.of();
+      }
+    }
+    if (strictReferer.allowPortal() && settings.portalOrigin != null) {
+      return ImmutableSet.of(expectedOrigin, settings.portalOrigin);
+    } else {
+      return ImmutableSet.of(expectedOrigin);
     }
   }
 
@@ -89,8 +117,8 @@ public class StrictRefererFilter implements ContainerRequestFilter {
       return this;
     }
 
-    public StrictRefererErrorLogEvent setExpectedOrigin(String expectedOrigin) {
-      this.addContextData("expected_origin", expectedOrigin);
+    public StrictRefererErrorLogEvent setExpectedOrigins(ImmutableSet<String> expectedOrigins) {
+      this.addContextData("expected_origins", expectedOrigins);
       return this;
     }
 

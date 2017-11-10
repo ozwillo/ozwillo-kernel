@@ -69,7 +69,7 @@ import oasis.web.providers.JacksonJsonProvider;
 import oasis.web.providers.LocaleParamConverterProvider;
 import oasis.web.providers.UriParamConverterProvider;
 import oasis.web.security.SecureFilter;
-import oasis.web.security.StrictRefererFilter;
+import oasis.web.security.StrictRefererFeature;
 import oasis.web.status.StatusEndpoint;
 import oasis.web.userdirectory.MembershipEndpoint;
 import oasis.web.userdirectory.MembershipInvitationPage;
@@ -122,7 +122,7 @@ public class Application extends javax.ws.rs.core.Application {
         IntrospectionEndpoint.class,
         // Security
         SecureFilter.class,
-        StrictRefererFilter.class,
+        StrictRefererFeature.class,
         // UserInfo
         UserInfoEndpoint.class,
         // FranceConnect

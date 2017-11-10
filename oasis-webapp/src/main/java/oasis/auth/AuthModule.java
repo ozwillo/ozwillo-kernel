@@ -24,6 +24,8 @@ import java.nio.file.Paths;
 import java.security.KeyPair;
 import java.time.Duration;
 
+import javax.annotation.Nullable;
+
 import com.google.inject.AbstractModule;
 import com.typesafe.config.Config;
 
@@ -48,6 +50,9 @@ public class AuthModule extends AbstractModule {
       }
 
       return Settings.builder()
+          .setPortalOrigin(config.hasPath("portal-origin")
+              ? config.getString("portal-origin")
+              : null)
           .setKeyPair(KeyPairLoader.loadOrGenerateKeyPair(privateKeyPath, publicKeyPath))
           .setAuthorizationCodeDuration(config.getDuration("authorization-code-duration"))
           .setAccessTokenDuration(config.getDuration("access-token-duration"))
@@ -64,6 +69,7 @@ public class AuthModule extends AbstractModule {
 
     public static class Builder {
 
+      private @Nullable String portalOrigin;
       private KeyPair keyPair;
       private Duration authorizationCodeDuration;
       private Duration accessTokenDuration;
@@ -78,6 +84,11 @@ public class AuthModule extends AbstractModule {
 
       public Settings build() {
         return new Settings(this);
+      }
+
+      public Builder setPortalOrigin(@Nullable String portalOrigin) {
+        this.portalOrigin = portalOrigin;
+        return this;
       }
 
       public Builder setKeyPair(KeyPair keyPair) {
@@ -136,6 +147,7 @@ public class AuthModule extends AbstractModule {
       }
     }
 
+    public @Nullable String portalOrigin;
     public final KeyPair keyPair;
     public final Duration authorizationCodeDuration;
     public final Duration accessTokenDuration;
@@ -149,6 +161,7 @@ public class AuthModule extends AbstractModule {
     public final boolean enableClientCertificates;
 
     private Settings(Builder builder) {
+      this.portalOrigin = builder.portalOrigin;
       this.keyPair = builder.keyPair;
       this.authorizationCodeDuration = builder.authorizationCodeDuration;
       this.accessTokenDuration = builder.accessTokenDuration;
