@@ -65,6 +65,69 @@ h2 {lb} margin-bottom: 2.5em; {rb}
 {/template}
 
 /**
+* Unlink FranceConnect from account.
+*/
+{template .franceconnectUnlink}
+{@param  formAction:   string} /** URL to post the form to. */
+{@param? portalUrl:    string} /** URL of the Portal. */
+{@param  authndWithFC: bool}   /** Whether the current session is authenticated with FranceConnect */
+{@param  email:        string} /** email of the logged-in user. */
+{@param? error:        string} /** error; can be one of INCORRECT_USERNAME_OR_PASSWORD */
+{call .header}
+  {param title kind="text"}{msg desc="unlink FranceConnect page"}Unlink your account from FranceConnect{/msg}{/param}
+{/call}
+<style>
+main {lb} text-align: center; {rb}
+h1 {lb} font-weight: lighter; font-size: 1.8em; {rb}
+button, a.portal {lb}
+  margin: 5px 1em;
+  padding: .5em 2em;
+  border: 1px solid #4c2d62;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+{rb}
+button {lb}
+  background: #6f438e; color: white;
+{rb}
+a.portal {lb}
+  background: white; color: #6f438e;
+{rb}
+a {lb} color: #6f438e; {rb}
+</style>
+  <h1>{msg desc="unlink FranceConnect page"}Unlink your account from FranceConnect{/msg}</h1>
+
+  {if $error}
+    <p style="color: white; background: #d9534f; font-weight: bold; padding: 10px; text-align: center;">
+      {switch $error}
+      {case 'INCORRECT_USERNAME_OR_PASSWORD'}
+        {msg desc="Error message when re-entering the password"}Incorrect password.{/msg}
+      {default}
+        {msg desc="Generic error message"}An error occurred. That's all we know.{/msg}
+    {/switch}
+    </p>
+  {/if}
+  <form method="POST" action="{$formAction}">
+    <input type=hidden name=_utf8 value="&#9731;">
+
+    <p>{$email}</p>
+
+    {if $authndWithFC}
+      <input type=hidden name=u value="{$email}" autocomplete=username>
+      <p><label>{msg desc="Current password when unlinking FranceConnect"}Please re-enter your password:{/msg} <input type=password name=pwd required autocomplete=current-password></label>
+    {/if}
+
+    <button type="submit">{msg desc="Form submit button"}Unlink{/msg}</button>
+    {if $portalUrl}
+      <a href="{$portalUrl}" class=portal>{msg desc="Cancel unlinking FranceConnect"}
+        Go back to My Ozwillo
+      {/msg}</a>
+    {/if}
+  </form>
+  {call .footer /}
+{/template}
+
+/**
  * Error during FranceConnect login: FC identity already linked to different account.
  */
 {template .franceconnectAlreadyLinked}

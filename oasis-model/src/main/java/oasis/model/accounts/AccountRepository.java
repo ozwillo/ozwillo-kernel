@@ -34,5 +34,7 @@ public interface AccountRepository {
 
   boolean linkToFranceConnect(String id, String franceconnect_sub);
 
+  boolean unlinkFranceConnect(String id);
+
   boolean deleteUserAccount(String id);
 }

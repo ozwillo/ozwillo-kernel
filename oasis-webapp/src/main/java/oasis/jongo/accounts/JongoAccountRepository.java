@@ -187,6 +187,14 @@ public class JongoAccountRepository implements AccountRepository, JongoBootstrap
   }
 
   @Override
+  public boolean unlinkFranceConnect(String id) {
+    return getAccountCollection()
+        .update("{ id: # }", id)
+        .with("{ $unset: { franceconnect_sub: 1 } }")
+        .getN() > 0;
+  }
+
+  @Override
   public boolean deleteUserAccount(String id) {
     return getAccountCollection()
         .remove("{ id: # }", id)

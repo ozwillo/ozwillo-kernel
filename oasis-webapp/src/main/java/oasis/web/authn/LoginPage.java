@@ -245,7 +245,7 @@ public class LoginPage {
     log(auditLogService, userName, loginResult);
   }
 
-  static void log(AuditLogService auditLogService, String userName, LoginLogEvent.LoginResult loginResult) {
+  public static void log(AuditLogService auditLogService, String userName, LoginLogEvent.LoginResult loginResult) {
     auditLogService.event(LoginLogEvent.class)
         .setUserName(userName)
         .setLoginResult(loginResult)

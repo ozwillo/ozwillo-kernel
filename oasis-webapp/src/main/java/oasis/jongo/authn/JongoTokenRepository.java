@@ -110,11 +110,20 @@ public class JongoTokenRepository implements TokenRepository, JongoBootstrapper 
   public boolean reAuthSidToken(String tokenId, String franceconnectIdToken, String franceconnectAccessToken) {
     Instant authenticationTime = Instant.now();
 
-    WriteResult writeResult = this.getTokensCollection()
-        .update("{ id: # }", tokenId)
-        // TODO: Pass directly the instance of Instant
-        .with("{ $set: { authenticationTime: #, franceconnectIdToken: #, franceconnectAccessToken: # } }",
-            Date.from(authenticationTime), franceconnectIdToken, franceconnectAccessToken);
+    WriteResult writeResult = null;
+    if (franceconnectIdToken != null && franceconnectAccessToken != null) {
+      writeResult = this.getTokensCollection()
+          .update("{ id: # }", tokenId)
+          // TODO: Pass directly the instance of Instant
+          .with("{ $set: { authenticationTime: #, franceconnectIdToken: #, franceconnectAccessToken: # } }",
+              Date.from(authenticationTime), franceconnectIdToken, franceconnectAccessToken);
+    } else {
+      writeResult = this.getTokensCollection()
+          .update("{ id: # }", tokenId)
+          // TODO: Pass directly the instance of Instant
+          .with("{ $set: { authenticationTime: # }, $unset: { franceconnectIdToken: 1, franceconnectAccessToken: 1 } }",
+              Date.from(authenticationTime));
+    }
 
     return writeResult.getN() > 0;
   }
