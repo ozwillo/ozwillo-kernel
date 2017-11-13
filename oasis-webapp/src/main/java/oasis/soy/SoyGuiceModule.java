@@ -46,6 +46,7 @@ public class SoyGuiceModule extends AbstractModule {
         .add(getClass().getResource("/templates/Authorize.soy"))
         .add(getClass().getResource("/templates/ChangePassword.soy"))
         .add(getClass().getResource("/templates/UserCertificates.soy"))
+        .add(getClass().getResource("/templates/FranceConnect.soy"))
         .add(getClass().getResource("/templates/OrgMembershipInvitation.soy"))
         .add(getClass().getResource("/templates/AppInstanceInvitation.soy"))
         .add(getClass().getResource("/templates/mail/SignUp.soy"))
