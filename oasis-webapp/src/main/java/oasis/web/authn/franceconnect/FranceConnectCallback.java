@@ -66,7 +66,6 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Objects;
 
 @User
 @Path("/a/franceconnect/callback")
@@ -147,13 +146,13 @@ public class FranceConnectCallback {
       // There's an account linked to this FranceConnect identity
       if (securityContext.getUserPrincipal() == null) {
         // user not yet authenticated; authenticate him/her and we're all set.
-        return loginHelper.authenticate(account, httpHeaders, securityContext, state.continueUrl(), tokenResponse.id_token, () -> {});
+        return loginHelper.authenticate(account, httpHeaders, securityContext, state.continueUrl(), tokenResponse.id_token, tokenResponse.access_token, () -> {});
       }
 
       SidToken sidToken = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken();
       if (account.getId().equals(sidToken.getAccountId())) {
         // current user matches; case of re-auth or userinfo update
-        if (!tokenRepository.reAuthSidToken(sidToken.getId(), tokenResponse.id_token)) { // XXX: auth_time?
+        if (!tokenRepository.reAuthSidToken(sidToken.getId(), tokenResponse.id_token, tokenResponse.access_token)) { // XXX: auth_time?
           return serverError(state);
         }
         return Response.seeOther(state.continueUrl())

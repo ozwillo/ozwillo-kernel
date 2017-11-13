@@ -56,10 +56,10 @@ public class LoginHelper {
   }
 
   public Response.ResponseBuilder authenticate(UserAccount account, HttpHeaders headers, SecurityContext securityContext, URI continueUrl,
-      @Nullable String franceconnectIdToken, Runnable onSuccess) {
+      @Nullable String franceconnectIdToken, String franceconnectAccessToken, Runnable onSuccess) {
     String pass = tokenHandler.generateRandom();
     byte[] fingerprint = fingerprinter.fingerprint(headers);
-    SidToken sidToken = tokenHandler.createSidToken(account.getId(), fingerprint, hasClientCertificate(account.getId(), headers), franceconnectIdToken, pass);
+    SidToken sidToken = tokenHandler.createSidToken(account.getId(), fingerprint, hasClientCertificate(account.getId(), headers), franceconnectIdToken, franceconnectAccessToken, pass);
     if (sidToken == null) {
       // XXX: This shouldn't be audited because it shouldn't be the user fault
       logger.error("No SidToken was created for Account {}.", account.getId());

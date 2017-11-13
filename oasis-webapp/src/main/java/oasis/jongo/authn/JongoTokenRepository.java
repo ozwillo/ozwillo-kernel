@@ -107,13 +107,14 @@ public class JongoTokenRepository implements TokenRepository, JongoBootstrapper 
   }
 
   @Override
-  public boolean reAuthSidToken(String tokenId, String franceconnectIdToken) {
+  public boolean reAuthSidToken(String tokenId, String franceconnectIdToken, String franceconnectAccessToken) {
     Instant authenticationTime = Instant.now();
 
     WriteResult writeResult = this.getTokensCollection()
         .update("{ id: # }", tokenId)
         // TODO: Pass directly the instance of Instant
-        .with("{ $set: { authenticationTime: #, franceconnectIdToken: # } }", Date.from(authenticationTime), franceconnectIdToken);
+        .with("{ $set: { authenticationTime: #, franceconnectIdToken: #, franceconnectAccessToken: # } }",
+            Date.from(authenticationTime), franceconnectIdToken, franceconnectAccessToken);
 
     return writeResult.getN() > 0;
   }

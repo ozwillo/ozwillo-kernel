@@ -131,7 +131,7 @@ public class LoginPage {
       return reAuthenticate(userName, account, continueUrl);
     }
 
-    return loginHelper.authenticate(account, headers, securityContext, continueUrl, null, () -> {
+    return loginHelper.authenticate(account, headers, securityContext, continueUrl, null, null, () -> {
       log(auditLogService, userName, LoginPage.LoginLogEvent.LoginResult.AUTHENTICATION_SUCCEEDED);
     }).build();
   }

@@ -34,6 +34,9 @@ public class SidToken extends AbstractAccountToken {
   @JsonProperty
   private String franceconnectIdToken;
 
+  @JsonProperty
+  private String franceconnectAccessToken;
+
   /**
    * Gets the last time the user authenticated by providing their credentials.
    *
@@ -71,5 +74,13 @@ public class SidToken extends AbstractAccountToken {
 
   public void setFranceconnectIdToken(String franceconnectIdToken) {
     this.franceconnectIdToken = franceconnectIdToken;
+  }
+
+  public String getFranceconnectAccessToken() {
+    return franceconnectAccessToken;
+  }
+
+  public void setFranceconnectAccessToken(String franceconnectAccessToken) {
+    this.franceconnectAccessToken = franceconnectAccessToken;
   }
 }
