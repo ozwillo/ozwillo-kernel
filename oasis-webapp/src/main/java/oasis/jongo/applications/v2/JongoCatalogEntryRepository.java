@@ -103,13 +103,16 @@ public class JongoCatalogEntryRepository implements CatalogEntryRepository {
       addIfNotEmpty(request.payment_option(), "payment_option", queryParts, params);
       addIfNotEmpty(request.category_id(), "category_ids", queryParts, params);
       // TODO: return entries with visible:false but which are visible to the current user
-      queryParts.add("visible: true");
+      // TODO: return entries with visible:false / visibility:HIDDEN/NEVER_VISIBLE but which are visible to the current user
+      // visible:true is for applications (and old services); visibility:'VISIBLE' for newer services
+      queryParts.add("$or: [ { visible: true }, { visibility: 'VISIBLE' } ]");
       queryParts.add("status: { $ne: # } }");
       params.add(Service.Status.NOT_AVAILABLE);
 
       ImmutableMap.Builder<String, Integer> fields = ImmutableMap.builder();
       if (request.displayLocale().isPresent()) {
         // Include all catalog entry fields.
+        // (EXCEPT 'visible', explicitly set to 'true' later; see above wrt visible vs. visibility)
         // For localizable fields, include derivatives computed from the requested locale (e.g. if the
         // requested locale is fr-FR, include "name", "name#fr", and "name#fr-FR").
         // TODO: compute from model classes instead of hard-coding the list.
@@ -121,7 +124,6 @@ public class JongoCatalogEntryRepository implements CatalogEntryRepository {
         fields.put("payment_option", 1);
         fields.put("target_audience", 1);
         fields.put("category_ids", 1);
-        fields.put("visible", 1);
         fields.put("contacts", 1);
         fields.put("screenshot_uris", 1);
         fields.put("modified", 1); // used to compute ETag eventually
@@ -260,11 +262,13 @@ public class JongoCatalogEntryRepository implements CatalogEntryRepository {
           .iterator());
       Collections.sort(results, comparator);
       // Now return the results while setting the entry type (lazily).
+      // XXX: also forcibly set visible to true (see above wrt visible vs. visibility)
       return FluentIterable.from(results)
           .transform(new Function<SimpleCatalogEntry, SimpleCatalogEntry>() {
             @Override
             public SimpleCatalogEntry apply(SimpleCatalogEntry input) {
               input.setType(type);
+              input.setVisible(true);
               return input;
             }
           });
