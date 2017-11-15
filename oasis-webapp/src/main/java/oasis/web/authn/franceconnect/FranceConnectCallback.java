@@ -156,19 +156,26 @@ public class FranceConnectCallback {
         if (!tokenRepository.reAuthSidToken(sidToken.getId(), tokenResponse.id_token)) { // XXX: auth_time?
           return serverError(state);
         }
-        // TODO: ask user to update his profile
         return Response.seeOther(state.continueUrl())
             .cookie(SessionManagementHelper.createBrowserStateCookie(securityContext.isSecure(), sessionManagementHelper.generateBrowserState()));
       }
-
-      // otherwise, link FranceConnect identity to current user
-      if (!accountRepository.linkToFranceConnect(account.getId(), franceconnect_sub)) {
-        return serverError(state);
-      }
-      return Response.seeOther(state.continueUrl())
-          .cookie(SessionManagementHelper.createBrowserStateCookie(securityContext.isSecure(), sessionManagementHelper.generateBrowserState()));
+      // otherwise, that's an error
+      return Response.status(Response.Status.BAD_REQUEST)
+          .type(MediaType.TEXT_HTML_TYPE)
+          .entity(new SoyTemplate(FranceConnectSoyInfo.FRANCECONNECT_ALREADY_LINKED,
+              localeHelper.selectLocale(state.locale(), request)));
     } else {
       // FranceConnect identity unknown
+      if (securityContext.getUserPrincipal() != null) {
+        // user already authenticated, link FranceConnect identity to his account
+        // XXX: display confirmation page?
+        SidToken sidToken = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken();
+        if (!accountRepository.linkToFranceConnect(sidToken.getAccountId(), franceconnect_sub)) {
+          return serverError(state);
+        }
+        return Response.seeOther(state.continueUrl())
+            .cookie(SessionManagementHelper.createBrowserStateCookie(securityContext.isSecure(), sessionManagementHelper.generateBrowserState()));
+      }
 
       // TODO: ask user to associate FranceConnect sub to an existing account (or possibly create an account)
 

@@ -63,3 +63,27 @@ h2 {lb} margin-bottom: 2.5em; {rb}
   {/if}
 {call .footer /}
 {/template}
+
+/**
+ * Error during FranceConnect login: FC identity already linked to different account.
+ */
+{template .franceconnectAlreadyLinked}
+{call .header}
+  {param title kind="text"}{msg desc="Login page title"}Login{/msg}{/param}
+{/call}
+<style>
+main {lb} text-align: center; {rb}
+
+h1, h2 {lb} font-weight: lighter; {rb}
+h2 {lb} font-size: 1.8em; {rb}
+
+h1 {lb} margin: 0; {rb}
+h2 {lb} margin-bottom: 2.5em; {rb}
+
+</style>
+  <h1><img src="/images/ozwillo.png" alt="Ozwillo" width=200 height=55></h1>
+  <h2>{msg desc="FranceConnect already linked error page heading"}This FranceConnect identity is already linked to another Ozwillo account.{/msg}</h2>
+  <p>{msg desc="FranceConnect already linked error; logout from Ozwillo message"}You may want to sign out from Ozwillo (or FranceConnect) and try again.{/msg}</p>
+  <p>{msg desc="FranceConnect login error; go back and try again message"}Go back to the previous page and try again.{/msg}</p>
+  {call .footer /}
+{/template}
