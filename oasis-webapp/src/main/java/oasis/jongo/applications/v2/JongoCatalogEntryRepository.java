@@ -95,13 +95,16 @@ public class JongoCatalogEntryRepository implements CatalogEntryRepository {
       addIfNotEmpty(request.payment_option(), "payment_option", query, params);
       addIfNotEmpty(request.category_id(), "category_ids", query, params);
       // TODO: return entries with visible:false but which are visible to the current user
-      query.add("visible: true");
+      // TODO: return entries with visible:false / visibility:HIDDEN/NEVER_VISIBLE but which are visible to the current user
+      // visible:true is for applications (and old services); visibility:'VISIBLE' for newer services
+      query.add("$or: [ { visible: true }, { visibility: 'VISIBLE' } ]");
       query.add("status: { $ne: # } }");
       params.add(Service.Status.NOT_AVAILABLE);
 
       ImmutableMap.Builder<String, Integer> fields = ImmutableMap.builder();
       if (request.displayLocale() != null) {
         // Include all catalog entry fields.
+        // (EXCEPT 'visible', explicitly set to 'true' later; see above wrt visible vs. visibility)
         // For localizable fields, include derivatives computed from the requested locale (e.g. if the
         // requested locale is fr-FR, include "name", "name#fr", and "name#fr-FR").
         // TODO: compute from model classes instead of hard-coding the list.
@@ -113,7 +116,6 @@ public class JongoCatalogEntryRepository implements CatalogEntryRepository {
         fields.put("payment_option", 1);
         fields.put("target_audience", 1);
         fields.put("category_ids", 1);
-        fields.put("visible", 1);
         fields.put("contacts", 1);
         fields.put("screenshot_uris", 1);
         fields.put("modified", 1); // used to compute ETag eventually
@@ -241,7 +243,11 @@ public class JongoCatalogEntryRepository implements CatalogEntryRepository {
               .projection("#", fields)
               .as(SimpleCatalogEntry.class)
               .iterator())
-          .peek(input -> input.setType(type));
+          .peek(input -> {
+            input.setType(type);
+            // XXX: also forcibly set visible to true (see above wrt visible vs. visibility)
+            input.setVisible(true);
+          });
     }
   }
 }
