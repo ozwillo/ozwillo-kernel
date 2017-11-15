@@ -77,17 +77,18 @@ public class IndexingServiceRepository implements ServiceRepository {
 
   @Override
   public Service updateService(Service service, long[] versions) throws InvalidVersionException {
-    Service updatedService = jongoServiceRepository.updateService(service, versions);
+    Service oldService = jongoServiceRepository.getService(service.getId());
+    service = jongoServiceRepository.updateService(service, versions);
 
-    if (shouldIndex(updatedService)) {
-      ListenableFuture<Void> listenableFuture = jestCatalogEntryRepository.asyncIndex(updatedService);
+    if (shouldIndex(service)) {
+      ListenableFuture<Void> listenableFuture = jestCatalogEntryRepository.asyncIndex(service);
       Futures.addCallback(listenableFuture, indexedFutureCallback(service.getId(), CatalogEntry.EntryType.SERVICE));
-    } else if (shouldIndex(service)) {
+    } else if (shouldIndex(oldService)) {
       // It means it is no more indexable
-      ListenableFuture<Void> listenableFuture = jestCatalogEntryRepository.asyncDelete(updatedService.getId(), CatalogEntry.EntryType.SERVICE);
+      ListenableFuture<Void> listenableFuture = jestCatalogEntryRepository.asyncDelete(service.getId(), CatalogEntry.EntryType.SERVICE);
       Futures.addCallback(listenableFuture, deleteIndexFutureCallback(service.getId(), CatalogEntry.EntryType.SERVICE));
     }
-    return updatedService;
+    return service;
   }
 
   @Override
