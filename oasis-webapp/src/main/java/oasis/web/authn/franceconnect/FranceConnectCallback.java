@@ -22,7 +22,9 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.BaseEncoding;
 import com.google.template.soy.data.SoyMapData;
+import com.ibm.icu.util.ULocale;
 
+import oasis.auth.AuthModule;
 import oasis.auth.FranceConnectModule;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
@@ -73,7 +75,8 @@ import java.util.List;
 public class FranceConnectCallback {
   private static final int ACCEPTABLE_CLOCK_SKEW = 10;
 
-  @Inject FranceConnectModule.Settings settings;
+  @Inject AuthModule.Settings authSettings;
+  @Inject FranceConnectModule.Settings fcSettings;
   @Inject SessionManagementHelper sessionManagementHelper;
   @Inject Client httpClient;
   @Inject AccountRepository accountRepository;
@@ -176,11 +179,11 @@ public class FranceConnectCallback {
             .cookie(SessionManagementHelper.createBrowserStateCookie(securityContext.isSecure(), sessionManagementHelper.generateBrowserState()));
       }
 
-      // TODO: ask user to associate FranceConnect sub to an existing account (or possibly create an account)
-
-      return Response.serverError()
-          .type(MediaType.TEXT_PLAIN_TYPE)
-          .entity("Not yet implemented");
+      // otherwise, ask user to authenticate
+      return FranceConnectLinkPage.linkForm(authSettings,
+          localeHelper.selectLocale(state.locale(), request),
+          state.continueUrl().toString(),
+          FranceConnectLinkState.create(tokenResponse.access_token, tokenResponse.id_token, franceconnect_sub));
     }
   }
 
@@ -208,32 +211,32 @@ public class FranceConnectCallback {
   }
 
   private Response exchangeCodeForTokens(String code) {
-    return httpClient.target(settings.tokenEndpoint())
+    return httpClient.target(fcSettings.tokenEndpoint())
         .request(MediaType.APPLICATION_JSON_TYPE)
-        .header(HttpHeaders.AUTHORIZATION, "Basic " + BaseEncoding.base64().encode((settings.clientId()+":"+settings.clientSecret()).getBytes(StandardCharsets.UTF_8)))
+        .header(HttpHeaders.AUTHORIZATION, "Basic " + BaseEncoding.base64().encode((fcSettings.clientId()+":"+ fcSettings.clientSecret()).getBytes(StandardCharsets.UTF_8)))
         .post(Entity.form(new Form()
             .param("grant_type", "authorization_code")
             .param("code", code)
             .param("redirect_uri", uriInfo.getBaseUriBuilder().path(FranceConnectCallback.class).build().toString())
             // For some unknown reason, FranceConnect doesn't support the *mandatory* HTTP Basic authentication.
-            .param("client_id", settings.clientId())
-            .param("client_secret", settings.clientSecret())));
+            .param("client_id", fcSettings.clientId())
+            .param("client_secret", fcSettings.clientSecret())));
   }
 
   private JwtClaims parseIdToken(String id_token, final String nonce) throws InvalidJwtException {
     return new JwtConsumerBuilder()
         .setJwsAlgorithmConstraints(new AlgorithmConstraints(AlgorithmConstraints.ConstraintType.WHITELIST, AlgorithmIdentifiers.HMAC_SHA256))
-        .setVerificationKey(new HmacKey(settings.clientSecret().getBytes(StandardCharsets.UTF_8)))
-        .setExpectedIssuer(settings.issuer())
-        .setExpectedAudience(settings.clientId())
+        .setVerificationKey(new HmacKey(fcSettings.clientSecret().getBytes(StandardCharsets.UTF_8)))
+        .setExpectedIssuer(fcSettings.issuer())
+        .setExpectedAudience(fcSettings.clientId())
         .registerValidator((Validator) jwtContext -> {
           List<String> audiences = jwtContext.getJwtClaims().getAudience();
           String azp = jwtContext.getJwtClaims().getStringClaimValue("azp");
           if (audiences.size() > 1 && azp == null) {
             return "No Authorized Party (azp) claim present, whereas the JWT contains several audiences.";
           }
-          if (azp != null && !azp.equals(settings.clientId())) {
-            return "Authorized Party (azp) claim value (" + azp + ") does not match expected value of " + settings.clientId();
+          if (azp != null && !azp.equals(fcSettings.clientId())) {
+            return "Authorized Party (azp) claim value (" + azp + ") does not match expected value of " + fcSettings.clientId();
           }
           return null;
         })
@@ -264,12 +267,28 @@ public class FranceConnectCallback {
   }
 
   private Response.ResponseBuilder error(Response.ResponseBuilder rb, @Nullable FranceConnectLoginState state) {
+    return error(rb,
+        localeHelper.selectLocale(state == null ? null : state.locale(), request),
+        state == null ? null : state.continueUrl().toString());
+  }
+
+  static Response badRequest(ULocale locale, @Nullable String continueUrl) {
+    return error(Response.status(Response.Status.BAD_REQUEST), locale, continueUrl)
+        .build();
+  }
+
+  static Response serverError(ULocale locale, @Nullable String continueUrl) {
+    return error(Response.serverError(), locale, continueUrl)
+        .build();
+  }
+
+  private static Response.ResponseBuilder error(Response.ResponseBuilder rb, ULocale locale, @Nullable String continueUrl) {
     return rb.type(MediaType.TEXT_HTML_TYPE)
         .entity(new SoyTemplate(FranceConnectSoyInfo.FRANCECONNECT_ERROR,
-            localeHelper.selectLocale(state == null ? null : state.locale(), request),
+            locale,
             new SoyMapData(
                 FranceconnectErrorSoyTemplateInfo.FRANCECONNECT, UriBuilder.fromResource(FranceConnectLogin.class).build().toString(),
-                FranceconnectErrorSoyTemplateInfo.CONTINUE, state == null ? null : state.continueUrl()
+                FranceconnectErrorSoyTemplateInfo.CONTINUE, continueUrl
             )
         ));
   }

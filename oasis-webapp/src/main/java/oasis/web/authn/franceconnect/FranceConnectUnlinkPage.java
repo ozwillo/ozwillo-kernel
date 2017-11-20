@@ -118,12 +118,7 @@ public class FranceConnectUnlinkPage {
 
     if (!accountRepository.unlinkFranceConnect(sidToken.getAccountId())) {
       UserAccount account = accountRepository.getUserAccountById(sidToken.getAccountId());
-      return Response.serverError()
-          .type(MediaType.TEXT_HTML_TYPE)
-          .entity(new SoyTemplate(FranceConnectSoyInfo.FRANCECONNECT_ERROR, account.getLocale(), new SoyMapData(
-              FranceconnectErrorSoyTemplateInfo.FRANCECONNECT, UriBuilder.fromResource(FranceConnectLogin.class).build().toString()
-          )))
-          .build();
+      return FranceConnectCallback.serverError(account.getLocale(), null);
     }
     return redirectAfterSuccess();
   }

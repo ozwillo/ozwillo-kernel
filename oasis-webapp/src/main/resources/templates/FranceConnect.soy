@@ -128,6 +128,74 @@ a {lb} color: #6f438e; {rb}
 {/template}
 
 /**
+ * Asks user to sign-in to link his account to FranceConnect.
+ */
+{template .franceconnectLink}
+{@param  formAction:     string} /** URL to post the form to. */
+{@param  continue:       string} /** URL to continue to after successful login. */
+{@param  encryptedState: string} /** encrypted state, contains sensitive data. */
+{@param? error:          string} /** error; can be one of INCORRECT_USERNAME_OR_PASSWORD */
+{@inject current_locale: string} /** current locale. */
+{call .header}
+  {param title kind="text"}{msg desc="Login page title"}Login{/msg}{/param}
+{/call}
+<style>
+main {lb} text-align: center; {rb}
+
+h1, h2 {lb} font-weight: lighter; {rb}
+h2 {lb} font-size: 1.8em; {rb}
+
+h1 {lb} margin: 0; {rb}
+h2 {lb} margin-bottom: 2.5em; {rb}
+
+.btn-row {lb} margin-top: 1.8em; text-align: center; {rb}
+.btn-row button {lb}
+  border: 1px solid #4c2d62;
+  background: #6f438e; color: #fff;
+  cursor: pointer;
+  margin: 5px 1em;
+  padding: .5em 2em;
+  display: inline-block;
+{rb}
+</style>
+  <h1><img src="/images/ozwillo.png" alt="Ozwillo" width=200 height=55></h1>
+  {if $error}
+      <p style="color: white; background: #d9534f; font-weight: bold; padding: 10px; text-align: center;">
+        {switch $error}
+          {case 'INCORRECT_USERNAME_OR_PASSWORD'}
+            {msg desc="Error message when re-entering the password"}Incorrect password.{/msg}
+          {default}
+            {msg desc="Generic error message"}An error occurred. That's all we know.{/msg}
+        {/switch}
+      </p>
+  {/if}
+  <h2>{msg desc="franceconnect link page heading"}Link account to FranceConnect{/msg}</h2>
+
+  <p>{msg desc="franceconnect link page description"}
+    No account exists for your FranceConnect identity,
+    please sign in below to link your FranceConnect identity to your account.
+  {/msg}</p>
+
+  <form method=POST action="{$formAction}">
+    <input type=hidden name=_utf8 value="&#9731;">
+    <input type=hidden name=continue value="{$continue}">
+    <input type=hidden name=hl value="{$current_locale}">
+    <input type=hidden name=state value="{$encryptedState}">
+
+    <p><label>{msg desc="Email field label"}Email:{/msg} <input id=u type=email name=u required autofocus autocomplete=username></label></p>
+    <p><label>{msg desc="Password field label"}Password:{/msg} <input type=password name=pwd required autocomplete=current-password></label></p>
+
+    <div class=btn-row>
+      <button>
+        {msg desc="Form submit button"}Log in{/msg}
+      </button>
+    </div>
+  </form>
+
+  {call .footer /}
+{/template}
+
+/**
  * Error during FranceConnect login: FC identity already linked to different account.
  */
 {template .franceconnectAlreadyLinked}
