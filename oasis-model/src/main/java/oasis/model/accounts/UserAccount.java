@@ -94,6 +94,7 @@ public class UserAccount {
     phone_number = other.getPhone_number();
     phone_number_verified = other.getPhone_number_verified();
     address = other.getAddress() == null ? null : new Address(other.getAddress());
+    franceconnect_sub = other.getFranceconnect_sub();
     updated_at = other.getUpdated_at();
     created_at = other.getCreated_at();
   }

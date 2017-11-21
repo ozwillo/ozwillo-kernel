@@ -34,11 +34,16 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 
 import oasis.model.InvalidVersionException;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
+import oasis.model.authn.ClientType;
+import oasis.model.authn.CredentialsRepository;
 import oasis.model.authz.Scopes;
 import oasis.model.bootstrap.ClientIds;
 import oasis.services.etag.EtagService;
@@ -70,7 +75,7 @@ public class UserEndpoint {
     // FIXME: temporarily give full-access to the portal only; sharing only the name and nickname to other applications.
     UserAccount filteredAccount;
     if (ClientIds.PORTAL.equals(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getServiceProviderId())) {
-      filteredAccount = account;
+      filteredAccount = new PortalUserAccount(account);
     } else {
       filteredAccount = new UserAccount();
       filteredAccount.setId(account.getId());
@@ -128,5 +133,17 @@ public class UserEndpoint {
         .tag(etagService.getEtag(account))
         .entity(account)
         .build();
+  }
+
+  static class PortalUserAccount extends UserAccount {
+    @JsonProperty final List<String> authentication_methods;
+
+    PortalUserAccount(UserAccount account) {
+      super(account);
+      setId(account.getId());
+      authentication_methods = (getFranceconnect_sub() == null)
+          ? ImmutableList.of("pwd")
+          : ImmutableList.of("pwd", "franceconnect");
+    }
   }
 }
