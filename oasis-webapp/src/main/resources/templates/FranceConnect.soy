@@ -141,22 +141,34 @@ a {lb} color: #6f438e; {rb}
  * Asks user to sign-in to link his account to FranceConnect.
  */
 {template .franceconnectLink}
-{@param  formAction:     string} /** URL to post the form to. */
-{@param  continue:       string} /** URL to continue to after successful login. */
-{@param  encryptedState: string} /** encrypted state, contains sensitive data. */
-{@param? error:          string} /** error; can be one of INCORRECT_USERNAME_OR_PASSWORD */
-{@inject current_locale: string} /** current locale. */
+{@param  signUpFormAction: string} /** URL to post the sign-up form to. */
+{@param  loginFormAction:  string} /** URL to post the sign-in form to. */
+{@param  forgotPassword:   string} /** URL to the form allowing for recovering your password. */
+{@param  continue:         string} /** URL to continue to after successful login. */
+{@param  encryptedState:   string} /** encrypted state, contains sensitive data. */
+{@param? error:            string} /** error; can be one of INCORRECT_USERNAME_OR_PASSWORD */
+{@inject current_locale:   string} /** current locale. */
 {call .header}
   {param title kind="text"}{msg desc="Login page title"}Login{/msg}{/param}
 {/call}
 <style>
-main {lb} text-align: center; {rb}
-
-h1, h2 {lb} font-weight: lighter; {rb}
+h1, h2 {lb} text-align: center; font-weight: lighter; {rb}
 h2 {lb} font-size: 1.8em; {rb}
 
 h1 {lb} margin: 0; {rb}
-h2 {lb} margin-bottom: 2.5em; {rb}
+
+h2 img {lb} vertical-align: bottom; {rb}
+
+label {lb} display: block; {rb}
+
+main>div {lb} line-height: 1.5em; {rb}
+
+.two-cols {lb} display: flex; flex-wrap: wrap; justify-content: space-around; {rb}
+.two-cols>* {lb} display: block; flex: auto; max-width: 200px; {rb}
+/* IE10 compat: */
+.two-cols {lb} display: -ms-flexbox; -ms-flex-wrap: wrap; -ms-flex-pack: distribute; {rb}
+/** IE compat: -ms-flex for IE10, margin-left and margin-right for better IE9 display */
+.two-cols>* {lb} -ms-flex: auto; margin-left: auto; margin-right: auto; {rb}
 
 .btn-row {lb} margin-top: 1.8em; text-align: center; {rb}
 .btn-row button {lb}
@@ -167,6 +179,8 @@ h2 {lb} margin-bottom: 2.5em; {rb}
   padding: .5em 2em;
   display: inline-block;
 {rb}
+
+small {lb} display: block; margin-top: 2em; font-size: .65em; line-height: initial; {rb}
 </style>
   <h1><img src="/images/ozwillo.png" alt="Ozwillo" width=200 height=55></h1>
   {if $error}
@@ -181,27 +195,62 @@ h2 {lb} margin-bottom: 2.5em; {rb}
   {/if}
   <h2>{msg desc="franceconnect link page heading"}Link account to FranceConnect{/msg}</h2>
 
-  <p>{msg desc="franceconnect link page description"}
+  <p>{msg desc="franceconnect link page description (no match)"}
     No account exists for your FranceConnect identity,
-    please sign in below to link your FranceConnect identity to your account.
+    please sign in below to link your FranceConnect identity to your account,
+    or sign up for a new account.
   {/msg}</p>
 
-  <form method=POST action="{$formAction}">
-    <input type=hidden name=_utf8 value="&#9731;">
-    <input type=hidden name=continue value="{$continue}">
-    <input type=hidden name=hl value="{$current_locale}">
-    <input type=hidden name=state value="{$encryptedState}">
+  <div class=two-cols style="align-items: baseline">
+    <section>
+      <h2><img alt="" src="/images/picto_pen.png" width=26 height=30> {msg desc="Sign-up form heading"}Join Us!{/msg}</h2>
+      <form method=POST action="{$signUpFormAction}">
+        <input type=hidden name=_utf8 value="&#9731;">
+        <input type=hidden name=continue value="{$continue}">
+        <input type=hidden name=hl value="{$current_locale}">
+        <input type=hidden name=state value="{$encryptedState}">
 
-    <p><label>{msg desc="Email field label"}Email:{/msg} <input id=u type=email name=u required autofocus autocomplete=username></label></p>
-    <p><label>{msg desc="Password field label"}Password:{/msg} <input type=password name=pwd required autocomplete=current-password></label></p>
+        <div class=btn-row>
+          <button>
+            {msg desc="Form submit button"}Log in{/msg}
+          </button>
+        </div>
+      </form>
+    </section>
+    <section>
+      <h2><img alt="" src="/images/picto_user.png" width=30 height=30> {msg desc="Login form heading"}Login{/msg}</h2>
+      <form method=POST action="{$loginFormAction}">
+        <input type=hidden name=_utf8 value="&#9731;">
+        <input type=hidden name=continue value="{$continue}">
+        <input type=hidden name=hl value="{$current_locale}">
+        <input type=hidden name=state value="{$encryptedState}">
 
-    <div class=btn-row>
-      <button>
-        {msg desc="Form submit button"}Log in{/msg}
-      </button>
-    </div>
-  </form>
-
+          <div>
+              <label for=u>{msg desc="Email field label"}Email{/msg}</label>
+              <input id=u type=email name=u required autofocus autocomplete=username>
+          </div>
+          <div>
+              <label for=pwd>{msg desc="Password field label"}Password{/msg}</label>
+              <input id=pwd type=password  name=pwd required autocomplete=current-password>
+          </div>
+        <div style="text-align: right; font-size: smaller;">
+          <a href="{$forgotPassword}">{msg desc="Link to the 'forgot my password' page"}
+            I forgot my password.
+          {/msg}</a>
+        </div>
+        <div class=btn-row>
+          <button>
+            {msg desc="Form submit button"}Log in{/msg}
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+  <small style="text-align: center">{msg desc="privacy notice / small prints"}
+    The information collected will be computer processed for the management of the website’s users and its services. The recipient of data is Ozwillo.<br>
+    In accordance with the EU Data Protection Directive (95/46/EC), you benefit from an access and modification right for the information concerning you, which you can exercise by contacting Ozwillo, 2323 Chemin de Saint-Bernard, 06225 Vallauris, FRANCE.<br>
+    You can also, for legitimate reasons, object to the processing of your personal data.
+  {/msg}</small>
   {call .footer /}
 {/template}
 

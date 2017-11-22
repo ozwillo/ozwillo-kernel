@@ -60,6 +60,7 @@ import oasis.web.authn.franceconnect.FranceConnectCallback;
 import oasis.web.authn.franceconnect.FranceConnectLinkPage;
 import oasis.web.authn.franceconnect.FranceConnectLogin;
 import oasis.web.authn.franceconnect.FranceConnectLogoutCallback;
+import oasis.web.authn.franceconnect.FranceConnectSignUpPage;
 import oasis.web.authn.franceconnect.FranceConnectUnlinkPage;
 import oasis.web.authn.franceconnect.FranceConnectUserInfoEndpoint;
 import oasis.web.authz.AuthorizationEndpoint;
@@ -139,6 +140,7 @@ public class Application extends javax.ws.rs.core.Application {
         FranceConnectUserInfoEndpoint.class,
         FranceConnectLinkPage.class,
         FranceConnectUnlinkPage.class,
+        FranceConnectSignUpPage.class,
         // AuditLog
         AuditLogEndpoint.class,
         HttpInterceptor.class,

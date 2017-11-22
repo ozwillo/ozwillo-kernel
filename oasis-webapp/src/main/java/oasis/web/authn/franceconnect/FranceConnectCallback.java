@@ -185,7 +185,7 @@ public class FranceConnectCallback {
             .cookie(SessionManagementHelper.createBrowserStateCookie(securityContext.isSecure(), sessionManagementHelper.generateBrowserState()));
       }
 
-      // otherwise, ask user to authenticate
+      // otherwise, ask user to authenticate (and link to account) or signup for a new account
       return FranceConnectLinkPage.linkForm(authSettings,
           localeHelper.selectLocale(state.locale(), request),
           state.continueUrl().toString(),

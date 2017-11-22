@@ -54,6 +54,7 @@ import oasis.services.authn.UserPasswordAuthenticator;
 import oasis.soy.SoyTemplate;
 import oasis.soy.templates.FranceConnectSoyInfo;
 import oasis.soy.templates.FranceConnectSoyInfo.FranceconnectLinkSoyTemplateInfo;
+import oasis.web.authn.ForgotPasswordPage;
 import oasis.web.authn.LoginHelper;
 import oasis.web.authn.LoginPage;
 import oasis.web.authn.User;
@@ -142,7 +143,9 @@ public class FranceConnectLinkPage {
     return rb
         .type(MediaType.TEXT_HTML_TYPE)
         .entity(new SoyTemplate(FranceConnectSoyInfo.FRANCECONNECT_LINK, locale, new SoyMapData(
-            FranceconnectLinkSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(FranceConnectLinkPage.class).build().toString(),
+            FranceconnectLinkSoyTemplateInfo.SIGN_UP_FORM_ACTION, UriBuilder.fromResource(FranceConnectSignUpPage.class).build().toString(),
+            FranceconnectLinkSoyTemplateInfo.LOGIN_FORM_ACTION, UriBuilder.fromResource(FranceConnectLinkPage.class).build().toString(),
+            FranceconnectLinkSoyTemplateInfo.FORGOT_PASSWORD, UriBuilder.fromResource(ForgotPasswordPage.class).queryParam(LOCALE_PARAM, locale.toLanguageTag()).build().toString(),
             FranceconnectLinkSoyTemplateInfo.CONTINUE, continueUrl,
             FranceconnectLinkSoyTemplateInfo.ENCRYPTED_STATE, state,
             FranceconnectLinkSoyTemplateInfo.ERROR, error
