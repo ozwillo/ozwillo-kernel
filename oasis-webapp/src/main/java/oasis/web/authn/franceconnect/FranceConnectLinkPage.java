@@ -127,25 +127,27 @@ public class FranceConnectLinkPage {
   }
 
   private Response linkForm(ULocale locale, URI continueUrl, String state, LoginError error) {
-    return linkForm(Response.status(Response.Status.BAD_REQUEST), locale, continueUrl.toString(), state, error)
+    return linkForm(Response.status(Response.Status.BAD_REQUEST), locale, null, false, continueUrl.toString(), state, error)
         .build();
   }
 
-  static Response.ResponseBuilder linkForm(AuthModule.Settings settings, ULocale locale, String continueUrl, FranceConnectLinkState state) {
+  static Response.ResponseBuilder linkForm(AuthModule.Settings settings, ULocale locale, @Nullable String email, boolean alreadyLinked, String continueUrl, FranceConnectLinkState state) {
     try {
-      return linkForm(Response.ok(), locale, continueUrl, state.encrypt(settings), null);
+      return linkForm(Response.ok(), locale, email, alreadyLinked, continueUrl, state.encrypt(settings), null);
     } catch (JoseException | JsonProcessingException e) {
       return Response.serverError();
     }
   }
 
-  private static Response.ResponseBuilder linkForm(Response.ResponseBuilder rb, ULocale locale, String continueUrl, String state, LoginError error) {
+  private static Response.ResponseBuilder linkForm(Response.ResponseBuilder rb, ULocale locale, @Nullable String email, boolean alreadyLinked, String continueUrl, String state, LoginError error) {
     return rb
         .type(MediaType.TEXT_HTML_TYPE)
         .entity(new SoyTemplate(FranceConnectSoyInfo.FRANCECONNECT_LINK, locale, new SoyMapData(
             FranceconnectLinkSoyTemplateInfo.SIGN_UP_FORM_ACTION, UriBuilder.fromResource(FranceConnectSignUpPage.class).build().toString(),
             FranceconnectLinkSoyTemplateInfo.LOGIN_FORM_ACTION, UriBuilder.fromResource(FranceConnectLinkPage.class).build().toString(),
             FranceconnectLinkSoyTemplateInfo.FORGOT_PASSWORD, UriBuilder.fromResource(ForgotPasswordPage.class).queryParam(LOCALE_PARAM, locale.toLanguageTag()).build().toString(),
+            FranceconnectLinkSoyTemplateInfo.EMAIL, email,
+            FranceconnectLinkSoyTemplateInfo.ALREADY_LINKED, alreadyLinked,
             FranceconnectLinkSoyTemplateInfo.CONTINUE, continueUrl,
             FranceconnectLinkSoyTemplateInfo.ENCRYPTED_STATE, state,
             FranceconnectLinkSoyTemplateInfo.ERROR, error

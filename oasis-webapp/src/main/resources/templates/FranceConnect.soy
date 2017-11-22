@@ -144,6 +144,8 @@ a {lb} color: #6f438e; {rb}
 {@param  signUpFormAction: string} /** URL to post the sign-up form to. */
 {@param  loginFormAction:  string} /** URL to post the sign-in form to. */
 {@param  forgotPassword:   string} /** URL to the form allowing for recovering your password. */
+{@param? email:            string} /** Email address to pre-fill username field. */
+{@param  alreadyLinked:    bool}   /** Whether the account identified with 'email' is already linked to another FC identity. */
 {@param  continue:         string} /** URL to continue to after successful login. */
 {@param  encryptedState:   string} /** encrypted state, contains sensitive data. */
 {@param? error:            string} /** error; can be one of INCORRECT_USERNAME_OR_PASSWORD */
@@ -196,11 +198,28 @@ small {lb} display: block; margin-top: 2em; font-size: .65em; line-height: initi
   {/if}
   <h2>{msg desc="franceconnect link page heading"}Link account to FranceConnect{/msg}</h2>
 
-  <p>{msg desc="franceconnect link page description (no match)"}
-    No account exists for your FranceConnect identity,
-    please sign in below to link your FranceConnect identity to your account,
-    or sign up for a new account.
-  {/msg}</p>
+  {if $email and $alreadyLinked}
+    // XXX: propose to sign out from FranceConnect to try out with another identity?
+    <p>{msg desc="franceconnect link page description (email match)"}
+      No account exists for your FranceConnect identity,
+      but one exists for your email address that is already linked to another FranceConnect identity.
+      Please sign in below to link your FranceConnect identity to your account,
+      or sign up for a new account.
+      Note however that you won't be able to use your email address in either case.
+    {/msg}</p>
+  {elseif $email}
+    <p>{msg desc="franceconnect link page description (email match)"}
+      No account exists for your FranceConnect identity, but one exists for your email address,
+      please sign in below to link your FranceConnect identity to your account.
+      You can also sign up for a new account (you won't be able to use your email address though).
+    {/msg}</p>
+  {else}
+    <p>{msg desc="franceconnect link page description (no match)"}
+      No account exists for your FranceConnect identity,
+      please sign in below to link your FranceConnect identity to your account,
+      or sign up for a new account.
+    {/msg}</p>
+  {/if}
 
   <div class=two-cols style="align-items: baseline">
     <section>
@@ -228,7 +247,7 @@ small {lb} display: block; margin-top: 2em; font-size: .65em; line-height: initi
 
           <div>
               <label for=u>{msg desc="Email field label"}Email{/msg}</label>
-              <input id=u type=email name=u required autofocus autocomplete=username>
+              <input id=u type=email name=u required autofocus autocomplete=username {if $email and not $alreadyLinked}value="{$email}"{/if}>
           </div>
           <div>
               <label for=pwd>{msg desc="Password field label"}Password{/msg}</label>

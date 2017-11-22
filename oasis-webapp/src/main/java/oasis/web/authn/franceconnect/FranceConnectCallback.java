@@ -53,6 +53,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.Produces;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
@@ -186,9 +187,21 @@ public class FranceConnectCallback {
       }
 
       // otherwise, ask user to authenticate (and link to account) or signup for a new account
+      String email_address = getEmailAddress(tokenResponse.access_token, franceconnect_sub);
+      boolean alreadyLinked = false;
+      if (email_address != null && !email_address.isEmpty()) {
+        UserAccount userAccount = accountRepository.getUserAccountByEmail(email_address);
+        if (userAccount == null) {
+          // TODO: handle not-yet-activated accounts
+          email_address = null;
+        } else if (userAccount.getFranceconnect_sub() != null) {
+          // XXX: explicitly check for "has password"? Currently franceconnect_sub==null means you do have a password.
+          alreadyLinked = true;
+        } // otherwise there's a matching account, so pre-fill the form with the email address (or email address is already null)
+      }
       return FranceConnectLinkPage.linkForm(authSettings,
           localeHelper.selectLocale(state.locale(), request),
-          state.continueUrl().toString(),
+          email_address, alreadyLinked, state.continueUrl().toString(),
           FranceConnectLinkState.create(tokenResponse.access_token, tokenResponse.id_token, franceconnect_sub));
     }
   }
@@ -264,6 +277,28 @@ public class FranceConnectCallback {
         .processToClaims(id_token);
   }
 
+  @Nullable
+  private String getEmailAddress(String access_token, String franceconnect_sub) {
+    Response response = httpClient.target(fcSettings.userinfoEndpoint())
+        .request()
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + access_token)
+        .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
+        .get();
+    if (response.getStatusInfo().getFamily() != Response.Status.Family.SUCCESSFUL) {
+      return null;
+    }
+    UserInfoResponse userInfo;
+    try {
+      userInfo = response.readEntity(UserInfoResponse.class);
+    } catch (ProcessingException e) {
+      return null;
+    }
+    if (!franceconnect_sub.equals(userInfo.sub)) {
+      return null;
+    }
+    return userInfo.email;
+  }
+
   private Response.ResponseBuilder badRequest(@Nullable FranceConnectLoginState state) {
     return error(Response.status(Response.Status.BAD_REQUEST), state);
   }
@@ -306,5 +341,11 @@ public class FranceConnectCallback {
     // @JsonProperty String scope;
     // @JsonProperty @Nullable String refresh_token;
     @JsonProperty @Nullable String id_token;
+  }
+
+  static class UserInfoResponse {
+    @JsonProperty String sub;
+    @JsonProperty String email;
+    // ignore all other fields, we're only interested in the email address.
   }
 }
