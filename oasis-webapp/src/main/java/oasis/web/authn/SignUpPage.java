@@ -117,7 +117,7 @@ public class SignUpPage {
     account.setLocale(locale);
     // TODO: Use a zoneinfo "matching" the selected locale
     account.setZoneinfo("Europe/Paris");
-    account = accountRepository.createUserAccount(account);
+    account = accountRepository.createUserAccount(account, false);
     if (account == null) {
       // TODO: Allow the user to retrieve their password
       return LoginPage.signupForm(Response.ok(), continueUrl, locale, authSettings, franceConnectSettings != null, LoginPage.SignupError.ACCOUNT_ALREADY_EXISTS);

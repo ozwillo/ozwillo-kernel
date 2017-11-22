@@ -18,6 +18,8 @@
 package oasis.web.userdirectory;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
@@ -46,6 +48,9 @@ import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.Address;
 import oasis.model.accounts.UserAccount;
 import oasis.model.authn.AccessToken;
+import oasis.model.authn.ClientType;
+import oasis.model.authn.Credentials;
+import oasis.model.authn.CredentialsRepository;
 import oasis.model.authz.Scopes;
 import oasis.model.bootstrap.ClientIds;
 import oasis.web.authn.testing.TestOAuthFilter;
@@ -91,6 +96,7 @@ public class UserEndpointTest {
 
   @Inject @Rule public InProcessResteasy resteasy;
 
+  @Inject public CredentialsRepository credentialsRepository;
 
   @Before
   public void setUpMocks(AccountRepository accountRepository) {
@@ -120,6 +126,8 @@ public class UserEndpointTest {
       setName(userAccount.getName());
       setNickname(userAccount.getNickname());
     }});
+
+    verifyZeroInteractions(credentialsRepository);
   }
 
   @Test public void testGet_fromApplication_forOtherAccount() {
@@ -140,9 +148,16 @@ public class UserEndpointTest {
       setName(userAccountWithFC.getName());
       setNickname(userAccountWithFC.getNickname());
     }});
+
+    verifyZeroInteractions(credentialsRepository);
   }
 
   @Test public void testGet_fromPortal() {
+    when(credentialsRepository.getCredentials(ClientType.USER, userAccount.getId())).thenReturn(new Credentials() {{
+      setClientType(ClientType.USER);
+      setId(userAccount.getId());
+    }});
+
     resteasy.getDeployment().getProviderFactory().register(new TestOAuthFilter(new AccessToken() {{
       setAccountId(userAccount.getId());
       setServiceProviderId(ClientIds.PORTAL);
@@ -162,6 +177,11 @@ public class UserEndpointTest {
   }
 
   @Test public void testGet_fromPortal_forOtherAccount() {
+    when(credentialsRepository.getCredentials(ClientType.USER, userAccountWithFC.getId())).thenReturn(new Credentials() {{
+      setClientType(ClientType.USER);
+      setId(userAccountWithFC.getId());
+    }});
+
     resteasy.getDeployment().getProviderFactory().register(new TestOAuthFilter(new AccessToken() {{
       setAccountId(userAccount.getId());
       setServiceProviderId(ClientIds.PORTAL);
@@ -178,6 +198,48 @@ public class UserEndpointTest {
     assertThat(user).isEqualToComparingFieldByFieldRecursively(new PortalUserAccount(userAccountWithFC) {{
       authentication_methods = ImmutableList.of("pwd", "franceconnect");
     }});
+  }
+
+  @Test public void testGet_fromPortal_withoutPassword() {
+    resteasy.getDeployment().getProviderFactory().register(new TestOAuthFilter(new AccessToken() {{
+      setAccountId(userAccountWithFC.getId());
+      setServiceProviderId(ClientIds.PORTAL);
+      setScopeIds(ImmutableSet.of(Scopes.PORTAL));
+    }}));
+
+    Response response = resteasy.getClient()
+        .target(resteasy.getBaseUriBuilder().path(UserEndpoint.class).build(userAccountWithFC.getId()))
+        .request().get();
+
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
+    assertThat(response.getMediaType()).isEqualTo(MediaType.APPLICATION_JSON_TYPE);
+    PortalUserAccount user = response.readEntity(PortalUserAccount.class);
+    assertThat(user).isEqualToComparingFieldByFieldRecursively(new PortalUserAccount(userAccountWithFC) {{
+      authentication_methods = ImmutableList.of("franceconnect");
+    }});
+
+    verify(credentialsRepository).getCredentials(ClientType.USER, userAccountWithFC.getId());
+  }
+
+  @Test public void testGet_fromPortal_forOtherAccount_withoutPassword() {
+    resteasy.getDeployment().getProviderFactory().register(new TestOAuthFilter(new AccessToken() {{
+      setAccountId(userAccount.getId());
+      setServiceProviderId(ClientIds.PORTAL);
+      setScopeIds(ImmutableSet.of(Scopes.PORTAL));
+    }}));
+
+    Response response = resteasy.getClient()
+        .target(resteasy.getBaseUriBuilder().path(UserEndpoint.class).build(userAccountWithFC.getId()))
+        .request().get();
+
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
+    assertThat(response.getMediaType()).isEqualTo(MediaType.APPLICATION_JSON_TYPE);
+    PortalUserAccount user = response.readEntity(PortalUserAccount.class);
+    assertThat(user).isEqualToComparingFieldByFieldRecursively(new PortalUserAccount(userAccountWithFC) {{
+      authentication_methods = ImmutableList.of("franceconnect");
+    }});
+
+    verify(credentialsRepository).getCredentials(ClientType.USER, userAccountWithFC.getId());
   }
 
   // TODO: test PUT

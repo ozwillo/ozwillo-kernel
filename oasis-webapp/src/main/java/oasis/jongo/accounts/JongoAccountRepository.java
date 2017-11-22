@@ -22,11 +22,8 @@ import java.util.Map;
 
 import javax.inject.Inject;
 
-import org.jongo.FindAndModify;
 import org.jongo.Jongo;
 import org.jongo.MongoCollection;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -36,12 +33,9 @@ import com.mongodb.DuplicateKeyException;
 import oasis.jongo.JongoBootstrapper;
 import oasis.model.InvalidVersionException;
 import oasis.model.accounts.AccountRepository;
-import oasis.model.accounts.Address;
 import oasis.model.accounts.UserAccount;
 
 public class JongoAccountRepository implements AccountRepository, JongoBootstrapper {
-  private static final Logger logger = LoggerFactory.getLogger(JongoAccountRepository.class);
-
   private final Jongo jongo;
 
   @Inject
@@ -55,32 +49,35 @@ public class JongoAccountRepository implements AccountRepository, JongoBootstrap
 
   @Override
   public UserAccount getUserAccountByEmail(String email) {
-    // XXX: accounts aren't activated until you verify the e-mail address
+    // XXX: accounts aren't activated until you verify the e-mail address, unless you signed up with FranceConnect
     return this.getAccountCollection()
-        .findOne("{ email_address: #, email_verified: true }", email)
+        .findOne("{ email_address: #, $or: [ { email_verified: true }, { franceconnect_sub: { $exists: true } } ] }", email)
         .as(JongoUserAccount.class);
   }
 
   @Override
   public UserAccount getUserAccountById(String id) {
-    // XXX: accounts aren't activated until you verify the e-mail address
+    // XXX: accounts aren't activated until you verify the e-mail address, unless you signed up with FranceConnect
     return this.getAccountCollection()
-        .findOne("{ id: #, email_verified: true }", id)
+        .findOne("{ id: #, $or: [ { email_verified: true }, { franceconnect_sub: { $exists: true } } ] }", id)
         .as(JongoUserAccount.class);
   }
 
   @Override
   public UserAccount getUserAccountByFranceConnectSub(String franceconnect_sub) {
-    // XXX: accounts aren't activated until you verify the e-mail address
+    // XXX: accounts aren't activated until you verify the e-mail address, unless you signed up with FranceConnect
     return this.getAccountCollection()
-        .findOne("{ franceconnect_sub: #, email_verified: true }", franceconnect_sub)
+        .findOne("{ franceconnect_sub: #, $or: [ { email_verified: true }, { franceconnect_sub: { $exists: true } } ] }", franceconnect_sub)
         .as(JongoUserAccount.class);
   }
 
   @Override
-  public UserAccount createUserAccount(UserAccount user) {
+  public UserAccount createUserAccount(UserAccount user, boolean markAsActivated) {
     JongoUserAccount jongoUserAccount = new JongoUserAccount(user);
     jongoUserAccount.initCreated_at();
+    if (markAsActivated) {
+      jongoUserAccount.initActivated_at();
+    }
     try {
       getAccountCollection().insert(jongoUserAccount);
     } catch (DuplicateKeyException e) {
@@ -160,13 +157,15 @@ public class JongoAccountRepository implements AccountRepository, JongoBootstrap
   }
 
   @Override
-  public UserAccount verifyEmailAddress(String id) {
+  public UserAccount verifyEmailAddress(String id, boolean markAsActivated) {
     // XXX: we use a JongoUserAccount to update the updated_at field
     JongoUserAccount userAccount = new JongoUserAccount();
     // reset ID (not copied over) to make sure we won't generate a new one
     userAccount.setId(id);
     userAccount.setEmail_verified(true);
-    userAccount.initActivated_at();
+    if (markAsActivated) {
+      userAccount.initActivated_at();
+    }
     return getAccountCollection()
         .findAndModify("{ id: # }", id)
         .with("{ $set: # }", userAccount)

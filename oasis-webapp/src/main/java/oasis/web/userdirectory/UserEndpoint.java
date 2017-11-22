@@ -17,6 +17,7 @@
  */
 package oasis.web.userdirectory;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -36,8 +37,6 @@ import javax.ws.rs.core.SecurityContext;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 
 import oasis.model.InvalidVersionException;
 import oasis.model.accounts.AccountRepository;
@@ -59,6 +58,7 @@ import oasis.web.utils.ResponseFactory;
 @Authenticated @OAuth
 public class UserEndpoint {
   @Inject AccountRepository accountRepository;
+  @Inject CredentialsRepository credentialsRepository;
   @Inject EtagService etagService;
 
   @Context SecurityContext securityContext;
@@ -75,7 +75,8 @@ public class UserEndpoint {
     // FIXME: temporarily give full-access to the portal only; sharing only the name and nickname to other applications.
     UserAccount filteredAccount;
     if (ClientIds.PORTAL.equals(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getServiceProviderId())) {
-      filteredAccount = new PortalUserAccount(account);
+      boolean hasPassword = credentialsRepository.getCredentials(ClientType.USER, account.getId()) != null;
+      filteredAccount = new PortalUserAccount(account, hasPassword);
     } else {
       filteredAccount = new UserAccount();
       filteredAccount.setId(account.getId());
@@ -138,12 +139,17 @@ public class UserEndpoint {
   static class PortalUserAccount extends UserAccount {
     @JsonProperty final List<String> authentication_methods;
 
-    PortalUserAccount(UserAccount account) {
+    PortalUserAccount(UserAccount account, boolean hasPassword) {
       super(account);
       setId(account.getId());
-      authentication_methods = (getFranceconnect_sub() == null)
-          ? ImmutableList.of("pwd")
-          : ImmutableList.of("pwd", "franceconnect");
+
+      authentication_methods = new ArrayList<>(2);
+      if (hasPassword) {
+        authentication_methods.add("pwd");
+      }
+      if (getFranceconnect_sub() != null) {
+        authentication_methods.add("franceconnect");
+      }
     }
   }
 }

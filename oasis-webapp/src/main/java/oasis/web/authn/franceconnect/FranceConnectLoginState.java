@@ -31,7 +31,7 @@ import com.google.common.io.BaseEncoding;
 import com.ibm.icu.util.ULocale;
 
 @Value.Immutable
-abstract class FranceConnectLoginState {
+public abstract class FranceConnectLoginState {
   private static final String COOKIE_NAME_PREFIX = "franceconnect_state-";
   private static final BaseEncoding BASE_ENCODING = BaseEncoding.base64Url().omitPadding();
   // Note: make sure BASE_ENCODING (used in generateRandom) won't ever produce such a character
@@ -51,11 +51,11 @@ abstract class FranceConnectLoginState {
     return BASE_ENCODING.encode(bytes);
   }
 
-  static String getCookieName(String state, boolean secure) {
+  public static String getCookieName(String state, boolean secure) {
     return CookieFactory.getCookieName(COOKIE_NAME_PREFIX + state, secure);
   }
 
-  static NewCookie createCookie(String state, ULocale locale, String nonce, URI continueUrl, boolean secure) {
+  public static NewCookie createCookie(String state, ULocale locale, String nonce, URI continueUrl, boolean secure) {
     return CookieFactory.createSessionCookie(COOKIE_NAME_PREFIX + state, toString(locale, nonce, continueUrl), secure, true);
   }
 

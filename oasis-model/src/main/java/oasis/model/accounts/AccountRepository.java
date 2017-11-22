@@ -26,11 +26,11 @@ public interface AccountRepository {
 
   UserAccount getUserAccountByFranceConnectSub(String franceconnect_sub);
 
-  UserAccount createUserAccount(UserAccount agent);
+  UserAccount createUserAccount(UserAccount agent, boolean markAsActivated);
 
   UserAccount updateAccount(UserAccount account, long[] versions) throws InvalidVersionException;
 
-  UserAccount verifyEmailAddress(String id);
+  UserAccount verifyEmailAddress(String id, boolean markAsActivated);
 
   boolean linkToFranceConnect(String id, String franceconnect_sub);
 

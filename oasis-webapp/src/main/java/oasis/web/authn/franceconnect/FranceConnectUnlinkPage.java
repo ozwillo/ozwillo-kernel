@@ -44,12 +44,13 @@ import com.google.template.soy.data.SoyMapData;
 import oasis.auditlog.AuditLogService;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
+import oasis.model.authn.ClientType;
+import oasis.model.authn.CredentialsRepository;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
 import oasis.services.authn.UserPasswordAuthenticator;
 import oasis.soy.SoyTemplate;
 import oasis.soy.templates.FranceConnectSoyInfo;
-import oasis.soy.templates.FranceConnectSoyInfo.FranceconnectErrorSoyTemplateInfo;
 import oasis.soy.templates.FranceConnectSoyInfo.FranceconnectUnlinkSoyTemplateInfo;
 import oasis.urls.Urls;
 import oasis.web.authn.Authenticated;
@@ -65,6 +66,7 @@ public class FranceConnectUnlinkPage {
   private static final Logger logger = LoggerFactory.getLogger(FranceConnectUnlinkPage.class);
 
   @Inject AccountRepository accountRepository;
+  @Inject CredentialsRepository credentialsRepository;
   @Inject Urls urls;
   @Inject UserPasswordAuthenticator userPasswordAuthenticator;
   @Inject TokenRepository tokenRepository;
@@ -130,6 +132,10 @@ public class FranceConnectUnlinkPage {
     if (account.getFranceconnect_sub() == null) {
       return redirectAfterSuccess();
     }
+    boolean hasPassword = credentialsRepository.getCredentials(ClientType.USER, account.getId()) != null;
+    if (error == null && !hasPassword) {
+      error = LoginError.ACCOUNT_WITHOUT_PASSWORD;
+    }
     return rb
         .type(MediaType.TEXT_HTML_TYPE)
         .entity(new SoyTemplate(FranceConnectSoyInfo.FRANCECONNECT_UNLINK, account.getLocale(), new SoyMapData(
@@ -137,6 +143,7 @@ public class FranceConnectUnlinkPage {
             FranceconnectUnlinkSoyTemplateInfo.PORTAL_URL, urls.myProfile().map(URI::toString).orElse(null),
             FranceconnectUnlinkSoyTemplateInfo.AUTHND_WITHFC, sidToken.getFranceconnectIdToken() != null,
             FranceconnectUnlinkSoyTemplateInfo.EMAIL, account.getEmail_address(),
+            FranceconnectUnlinkSoyTemplateInfo.HAS_PASSWORD, hasPassword,
             FranceconnectUnlinkSoyTemplateInfo.ERROR, error == null ? null : error.name()
         )))
         .build();
@@ -147,6 +154,7 @@ public class FranceConnectUnlinkPage {
   }
 
   enum LoginError {
-    INCORRECT_USERNAME_OR_PASSWORD
+    INCORRECT_USERNAME_OR_PASSWORD,
+    ACCOUNT_WITHOUT_PASSWORD
   }
 }

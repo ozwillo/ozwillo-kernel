@@ -36,6 +36,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
+import oasis.model.authn.ClientType;
+import oasis.model.authn.CredentialsRepository;
 import oasis.web.security.StrictReferer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,6 +63,7 @@ public class ForgotPasswordPage {
   private static final Logger logger = LoggerFactory.getLogger(ForgotPasswordPage.class);
 
   @Inject AccountRepository accountRepository;
+  @Inject CredentialsRepository credentialsRepository;
   @Inject MailSender mailSender;
   @Inject TokenHandler tokenHandler;
   @Inject LocaleHelper localeHelper;
@@ -89,7 +92,7 @@ public class ForgotPasswordPage {
 
     UserAccount account = accountRepository.getUserAccountByEmail(email);
     try {
-      if (account == null) {
+      if (account == null || credentialsRepository.getCredentials(ClientType.USER, account.getId()) == null) {
         mailSender.send(new MailMessage()
           .setRecipient(email, null)
           .setLocale(locale)

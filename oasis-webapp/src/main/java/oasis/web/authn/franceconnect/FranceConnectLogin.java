@@ -60,7 +60,10 @@ public class FranceConnectLogin {
       @FormParam("continue") URI continueUrl
   ) {
     locale = localeHelper.selectLocale(locale, request);
+    return redirectToFranceConnect(settings, secureRandom, securityContext, uriInfo, locale, continueUrl);
+  }
 
+  public static Response redirectToFranceConnect(FranceConnectModule.Settings settings, SecureRandom secureRandom, SecurityContext securityContext, UriInfo uriInfo, ULocale locale, URI continueUrl) {
     final String state = FranceConnectLoginState.generateStateKey(secureRandom);
     final String nonce = FranceConnectLoginState.generateNonce(secureRandom);
 
@@ -81,5 +84,4 @@ public class FranceConnectLogin {
         .cookie(FranceConnectLoginState.createCookie(state, locale, nonce, continueUrl, securityContext.isSecure()))
         .build();
   }
-
 }

@@ -73,7 +73,7 @@ public class ActivateAccountPage {
       // XXX: return error message rather than blank page
       return ResponseFactory.NOT_FOUND;
     }
-    UserAccount userAccount = accountRepository.verifyEmailAddress(accountActivationToken.getAccountId());
+    UserAccount userAccount = accountRepository.verifyEmailAddress(accountActivationToken.getAccountId(), true);
     if (userAccount == null) {
       // XXX: return error message rather than blank page
       return ResponseFactory.NOT_FOUND;

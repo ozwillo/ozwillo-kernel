@@ -18,6 +18,7 @@
 package oasis.web.authn;
 
 import java.net.URI;
+import java.security.SecureRandom;
 import java.util.Optional;
 
 import javax.annotation.Nullable;
@@ -53,6 +54,7 @@ import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.authn.ClientCertificate;
 import oasis.model.authn.ClientType;
+import oasis.model.authn.CredentialsRepository;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
 import oasis.services.authn.TokenHandler;
@@ -80,12 +82,14 @@ public class LoginPage {
   @Inject TokenRepository tokenRepository;
   @Inject TokenHandler tokenHandler;
   @Inject AccountRepository accountRepository;
+  @Inject CredentialsRepository credentialsRepository;
   @Inject AuditLogService auditLogService;
   @Inject Urls urls;
   @Inject LocaleHelper localeHelper;
   @Inject ClientCertificateHelper clientCertificateHelper;
   @Inject LoginHelper loginHelper;
   @Inject @Nullable FranceConnectModule.Settings franceConnectSettings;
+  @Inject SecureRandom secureRandom;
 
   @Context SecurityContext securityContext;
   @Context UriInfo uriInfo;
@@ -177,7 +181,13 @@ public class LoginPage {
     return loginForm(builder, continueUrl, locale, franceConnectSettings != null, error);
   }
 
-  private static Response reauthForm(Response.ResponseBuilder builder, URI continueUrl, @Nullable LoginError error, UserAccount userAccount) {
+  private Response reauthForm(Response.ResponseBuilder builder, URI continueUrl, @Nullable LoginError error, UserAccount userAccount) {
+    if (credentialsRepository.getCredentials(ClientType.USER, userAccount.getId()) == null) {
+      assert franceConnectSettings != null;
+      assert userAccount.getFranceconnect_sub() != null;
+      return FranceConnectLogin.redirectToFranceConnect(franceConnectSettings, secureRandom, securityContext, uriInfo, userAccount.getLocale(), continueUrl);
+    }
+
     SoyTemplate soyTemplate = new SoyTemplate(LoginSoyInfo.REAUTH, userAccount.getLocale(), new SoyMapData(
         ReauthSoyTemplateInfo.REAUTH_EMAIL, userAccount.getEmail_address(),
         ReauthSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(LoginPage.class).build().toString(),

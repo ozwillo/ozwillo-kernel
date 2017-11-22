@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import java.net.URI;
 import java.time.Duration;
 import java.util.regex.Pattern;
 
@@ -48,13 +49,18 @@ import org.junit.runner.RunWith;
 import com.google.common.html.HtmlEscapers;
 import com.google.common.net.UrlEscapers;
 import com.google.inject.Inject;
+import com.ibm.icu.util.ULocale;
 
 import oasis.auditlog.noop.NoopAuditLogModule;
+import oasis.auth.FranceConnectModule;
+import oasis.auth.ImmutableFranceConnectModule;
 import oasis.http.testing.InProcessResteasy;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.authn.ClientCertificate;
 import oasis.model.authn.ClientType;
+import oasis.model.authn.Credentials;
+import oasis.model.authn.CredentialsRepository;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
 import oasis.services.authn.TokenHandler;
@@ -64,8 +70,11 @@ import oasis.services.cookies.CookieFactory;
 import oasis.soy.SoyGuiceModule;
 import oasis.urls.ImmutableUrls;
 import oasis.urls.UrlsModule;
+import oasis.web.authn.franceconnect.FranceConnectCallback;
+import oasis.web.authn.franceconnect.FranceConnectLoginState;
 import oasis.web.authn.testing.TestUserFilter;
 import oasis.web.view.SoyTemplateBodyWriter;
+import okhttp3.HttpUrl;
 
 @RunWith(JukitoRunner.class)
 public class LoginPageTest {
@@ -78,6 +87,15 @@ public class LoginPageTest {
       install(new NoopAuditLogModule());
       install(new SoyGuiceModule());
       install(new UrlsModule(ImmutableUrls.builder().build()));
+      install(new FranceConnectModule(ImmutableFranceConnectModule.Settings.builder()
+          .issuer("https://fcp/")
+          .authorizationEndpoint(HttpUrl.parse("https://fcp/authorize"))
+          .tokenEndpoint("https://fcp/token")
+          .userinfoEndpoint("https://fcp/userinfo")
+          .endSessionEndpoint(HttpUrl.parse("https://fcp/logout"))
+          .clientId("fcp_client_id")
+          .clientSecret("fcp_client_secret")
+          .build()));
 
       bindMock(UserPasswordAuthenticator.class).in(TestSingleton.class);
       bindMock(TokenHandler.class).in(TestSingleton.class);
@@ -97,6 +115,12 @@ public class LoginPageTest {
     setId("otherUser");
     setEmail_address("other@example.com");
   }};
+  private static final UserAccount passwordlessAccount = new UserAccount() {{
+    setId("passwordless");
+    setEmail_address("other@example.com");
+    setFranceconnect_sub("franceconnect_sub");
+    setLocale(ULocale.ITALY);
+  }};
   private static final SidToken someSidToken = new SidToken() {{
     setId("someSidToken");
     setAccountId(someUserAccount.getId());
@@ -105,6 +129,13 @@ public class LoginPageTest {
   private static final SidToken otherSidToken = new SidToken() {{
     setId("otherSidToken");
     setAccountId(otherUserAccount.getId());
+    expiresIn(Duration.ofHours(1));
+  }};
+  private static final SidToken passwordlessSidToken = new SidToken() {{
+    setId("passwordlessSidToken");
+    setAccountId(passwordlessAccount.getId());
+    setFranceconnectIdToken("franceconnect_id_token");
+    setFranceconnectAccessToken("franceconnect_access_token");
     expiresIn(Duration.ofHours(1));
   }};
   private static final ClientCertificate someClientCertificate = new ClientCertificate() {{
@@ -126,12 +157,21 @@ public class LoginPageTest {
   @Inject @Rule public InProcessResteasy resteasy;
 
   @SuppressWarnings("unchecked")
-  @Before public void setupMocks(UserPasswordAuthenticator userPasswordAuthenticator, TokenHandler tokenHandler,
-      SessionManagementHelper sessionManagementHelper, AccountRepository accountRepository, TokenRepository tokenRepository) throws LoginException {
+  @Before public void setupMocks(UserPasswordAuthenticator userPasswordAuthenticator, TokenHandler tokenHandler, SessionManagementHelper sessionManagementHelper,
+      AccountRepository accountRepository, TokenRepository tokenRepository, CredentialsRepository credentialsRepository) throws LoginException {
     when(userPasswordAuthenticator.authenticate(someUserAccount.getEmail_address(), "password")).thenReturn(someUserAccount);
     when(userPasswordAuthenticator.authenticate(someUserAccount.getEmail_address(), "invalid")).thenThrow(FailedLoginException.class);
     when(userPasswordAuthenticator.authenticate(otherUserAccount.getEmail_address(), "password")).thenReturn(otherUserAccount);
     when(userPasswordAuthenticator.authenticate(eq("unknown@example.com"), anyString())).thenThrow(AccountNotFoundException.class);
+
+    when(credentialsRepository.getCredentials(ClientType.USER, someUserAccount.getId())).thenReturn(new Credentials() {{
+      setClientType(ClientType.USER);
+      setId(someUserAccount.getId());
+    }});
+    when(credentialsRepository.getCredentials(ClientType.USER, otherUserAccount.getId())).thenReturn(new Credentials() {{
+      setClientType(ClientType.USER);
+      setId(otherUserAccount.getId());
+    }});
 
     when(tokenHandler.generateRandom()).thenReturn("pass");
     when(tokenHandler.createSidToken(eq(someUserAccount.getId()), any(byte[].class), anyBoolean(), isNull(), isNull(), eq("pass"))).thenReturn(someSidToken);
@@ -139,6 +179,7 @@ public class LoginPageTest {
 
     when(accountRepository.getUserAccountById(someUserAccount.getId())).thenReturn(someUserAccount);
     when(accountRepository.getUserAccountById(otherUserAccount.getId())).thenReturn(otherUserAccount);
+    when(accountRepository.getUserAccountById(passwordlessAccount.getId())).thenReturn(passwordlessAccount);
 
     when(tokenRepository.reAuthSidToken(anyString())).thenReturn(true);
 
@@ -198,6 +239,45 @@ public class LoginPageTest {
     assertThat(response.getCookies()).doesNotContainKeys(cookieName, browserStateCookieName);
     assertLoginForm(response)
         .matches(reauthUser(someUserAccount.getEmail_address()));
+  }
+
+  @Test public void loginPageWhileLoggedInPasswordless(FranceConnectModule.Settings fcSettings) {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(passwordlessSidToken));
+
+    final String continueUrl = "/foo/bar?baz&qux=qu%26ux";
+
+    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(LoginPage.class))
+        .queryParam(LoginPage.CONTINUE_PARAM, UrlEscapers.urlFormParameterEscaper().escape(continueUrl))
+        .request().get();
+
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
+
+    HttpUrl parsedLocation = HttpUrl.get(response.getLocation());
+    assertThat(parsedLocation.newBuilder()
+        .removeAllQueryParameters("response_type")
+        .removeAllQueryParameters("client_id")
+        .removeAllQueryParameters("redirect_uri")
+        .removeAllQueryParameters("scope")
+        .removeAllQueryParameters("state")
+        .removeAllQueryParameters("nonce")
+        .removeAllQueryParameters("id_token_hint")
+        .build()).isEqualTo(fcSettings.authorizationEndpoint());
+    assertThat(parsedLocation.queryParameter("response_type")).isEqualTo("code");
+    assertThat(parsedLocation.queryParameter("client_id")).isEqualTo(fcSettings.clientId());
+    assertThat(parsedLocation.queryParameter("redirect_uri"))
+        .isEqualTo(resteasy.getBaseUriBuilder().path(FranceConnectCallback.class).build().toString());
+    assertThat(parsedLocation.queryParameter("scope")).isEqualTo("openid profile birth email");
+    assertThat(parsedLocation.queryParameter("id_token_hint")).isEqualTo(passwordlessSidToken.getFranceconnectIdToken());
+    String state = parsedLocation.queryParameter("state");
+    assertThat(state).isNotNull();
+    String nonce = parsedLocation.queryParameter("nonce");
+    assertThat(nonce).isNotNull();
+
+    assertThat(response.getCookies())
+        .doesNotContainKeys(cookieName, browserStateCookieName)
+        .containsEntry(
+            FranceConnectLoginState.getCookieName(state, true),
+            FranceConnectLoginState.createCookie(state, passwordlessAccount.getLocale(), nonce, URI.create(continueUrl), true));
   }
 
   @SuppressWarnings("unchecked")

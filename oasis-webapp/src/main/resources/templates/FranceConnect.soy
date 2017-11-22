@@ -72,7 +72,8 @@ h2 {lb} margin-bottom: 2.5em; {rb}
 {@param? portalUrl:    string} /** URL of the Portal. */
 {@param  authndWithFC: bool}   /** Whether the current session is authenticated with FranceConnect */
 {@param  email:        string} /** email of the logged-in user. */
-{@param? error:        string} /** error; can be one of INCORRECT_USERNAME_OR_PASSWORD */
+{@param  hasPassword:  bool}   /** whether there's a password setup for the account. */
+{@param? error:        string} /** error; can be one of INCORRECT_USERNAME_OR_PASSWORD or ACCOUNT_WITHOUT_PASSWORD */
 {call .header}
   {param title kind="text"}{msg desc="unlink FranceConnect page"}Unlink your account from FranceConnect{/msg}{/param}
 {/call}
@@ -102,28 +103,36 @@ a {lb} color: #6f438e; {rb}
       {switch $error}
       {case 'INCORRECT_USERNAME_OR_PASSWORD'}
         {msg desc="Error message when re-entering the password"}Incorrect password.{/msg}
+      {case 'ACCOUNT_WITHOUT_PASSWORD'}
+        {msg desc="Error message when account has no password"}You must setup a password for your account before unlinking it from FranceConnect.{/msg}
       {default}
         {msg desc="Generic error message"}An error occurred. That's all we know.{/msg}
     {/switch}
     </p>
   {/if}
-  <form method="POST" action="{$formAction}">
-    <input type=hidden name=_utf8 value="&#9731;">
+  {if $hasPassword}
+    <form method="POST" action="{$formAction}">
+      <input type=hidden name=_utf8 value="&#9731;">
 
-    <p>{$email}</p>
+      <p>{$email}</p>
 
-    {if $authndWithFC}
-      <input type=hidden name=u value="{$email}" autocomplete=username>
-      <p><label>{msg desc="Current password when unlinking FranceConnect"}Please re-enter your password:{/msg} <input type=password name=pwd required autocomplete=current-password></label>
-    {/if}
+      {if $authndWithFC}
+        <input type=hidden name=u value="{$email}" autocomplete=username>
+        <p><label>{msg desc="Current password when unlinking FranceConnect"}Please re-enter your password:{/msg} <input type=password name=pwd required autocomplete=current-password></label></p>
+      {/if}
 
-    <button type="submit">{msg desc="Form submit button"}Unlink{/msg}</button>
-    {if $portalUrl}
-      <a href="{$portalUrl}" class=portal>{msg desc="Cancel unlinking FranceConnect"}
-        Go back to My Ozwillo
-      {/msg}</a>
-    {/if}
-  </form>
+      <button type="submit">{msg desc="Form submit button"}Unlink{/msg}</button>
+      {if $portalUrl}
+        <a href="{$portalUrl}" class=portal>{msg desc="Cancel unlinking FranceConnect"}
+            Go back to My Ozwillo
+        {/msg}</a>
+      {/if}
+    </form>
+  {elseif $portalUrl}
+    <a href="{$portalUrl}" class=portal>{msg desc="Cancel unlinking FranceConnect"}
+      Go back to My Ozwillo
+    {/msg}</a>
+  {/if}
   {call .footer /}
 {/template}
 
