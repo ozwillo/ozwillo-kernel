@@ -75,9 +75,13 @@ ext.libs = [
 
   jaxrs_webhook:      'net.ltgt.jaxrs:jaxrs-webhook:0.1',
 
-  closure_templates_standalone: 'com.google.template:soy:2017-08-08',
+  closure_templates_standalone: dependencies.create('com.google.template:soy:2017-08-08') {
+      exclude group: 'com.google.gwt'
+  },
   closure_templates:   [
-      'com.google.template:soy:2017-08-08',
+      dependencies.create('com.google.template:soy:2017-08-08') {
+        exclude group: 'com.google.gwt'
+      },
       "com.google.inject.extensions:guice-assistedinject:$guiceVersion",
       "com.google.inject.extensions:guice-multibindings:$guiceVersion",
     ],
