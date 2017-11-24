@@ -187,6 +187,7 @@ public class LoginPage {
       assert userAccount.getFranceconnect_sub() != null;
       return FranceConnectLogin.redirectToFranceConnect(franceConnectSettings, secureRandom, securityContext, uriInfo, userAccount.getLocale(), continueUrl);
     }
+    assert userAccount.getEmail_address() != null;
 
     SoyTemplate soyTemplate = new SoyTemplate(LoginSoyInfo.REAUTH, userAccount.getLocale(), new SoyMapData(
         ReauthSoyTemplateInfo.REAUTH_EMAIL, userAccount.getEmail_address(),

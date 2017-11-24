@@ -38,6 +38,7 @@ import javax.ws.rs.core.UriInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.MoreObjects;
 import com.google.template.soy.data.SanitizedContent;
 import com.google.template.soy.data.SoyMapData;
 import com.google.template.soy.parseinfo.SoyTemplateInfo;
@@ -292,7 +293,7 @@ public class MembershipInvitationPage {
                 MembershipInvitationAlreadyMemberErrorSoyTemplateInfo.ORGANIZATION_NAME, organization.getName(),
                 MembershipInvitationAlreadyMemberErrorSoyTemplateInfo.REQUESTER_NAME, requester.getDisplayName(),
                 MembershipInvitationAlreadyMemberErrorSoyTemplateInfo.INVITED_EMAIL, pendingOrganizationMembership.getEmail(),
-                MembershipInvitationAlreadyMemberErrorSoyTemplateInfo.CURRENT_USER, user.getEmail_address()
+                MembershipInvitationAlreadyMemberErrorSoyTemplateInfo.CURRENT_USER, MoreObjects.firstNonNull(user.getEmail_address(), user.getDisplayName())
             )
         ))
         .build();

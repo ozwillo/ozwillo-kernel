@@ -25,6 +25,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.InternalServerErrorException;
@@ -305,9 +306,9 @@ public class MarketBuyEndpoint {
   public static class User {
     @JsonProperty String id;
     @JsonProperty String name;
-    @JsonProperty String email_address;
+    @JsonProperty @Nullable String email_address;
 
-    public User(String id, String name, String email_address) {
+    public User(String id, String name, @Nullable String email_address) {
       this.id = id;
       this.name = name;
       this.email_address = email_address;

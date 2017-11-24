@@ -39,6 +39,7 @@ import javax.ws.rs.core.UriInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.MoreObjects;
 import com.google.template.soy.data.SanitizedContent;
 import com.google.template.soy.data.SoyMapData;
 import com.google.template.soy.parseinfo.SoyTemplateInfo;
@@ -296,7 +297,7 @@ public class AppInstanceInvitationPage {
                 AppInstanceInvitationAlreadyUserErrorSoyTemplateInfo.APP_INSTANCE_NAME, appInstance.getName().get(user.getLocale()),
                 AppInstanceInvitationAlreadyUserErrorSoyTemplateInfo.REQUESTER_NAME, requester.getDisplayName(),
                 AppInstanceInvitationAlreadyUserErrorSoyTemplateInfo.INVITED_EMAIL, pendingAccessControlEntry.getEmail(),
-                AppInstanceInvitationAlreadyUserErrorSoyTemplateInfo.CURRENT_USER, user.getEmail_address()
+                AppInstanceInvitationAlreadyUserErrorSoyTemplateInfo.CURRENT_USER, MoreObjects.firstNonNull(user.getEmail_address(), user.getDisplayName())
             )
         ))
         .build();

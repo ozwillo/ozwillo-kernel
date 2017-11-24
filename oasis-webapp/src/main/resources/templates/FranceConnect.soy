@@ -71,7 +71,7 @@ h2 {lb} margin-bottom: 2.5em; {rb}
 {@param  formAction:   string} /** URL to post the form to. */
 {@param? portalUrl:    string} /** URL of the Portal. */
 {@param  authndWithFC: bool}   /** Whether the current session is authenticated with FranceConnect */
-{@param  email:        string} /** email of the logged-in user. */
+{@param? email:        string} /** email of the logged-in user (must be non-empty/non-null if hasPassword is true). */
 {@param  hasPassword:  bool}   /** whether there's a password setup for the account. */
 {@param? error:        string} /** error; can be one of INCORRECT_USERNAME_OR_PASSWORD or ACCOUNT_WITHOUT_PASSWORD */
 {call .header}
