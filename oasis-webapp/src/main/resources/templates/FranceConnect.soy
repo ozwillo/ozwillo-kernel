@@ -69,6 +69,7 @@ h2 {lb} margin-bottom: 2.5em; {rb}
 */
 {template .franceconnectUnlink}
 {@param  formAction:   string} /** URL to post the form to. */
+{@param  initPwdUrl:   string} /** URL to form for setting a password. */
 {@param? portalUrl:    string} /** URL of the Portal. */
 {@param  authndWithFC: bool}   /** Whether the current session is authenticated with FranceConnect */
 {@param? email:        string} /** email of the logged-in user (must be non-empty/non-null if hasPassword is true). */
@@ -104,7 +105,7 @@ a {lb} color: #6f438e; {rb}
       {case 'INCORRECT_USERNAME_OR_PASSWORD'}
         {msg desc="Error message when re-entering the password"}Incorrect password.{/msg}
       {case 'ACCOUNT_WITHOUT_PASSWORD'}
-        {msg desc="Error message when account has no password"}You must setup a password for your account before unlinking it from FranceConnect.{/msg}
+        {msg desc="Error message when account has no password"}You must <a href="{$initPwdUrl}">setup a password</a> for your account before unlinking it from FranceConnect.{/msg}
       {default}
         {msg desc="Generic error message"}An error occurred. That's all we know.{/msg}
     {/switch}

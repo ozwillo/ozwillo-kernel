@@ -54,6 +54,7 @@ import oasis.soy.templates.FranceConnectSoyInfo;
 import oasis.soy.templates.FranceConnectSoyInfo.FranceconnectUnlinkSoyTemplateInfo;
 import oasis.urls.Urls;
 import oasis.web.authn.Authenticated;
+import oasis.web.authn.ChangePasswordPage;
 import oasis.web.authn.LoginPage;
 import oasis.web.authn.User;
 import oasis.web.authn.UserSessionPrincipal;
@@ -141,6 +142,7 @@ public class FranceConnectUnlinkPage {
         .entity(new SoyTemplate(FranceConnectSoyInfo.FRANCECONNECT_UNLINK, account.getLocale(), new SoyMapData(
             FranceconnectUnlinkSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(FranceConnectUnlinkPage.class).build().toString(),
             FranceconnectUnlinkSoyTemplateInfo.PORTAL_URL, urls.myProfile().map(URI::toString).orElse(null),
+            FranceconnectUnlinkSoyTemplateInfo.INIT_PWD_URL, UriBuilder.fromResource(ChangePasswordPage.class).build().toString(),
             FranceconnectUnlinkSoyTemplateInfo.AUTHND_WITHFC, sidToken.getFranceconnectIdToken() != null,
             FranceconnectUnlinkSoyTemplateInfo.EMAIL, account.getEmail_address(),
             FranceconnectUnlinkSoyTemplateInfo.HAS_PASSWORD, hasPassword,

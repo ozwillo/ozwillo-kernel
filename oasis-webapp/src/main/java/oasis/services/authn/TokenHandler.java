@@ -39,6 +39,7 @@ import oasis.model.authn.AuthorizationCode;
 import oasis.model.authn.ChangePasswordToken;
 import oasis.model.authn.MembershipInvitationToken;
 import oasis.model.authn.RefreshToken;
+import oasis.model.authn.SetPasswordToken;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.Token;
 import oasis.model.authn.TokenRepository;
@@ -103,6 +104,26 @@ public class TokenHandler {
       return null;
     }
     return changePasswordToken;
+  }
+
+  public SetPasswordToken createSetPasswordToken(String accountId, String pwd, String pass) {
+    byte[] salt = passwordHasher.createSalt();
+    byte[] hash = passwordHasher.hashPassword(pwd, salt);
+
+    SetPasswordToken setPasswordToken =new SetPasswordToken();
+    setPasswordToken.setAccountId(accountId);
+    setPasswordToken.setPwdhash(hash);
+    setPasswordToken.setPwdsalt(salt);
+    setPasswordToken.expiresIn(authSettings.changePasswordTokenDuration);
+
+    secureToken(setPasswordToken, pass);
+
+    tokenRepository.revokeTokensForAccountAndTokenType(accountId, SetPasswordToken.class);
+
+    if (!tokenRepository.registerToken(setPasswordToken)) {
+      return null;
+    }
+    return setPasswordToken;
   }
 
   public AccessToken createAccessToken(AuthorizationCode authorizationCode, String pass) {

@@ -32,6 +32,8 @@ public interface AccountRepository {
 
   UserAccount verifyEmailAddress(String id, boolean markAsActivated);
 
+  UserAccount setEmailAddress(String id, String email);
+
   boolean linkToFranceConnect(String id, String franceconnect_sub);
 
   boolean unlinkFranceConnect(String id);

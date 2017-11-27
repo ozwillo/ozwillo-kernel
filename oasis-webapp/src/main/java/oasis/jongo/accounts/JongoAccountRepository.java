@@ -29,6 +29,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.primitives.Longs;
 import com.mongodb.DuplicateKeyException;
+import com.mongodb.ErrorCategory;
+import com.mongodb.MongoCommandException;
 
 import oasis.jongo.JongoBootstrapper;
 import oasis.model.InvalidVersionException;
@@ -171,6 +173,29 @@ public class JongoAccountRepository implements AccountRepository, JongoBootstrap
         .with("{ $set: # }", userAccount)
         .returnNew()
         .as(JongoUserAccount.class);
+  }
+
+  @Override
+  public UserAccount setEmailAddress(String id, String email) {
+    // XXX: we use a JongoUserAccount to update the updated_at field
+    JongoUserAccount userAccount = new JongoUserAccount();
+    // reset ID (not copied over) to make sure we won't generate a new one
+    userAccount.setId(id);
+    userAccount.setEmail_address(email);
+    try {
+      return getAccountCollection()
+          .findAndModify("{ id: #, franceconnect_sub: { $exists: true } }", id)
+          .with("{ $set: #, $unset: { email_verified: 1 } }", userAccount)
+          .returnNew()
+          .as(JongoUserAccount.class);
+    } catch (MongoCommandException e) {
+      if (ErrorCategory.fromErrorCode(e.getErrorCode()) == ErrorCategory.DUPLICATE_KEY) {
+        throw new oasis.model.DuplicateKeyException();
+      }
+      throw e;
+    } catch (DuplicateKeyException dke) {
+      throw new oasis.model.DuplicateKeyException();
+    }
   }
 
   @Override

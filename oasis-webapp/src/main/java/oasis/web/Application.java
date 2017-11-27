@@ -44,11 +44,13 @@ import oasis.web.authn.ChangePasswordPage;
 import oasis.web.authn.CheckSessionIframePage;
 import oasis.web.authn.ClientAuthenticationFilter;
 import oasis.web.authn.ForgotPasswordPage;
+import oasis.web.authn.InitPasswordPage;
 import oasis.web.authn.LoginPage;
 import oasis.web.authn.LogoutPage;
 import oasis.web.authn.OAuthAuthenticationFilter;
 import oasis.web.authn.OAuthFilter;
 import oasis.web.authn.ResetPasswordPage;
+import oasis.web.authn.SetPasswordPage;
 import oasis.web.authn.SignUpPage;
 import oasis.web.authn.UserAuthenticationFilter;
 import oasis.web.authn.UserCanonicalBaseUriFilter;
@@ -114,6 +116,8 @@ public class Application extends javax.ws.rs.core.Application {
         ChangePasswordPage.class,
         ForgotPasswordPage.class,
         ResetPasswordPage.class,
+        InitPasswordPage.class,
+        SetPasswordPage.class,
         CheckSessionIframePage.class,
         UserCertificatesPage.class,
         // Authorization

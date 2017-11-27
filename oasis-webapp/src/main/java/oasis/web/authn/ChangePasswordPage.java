@@ -40,6 +40,7 @@ import oasis.auth.AuthModule;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.authn.ClientType;
+import oasis.model.authn.CredentialsRepository;
 import oasis.model.authn.TokenRepository;
 import oasis.services.authn.CredentialsService;
 import oasis.services.cookies.CookieFactory;
@@ -56,6 +57,7 @@ import oasis.web.security.StrictReferer;
 public class ChangePasswordPage {
   @Inject AccountRepository accountRepository;
   @Inject CredentialsService credentialsService;
+  @Inject CredentialsRepository credentialsRepository;
   @Inject TokenRepository tokenRepository;
   @Inject AuthModule.Settings authSettings;
   @Inject Urls urls;
@@ -67,6 +69,9 @@ public class ChangePasswordPage {
   public Response get() {
     String userId = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken().getAccountId();
     UserAccount account = accountRepository.getUserAccountById(userId);
+    if (credentialsRepository.getCredentials(ClientType.USER, account.getId()) == null) {
+      return SetPasswordPage.form(Response.ok(), authSettings, urls, account, null);
+    }
     return form(Response.ok(), account, null);
   }
 
@@ -107,6 +112,10 @@ public class ChangePasswordPage {
   }
 
   private Response form(Response.ResponseBuilder builder, UserAccount account, @Nullable PasswordChangeError error) {
+    return form(builder, authSettings, urls, account, error);
+  }
+
+  static Response form(Response.ResponseBuilder builder, AuthModule.Settings authSettings, Urls urls, UserAccount account, @Nullable PasswordChangeError error) {
     return builder
         .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store")
         .header("Pragma", "no-cache")
