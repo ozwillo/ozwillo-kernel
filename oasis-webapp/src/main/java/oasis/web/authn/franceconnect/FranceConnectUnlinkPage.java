@@ -137,7 +137,7 @@ public class FranceConnectUnlinkPage {
             FranceconnectUnlinkSoyTemplateInfo.PORTAL_URL, urls.myProfile().map(URI::toString).orElse(null),
             FranceconnectUnlinkSoyTemplateInfo.AUTHND_WITHFC, sidToken.getFranceconnectIdToken() != null,
             FranceconnectUnlinkSoyTemplateInfo.EMAIL, account.getEmail_address(),
-            FranceconnectUnlinkSoyTemplateInfo.ERROR, error
+            FranceconnectUnlinkSoyTemplateInfo.ERROR, error == null ? null : error.name()
         )))
         .build();
   }

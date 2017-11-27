@@ -96,10 +96,11 @@ public class JongoAccountRepository implements AccountRepository, JongoBootstrap
     // Copy to get the updated_at field, and reset ID (not copied over) to make sure we won't generate a new one
     account = new JongoUserAccount(account);
     account.setId(id);
-    // XXX: don't allow modifying the email address, phone number verified, or created_at
+    // XXX: don't allow modifying the email address, phone number verified, FranceConnect sub, or created_at
     account.setEmail_address(null);
     account.setEmail_verified(null);
     account.setPhone_number_verified(null);
+    account.setFranceconnect_sub(null);
     account.setCreated_at(null);
     // nullify address if "empty"
     if (account.getAddress() != null
@@ -180,10 +181,14 @@ public class JongoAccountRepository implements AccountRepository, JongoBootstrap
     // reset ID (not copied over) to make sure we won't generate a new one
     userAccount.setId(id);
     userAccount.setFranceconnect_sub(franceconnect_sub);
-    return getAccountCollection()
-        .update("{ id: # }", id)
-        .with("{ $set: # }", userAccount)
-        .getN() > 0;
+    try {
+      return getAccountCollection()
+          .update("{ id: #, franceconnect_sub: { $exists: false } }", id)
+          .with("{ $set: # }", userAccount)
+          .getN() > 0;
+    } catch (DuplicateKeyException dke) {
+      throw new oasis.model.DuplicateKeyException();
+    }
   }
 
   @Override

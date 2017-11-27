@@ -26,6 +26,7 @@ import com.ibm.icu.util.ULocale;
 
 import oasis.auth.AuthModule;
 import oasis.auth.FranceConnectModule;
+import oasis.model.DuplicateKeyException;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.authn.SidToken;
@@ -172,7 +173,12 @@ public class FranceConnectCallback {
         // user already authenticated, link FranceConnect identity to his account
         // XXX: display confirmation page?
         SidToken sidToken = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken();
-        if (!accountRepository.linkToFranceConnect(sidToken.getAccountId(), franceconnect_sub)) {
+        try {
+          if (!accountRepository.linkToFranceConnect(sidToken.getAccountId(), franceconnect_sub)) {
+            return serverError(state);
+          }
+        } catch (DuplicateKeyException dke) {
+          // race condition
           return serverError(state);
         }
         return Response.seeOther(state.continueUrl())

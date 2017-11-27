@@ -47,6 +47,7 @@ import com.ibm.icu.util.ULocale;
 
 import oasis.auditlog.AuditLogService;
 import oasis.auth.AuthModule;
+import oasis.model.DuplicateKeyException;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.services.authn.UserPasswordAuthenticator;
@@ -110,7 +111,12 @@ public class FranceConnectLinkPage {
       return linkForm(locale, continueUrl, encryptedState, LoginError.INCORRECT_USERNAME_OR_PASSWORD);
     }
 
-    if (!accountRepository.linkToFranceConnect(account.getId(), state.franceconnect_sub())) {
+    try {
+      if (!accountRepository.linkToFranceConnect(account.getId(), state.franceconnect_sub())) {
+        return FranceConnectCallback.serverError(locale, continueUrl.toString());
+      }
+    } catch (DuplicateKeyException dke) {
+      // race condition
       return FranceConnectCallback.serverError(locale, continueUrl.toString());
     }
 
