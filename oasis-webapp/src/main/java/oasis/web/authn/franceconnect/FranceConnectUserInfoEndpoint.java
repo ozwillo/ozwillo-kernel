@@ -17,6 +17,8 @@
  */
 package oasis.web.authn.franceconnect;
 
+import java.io.InputStream;
+
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -56,7 +58,7 @@ public class FranceConnectUserInfoEndpoint {
   @GET
   public Response get() {
     AccessToken accessToken = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken();
-    Token token = tokenRepository.getToken(Iterables.getLast(accessToken.getAncestorIds()));
+    Token token = tokenRepository.getToken(accessToken.getAncestorIds().get(0));
     if (!(token instanceof SidToken) || Strings.isNullOrEmpty(((SidToken) token).getFranceconnectAccessToken())) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
@@ -69,7 +71,10 @@ public class FranceConnectUserInfoEndpoint {
       // XXX: log 404/410, or 3xx responses? How about 407?
       return Response.serverError().build();
     }
-    return response;
+    return Response.status(response.getStatusInfo())
+        .type(response.getMediaType())
+        .entity(response.readEntity(InputStream.class))
+        .build();
   }
 
   @POST
