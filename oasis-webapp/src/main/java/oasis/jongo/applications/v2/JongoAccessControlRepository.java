@@ -18,6 +18,7 @@
 package oasis.jongo.applications.v2;
 
 import java.time.Instant;
+import java.util.Date;
 
 import javax.inject.Inject;
 
@@ -106,7 +107,7 @@ public class JongoAccessControlRepository implements AccessControlRepository, Jo
           .findAndModify("{ id: #, status: # }", aceId, AccessControlEntry.Status.PENDING)
           .returnNew()
           .with("{ $set: { status: #, user_id: #, accepted: # }, $unset: { email: '' } }",
-              AccessControlEntry.Status.ACCEPTED, userId, System.currentTimeMillis())
+              AccessControlEntry.Status.ACCEPTED, userId, new Date())
           .as(JongoAccessControlEntry.class);
     } catch (MongoCommandException e) {
       if (ErrorCategory.fromErrorCode(e.getErrorCode()) == ErrorCategory.DUPLICATE_KEY) {

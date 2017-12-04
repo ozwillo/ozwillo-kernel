@@ -44,6 +44,7 @@ import com.mongodb.Mongo;
 import com.mongodb.MongoClient;
 
 import de.undercouch.bson4jackson.BsonGenerator;
+import de.undercouch.bson4jackson.BsonParser;
 import de.undercouch.bson4jackson.serializers.BsonSerializer;
 import oasis.jongo.guice.JongoModule;
 import oasis.model.i18n.LocalizableModule;
@@ -108,6 +109,14 @@ public class JongoService implements Provider<Jongo> {
       addDeserializer(Instant.class, new JsonDeserializer<Instant>() {
         @Override
         public Instant deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+          assert jp instanceof BsonParser;
+          // XXX: we know that BsonParser returns the current value from getEmbeddedObject,
+          // even when the current token is not VALUE_EMBEDDED_OBJECT.
+          Object obj = jp.getEmbeddedObject();
+          if (obj instanceof Long) {
+            // we need to support old/some values that are stored as longs
+            return Instant.ofEpochMilli((Long) obj);
+          }
           return ((Date) jp.getEmbeddedObject()).toInstant();
         }
       });

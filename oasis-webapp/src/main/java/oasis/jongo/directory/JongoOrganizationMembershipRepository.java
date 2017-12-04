@@ -20,6 +20,7 @@ package oasis.jongo.directory;
 import static com.google.common.base.Preconditions.*;
 
 import java.time.Instant;
+import java.util.Date;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -161,7 +162,7 @@ public class JongoOrganizationMembershipRepository implements OrganizationMember
           .findAndModify("{ id: #, status: # }", membershipId, OrganizationMembership.Status.PENDING)
           .returnNew()
           .with("{ $set: { status: #, accountId: #, accepted: # }, $unset: { email: '' } }",
-              OrganizationMembership.Status.ACCEPTED, accountId, System.currentTimeMillis())
+              OrganizationMembership.Status.ACCEPTED, accountId, new Date())
           .as(JongoOrganizationMembership.class);
     } catch (MongoCommandException e) {
       if (ErrorCategory.fromErrorCode(e.getErrorCode()) == ErrorCategory.DUPLICATE_KEY) {
