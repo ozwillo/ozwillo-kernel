@@ -182,6 +182,9 @@ public class FranceConnectCallback {
           // race condition
           return serverError(state);
         }
+        if (!tokenRepository.reAuthSidToken(sidToken.getId(), tokenResponse.id_token, tokenResponse.access_token)) { // XXX: auth_time?
+          return serverError(state);
+        }
         return Response.seeOther(state.continueUrl())
             .cookie(SessionManagementHelper.createBrowserStateCookie(securityContext.isSecure(), sessionManagementHelper.generateBrowserState()));
       }
