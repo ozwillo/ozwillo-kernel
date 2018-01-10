@@ -102,6 +102,11 @@
         <target>Adresse email ou mot de passe erroné.</target>
         <note priority="1" from="description">Error message during login</note>
       </trans-unit>
+      <trans-unit id="1487616710532291070" datatype="html">
+        <source>Initialize my password</source>
+        <target>Définir mon mot de passe</target>
+        <note priority="1" from="description">Form submit button</note>
+      </trans-unit>
       <trans-unit id="1578741046646291108" datatype="html">
         <source>Issuer:</source>
         <target>Émetteur :</target>
@@ -117,9 +122,19 @@
         <target>Nous avons fermé toutes vos sessions, sur tous vos appareils.</target>
         <note priority="1" from="description">Password successfully changed: immediate consequences</note>
       </trans-unit>
+      <trans-unit id="1682807611139238696" datatype="html">
+        <source>Initialize your password</source>
+        <target>Définir un mot de passe</target>
+        <note priority="1" from="description">Init password page title</note>
+      </trans-unit>
       <trans-unit id="1702605619572199250" datatype="html">
         <source>The organization <x id="ORGANIZATION_NAME"/> has been restored.</source>
         <note priority="1" from="description">Restored organization requester notification message</note>
+      </trans-unit>
+      <trans-unit id="1706580302140595941" datatype="html">
+        <source>Link account to FranceConnect</source>
+        <target>Lier le compte à FranceConnect</target>
+        <note priority="1" from="description">franceconnect link page heading</note>
       </trans-unit>
       <trans-unit id="1725174351395785101" datatype="html">
         <source><x id="REQUESTER_NAME"/> has invited you to join the <x id="ORGANIZATION_NAME"/> organization</source>
@@ -196,6 +211,11 @@
         <target><x id="REQUESTER_NAME"/> a demandé la suppression de l'organisation <x id="ORGANIZATION_NAME"/>. La suppression sera effective dans une semaine.</target>
         <note priority="1" from="description">Soflty deleted organization admin notification message</note>
       </trans-unit>
+      <trans-unit id="270305284570699535" datatype="html">
+        <source>You must <x id="START_LINK"/>setup a password<x id="END_LINK"/> for your account before unlinking it from FranceConnect.</source>
+        <target>Vous devez <x id="START_LINK"/>définir un mot de passe<x id="END_LINK"/> pour votre compte avant de pouvoir supprimer la liaison avec FranceConnect.</target>
+        <note priority="1" from="description">Error message when account has no password</note>
+      </trans-unit>
       <trans-unit id="2861550198909909571" datatype="html">
         <source>Subject:</source>
         <target>Object :</target>
@@ -216,6 +236,11 @@
         <target>Se déconnecter</target>
         <note priority="1" from="description">Form submit button; global sign-out</note>
       </trans-unit>
+      <trans-unit id="2976667412288572318" datatype="html">
+        <source>No account exists for your FranceConnect identity, but one exists for your email address that is already linked to another FranceConnect identity. Please sign in below to link your FranceConnect identity to your account, or sign up for a new account. Note however that you won't be able to use your email address in either case.</source>
+        <target>Aucun compte n'existe pour votre identité FranceConnect ; mais un compte existe pour votre adresse email, qui est déjà lié à une autre identité FranceConnect. Connectez-vous ci-dessous pour lier votre identité FranceConnect à votre compte, ou créer un nouveau compte utilisateur. Notez que vous ne pourrez pas utiliser votre adresse email, dans tous les cas.</target>
+        <note priority="1" from="description">franceconnect link page description (email match)</note>
+      </trans-unit>
       <trans-unit id="3249513483374643425" datatype="html">
         <source>Add</source>
         <target>Associer</target>
@@ -230,6 +255,11 @@
         <source>An account with that email address already exists.</source>
         <target>Un compte avec cette adresse email existe déjà.</target>
         <note priority="1" from="description">Error message during sign-up</note>
+      </trans-unit>
+      <trans-unit id="3446117942855767452" datatype="html">
+        <source>No account exists for your FranceConnect identity, but one exists for your email address, please sign in below to link your FranceConnect identity to your account. You can also sign up for a new account (you won't be able to use your email address though).</source>
+        <target>Aucun compte n'existe pour votre identité FranceConnect, mais un compte existe pour votre adresse email. Connectez-vous ci-dessous pour lier votre identité FranceConnect à votre compte. Vous pouvez aussi créer un nouveau compte utilisateur (vous ne pourrez cependant pas utiliser votre adresse email).</target>
+        <note priority="1" from="description">franceconnect link page description (email match)</note>
       </trans-unit>
       <trans-unit id="3498554815912326299" datatype="html">
         <source>The application <x id="APP_INSTANCE_NAME"/> has been restored.</source>
@@ -296,6 +326,16 @@
         <target>Accepter ou refuser l'invitation pour une organisation</target>
         <note priority="1" from="description">membership invitation page</note>
       </trans-unit>
+      <trans-unit id="4305129592726519825" datatype="html">
+        <source>This FranceConnect identity is already linked to another Ozwillo account.</source>
+        <target>Cette identité FranceConnect est déjà liée à un autre compte Ozwillo.</target>
+        <note priority="1" from="description">FranceConnect already linked error page heading</note>
+      </trans-unit>
+      <trans-unit id="441471097694116396" datatype="html">
+        <source>Activate your Ozwillo password</source>
+        <target>Activez votre mot de passe Ozwillo</target>
+        <note priority="1" from="description">Init password email subject</note>
+      </trans-unit>
       <trans-unit id="4435870627193845877" datatype="html">
         <source>Registered certificates</source>
         <target>Certificats associés</target>
@@ -316,6 +356,16 @@
         <target><x id="REQUESTER_NAME"/> a demandé la suppression de l'application <x id="APP_INSTANCE_NAME"/>, elle sera effective dans une semaine.</target>
         <note priority="1" from="description">Stopped application instance user notification message</note>
       </trans-unit>
+      <trans-unit id="4658982717700339898" datatype="html">
+        <source>Unlink</source>
+        <target>Supprimer la liaison</target>
+        <note priority="1" from="description">Form submit button</note>
+      </trans-unit>
+      <trans-unit id="4761224962896946911" datatype="html">
+        <source>No account exists for your FranceConnect identity, please sign in below to link your FranceConnect identity to your account, or sign up for a new account.</source>
+        <target>Aucun compte n'existe pour votre identité FranceConnect ; connectez-vous ci-dessous pour lier la lier avec votre compte, ou créez un nouveau compte utilisateur.</target>
+        <note priority="1" from="description">franceconnect link page description (no match)</note>
+      </trans-unit>
       <trans-unit id="4764082581244349761" datatype="html">
         <source>An account with that email address already exists. Did you <x id="START_LINK"/>forgot your password?<x id="END_LINK"/></source>
         <target>Un compte avec cette adresse email existe déjà. <x id="START_LINK"/>Avez-vous oublié votre mot de passe ?<x id="END_LINK"/></target>
@@ -325,6 +375,11 @@
         <source>Email</source>
         <target>Email</target>
         <note priority="1" from="description">Email field label</note>
+      </trans-unit>
+      <trans-unit id="4806969148160474972" datatype="html">
+        <source>Please re-enter your password:</source>
+        <target>Entrez à nouveau votre mot de passe :</target>
+        <note priority="1" from="description">Current password when unlinking FranceConnect</note>
       </trans-unit>
       <trans-unit id="4814285799071780083" datatype="html">
         <source>Remove</source>
@@ -340,6 +395,11 @@
         <source>Settings</source>
         <source>Paramètres</source>
         <note priority="1" from="description">App-instance provisioning notification action label</note>
+      </trans-unit>
+      <trans-unit id="4951272053741212415" datatype="html">
+        <source><x id="START_PARAGRAPH"/>Hello <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>You are receiving this e-mail because you have requested to initialize an password for your Ozwillo account.<x id="START_PARAGRAPH"/>In order to activate your password, please click on the following link:<x id="START_BREAK"/><x id="START_LINK"/><x id="ACTIVATION_LINK"/><x id="END_LINK"/><x id="START_PARAGRAPH"/>The Ozwillo team<x id="START_BREAK"/></source>
+        <target><x id="START_PARAGRAPH"/>Bonjour <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>Vous recevez ce message parce que vous avez demandé à définir un mot de passe pour votre compte Ozwillo.<x id="START_PARAGRAPH"/>Pour activer votre mot de passe, cliquez sur le lien suivant :<x id="START_BREAK"/><x id="START_LINK"/><x id="ACTIVATION_LINK"/><x id="END_LINK"/><x id="START_PARAGRAPH"/>L'équipe d'Ozwillo<x id="START_BREAK"/></target>
+        <note priority="1" from="description">Init password email body</note>
       </trans-unit>
       <trans-unit id="5108418000757845610" datatype="html">
         <source>Password changed</source>
@@ -370,6 +430,11 @@
         <source>Nickname</source>
         <target>Pseudonyme</target>
         <note priority="1" from="description">Nickname field label (for sign-up)</note>
+      </trans-unit>
+      <trans-unit id="5510273297432154416" datatype="html">
+        <source>You may want to sign out from Ozwillo (or FranceConnect) and try again.</source>
+        <target>Vous pouvez vous déconnecter d'Ozwillo (ou de FranceConnect) et essayer à nouveau.</target>
+        <note priority="1" from="description">FranceConnect already linked error; logout from Ozwillo message</note>
       </trans-unit>
       <trans-unit id="5580292871018316143" datatype="html">
         <source>The administrator <x id="USER_NAME"/> left the organization <x id="ORGANIZATION_NAME"/>.</source>
@@ -416,6 +481,11 @@
         <target>Activez votre compte Ozwillo</target>
         <note priority="1" from="description">Sign-up email subject</note>
       </trans-unit>
+      <trans-unit id="6631334172623029500" datatype="html">
+        <source>Email:</source>
+        <target>Email :</target>
+        <note priority="1" from="description">Email field label</note>
+      </trans-unit>
       <trans-unit id="6759710765038190526" datatype="html">
         <source>This certificate is linked to another account. Insert another one and refresh the page to take it into account.</source>
         <target>Ce certificate est associé à un autre utilisateur. Insérez un autre certificat et rafraîchissez la page pour le prendre en compte.</target>
@@ -425,6 +495,16 @@
         <source>This link has expired. Try again below.</source>
         <target>Ce lien a expiré. Essayez à nouveau ci-dessous.</target>
         <note priority="1" from="description">Error message during account recovery</note>
+      </trans-unit>
+      <trans-unit id="6865009229971482891" datatype="html">
+        <source>Password:</source>
+        <target>Mot de passe :</target>
+        <note priority="1" from="description">Password field label</note>
+      </trans-unit>
+      <trans-unit id="6917317292161384424" datatype="html">
+        <source>We've sent you an email with an activation link, click on that link to activate your password.</source>
+        <target>Nous vous avons envoyé un message avec un lien d'activation ; cliquez sur ce lien pour activer votre mot de passe.</target>
+        <note priority="1" from="description">activation pending: next steps</note>
       </trans-unit>
       <trans-unit id="6958276782575850559" datatype="html">
         <source><x id="INVITED_USER_EMAIL"/> has rejected <x id="REQUESTER_NAME"/> invitation to join the <x id="ORGANIZATION_NAME"/> organization.</source>
@@ -496,6 +576,11 @@
         <target>Retournez à la page précédente et essayez à nouveau.</target>
         <note priority="1" from="description">FranceConnect login error; go back and try again message</note>
       </trans-unit>
+      <trans-unit id="7763612867272428805" datatype="html">
+        <source>An account already exists with this email address.</source>
+        <target>Un compte existe déjà pour cette adresse email.</target>
+        <note priority="1" from="description">Email address already exists; when initializing password</note>
+      </trans-unit>
       <trans-unit id="7771855748190435213" datatype="html">
         <source>You can now <x id="START_LINK"/>go back to the Ozwillo portal<x id="END_LINK"/> to sign in again with your new password.</source>
         <target>Vous pouvez maintenant <x id="START_LINK"/>retourner au portail Ozwillo<x id="END_LINK"/> pour vous connecter avec votre nouveau mot de passe.</target>
@@ -566,6 +651,11 @@
         <target>Autoriser</target>
         <note priority="1" from="description">Button to grant the scopes</note>
       </trans-unit>
+      <trans-unit id="8640427285822568092" datatype="html">
+        <source>This link was created for another account. Try again below with the current account, or try the link again after signing out.</source>
+        <target>Ce lien a été créé pour un autre compte. Essayez à nouveau ci-dessous avec le compte courant, ou recliquez le lien après vous être déconnecté.</target>
+        <note priority="1" from="description">Error message during password initialization</note>
+      </trans-unit>
       <trans-unit id="8646197519278144938" datatype="html">
         <source><x id="REQUESTER_NAME_BOLD"/> has invited you (<x id="INVITED_EMAIL_BOLD"/>) to join the <x id="ORGANIZATION_NAME_BOLD"/> organization.</source>
         <target><x id="REQUESTER_NAME_BOLD"/> vous invite (<x id="INVITED_EMAIL_BOLD"/>) à rejoindre l'organization <x id="ORGANIZATION_NAME_BOLD"/>.</target>
@@ -600,6 +690,16 @@
         <source>Choose your new password</source>
         <target>Choisissez votre mot de passe</target>
         <note priority="1" from="description">Reset password page heading</note>
+      </trans-unit>
+      <trans-unit id="939601419791787789" datatype="html">
+        <source>Your password has been saved but needs to be activated by confirming your email address.</source>
+        <target>Veuillez confirmer votre adresse électronique pour activer votre mot de passe.</target>
+        <note priority="1" from="description">activation pending: what is it</note>
+      </trans-unit>
+      <trans-unit id="964301455936977325" datatype="html">
+        <source>Password pending activation</source>
+        <target>Mot de passe en attente d'activation</target>
+        <note priority="1" from="description">activation pending title</note>
       </trans-unit>
     </body>
   </file>
