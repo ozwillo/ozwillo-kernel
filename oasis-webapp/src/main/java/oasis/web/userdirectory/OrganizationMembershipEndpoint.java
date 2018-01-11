@@ -235,7 +235,7 @@ public class OrganizationMembershipEndpoint {
         messageLocale = ULocale.ROOT;
       }
       notificationPrototype.getMessage().set(messageLocale, templateRenderer.renderAsString(new SoyTemplate(
-          OrgMembershipInvitationNotificationSoyInfo.ACCEPTED_MEMBERSHIP_INVITATION_ADMIN_MESSAGE, locale, SanitizedContent.ContentKind.TEXT, data)));
+          OrgMembershipInvitationNotificationSoyInfo.NEW_MEMBERSHIP_INVITATION_ADMIN_MESSAGE, locale, SanitizedContent.ContentKind.TEXT, data)));
     }
 
     Iterable<OrganizationMembership> admins = organizationMembershipRepository.getAdminsOfOrganization(organization.getId());
