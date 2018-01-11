@@ -286,7 +286,7 @@ public class AppInstanceAccessControlEndpoint {
         messageLocale = ULocale.ROOT;
       }
       notificationPrototype.getMessage().set(messageLocale, templateRenderer.renderAsString(new SoyTemplate(
-          AppInstanceInvitationNotificationSoyInfo.ACCEPTED_APP_INSTANCE_INVITATION_ADMIN_MESSAGE, locale, SanitizedContent.ContentKind.TEXT, data)));
+          AppInstanceInvitationNotificationSoyInfo.NEW_APP_INSTANCE_INVITATION_ADMIN_MESSAGE, locale, SanitizedContent.ContentKind.TEXT, data)));
     }
 
     Iterable<String> admins = appAdminHelper.getAdmins(appInstance);
