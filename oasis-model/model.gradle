@@ -7,9 +7,9 @@ dependencies {
     compile libs.icu4j
     compile libs.guava
 
-    compileOnly     libs.immutables_annotations
-    testCompileOnly libs.immutables_annotations
-    apt             libs.immutables
+    compileOnly         libs.immutables_annotations
+    testCompileOnly     libs.immutables_annotations
+    annotationProcessor libs.immutables
 
     testCompile libs.junit
     testCompile libs.assertj

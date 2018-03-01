@@ -111,7 +111,7 @@ ext.libs = [
 
   slf4j:               'org.slf4j:slf4j-api:1.7.25',
 
-  log4j2:              "org.apache.logging.log4j:log4j-core:$log4jVersion",
+  log4j2:              "org.apache.logging.log4j:log4j-api:$log4jVersion",
 
   log4j_runtime:       [
       "org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion",
