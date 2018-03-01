@@ -1,9 +1,19 @@
-rootProject.name = 'oasis'
+pluginManagement {
+  resolutionStrategy {
+    eachPlugin {
+      if (requested.id.id == "de.thetaphi.forbiddenapis") {
+        useModule("de.thetaphi:forbiddenapis:${requested.version}")
+      }
+    }
+  }
+}
 
-include 'oasis-model'
-include 'oasis-webapp'
-include 'oasis-dist'
+rootProject.name = "oasis"
+
+include("oasis-model")
+include("oasis-webapp")
+include("oasis-dist")
 
 rootProject.children.each { project ->
-  project.buildFileName = project.name + '.gradle' - ~'^oasis-'
+  project.buildFileName = "${project.name - ~"^oasis-"}.gradle"
 }

@@ -1,55 +1,57 @@
-apply plugin: 'java'
-apply plugin: 'idea'
+plugins {
+  id("java")
+  id("idea")
+}
 
 dependencies {
-  compile project(':oasis-model')
-  compile libs.log4j2
-  compile libs.jsr305
-  compile libs.guava
-  compile libs.bouncycastle
-  compile libs.guice
-  compile libs.jongo
-  compile libs.jose4j
-  compile libs.elasticsearch
-  compile libs.icu4j
-  compile libs.galimatias
-  compile libs.mail
-  compile libs.jackson
-  compile libs.args4j
-  compile libs.config
-  compile libs.resteasy_netty
-  compile libs.resteasy_client
-  compile libs.jaxrs_webhook
-  compile libs.closure_templates
+  compile(project(":oasis-model"))
+  compile(libs.log4j2)
+  compile(libs.jsr305)
+  compile(libs.guava)
+  compile(libs.bouncycastle)
+  compile(libs.guice)
+  compile(libs.jongo)
+  compile(libs.jose4j)
+  compile(libs.elasticsearch)
+  compile(libs.icu4j)
+  compile(libs.galimatias)
+  compile(libs.mail)
+  compile(libs.jackson)
+  compile(libs.args4j)
+  compile(libs.config)
+  compile(libs.resteasy_netty)
+  compile(libs.resteasy_client)
+  compile(libs.jaxrs_webhook)
+  compile(libs.closure_templates)
 
-  runtime libs.jsSHA
+  runtime(libs.jsSHA)
 
-  compileOnly         libs.immutables_annotations
-  testCompileOnly     libs.immutables_annotations
-  annotationProcessor libs.immutables
+  compileOnly(libs.immutables_annotations)
+  testCompileOnly(libs.immutables_annotations)
+  annotationProcessor(libs.immutables)
 
-  compile libs.slf4j
-  runtime libs.log4j_runtime
+  compile(libs.slf4j)
+  runtime(libs.log4j_runtime)
 
-  compileOnly     libs.forbiddenapis
-  testCompileOnly libs.forbiddenapis
+  compileOnly(libs.forbiddenapis)
+  testCompileOnly(libs.forbiddenapis)
 
-  testCompile libs.junit
-  testCompile libs.mockito
-  testCompile libs.jukito
-  testCompile libs.assertj
-  testCompile libs.resteasy_testing
+  testCompile(libs.junit)
+  testCompile(libs.mockito)
+  testCompile(libs.jukito)
+  testCompile(libs.assertj)
+  testCompile(libs.resteasy_testing)
 }
 
 processResources {
-  from('src/main/ozwillo-style/favicons') {
-    exclude '**/*.html'
-    rename { file -> 'oasis-ui/' + file }
+  from("src/main/ozwillo-style/favicons") {
+    exclude("**/*.html")
+    rename { file -> "oasis-ui/" + file }
   }
-  filesMatching('**/Common.soy') {
+  filesMatching("**/Common.soy") {
     filter { line ->
-      if (line.trim() == '/* BUILD WILL INSERT FAVICONS SNIPPET HERE */') {
-        line = file('src/main/ozwillo-style/favicons/snippet_head_for_favicons.html').text
+      if (line.trim() == "/* BUILD WILL INSERT FAVICONS SNIPPET HERE */") {
+        line = file("src/main/ozwillo-style/favicons/snippet_head_for_favicons.html").text
       }
       return line
     }
@@ -60,43 +62,43 @@ configurations {
   soy
 }
 dependencies {
-  soy libs.closure_templates_standalone
+  soy(libs.closure_templates_standalone)
 }
 task generateSoyParseInfo(type: JavaExec) {
   def srcs = sourceSets.main.resources.matching {
-    include '**/*.soy'
-    exclude '**/Common.soy'
+    include "**/*.soy"
+    exclude "**/Common.soy"
   }
   def deps = sourceSets.main.resources.matching {
-    include '**/Common.soy'
+    include "**/Common.soy"
   }
-  inputs.files srcs skipWhenEmpty()
-  inputs.files deps
+  inputs.files(srcs).skipWhenEmpty()
+  inputs.files(deps)
 
   ext.outputDir = "$buildDir/generated/source/soy/"
-  outputs.dir outputDir
+  outputs.dir(outputDir)
 
   doFirst {
     project.delete(outputDir)
   }
 
-  def javaPackage = 'oasis.soy.templates'
+  def javaPackage = "oasis.soy.templates"
 
-  main = 'com.google.template.soy.SoyParseInfoGenerator'
+  main = "com.google.template.soy.SoyParseInfoGenerator"
   classpath = configurations.soy
   args = [
-      '--javaPackage',          javaPackage,
-      '--javaClassNameSource',  'filename',
-      '--outputDirectory',      "$outputDir/${javaPackage.replace('.', '/')}/",
-      '--srcs',                 srcs.files.join(','),
-      '--deps',                 deps.files.join(','),
-      '--allowExternalCalls',   'false',
+      "--javaPackage",          javaPackage,
+      "--javaClassNameSource",  "filename",
+      "--outputDirectory",      "$outputDir/${javaPackage.replace(".", "/")}/",
+      "--srcs",                 srcs.files.join(","),
+      "--deps",                 deps.files.join(","),
+      "--allowExternalCalls",   "false",
     ]
 }
 sourceSets.main.java {
-  srcDir generateSoyParseInfo.outputDir
+  srcDir(generateSoyParseInfo.outputDir)
 }
-compileJava.dependsOn generateSoyParseInfo
+compileJava.dependsOn(generateSoyParseInfo)
 idea {
   module {
     generatedSourceDirs += file(generateSoyParseInfo.outputDir)
@@ -109,81 +111,81 @@ project.afterEvaluate {
 }
 
 task run(type: JavaExec, dependsOn: classes) {
-  main = 'oasis.web.WebApp'
+  main = "oasis.web.WebApp"
   classpath = sourceSets.main.runtimeClasspath
   systemProperties = System.getProperties().findAll { it.key.startsWith("oasis.") } \
-      + [ 'oasis.conf-dir': "${buildDir}" ]
+      + [ "oasis.conf-dir": "${buildDir}" ]
   args = [
-      '-c', "${rootDir}/dev.conf",
-      '-l', "${rootDir}/log4j2-dev.xml",
+      "-c", "${rootDir}/dev.conf",
+      "-l", "${rootDir}/log4j2-dev.xml",
     ]
 }
 
 task bootstrap(type: JavaExec, dependsOn: classes) {
-  main = 'oasis.tools.Bootstrap'
+  main = "oasis.tools.Bootstrap"
   classpath = sourceSets.main.runtimeClasspath
   systemProperties = System.getProperties().findAll { it.key.startsWith("oasis.") } \
-      + [ 'oasis.conf-dir': "${buildDir}" ]
+      + [ "oasis.conf-dir": "${buildDir}" ]
   args = [
-      '-c',                         "${rootDir}/dev.conf",
-      '-l',                         "${rootDir}/log4j2-dev.xml",
-      '--admin',                    'localdev@ozwillo.com',
-      '--password',                 'admin',
-      '--redirect-uri',             'http://localhost:8081/callback',
-      '--post-logout-redirect-uri', 'http://localhost:8081/',
+      "-c",                         "${rootDir}/dev.conf",
+      "-l",                         "${rootDir}/log4j2-dev.xml",
+      "--admin",                    "localdev@ozwillo.com",
+      "--password",                 "admin",
+      "--redirect-uri",             "http://localhost:8081/callback",
+      "--post-logout-redirect-uri", "http://localhost:8081/",
     ]
 }
 
 task setPassword(type: JavaExec, dependsOn: classes) {
-  main = 'oasis.tools.SetPassword'
+  main = "oasis.tools.SetPassword"
   classpath = sourceSets.main.runtimeClasspath
   systemProperties = System.getProperties().findAll { it.key.startsWith("oasis.") } \
-      + [ 'oasis.conf-dir': "${buildDir}" ]
+      + [ "oasis.conf-dir": "${buildDir}" ]
   args = [
-      '-c',              "${rootDir}/dev.conf",
-      '-l',              "${rootDir}/log4j2-dev.xml",
+      "-c",              "${rootDir}/dev.conf",
+      "-l",              "${rootDir}/log4j2-dev.xml",
     ]
-  if (project.hasProperty('dryRun')) {
-    args '--dry-run'
+  if (project.hasProperty("dryRun")) {
+    args("--dry-run")
   }
 
   doFirst {
-    if (!project.hasProperty('clientType')) {
+    if (!project.hasProperty("clientType")) {
       logger.error("property 'clientType' is mandatory for $name;\ninvoke as ./gradlew -PclientType=...")
     }
-    if (!project.hasProperty('clientId')) {
+    if (!project.hasProperty("clientId")) {
       logger.error("property 'clientId' is mandatory for $name;\ninvoke as ./gradlew -PclientId=...")
     }
-    if (!project.hasProperty('clientSecret')) {
+    if (!project.hasProperty("clientSecret")) {
       logger.error("property 'clientSecret' is mandatory for $name;\ninvoke as ./gradlew -PclientSecret=...")
     }
 
     args += [
-        '--type',          project.findProperty('clientType'),
-        '--client-id',     project.findProperty('clientId'),
-        '--client-secret', project.findProperty('clientSecret'),
+        "--type",          project.findProperty("clientType"),
+        "--client-id",     project.findProperty("clientId"),
+        "--client-secret", project.findProperty("clientSecret"),
       ]
   }
 }
 
 task extractMessagesFromTemplates(type: JavaExec) {
   def srcs = sourceSets.main.resources.matching {
-    include '**/*.soy'
+    include("**/*.soy")
   }
-  inputs.files srcs skipWhenEmpty()
+  inputs.files(srcs).skipWhenEmpty()
 
-  main = 'com.google.template.soy.SoyMsgExtractor'
+  main = "com.google.template.soy.SoyMsgExtractor"
   classpath = configurations.soy
   args = [
-      '--allowExternalCalls',   'false',
-      '--srcs',                 srcs.files.join(','),
-      '--sourceLocaleString',   'en-GB'
+      "--allowExternalCalls",   "false",
+      "--srcs",                 srcs.files.join(","),
+      "--sourceLocaleString",   "en-GB"
     ]
   if (project.hasProperty("outputFile")) {
-    args += ['--outputFile', project.outputFile]
+    args += ["--outputFile", project.outputFile]
   }
   if (project.hasProperty("targetLocaleString")) {
-    args += ['--targetLocaleString', project.targetLocaleString]
+    args += ["--targetLocaleString", project.targetLocaleString]
   }
 
   // Provide Gradle-specific error reporting in addition to the SoyMsgExtractor usage

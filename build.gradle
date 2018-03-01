@@ -1,66 +1,85 @@
-apply from: './libraries.gradle'
+plugins {
+  id("net.ltgt.errorprone") version "0.0.13"
+  id("net.ltgt.apt") version "0.15"
+  id("com.github.hierynomus.license") version "0.14.0"
 
-group = 'fr.pole-numerique.oasis'
-version = 'git describe --long'.execute(null, rootDir).text.trim() - ~'^v'
+  id("de.thetaphi.forbiddenapis") version "2.4.1" apply false
+}
+apply {
+  from("./libraries.gradle")
+}
+
+group = "fr.pole-numerique.oasis"
+version = "git describe --long".execute(null, rootDir).text.trim() - ~"^v"
 
 ext.versionlessOutputs = project.hasProperty("versionlessOutputs") ? Boolean.parseBoolean(project.property("versionlessOutputs")) : false;
 
 subprojects {
-  apply plugin: 'com.github.hierynomus.license'
+  apply {
+    plugin("com.github.hierynomus.license")
+  }
   license {
-    header = rootProject.file('LICENSE.header')
+    header = rootProject.file("LICENSE.header")
     skipExistingHeaders = true
-    include '**/*.java'
-    include '**/*.soy'
-    mapping soy: 'JAVADOC_STYLE'
+    include("**/*.java")
+    include("**/*.soy")
+    mapping("soy", "JAVADOC_STYLE")
 
     ext.year = Calendar.getInstance().get(Calendar.YEAR)
-    ext.name = 'The Ozwillo Kernel Authors'
+    ext.name = "The Ozwillo Kernel Authors"
   }
   downloadLicenses {
-    ext.apacheTwo = license('Apache License, Version 2.0', 'https://www.apache.org/licenses/LICENSE-2.0')
-    ext.bsd = license('BSD License', 'http://www.opensource.org/licenses/bsd-license.php')
-    ext.mit = license('MIT License', 'http://www.opensource.org/licenses/mit-license.php')
-    ext.cddlOrGpl = license('CDDL or GPLv2 with exceptions', 'https://glassfish.java.net/public/CDDL+GPL_1_1.html')
+    ext.apacheTwo = license("Apache License, Version 2.0", "https://www.apache.org/licenses/LICENSE-2.0")
+    ext.bsd = license("BSD License", "http://www.opensource.org/licenses/bsd-license.php")
+    ext.mit = license("MIT License", "http://www.opensource.org/licenses/mit-license.php")
+    ext.cddlOrGpl = license("CDDL or GPLv2 with exceptions", "https://glassfish.java.net/public/CDDL+GPL_1_1.html")
 
     licenses = [
       // libraries under several licenses: pick one
-      (group('org.javassist')):              apacheTwo,
-      (group('org.reflections')):            bsd,
-      (group('org.jboss.spec.javax.ws.rs')): cddlOrGpl
+      (group("org.javassist")):              apacheTwo,
+      (group("org.reflections")):            bsd,
+      (group("org.jboss.spec.javax.ws.rs")): cddlOrGpl
     ]
     aliases = [
-      (apacheTwo): [ 'Apache License, Version 2.0', 'Apache License, version 2.0', 'The Apache License, Version 2.0', 'The Apache Software License, Version 2.0', 'ASL', 'Apache 2', 'Apache 2.0', 'Apache License 2.0' ],
-      (bsd):       [ 'The New BSD License', 'BSD-like', 'BSD', 'BSD licence'/*sic!*/ ],
-      (mit):       [ 'Bouncy Castle Licence', 'ICU License', 'MIT License' ],
-      (cddlOrGpl): [ 'CDDL or GPLv2 with exceptions' ],
+      (apacheTwo): [ "Apache License, Version 2.0", "Apache License, version 2.0", "The Apache License, Version 2.0", "The Apache Software License, Version 2.0", "ASL", "Apache 2", "Apache 2.0", "Apache License 2.0" ],
+      (bsd):       [ "The New BSD License", "BSD-like", "BSD", "BSD licence"/*sic!*/ ],
+      (mit):       [ "Bouncy Castle Licence", "ICU License", "MIT License" ],
+      (cddlOrGpl): [ "CDDL or GPLv2 with exceptions" ],
     ]
   }
 
-  apply plugin: 'net.ltgt.apt'
-
-  apply plugin: 'net.ltgt.errorprone'
-  dependencies {
-    errorprone 'com.google.errorprone:error_prone_core:2.1.2'
+  apply {
+    plugin("net.ltgt.apt")
   }
 
-  apply plugin: 'idea' // IDEA needs extra configuration for generated sources *sigh*
+  apply {
+    plugin("net.ltgt.errorprone")
+  }
+  dependencies {
+    errorprone("com.google.errorprone:error_prone_core:2.1.2")
+  }
+
+  apply {
+    plugin("idea") // IDEA needs extra configuration for generated sources *sigh*
+  }
 
   group = rootProject.group
   version = rootProject.version
 
-  plugins.withType(JavaPlugin).whenPluginAdded {
+  plugins.withType(JavaPlugin) {
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
 
-    project.apply plugin: 'de.thetaphi.forbiddenapis'
+    project.apply {
+      plugin("de.thetaphi.forbiddenapis")
+    }
     forbiddenApis {
-      bundledSignatures = [ 'jdk-unsafe', 'jdk-deprecated', 'jdk-system-out' ]
+      bundledSignatures = [ "jdk-unsafe", "jdk-deprecated", "jdk-system-out" ]
     }
 
     tasks.withType(JavaCompile) {
-      options.encoding = 'UTF-8'
-      options.compilerArgs += [ '-Werror', '-Xlint:all', '-Xlint:-processing', '-Xlint:-serial', '-Xlint:-path' ]
+      options.encoding = "UTF-8"
+      options.compilerArgs += [ "-Werror", "-Xlint:all", "-Xlint:-processing", "-Xlint:-serial", "-Xlint:-path" ]
     }
 
     if (versionlessOutputs) {
@@ -68,19 +87,5 @@ subprojects {
         archiveName = "${baseName}.${extension}"
       }
     }
-  }
-}
-
-buildscript {
-  repositories {
-    maven {
-      url 'https://plugins.gradle.org/m2/'
-    }
-  }
-  dependencies {
-    classpath 'net.ltgt.gradle:gradle-errorprone-plugin:0.0.13'
-    classpath 'net.ltgt.gradle:gradle-apt-plugin:0.15'
-    classpath('gradle.plugin.nl.javadude.gradle.plugins:license-gradle-plugin:0.14.0')
-    classpath 'de.thetaphi:forbiddenapis:2.4.1'
   }
 }
