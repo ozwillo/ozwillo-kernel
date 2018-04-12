@@ -1,5 +1,9 @@
+import com.netflix.gradle.plugins.deb.Deb
+import org.apache.tools.ant.filters.ReplaceTokens
+
 plugins {
   id("base")
+  id("nebula.deb")
 }
 
 description = ""
@@ -17,102 +21,103 @@ ext.debianVersion = versionlessOutputs ? "0.0.0" : project.version.replaceAll("^
 
 configurations {
   distLib
-  jdeb
 }
 
 dependencies {
   distLib(project(path: ":oasis-webapp", configuration: "runtime"))
-
-  jdeb(libs.jdeb)
 }
 
-task explodedDir(type: Sync) {
-  inputs.properties(oasis)
+task deb(type: Deb) {
+  outputs.cacheIf { true }
 
-  destinationDir = new File(buildDir, "tmp/debExploded")
+  packageName = oasis.service
+  version = debianVersion
+  packageDescription = oasis.desc
+  maintainer = "Thomas Broyer <tbr@atolcd.com>"
+  packageGroup = "misc"
+  distribution = "development"
 
-  from("src/linux/") {
-    into("linux/")
-  }
-  from("src/deb/etc/") {
-    into("linux/deb/etc/")
-    filter(org.apache.tools.ant.filters.ReplaceTokens, tokens: [
-      "oasis.home":     oasis.home,
-      "oasis.service":  oasis.service,
-      "oasis.desc":     oasis.desc,
-      "oasis.user":     oasis.user,
-      "oasis.group":    oasis.group,
-      ])
+  user = oasis.user
+  permissionGroup = oasis.group
+
+  requires("openjdk-8-jdk-headless")
+  requires("adduser", "3.11", GREATER | EQUAL)
+  requires("lsb-base", "3.2-14", GREATER | EQUAL)
+
+  dirMode = 0755
+  fileMode = 0644
+
+  from(configurations.distLib) {
+    into("${oasis.home}/lib")
   }
   from("src/etc/") {
-    into("linux/etc/")
-    filter(org.apache.tools.ant.filters.ReplaceTokens, tokens: [
+    into("/etc/${oasis.service}")
+    filter(ReplaceTokens, tokens: [
       "oasis.home":     oasis.home,
       "oasis.service":  oasis.service,
       "oasis.desc":     oasis.desc,
       "oasis.user":     oasis.user,
       "oasis.group":    oasis.group,
       ])
+    eachFile { configurationFile(it.path) }
   }
-  from(configurations.distLib) {
-    into("lib/")
+  directory("/var/log/${oasis.service}", 0755)
+  from("src/linux/daemon.sh") {
+    into(oasis.home)
+    rename("daemon.sh", oasis.service)
+    fileMode = 0775
   }
-}
-
-task debControl(type: Sync) {
-  inputs.properties(oasis)
-  inputs.property("debianVersion", debianVersion)
-
-  destinationDir = new File(buildDir, "tmp/debControl")
-
-  from("src/deb/control") {
-    filter(org.apache.tools.ant.filters.ReplaceTokens, tokens: [
-      "name":           oasis.service,
-      "version":        debianVersion,
+  from("src/deb/etc/init.d/service.sh") {
+    into("/etc/init.d/")
+    rename("service.sh", oasis.service)
+    filter(ReplaceTokens, tokens: [
       "oasis.home":     oasis.home,
       "oasis.service":  oasis.service,
       "oasis.desc":     oasis.desc,
       "oasis.user":     oasis.user,
       "oasis.group":    oasis.group,
-    ])
+      ])
+    user("root")
+    permissionGroup("root")
+    fileMode = 0755
   }
-}
+  from("src/deb/etc/default/service-config") {
+    into("/etc/default/")
+    rename("service-config", oasis.service)
+    filter(ReplaceTokens, tokens: [
+      "oasis.home":     oasis.home,
+      "oasis.service":  oasis.service,
+      "oasis.desc":     oasis.desc,
+      "oasis.user":     oasis.user,
+      "oasis.group":    oasis.group,
+      ])
+    user("root")
+    permissionGroup("root")
+    eachFile { configurationFile(it.path) }
+  }
 
-task deb(dependsOn: [explodedDir, debControl]) {
-  def baseName = versionlessOutputs ? oasis.service : "${oasis.service}_${debianVersion}_all"
-  ext.destfile = "${distsDir}/${baseName}.deb"
-  ext.changesOut = "${distsDir}/${baseName}.changes"
-
-  // Note: changesIn is mandatory for being able to use changesOut, but the file needs not exist.
-  // So we arbitrarily picks CHANGES.txt as changesIn, and make sure it plays nicely with Gradle incremental builds.
-  inputs.files(explodedDir.outputs, debControl.outputs, "CHANGES.txt")
+  inputs.dir("src/deb/control")
   inputs.properties(oasis)
   inputs.property("debianVersion", debianVersion)
-  inputs.files(configurations.jdeb)
-  outputs.files(destfile, changesOut)
-
-  doLast {
-    ant.taskdef(name: "deb", classname: "org.vafer.jdeb.ant.DebAntTask", classpath: configurations.jdeb.asPath)
-
-    def pathTemplatesDir = "$buildDir/tmp/pathTemplates"
-    // HACK: jDeb Ant task doesn"t support data(type:"template") so we fake it with empty folders and data(type:"directory")
-    delete(pathTemplatesDir)
-    mkdir("$pathTemplatesDir/var/log/${oasis.service}")
-
-    ant.deb(destfile: destfile, control: debControl.destinationDir, changesIn: "CHANGES.txt", changesOut: changesOut, verbose: true) {
-      tarfileset(dir: explodedDir.destinationDir, includes: "lib/**", prefix: oasis.home, username: oasis.user, group: oasis.group)
-      tarfileset(dir: new File(explodedDir.destinationDir, "linux/etc"), prefix: "etc/${oasis.service}", username: oasis.user, group: oasis.group)
-      data(type: "directory", src: pathTemplatesDir) { // Hack for lack of data(type:"template")
-        mapper(type: "perm", user: oasis.user, group: oasis.group)
-      }
-      data(type: "file", src: new File(explodedDir.destinationDir, "linux/daemon.sh"), dst: oasis.service) {
-        mapper(type: "perm", prefix: oasis.home, filemode: "775")
-      }
-      data(type: "file", src: new File(explodedDir.destinationDir, "linux/deb/etc/init.d/service.sh"), dst: "etc/init.d/${oasis.service}") {
-        mapper(type: "perm", filemode: "755")
-      }
-      data(type: "file", src: new File(explodedDir.destinationDir, "linux/deb/etc/default/service-config"), dst: "etc/default/${oasis.service}")
+  doFirst {
+    copy {
+      from("src/deb/control")
+      into("$buildDir/tmp/debControl")
+      filter(ReplaceTokens, tokens: [
+        "name":           oasis.service,
+        "version":        debianVersion,
+        "oasis.home":     oasis.home,
+        "oasis.service":  oasis.service,
+        "oasis.desc":     oasis.desc,
+        "oasis.user":     oasis.user,
+        "oasis.group":    oasis.group,
+        ])
     }
+
+    preInstallFile = file("$buildDir/tmp/debControl/preinst")
+    postInstallFile = file("$buildDir/tmp/debControl/postinst")
+    preUninstallFile = file("$buildDir/tmp/debControl/prerm")
+    postUninstallFile = file("$buildDir/tmp/debControl/postrm")
   }
 }
 assemble.dependsOn deb

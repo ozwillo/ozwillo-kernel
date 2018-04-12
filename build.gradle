@@ -4,6 +4,7 @@ plugins {
   id("com.github.hierynomus.license") version "0.14.0"
 
   id("de.thetaphi.forbiddenapis") version "2.4.1" apply false
+  id("nebula.deb") version "4.8.0" apply false
 }
 apply {
   from("./libraries.gradle")

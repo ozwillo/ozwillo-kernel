@@ -99,8 +99,6 @@ ext.libs = [
       "com.fasterxml.jackson.module:jackson-module-jaxb-annotations:$jacksonVersion",
     ],
 
-  jdeb:                "org.vafer:jdeb:1.5",
-
   jsSHA:               "org.webjars.bower:jsSHA:2.2.0",
 
   icu4j:               "com.ibm.icu:icu4j:59.1",
