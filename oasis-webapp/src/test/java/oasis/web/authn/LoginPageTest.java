@@ -220,14 +220,16 @@ public class LoginPageTest {
 
   @SuppressWarnings("unchecked")
   @Test public void loginPageWithKnownCertificate(ClientCertificateHelper clientCertificateHelper) {
+    final String continueUrl = "/foo/bar?baz&qux=qu%26ux";
     when(clientCertificateHelper.getClientCertificate(any(MultivaluedMap.class))).thenReturn(someClientCertificate);
 
-    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(LoginPage.class)).request().get();
+    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(LoginPage.class))
+        .queryParam(LoginPage.CONTINUE_PARAM, UrlEscapers.urlFormParameterEscaper().escape(continueUrl))
+        .request().get();
 
-    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
-    assertThat(response.getCookies()).doesNotContainKeys(cookieName, browserStateCookieName);
-    assertLoginForm(response)
-        .matches(reauthUser(someUserAccount.getEmail_address()));
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
+    assertThat(response.getCookies()).containsKeys(cookieName, browserStateCookieName);
+    assertThat(response.getLocation()).isEqualTo(resteasy.getBaseUri().resolve(continueUrl));
   }
 
   @Test public void loginPageWhileLoggedIn() {

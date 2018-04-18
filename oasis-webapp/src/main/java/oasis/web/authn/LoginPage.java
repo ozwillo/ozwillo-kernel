@@ -174,7 +174,9 @@ public class LoginPage {
     if (clientCertificate != null && clientCertificate.getClient_type() == ClientType.USER) {
       UserAccount account = accountRepository.getUserAccountById(clientCertificate.getClient_id());
       if (account != null) {
-        return reauthForm(builder, continueUrl, error, account);
+        return loginHelper.authenticate(account, headers, securityContext, continueUrl, null, null, () -> {
+          log(auditLogService, account.getEmail_address(), LoginPage.LoginLogEvent.LoginResult.AUTHENTICATION_SUCCEEDED);
+        }).build();
       }
     }
 
