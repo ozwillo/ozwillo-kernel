@@ -64,6 +64,7 @@ import oasis.urls.Urls;
 import oasis.urls.UrlsModule;
 import oasis.web.authz.AuthorizationEndpoint;
 import oasis.web.i18n.LocaleHelper;
+import oasis.web.userdirectory.MembershipInvitationPage;
 import oasis.web.view.SoyTemplateBodyWriter;
 
 @RunWith(JukitoRunner.class)
@@ -219,6 +220,42 @@ public class SignUpPageTest {
 
     verify(userPasswordAuthenticator).setPassword(someUserAccount.getId(), "password");
     assertActivationTokenContinueUrl(tokenHandler).isEqualTo(URI.create(service.getService_uri()));
+  }
+
+  @Test public void storeContinueUrlIfLocal(UserPasswordAuthenticator userPasswordAuthenticator, TokenHandler tokenHandler,
+      ServiceRepository serviceRepository) {
+    final URI continueUrl = resteasy.getBaseUriBuilder().path(MembershipInvitationPage.class)
+        .build("membershipInvitationToken");
+    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(SignUpPage.class))
+        .request().post(Entity.form(new Form()
+            .param(SignUpPage.CONTINUE_PARAM, continueUrl.toString())
+            .param("email", "foo@example.com")
+            .param("pwd", "password")
+            .param("nickname", "nick")));
+
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
+    assertPendingActivationPage(response);
+
+    verify(userPasswordAuthenticator).setPassword(someUserAccount.getId(), "password");
+    assertActivationTokenContinueUrl(tokenHandler).isEqualTo(continueUrl);
+    verifyZeroInteractions(serviceRepository);
+  }
+
+  @Test public void doNotStoreContinueUrlIfNotLocal(UserPasswordAuthenticator userPasswordAuthenticator,
+      TokenHandler tokenHandler, ServiceRepository serviceRepository) {
+    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(SignUpPage.class))
+        .request().post(Entity.form(new Form()
+            .param(SignUpPage.CONTINUE_PARAM, "http://phish/")
+            .param("email", "foo@example.com")
+            .param("pwd", "password")
+            .param("nickname", "nick")));
+
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
+    assertPendingActivationPage(response);
+
+    verify(userPasswordAuthenticator).setPassword(someUserAccount.getId(), "password");
+    assertActivationTokenContinueUrl(tokenHandler).isNull();
+    verifyZeroInteractions(serviceRepository);
   }
 
   private AbstractUriAssert<?> assertActivationTokenContinueUrl(TokenHandler tokenHandler) {

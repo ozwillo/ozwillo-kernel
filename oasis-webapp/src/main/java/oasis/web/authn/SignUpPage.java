@@ -29,7 +29,6 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Request;
@@ -91,24 +90,20 @@ public class SignUpPage {
   @StrictReferer
   @Produces(MediaType.TEXT_HTML)
   public Response signUp(
-      @Context HttpHeaders headers,
-      @FormParam(CONTINUE_PARAM) URI continueUrl,
+      @FormParam(CONTINUE_PARAM) @Nullable URI continueUrl,
       @FormParam(LoginPage.LOCALE_PARAM) @Nullable ULocale locale,
       @FormParam("email") String email,
       @FormParam("pwd") String password,
       @FormParam("nickname") String nickname
   ) {
-    if (continueUrl == null) {
-      continueUrl = LoginPage.defaultContinueUrl(urls.myOasis(), uriInfo);
-    }
     locale = localeHelper.selectLocale(locale, request);
 
     if (Strings.isNullOrEmpty(email) || Strings.isNullOrEmpty(password) || Strings.isNullOrEmpty(nickname)) {
-      return LoginPage.signupForm(Response.ok(), continueUrl, locale, authSettings, franceConnectSettings != null, LoginPage.SignupError.MISSING_REQUIRED_FIELD);
+      return signupForm(Response.ok(), continueUrl, locale, LoginPage.SignupError.MISSING_REQUIRED_FIELD);
     }
-    // TODO: Verify that the password as a sufficiently strong length or even a strong entropy
+    // TODO: Verify that the password has a sufficiently strong entropy
     if (password.length() < authSettings.passwordMinimumLength) {
-      return LoginPage.signupForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, locale, authSettings, franceConnectSettings != null, LoginPage.SignupError.PASSWORD_TOO_SHORT);
+      return signupForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, locale, LoginPage.SignupError.PASSWORD_TOO_SHORT);
     }
 
     UserAccount account = new UserAccount();
@@ -119,8 +114,7 @@ public class SignUpPage {
     account.setZoneinfo("Europe/Paris");
     account = accountRepository.createUserAccount(account, false);
     if (account == null) {
-      // TODO: Allow the user to retrieve their password
-      return LoginPage.signupForm(Response.ok(), continueUrl, locale, authSettings, franceConnectSettings != null, LoginPage.SignupError.ACCOUNT_ALREADY_EXISTS);
+      return signupForm(Response.ok(), continueUrl, locale, LoginPage.SignupError.ACCOUNT_ALREADY_EXISTS);
     } else {
       userPasswordAuthenticator.setPassword(account.getId(), password);
     }
@@ -153,17 +147,35 @@ public class SignUpPage {
       logger.error("Error sending activation email", e);
       accountRepository.deleteUserAccount(account.getId());
       credentialsRepository.deleteCredentials(ClientType.USER, account.getId());
-      return LoginPage.signupForm(Response.ok(), continueUrl, locale, authSettings, franceConnectSettings != null, LoginPage.SignupError.MESSAGING_ERROR);
+      return signupForm(Response.ok(), continueUrl, locale, LoginPage.SignupError.MESSAGING_ERROR);
     }
   }
 
+  private Response signupForm(Response.ResponseBuilder builder, @Nullable URI continueUrl, ULocale locale, LoginPage.SignupError error) {
+    if (continueUrl == null) {
+      continueUrl = LoginPage.defaultContinueUrl(urls.myOasis(), uriInfo);
+    }
+    return LoginPage.signupForm(builder, continueUrl, locale, authSettings, franceConnectSettings != null, error);
+  }
+
   @Nullable
-  private URI extractContinueUrl(URI continueUrl) {
-    // FIXME: Quick and dirty hack for https://github.com/pole-numerique/oasis/issues/103
-    MultivaluedMap<String, String> params = new ResteasyUriInfo(continueUrl).getQueryParameters();
-    if (params.isEmpty() || !params.containsKey("client_id") || !params.containsKey("redirect_uri")) {
+  private URI extractContinueUrl(@Nullable URI continueUrl) {
+    if (continueUrl == null ||
+        continueUrl.isOpaque() ||
+        (continueUrl.getRawAuthority() != null && !continueUrl.getRawAuthority().equals(uriInfo.getBaseUri().getRawAuthority())) ||
+        (continueUrl.getScheme() != null && !continueUrl.getScheme().equalsIgnoreCase(uriInfo.getBaseUri().getScheme()))) {
+      // For some reason, the continueUrl does not target us (could be the defaultContinueUrl, passed from LoginPage).
       return null;
     }
+
+    MultivaluedMap<String, String> params = new ResteasyUriInfo(continueUrl).getQueryParameters();
+    if (params.isEmpty() || !params.containsKey("client_id") || !params.containsKey("redirect_uri")) {
+      // Let's assume that this is any non-AuthorizationEndpoint page
+      // We want it to, at a minimum, match MembershipInvitationPage and AppInstanceInvitationPage.
+      return continueUrl;
+    }
+
+    // FIXME: Quick and dirty hack for https://github.com/pole-numerique/oasis/issues/103
     List<String> client_id = params.get("client_id");
     List<String> redirect_uri = params.get("redirect_uri");
     if (client_id.size() != 1 || redirect_uri.size() != 1) {
