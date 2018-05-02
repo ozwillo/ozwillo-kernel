@@ -19,6 +19,9 @@ package oasis.web.userdirectory;
 
 import java.net.URI;
 import java.time.Instant;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -39,14 +42,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Streams;
 import com.google.template.soy.data.SanitizedContent;
 import com.google.template.soy.parseinfo.SoyTemplateInfo;
+import com.ibm.icu.text.Collator;
 import com.ibm.icu.util.ULocale;
 
 import oasis.model.DuplicateKeyException;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
+import oasis.model.applications.v2.AccessControlEntry;
+import oasis.model.applications.v2.AccessControlRepository;
+import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.authn.MembershipInvitationToken;
 import oasis.model.authn.TokenRepository;
 import oasis.model.directory.DirectoryRepository;
@@ -83,6 +92,8 @@ public class MembershipInvitationPage {
   @PathParam("token") String serializedToken;
 
   @Inject AccountRepository accountRepository;
+  @Inject AppInstanceRepository appInstanceRepository;
+  @Inject AccessControlRepository accessControlRepository;
   @Inject DirectoryRepository directoryRepository;
   @Inject NotificationRepository notificationRepository;
   @Inject OrganizationMembershipRepository organizationMembershipRepository;
@@ -170,6 +181,14 @@ public class MembershipInvitationPage {
 
     tokenRepository.revokeToken(membershipInvitationToken.getId());
 
+    // Accept all the application invitations and remove token
+    Iterable<AccessControlEntry> accessControlEntries = accessControlRepository
+        .getPendingAccessControlEntriesForUser(pendingOrganizationMembership.getEmail(), pendingOrganizationMembership.getOrganizationId());
+    for (AccessControlEntry ace : accessControlEntries) {
+      accessControlRepository.acceptPendingAccessControlEntry(ace.getId(), currentAccountId);
+      tokenRepository.revokeInvitationTokensForAppInstance(ace.getId());
+    }
+
     return Response.seeOther(
         urls.myNetwork().orElse(uriInfo.getBaseUri())
     ).build();
@@ -210,6 +229,14 @@ public class MembershipInvitationPage {
 
     tokenRepository.revokeToken(membershipInvitationToken.getId());
 
+    // Refuse all the application invitations and remove token
+    Iterable<AccessControlEntry> accessControlEntries = accessControlRepository
+        .getPendingAccessControlEntriesForUser(pendingOrganizationMembership.getEmail(), pendingOrganizationMembership.getOrganizationId());
+    for (AccessControlEntry ace : accessControlEntries) {
+        accessControlRepository.deletePendingAccessControlEntry(ace.getId());
+        tokenRepository.revokeInvitationTokensForAppInstance(ace.getId());
+    }
+
     return Response.seeOther(
         urls.myNetwork().orElse(uriInfo.getBaseUri())
     ).build();
@@ -217,6 +244,17 @@ public class MembershipInvitationPage {
 
   private Response generatePage(ULocale locale, OrganizationMembership pendingOrganizationMembership, Organization organization) {
     UserAccount requester = accountRepository.getUserAccountById(pendingOrganizationMembership.getCreator_id());
+
+    Set<String> instanceIds = Streams.stream(
+            accessControlRepository.getPendingAccessControlEntriesForUser(pendingOrganizationMembership.getEmail(), pendingOrganizationMembership.getOrganizationId()))
+        .map(AccessControlEntry::getInstance_id)
+        .collect(Collectors.toSet());
+
+    ImmutableList<String> pendingAppInvitations = Streams.stream(appInstanceRepository.getAppInstances(instanceIds))
+        .filter(Objects::nonNull) // that shouldn't happen, but we don't want to break if that's the case
+        .map(appInstance -> appInstance.getName().get(locale))
+        .sorted(Collator.getInstance(locale))
+        .collect(ImmutableList.toImmutableList());
 
     URI acceptFormAction = uriInfo.getBaseUriBuilder()
         .path(MembershipInvitationPage.class)
@@ -236,13 +274,14 @@ public class MembershipInvitationPage {
         .entity(new SoyTemplate(
             OrgMembershipInvitationSoyInfo.MEMBERSHIP_INVITATION,
             locale,
-            ImmutableMap.of(
-                MembershipInvitationSoyTemplateInfo.ACCEPT_FORM_ACTION, acceptFormAction.toString(),
-                MembershipInvitationSoyTemplateInfo.REFUSE_FORM_ACTION, refuseFormAction.toString(),
-                MembershipInvitationSoyTemplateInfo.ORGANIZATION_NAME, organization.getName(),
-                MembershipInvitationSoyTemplateInfo.REQUESTER_NAME, requester.getDisplayName(),
-                MembershipInvitationSoyTemplateInfo.INVITED_EMAIL, pendingOrganizationMembership.getEmail()
-            )
+            ImmutableMap.<String, Object>builderWithExpectedSize(6)
+                .put(MembershipInvitationSoyTemplateInfo.ACCEPT_FORM_ACTION, acceptFormAction.toString())
+                .put(MembershipInvitationSoyTemplateInfo.REFUSE_FORM_ACTION, refuseFormAction.toString())
+                .put(MembershipInvitationSoyTemplateInfo.ORGANIZATION_NAME, organization.getName())
+                .put(MembershipInvitationSoyTemplateInfo.REQUESTER_NAME, requester.getDisplayName())
+                .put(MembershipInvitationSoyTemplateInfo.INVITED_EMAIL, pendingOrganizationMembership.getEmail())
+                .put(MembershipInvitationSoyTemplateInfo.PENDING_APPS, pendingAppInvitations)
+                .build()
         ))
         .build();
   }

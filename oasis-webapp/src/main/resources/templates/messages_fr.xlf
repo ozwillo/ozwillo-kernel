@@ -641,6 +641,11 @@
         <target>Gérer mes applications</target>
         <note priority="1" from="description">Stopped app-instance notification action label</note>
       </trans-unit>
+      <trans-unit id="848768498446688917" datatype="html">
+        <source>You will also join these applications:</source>
+        <target>Vous serez également ajouté comme utilisateur des applications suivantes :</note>
+        <note priority="1" from="description">membership invitation applications description</note>
+      </trans-unit>
       <trans-unit id="8506870940393194390" datatype="html">
         <source>Go!</source>
         <target>Allons-y !</target>

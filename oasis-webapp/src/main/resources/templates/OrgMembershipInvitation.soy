@@ -26,6 +26,7 @@
 {@param  invitedEmail:     string} /** Invited email address. */
 {@param  acceptFormAction: string} /** URL to post the accept form to. */
 {@param  refuseFormAction: string} /** URL to post the refuse form to. */
+{@param  pendingApps:      list<string>} /** List of pending app instance invitations. */
 
 {call .page}
   {param title kind="text"}{msg desc="membership invitation page"}Accept or refuse membership invitation{/msg}{/param}
@@ -64,6 +65,18 @@ form {lb}
   {/msg}
 </h1>
 <div>
+  {if length($pendingApps)}
+    <div style="margin: 2.5em auto; max-width: 500px">
+      {msg desc="membership invitation applications description"}
+        You will also join these applications:
+      {/msg}
+      <ul style="list-style-position: inside; padding: 0; margin: 1em 0; list-style: none;">
+        {for $app in $pendingApps}
+          <li>{$app}</li>
+        {/for}
+      </ul>
+    </div>
+  {/if}
   <form method="POST" action="{$acceptFormAction}">
     <button type="submit">{msg desc="Accept membership invitation form submit button"}Accept{/msg}</button>
   </form>

@@ -41,4 +41,6 @@ public interface AccessControlRepository {
   Iterable<AccessControlEntry> getPendingAccessControlListForAppInstance(String instanceId);
 
   int deleteAccessControlListForAppInstance(String instanceId);
+
+  Iterable<AccessControlEntry> getPendingAccessControlEntriesForUser(String email, String organization_id);
 }

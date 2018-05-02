@@ -192,6 +192,14 @@ public class JongoAccessControlRepository implements AccessControlRepository, Jo
   }
 
   @Override
+  @SuppressWarnings("unchecked")
+  public Iterable<AccessControlEntry> getPendingAccessControlEntriesForUser(String email, String organization_id) {
+    return (Iterable<AccessControlEntry>) (Iterable<?>) getAccessControlEntriesCollection()
+        .find("{ email: #, organization_id: #, status: # }", email, organization_id, AccessControlEntry.Status.PENDING)
+        .as(JongoAccessControlEntry.class);
+  }
+
+  @Override
   public void bootstrap() {
     getAccessControlEntriesCollection().ensureIndex("{ id: 1 }", "{ unique: 1 }");
     getAccessControlEntriesCollection().ensureIndex("{ instance_id: 1, user_id: 1, email: 1 }", "{ unique: 1 }");
