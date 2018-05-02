@@ -59,4 +59,6 @@ public interface OrganizationMembershipRepository {
   Iterable<OrganizationMembership> getOrganizationsForAdmin(String userId, int start, int limit);
 
   boolean deleteMembershipsInOrganization(String organizationId);
+
+  boolean hasPendingMembershipInOrganization(String email, String organizationId);
 }

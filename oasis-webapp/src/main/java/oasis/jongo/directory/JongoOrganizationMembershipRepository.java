@@ -292,4 +292,11 @@ public class JongoOrganizationMembershipRepository implements OrganizationMember
         .remove("{ organizationId: # }", organizationId)
         .getN() > 0;
   }
+
+  @Override
+  public boolean hasPendingMembershipInOrganization(String email, String organizationId) {
+    long pendingMembership = getOrganizationMembershipsCollection()
+        .count("{ email: #, organizationId: #, status: # }", email, organizationId, OrganizationMembership.Status.PENDING);
+    return pendingMembership > 0;
+  }
 }

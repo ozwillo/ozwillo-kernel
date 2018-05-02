@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Predicate;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.mail.MessagingException;
 import javax.ws.rs.Consumes;
@@ -61,6 +62,7 @@ import oasis.model.authn.AppInstanceInvitationToken;
 import oasis.model.authn.TokenRepository;
 import oasis.model.authz.Scopes;
 import oasis.model.bootstrap.ClientIds;
+import oasis.model.directory.OrganizationMembershipRepository;
 import oasis.model.notification.Notification;
 import oasis.model.notification.NotificationRepository;
 import oasis.services.authn.TokenHandler;
@@ -90,6 +92,7 @@ public class AppInstanceAccessControlEndpoint {
 
   @Inject AccessControlRepository accessControlRepository;
   @Inject AppInstanceRepository appInstanceRepository;
+  @Inject OrganizationMembershipRepository organizationMembershipRepository;
   @Inject AccountRepository accountRepository;
   @Inject AppAdminHelper appAdminHelper;
   @Inject EtagService etagService;
@@ -212,7 +215,8 @@ public class AppInstanceAccessControlEndpoint {
       return ResponseFactory.conflict("Entry for that user already exists");
     }
 
-    if (ace.getStatus() == AccessControlEntry.Status.PENDING) {
+    if (ace.getStatus() == AccessControlEntry.Status.PENDING &&
+        !hasPendingMembershipForOrganization(ace.getEmail(), instance.getProvider_id())) {
 
       String pass = tokenHandler.generateRandom();
       AppInstanceInvitationToken appInstanceInvitationToken = tokenHandler.createAppInstanceInvitationToken(ace.getId(), pass);
@@ -243,6 +247,13 @@ public class AppInstanceAccessControlEndpoint {
         .tag(etagService.getEtag(ace))
         .entity(ace)
         .build();
+  }
+
+  private boolean hasPendingMembershipForOrganization(String email,@Nullable String organizationId) {
+    if (organizationId != null) {
+      return organizationMembershipRepository.hasPendingMembershipInOrganization(email, organizationId);
+    }
+    return false;
   }
 
   private void notifyUserForNewAppInstanceInvitation(String invitedUserEmail, AppInstance appInstance, UserAccount requester,
