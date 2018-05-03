@@ -13,7 +13,6 @@ services:
       - mongo_data:/data/db
     environment:
       - AUTH=no
-    network_mode: "bridge"
 
   elasticsearch:
     image: elasticsearch:1.3
@@ -21,11 +20,9 @@ services:
       - "9200:9200"
     volumes:
       - elastic_data:/usr/share/elasticsearch/data
-    network_mode: "bridge"
 
   mailhog:
     image: mailhog/mailhog:latest
     ports:
       - "1025:1025"
       - "8025:8025"
-    network_mode: "bridge"
