@@ -34,6 +34,7 @@ public class AccessControlEntry {
   private Instant created;
   private Instant accepted;
   private String creator_id;
+  @Nullable private String organization_id;
 
   public AccessControlEntry() {
   }
@@ -51,6 +52,7 @@ public class AccessControlEntry {
     created = other.getCreated();
     accepted = other.getAccepted();
     creator_id = other.getCreator_id();
+    organization_id = other.getOrganization_id();
   }
 
   public String getId() {
@@ -121,5 +123,14 @@ public class AccessControlEntry {
 
   public enum Status {
     PENDING, ACCEPTED
+  }
+
+  @Nullable
+  public String getOrganization_id() {
+    return organization_id;
+  }
+
+  public void setOrganization_id(@Nullable String organization_id) {
+    this.organization_id = organization_id;
   }
 }

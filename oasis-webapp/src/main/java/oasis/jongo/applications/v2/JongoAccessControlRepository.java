@@ -106,7 +106,7 @@ public class JongoAccessControlRepository implements AccessControlRepository, Jo
       return getAccessControlEntriesCollection()
           .findAndModify("{ id: #, status: # }", aceId, AccessControlEntry.Status.PENDING)
           .returnNew()
-          .with("{ $set: { status: #, user_id: #, accepted: # }, $unset: { email: '' } }",
+          .with("{ $set: { status: #, user_id: #, accepted: # }, $unset: { email: '', organization_id: '' } }",
               AccessControlEntry.Status.ACCEPTED, userId, new Date())
           .as(JongoAccessControlEntry.class);
     } catch (MongoCommandException e) {

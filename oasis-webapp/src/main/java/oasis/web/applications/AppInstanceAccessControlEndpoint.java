@@ -205,6 +205,7 @@ public class AppInstanceAccessControlEndpoint {
       return ResponseFactory.forbidden("Current user is not an app_admin for the application instance");
     }
     ace.setCreator_id(currentUserId);
+    ace.setOrganization_id(ace.getStatus() == AccessControlEntry.Status.PENDING ? instance.getProvider_id() : null);
 
     ace = accessControlRepository.createAccessControlEntry(ace);
     if (ace == null) {
