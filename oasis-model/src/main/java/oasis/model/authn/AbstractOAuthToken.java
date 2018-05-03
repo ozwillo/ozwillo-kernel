@@ -30,6 +30,9 @@ public abstract class AbstractOAuthToken extends AbstractAccountToken {
   @JsonProperty
   private Set<String> scopeIds = new HashSet<>();
 
+  @JsonProperty
+  private Set<String> claimNames = new HashSet<>();
+
   public String getServiceProviderId() {
     return serviceProviderId;
   }
@@ -44,5 +47,13 @@ public abstract class AbstractOAuthToken extends AbstractAccountToken {
 
   public void setScopeIds(Set<String> scopeIds) {
     this.scopeIds = new HashSet<>(scopeIds);
+  }
+
+  public Set<String> getClaimNames() {
+    return Collections.unmodifiableSet(claimNames);
+  }
+
+  public void setClaimNames(Set<String> claimNames) {
+    this.claimNames = new HashSet<>(claimNames);
   }
 }

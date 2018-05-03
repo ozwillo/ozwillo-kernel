@@ -134,6 +134,7 @@ public class TokenHandler {
     accessToken.setAccountId(authorizationCode.getAccountId());
     accessToken.expiresIn(authSettings.accessTokenDuration);
     accessToken.setScopeIds(authorizationCode.getScopeIds());
+    accessToken.setClaimNames(authorizationCode.getClaimNames());
     accessToken.setServiceProviderId(authorizationCode.getServiceProviderId());
     // Note: store the authorizationCode ID although it's been revoked to be able to
     // detect code reuse, and revoke all previously issued tokens based on the reused code.
@@ -155,6 +156,7 @@ public class TokenHandler {
     accessToken.setAccountId(refreshToken.getAccountId());
     accessToken.expiresIn(authSettings.accessTokenDuration);
     accessToken.setScopeIds(scopeIds);
+    accessToken.setClaimNames(refreshToken.getClaimNames());
     accessToken.setServiceProviderId(refreshToken.getServiceProviderId());
     accessToken.setParent(refreshToken);
 
@@ -174,6 +176,7 @@ public class TokenHandler {
     accessToken.setAccountId(accountId);
     accessToken.expiresIn(authSettings.accessTokenDuration);
     accessToken.setScopeIds(scopeIds);
+    // No claims here
     accessToken.setServiceProviderId(serviceProviderId);
     if (jti != null) {
       // Note: store the JWT ID (although it's been marked as used) to be able to
@@ -190,12 +193,13 @@ public class TokenHandler {
     return accessToken;
   }
 
-  public AuthorizationCode createAuthorizationCode(SidToken sidToken, Set<String> scopeIds, String serviceProviderId,
+  public AuthorizationCode createAuthorizationCode(SidToken sidToken, Set<String> scopeIds, Set<String> claimNames, String serviceProviderId,
       @Nullable String nonce, String redirectUri, @Nullable String codeChallenge, String pass) {
     AuthorizationCode authorizationCode = new AuthorizationCode();
     authorizationCode.setAccountId(sidToken.getAccountId());
     authorizationCode.expiresIn(authSettings.authorizationCodeDuration);
     authorizationCode.setScopeIds(scopeIds);
+    authorizationCode.setClaimNames(claimNames);
     authorizationCode.setServiceProviderId(serviceProviderId);
     authorizationCode.setNonce(nonce);
     authorizationCode.setRedirectUri(redirectUri);
@@ -222,6 +226,7 @@ public class TokenHandler {
     refreshToken.setAccountId(authorizationCode.getAccountId());
     refreshToken.expiresIn(authSettings.refreshTokenDuration);
     refreshToken.setScopeIds(authorizationCode.getScopeIds());
+    refreshToken.setClaimNames(authorizationCode.getClaimNames());
     refreshToken.setServiceProviderId(authorizationCode.getServiceProviderId());
     // Note: store the authorizationCode ID although it's been revoked to be able to
     // detect code reuse, and revoke all previously issued tokens based on the reused code.

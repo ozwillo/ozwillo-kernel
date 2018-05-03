@@ -32,6 +32,7 @@ public class AuthorizedScopes {
   private String account_id;
   private String client_id;
   private Set<String> scope_ids = new HashSet<>();
+  private Set<String> claim_names = new HashSet<>();
 
   public String getId() {
     return id;
@@ -63,5 +64,13 @@ public class AuthorizedScopes {
 
   public void setScope_ids(Set<String> scope_ids) {
     this.scope_ids = new HashSet<>(scope_ids);
+  }
+
+  public Set<String> getClaim_names() {
+    return claim_names;
+  }
+
+  public void setClaim_names(Set<String> claim_names) {
+    this.claim_names = claim_names;
   }
 }

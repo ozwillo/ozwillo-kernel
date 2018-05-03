@@ -50,12 +50,12 @@ public class JongoAuthorizationRepository implements AuthorizationRepository, Jo
   }
 
   @Override
-  public AuthorizedScopes authorize(String accountId, String clientId, Collection<String> scopeIds) {
+  public AuthorizedScopes authorize(String accountId, String clientId, Collection<String> scopeIds, Collection<String> claimNames) {
     return getAuthorizedScopesCollection()
         .findAndModify("{ account_id: #, client_id: # }", accountId, clientId)
         .upsert()
-        .with("{ $addToSet: { scope_ids: { $each: # } }, $setOnInsert: { id: # } }",
-            ImmutableSet.copyOf(scopeIds), OasisIdHelper.generateId())
+        .with("{ $addToSet: { scope_ids: { $each: # }, claim_names: { $each: # } }, $setOnInsert: { id: # } }",
+            ImmutableSet.copyOf(scopeIds), ImmutableSet.copyOf(claimNames), OasisIdHelper.generateId())
         .returnNew()
         .as(AuthorizedScopes.class);
   }

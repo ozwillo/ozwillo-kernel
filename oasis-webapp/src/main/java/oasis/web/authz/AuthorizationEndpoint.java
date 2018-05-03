@@ -348,7 +348,8 @@ public class AuthorizationEndpoint {
         portalScopeIds.add(neededScope.getScope_id());
       }
       if (!authorizedScopeIds.containsAll(portalScopeIds)) {
-        authorizationRepository.authorize(sidToken.getAccountId(), appInstance.getId(), portalScopeIds);
+        authorizationRepository.authorize(sidToken.getAccountId(), appInstance.getId(), portalScopeIds,
+            ScopesAndClaims.of(portalScopeIds, ImmutableSet.of()).getClaimNames());
         // Safer to make a copy
         authorizedScopeIds = new LinkedHashSet<>(authorizedScopeIds);
         authorizedScopeIds.addAll(portalScopeIds);
@@ -360,7 +361,7 @@ public class AuthorizationEndpoint {
         // that is, unless we need to ask the user for a client certificate
         return askForClientCertificate(uriInfo, sidToken.getAccountId(), appInstance, scopeIds, redirect_uri, state, nonce, code_challenge);
       }
-      return generateAuthorizationCodeAndRedirect(sidToken, scopeIds, appInstance.getId(), nonce, redirect_uri, code_challenge);
+      return generateAuthorizationCodeAndRedirect(sidToken, scopeIds, parsedClaims.keySet(), appInstance.getId(), nonce, redirect_uri, code_challenge);
     }
 
     if (!prompt.interactive) {
@@ -383,15 +384,18 @@ public class AuthorizationEndpoint {
       @Nullable @FormParam("nonce") String nonce,
       @Nullable @FormParam("code_challenge") String code_challenge
   ) {
+    // TODO: once template is updated to display individual claims, pass them back here:
+    ImmutableSet<String> claims = ScopesAndClaims.of(scopeIds, ImmutableSet.of()).getClaimNames();
+
     // TODO: check XSS (check data hasn't been tampered since generation of the form, so we can skip some validations we had already done)
 
     redirectUri = new RedirectUri(redirect_uri).setState(state);
 
     SidToken sidToken = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken();
 
-    authorizationRepository.authorize(sidToken.getAccountId(), client_id, selectedScopeIds);
+    authorizationRepository.authorize(sidToken.getAccountId(), client_id, selectedScopeIds, claims);
 
-    return generateAuthorizationCodeAndRedirect(sidToken, scopeIds, client_id, nonce, redirect_uri, code_challenge);
+    return generateAuthorizationCodeAndRedirect(sidToken, scopeIds, claims, client_id, nonce, redirect_uri, code_challenge);
   }
 
   private Response redirectToLogin(UriInfo uriInfo, Prompt prompt) {
@@ -415,10 +419,10 @@ public class AuthorizationEndpoint {
         redirectUri.toString());
   }
 
-  private Response generateAuthorizationCodeAndRedirect(SidToken sidToken, Set<String> scopeIds, String client_id,
+  private Response generateAuthorizationCodeAndRedirect(SidToken sidToken, Set<String> scopeIds, Set<String> claims, String client_id,
       @Nullable String nonce, String redirect_uri, @Nullable String code_challenge) {
     String pass = tokenHandler.generateRandom();
-    AuthorizationCode authCode = tokenHandler.createAuthorizationCode(sidToken, scopeIds, client_id, nonce, redirect_uri, code_challenge, pass);
+    AuthorizationCode authCode = tokenHandler.createAuthorizationCode(sidToken, scopeIds, claims, client_id, nonce, redirect_uri, code_challenge, pass);
 
     String auth_code = TokenSerializer.serialize(authCode, pass);
     if (auth_code == null) {
