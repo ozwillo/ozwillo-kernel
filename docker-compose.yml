@@ -6,11 +6,13 @@ volumes:
 
 services:
   mongo:
-    image: mongo:2.6
+    image: tutum/mongodb:2.6
     ports:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
+    environment:
+      - AUTH=no
     network_mode: "bridge"
 
   elasticsearch:
