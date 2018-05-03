@@ -87,7 +87,7 @@ public class JacksonJsonProviderTest {
         .post(Entity.json("{\"instant\": [] }"));
 
     assertThat(response.getStatus()).isEqualTo(ResponseFactory.SC_UNPROCESSABLE_ENTITY);
-    assertThat(response.readEntity(String.class)).contains("Cannot deserialize instance of " + Instant.class.getCanonicalName());
+    assertThat(response.readEntity(String.class)).contains("Cannot deserialize instance of `" + Instant.class.getCanonicalName() + "`");
   }
 
   @Path("/")

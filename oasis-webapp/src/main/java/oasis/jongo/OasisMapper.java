@@ -23,6 +23,7 @@ import org.jongo.marshall.Marshaller;
 import org.jongo.marshall.Unmarshaller;
 import org.jongo.marshall.jackson.JacksonEngine;
 import org.jongo.marshall.jackson.configuration.AbstractMappingBuilder;
+import org.jongo.marshall.jackson.configuration.Mapping;
 import org.jongo.query.BsonQueryFactory;
 import org.jongo.query.QueryFactory;
 
@@ -61,9 +62,10 @@ public class OasisMapper implements Mapper {
   public static class Builder extends AbstractMappingBuilder<Builder> {
 
     public Mapper build() {
-      JacksonEngine jacksonEngine = new JacksonEngine(createMapping());
+      Mapping mapping = createMapping();
+      JacksonEngine jacksonEngine = new JacksonEngine(mapping);
       QueryFactory queryFactory = new BsonQueryFactory(new OasisMarshaller(jacksonEngine));
-      ObjectIdUpdater objectIdUpdater = new OasisIdUpdater(jacksonEngine.getObjectMapper());
+      ObjectIdUpdater objectIdUpdater = new OasisIdUpdater(mapping.getObjectMapper());
       return new OasisMapper(jacksonEngine, queryFactory, objectIdUpdater);
     }
 

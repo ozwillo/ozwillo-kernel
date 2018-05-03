@@ -25,23 +25,23 @@ subprojects {
   }
 }
 
-def guiceVersion = "4.1.0"
-def jacksonVersion = "2.9.1"
-def log4jVersion = "2.9.1"
-def resteasyVersion = "3.1.4.Final"
+def guiceVersion = "4.2.0"
+def jacksonVersion = "2.9.5"
+def log4jVersion = "2.11.0"
+def resteasyVersion = "3.5.1.Final"
 
 ext.libs = [
-  guava:               "com.google.guava:guava:23.0",
-  jsr305:              "com.google.code.findbugs:jsr305:3.0.1",
+  guava:               "com.google.guava:guava:25.0-jre",
+  jsr305:              "com.google.code.findbugs:jsr305:3.0.2",
 
-  immutables:          "org.immutables:value:2.5.5",
-  immutables_annotations: "org.immutables:value:2.5.5:annotations@jar",
+  immutables:          "org.immutables:value:2.5.6",
+  immutables_annotations: "org.immutables:value:2.5.6:annotations@jar",
 
-  forbiddenapis:       "de.thetaphi:forbiddenapis:2.3",
+  forbiddenapis:       "de.thetaphi:forbiddenapis:2.5",
 
-  bouncycastle:        "org.bouncycastle:bcprov-jdk15on:1.58",
+  bouncycastle:        "org.bouncycastle:bcprov-jdk15on:1.59",
 
-  jose4j:              "org.bitbucket.b_c:jose4j:0.6.1",
+  jose4j:              "org.bitbucket.b_c:jose4j:0.6.3",
 
   guice:               [
       "com.google.inject:guice:$guiceVersion",
@@ -49,9 +49,9 @@ ext.libs = [
     ],
 
   jongo:               [
-      "org.jongo:jongo:1.3.0",
-      "de.undercouch:bson4jackson:2.7.0",
-      "org.mongodb:mongo-java-driver:3.5.0",
+      "org.jongo:jongo:1.4.0",
+      "de.undercouch:bson4jackson:2.9.0",
+      "org.mongodb:mongo-java-driver:3.7.0",
     ],
 
   elasticsearch:       [
@@ -67,8 +67,8 @@ ext.libs = [
   resteasy_client:     [
       "org.jboss.resteasy:resteasy-client:$resteasyVersion",
       "net.ltgt.jaxrs:resteasy-client-okhttp3:1.1",
-      "com.squareup.okhttp3:okhttp:3.9.0",
-      "com.squareup.okhttp3:logging-interceptor:3.9.0"
+      "com.squareup.okhttp3:okhttp:3.10.0",
+      "com.squareup.okhttp3:logging-interceptor:3.10.0"
     ],
 
   resteasy_testing:   "net.ltgt.jaxrs:resteasy-testing:0.2",
@@ -99,9 +99,9 @@ ext.libs = [
       "com.fasterxml.jackson.module:jackson-module-jaxb-annotations:$jacksonVersion",
     ],
 
-  jsSHA:               "org.webjars.bower:jsSHA:2.2.0",
+  jsSHA:               "org.webjars.bower:jsSHA:2.3.1",
 
-  icu4j:               "com.ibm.icu:icu4j:59.1",
+  icu4j:               "com.ibm.icu:icu4j:61.1",
 
   galimatias:          "io.mola.galimatias:galimatias:0.2.1",
 
@@ -113,16 +113,16 @@ ext.libs = [
 
   log4j_runtime:       [
       "org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion",
-      "com.lmax:disruptor:3.3.6",
+      "com.lmax:disruptor:3.4.2",
     ],
 
   args4j:              "args4j:args4j:2.33",
 
-  config:              "com.typesafe:config:1.3.1",
+  config:              "com.typesafe:config:1.3.3",
 
   junit:               "junit:junit:4.12",
 
-  mockito:             "org.mockito:mockito-core:2.10.0",
+  mockito:             "org.mockito:mockito-core:2.18.3",
 
   jukito:              [
       "org.jukito:jukito:1.5",
@@ -130,7 +130,7 @@ ext.libs = [
     ],
 
   assertj:             [
-      "org.assertj:assertj-core:3.8.0",
-      "org.assertj:assertj-guava:3.1.0",
+      "org.assertj:assertj-core:3.9.1",
+      "org.assertj:assertj-guava:3.2.0",
     ],
 ]

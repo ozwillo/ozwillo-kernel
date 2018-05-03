@@ -29,10 +29,12 @@ import javax.inject.Singleton;
 import org.jongo.Jongo;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
@@ -45,7 +47,6 @@ import com.mongodb.MongoClient;
 
 import de.undercouch.bson4jackson.BsonGenerator;
 import de.undercouch.bson4jackson.BsonParser;
-import de.undercouch.bson4jackson.serializers.BsonSerializer;
 import oasis.jongo.guice.JongoModule;
 import oasis.model.i18n.LocalizableModule;
 
@@ -99,11 +100,11 @@ public class JongoService implements Provider<Jongo> {
   static class CustomJavaTimeInstantModule extends SimpleModule {
     CustomJavaTimeInstantModule() {
       super();
-      addSerializer(Instant.class, new BsonSerializer<Instant>() {
+      addSerializer(Instant.class, new JsonSerializer<Instant>() {
         @Override
-        public void serialize(Instant instant, BsonGenerator bsonGenerator, SerializerProvider serializerProvider)
+        public void serialize(Instant instant, JsonGenerator jsonGenerator, SerializerProvider serializerProvider)
             throws IOException {
-          bsonGenerator.writeDateTime(Date.from(instant));
+          ((BsonGenerator) jsonGenerator).writeDateTime(Date.from(instant));
         }
       });
       addDeserializer(Instant.class, new JsonDeserializer<Instant>() {
