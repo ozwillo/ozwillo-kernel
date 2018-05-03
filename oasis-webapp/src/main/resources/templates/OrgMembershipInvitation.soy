@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-{namespace oasis autoescape="strict"}
+{namespace oasis}
 
 /**
  * Membership invitation page.
@@ -27,10 +27,9 @@
 {@param  acceptFormAction: string} /** URL to post the accept form to. */
 {@param  refuseFormAction: string} /** URL to post the refuse form to. */
 
-{call .header}
+{call .page}
   {param title kind="text"}{msg desc="membership invitation page"}Accept or refuse membership invitation{/msg}{/param}
-{/call}
-
+  {param content kind="html"}
 <style>
 main {lb} text-align: center; {rb}
 h1 {lb} font-weight: lighter; font-size: 1.8em; {rb}
@@ -72,8 +71,8 @@ form {lb}
     <button type="submit">{msg desc="Reject membership invitation form submit button"}Reject{/msg}</button>
   </form>
 </div>
-
-{call .footer /}
+  {/param}
+{/call}
 {/template}
 
 
@@ -82,10 +81,9 @@ form {lb}
  */
 {template .membershipInvitationTokenError}
 
-{call .header}
+{call .page}
   {param title kind="text"}{msg desc="membership invitation page error"}Expired invitation{/msg}{/param}
-{/call}
-
+  {param content kind="html"}
 <style>
 main {lb} text-align: center; {rb}
 h1 {lb} font-weight: lighter; font-size: 1.8em; {rb}
@@ -94,8 +92,8 @@ h1 {lb} font-weight: lighter; font-size: 1.8em; {rb}
 <h1>{msg desc="membership invitation error title"}Your invitation is expired{/msg}</h1>
 
 <p>{msg desc="membership invitation error description"}Please contact an administrator of the organization related to the invitation.{/msg}</p>
-
-{call .footer /}
+  {/param}
+{/call}
 {/template}
 
 
@@ -110,10 +108,9 @@ h1 {lb} font-weight: lighter; font-size: 1.8em; {rb}
 {@param  logoutPageUrl:    string} /** URL to sign out of Ozwillo. */
 {@param  refuseFormAction: string} /** URL to post the refuse form to. */
 
-{call .header}
+{call .page}
   {param title kind="text"}{msg desc="membership invitation page"}Accept or refuse membership invitation{/msg}{/param}
-{/call}
-
+  {param content kind="html"}
 <style>
 main {lb} text-align: center; {rb}
 h1 {lb} font-weight: lighter; font-size: 1.8em; {rb}
@@ -154,6 +151,6 @@ form {lb}
     <button type="submit">{msg desc="Delete membership invitation form submit button"}Delete invitation{/msg}</button>
   </form>
 </div>
-
-{call .footer /}
+  {/param}
+{/call}
 {/template}

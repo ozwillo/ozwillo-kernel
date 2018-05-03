@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-{namespace oasis autoescape="strict"}
+{namespace oasis}
 
 /**
 * Login page.
@@ -27,13 +27,13 @@
 {@param  continue:         string} /** URL to continue to after successful login/re-auth. */
 {@param? franceconnect:    string} /** URL to FranceConnect login. */
 {@param? error:            string} /** error; can be one of INCORRECT_USERNAME_OR_PASSWORD, MISSING_REQUIRED_FIELD, ACCOUNT_ALREADY_EXISTS, MESSAGING_ERROR, or PASSWORD_TOO_SHORT */
-{@param  locale_url_map:   map<string,string>}
+{@param  locale_url_map:   legacy_object_map<string,string>}
 {@param? pwdMinLength:     int}    /** password minimum length; only used on sign-up errors. */
 {@inject current_locale:   string} /** current locale. */
-{call .header}
+{call .page}
   {param title kind="text"}{msg desc="Login page title"}Login{/msg}{/param}
   {param locale_url_map: $locale_url_map /}
-{/call}
+  {param content kind="html"}
 <style>
 h1, h2 {lb} text-align: center; font-weight: lighter; {rb}
 h2 {lb} font-size: 1.8em; {rb}
@@ -169,7 +169,8 @@ small {lb} display: block; margin-top: 2em; font-size: .65em; line-height: initi
     In accordance with the EU Data Protection Directive (95/46/EC), you benefit from an access and modification right for the information concerning you, which you can exercise by contacting Ozwillo, 2323 Chemin de Saint-Bernard, 06225 Vallauris, FRANCE.<br>
     You can also, for legitimate reasons, object to the processing of your personal data.
   {/msg}</small>
-{call .footer /}
+  {/param}
+{/call}
 {/template}
 
 /**
@@ -181,9 +182,9 @@ small {lb} display: block; margin-top: 2em; font-size: .65em; line-height: initi
 {@param  continue:       string} /** URL to continue to after successful login/re-auth. */
 {@param? error:          string} /** error; can be one of INCORRECT_USERNAME_OR_PASSWORD */
 {@inject current_locale: string} /** current locale. */
-{call .header}
+{call .page}
   {param title kind="text"}{msg desc="Login page title"}Login{/msg}{/param}
-{/call}
+  {param content kind="html"}
 <style>
 main {lb} text-align: center; {rb}
 
@@ -230,17 +231,17 @@ h2 {lb} margin-bottom: 2.5em; {rb}
       </button>
     </div>
   </form>
-
-{call .footer /}
+  {/param}
+{/call}
 {/template}
 
 /**
  * Page displayed after sign-up, waiting for account activation.
  */
 {template .accountPendingActivation}
-{call .header}
+{call .page}
   {param title kind="text"}{msg desc="activation pending title"}Account pending activation{/msg}{/param}
-{/call}
+  {param content kind="html"}
 <style>
 h1 {lb} text-align: center; font-weight: lighter; font-size: 1.8em; {rb}
 </style>
@@ -250,5 +251,6 @@ h1 {lb} text-align: center; font-weight: lighter; font-size: 1.8em; {rb}
 
   // TODO: add button to re-send the activation mail
 
-{call .footer /}
+  {/param}
+{/call}
 {/template}

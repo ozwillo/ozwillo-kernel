@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-{namespace oasis autoescape="strict"}
+{namespace oasis}
 
 /**
  * Error during FranceConnect login.
@@ -24,9 +24,9 @@
 {@param? continue:       string} /** URL to continue to after successful login. */
 {@param  franceconnect:  string} /** URL to FranceConnect login. */
 {@inject current_locale: string} /** current locale. */
-{call .header}
+{call .page}
   {param title kind="text"}{msg desc="Login page title"}Login{/msg}{/param}
-{/call}
+  {param content kind="html"}
 <style>
 main {lb} text-align: center; {rb}
 
@@ -61,7 +61,8 @@ h2 {lb} margin-bottom: 2.5em; {rb}
   {else}
     <p>{msg desc="FranceConnect login error; go back and try again message"}Go back to the previous page and try again.{/msg}</p>
   {/if}
-{call .footer /}
+  {/param}
+{/call}
 {/template}
 
 /**
@@ -75,9 +76,9 @@ h2 {lb} margin-bottom: 2.5em; {rb}
 {@param? email:        string} /** email of the logged-in user (must be non-empty/non-null if hasPassword is true). */
 {@param  hasPassword:  bool}   /** whether there's a password setup for the account. */
 {@param? error:        string} /** error; can be one of INCORRECT_USERNAME_OR_PASSWORD or ACCOUNT_WITHOUT_PASSWORD */
-{call .header}
+{call .page}
   {param title kind="text"}{msg desc="unlink FranceConnect page"}Unlink your account from FranceConnect{/msg}{/param}
-{/call}
+  {param content kind="html"}
 <style>
 main {lb} text-align: center; {rb}
 h1 {lb} font-weight: lighter; font-size: 1.8em; {rb}
@@ -134,7 +135,8 @@ a {lb} color: #6f438e; {rb}
       Go back to My Ozwillo
     {/msg}</a>
   {/if}
-  {call .footer /}
+  {/param}
+{/call}
 {/template}
 
 /**
@@ -150,9 +152,9 @@ a {lb} color: #6f438e; {rb}
 {@param  encryptedState:   string} /** encrypted state, contains sensitive data. */
 {@param? error:            string} /** error; can be one of INCORRECT_USERNAME_OR_PASSWORD */
 {@inject current_locale:   string} /** current locale. */
-{call .header}
+{call .page}
   {param title kind="text"}{msg desc="Login page title"}Login{/msg}{/param}
-{/call}
+  {param content kind="html"}
 <style>
 h1, h2 {lb} text-align: center; font-weight: lighter; {rb}
 h2 {lb} font-size: 1.8em; {rb}
@@ -271,16 +273,17 @@ small {lb} display: block; margin-top: 2em; font-size: .65em; line-height: initi
     In accordance with the EU Data Protection Directive (95/46/EC), you benefit from an access and modification right for the information concerning you, which you can exercise by contacting Ozwillo, 2323 Chemin de Saint-Bernard, 06225 Vallauris, FRANCE.<br>
     You can also, for legitimate reasons, object to the processing of your personal data.
   {/msg}</small>
-  {call .footer /}
+  {/param}
+{/call}
 {/template}
 
 /**
  * Error during FranceConnect login: FC identity already linked to different account.
  */
 {template .franceconnectAlreadyLinked}
-{call .header}
+{call .page}
   {param title kind="text"}{msg desc="Login page title"}Login{/msg}{/param}
-{/call}
+  {param content kind="html"}
 <style>
 main {lb} text-align: center; {rb}
 
@@ -295,5 +298,6 @@ h2 {lb} margin-bottom: 2.5em; {rb}
   <h2>{msg desc="FranceConnect already linked error page heading"}This FranceConnect identity is already linked to another Ozwillo account.{/msg}</h2>
   <p>{msg desc="FranceConnect already linked error; logout from Ozwillo message"}You may want to sign out from Ozwillo (or FranceConnect) and try again.{/msg}</p>
   <p>{msg desc="FranceConnect login error; go back and try again message"}Go back to the previous page and try again.{/msg}</p>
-  {call .footer /}
+  {/param}
+{/call}
 {/template}

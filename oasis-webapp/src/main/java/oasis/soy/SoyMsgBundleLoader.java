@@ -28,10 +28,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import com.google.common.base.Throwables;
 import com.google.template.soy.msgs.SoyMsgBundle;
 import com.google.template.soy.msgs.SoyMsgBundleHandler;
 import com.google.template.soy.msgs.restricted.SoyMsg;
+import com.google.template.soy.xliffmsgplugin.XliffMsgPlugin;
 import com.ibm.icu.util.ULocale;
 
 import oasis.web.i18n.LocaleHelper;
@@ -64,12 +64,9 @@ class SoyMsgBundleLoader {
     }
   };
 
-  private final SoyMsgBundleHandler soyMsgBundleHandler;
-
   private final ConcurrentHashMap<Locale, SoyMsgBundle> cache = new ConcurrentHashMap<>();
 
-  @Inject SoyMsgBundleLoader(SoyMsgBundleHandler soyMsgBundleHandler) {
-    this.soyMsgBundleHandler = soyMsgBundleHandler;
+  @Inject SoyMsgBundleLoader() {
   }
 
   /** Returns the corresponding bundle. */
@@ -85,7 +82,7 @@ class SoyMsgBundleLoader {
         URL resource = getClass().getClassLoader().getResource(control.toResourceName(control.toBundleName("templates.messages", candidateLocale), "xlf"));
         if (resource != null) {
           try {
-            bundle = soyMsgBundleHandler.createFromResource(resource);
+            bundle = new SoyMsgBundleHandler(new XliffMsgPlugin()).createFromResource(resource);
           } catch (IOException e) {
             throw new RuntimeException(e);
           }

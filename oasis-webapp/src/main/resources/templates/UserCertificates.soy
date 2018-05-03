@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-{namespace oasis autoescape="strict"}
+{namespace oasis}
 
 /**
  * Manage client certificates for a user account.
@@ -28,9 +28,9 @@
 {@param  certs: list<[id: string, subject: string, issuer: string]>} /** certificates already linked to the account. */
 {@param? currentCert: [id: string|null, subject: string, issuer: string, linkedToOtherAccount: bool|null]} /** current certificate. If it has an 'id' then it's already registered.' */
 {@param? portalUrl:        string} /** URL of the Portal. */
-{call .header}
+{call .page}
   {param title kind="text"}{msg desc="User certificates page title"}Certificates{/msg}{/param}
-{/call}
+  {param content kind="html"}
 <style>
 h1 {lb} font-weight: lighter; font-size: 1.8em; text-align: center; {rb}
 h2 {lb} font-weight: lighter; font-size: 1.8em; {rb}
@@ -88,7 +88,7 @@ a.portal {lb}
       <form method=POST action="{$deleteFormAction}">
         <input type=hidden name=_utf8 value="&#9731;">
 
-        {foreach $cert in $certs}
+        {for $cert in $certs}
           {call .userCertificate data="$cert"}
             {param button kind="html"}
               {if $cert.id}
@@ -98,7 +98,7 @@ a.portal {lb}
               {/if}
             {/param}
           {/call}
-        {/foreach}
+        {/for}
       </form>
     {else}
       <p>{msg desc="No registered certificates"}
@@ -112,7 +112,9 @@ a.portal {lb}
         {/msg}</a>
       </div>
     {/if}
-{call .footer /}
+  </div>
+  {/param}
+{/call}
 {/template}
 
 /**

@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-{namespace oasis autoescape="strict"}
+{namespace oasis}
 
 /**
  * "I forgot my password" page.
@@ -23,12 +23,12 @@
 {template .forgotPassword}
 {@param  formAction:     string} /** URL to post the form to. */
 {@param? error:          string} /** error; can be one of MISSING_REQUIRED_FIELD, MESSAGING_ERROR, or EXPIRED_LINK */
-{@param  locale_url_map:   map<string,string>}
+{@param  locale_url_map: legacy_object_map<string,string>}
 {@inject current_locale: string} /** current locale. */
-{call .header}
+{call .page}
   {param title kind="text"}{msg desc="Forgot password page title"}Forgot password{/msg}{/param}
   {param locale_url_map: $locale_url_map /}
-{/call}
+  {param content kind="html"}
 <style>
 main {lb} text-align: center; {rb}
 
@@ -81,7 +81,8 @@ h2 {lb} margin-bottom: 2.5em; {rb}
       </button>
     </div>
   </form>
-{call .footer /}
+  {/param}
+{/call}
 {/template}
 
 /**
@@ -89,9 +90,9 @@ h2 {lb} margin-bottom: 2.5em; {rb}
  */
 {template .emailSent}
 {@param emailAddress: string} /** email address the message has been sent to */
-{call .header}
+{call .page}
   {param title kind="text"}{msg desc="Password reset requested (title)"}Password reset requested{/msg}{/param}
-{/call}
+  {param content kind="html"}
 <style>
 h1 {lb} text-align: center; font-weight: lighter; font-size: 1.8em; {rb}
 </style>
@@ -101,7 +102,8 @@ h1 {lb} text-align: center; font-weight: lighter; font-size: 1.8em; {rb}
     <p>We have sent an email to {$emailAddress} with further instructions.
     <p>The email contains a link allowing you to choose a new password. The email link must be clicked within a limited time.
   {/msg}
-{call .footer /}
+  {/param}
+{/call}
 {/template}
 
 /**
@@ -112,9 +114,9 @@ h1 {lb} text-align: center; font-weight: lighter; font-size: 1.8em; {rb}
 {@param  emailAddress: string} /** email address for the account to recover */
 {@param  locale:       string} /** current locale, to be propagated to subsequent requests. */
 {@param? error:        string} /** error; can be one of MISSING_REQUIRED_FIELD */
-{call .header}
+{call .page}
   {param title kind="text"}{msg desc="Reset password page title"}Password reset{/msg}{/param}
-{/call}
+  {param content kind="html"}
 <style>
 main {lb} text-align: center; {rb}
 
@@ -162,5 +164,6 @@ h2 {lb} margin-bottom: 2.5em; {rb}
       </button>
     </div>
   </form>
-{call .footer /}
+  {/param}
+{/call}
 {/template}

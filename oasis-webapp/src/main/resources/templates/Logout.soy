@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-{namespace oasis autoescape="strict"}
+{namespace oasis}
 
 /**
  * Logout page.
@@ -30,9 +30,9 @@
 {@param  formAction:  string}       /** URL to post the form to. */
 {@param? post_logout_redirect_uri: string} /** URL where to continue to after successful logout. */
 {@param? state:       string}       /** State associated with the post_logout_redirect_uri. */
-{call .header}
+{call .page}
   {param title kind="text"}{msg desc="logout page title"}Logout{/msg}{/param}
-{/call}
+  {param content kind="html"}
 <style>
 main {lb} text-align: center; {rb}
 h1 {lb} font-weight: lighter; font-size: 1.8em; {rb}
@@ -70,9 +70,9 @@ p {lb} margin: 0; {rb}
     <div style="background: #f0ad4e; color: white; border-radius: 10px; padding: .5em; margin: 2.5em auto; max-width: 500px">
       {let $apps kind="html"}
         <ul style="list-style-position: inside; padding: 0; margin: 1em 0;">
-          {foreach $otherApp in $otherApps}
+          {for $otherApp in $otherApps}
             <li>{$otherApp}</li>
-          {/foreach}
+          {/for}
         </ul>
       {/let}
       {msg desc="List of other apps you're signed in to, displayed during sign-out"}
@@ -106,5 +106,6 @@ p {lb} margin: 0; {rb}
       </a>
     {/if}
   </form>
-{call .footer /}
+  {/param}
+{/call}
 {/template}

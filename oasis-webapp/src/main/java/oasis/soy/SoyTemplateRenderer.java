@@ -73,7 +73,7 @@ public class SoyTemplateRenderer {
         }
       });
 
-  private static final SoyMap LOCALE_NAMES;
+  private static final SoyMapData LOCALE_NAMES;
   static {
     SoyMapData localeNames = new SoyMapData();
     for (ULocale locale : LocaleHelper.SUPPORTED_LOCALES) {

@@ -15,14 +15,15 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-{namespace oasis autoescape="strict"}
+{namespace oasis}
 
 /**
- * Common header for OASIS
+ * Common header/footer for OASIS
  */
-{template .header}
+{template .page}
 {@param? title:            string} /** title for this page. */
-{@param? locale_url_map:   map<string,string>}
+{@param? locale_url_map:   legacy_object_map<string,string>}
+{@param  content:          html}   /** content of the page. */
 {@inject landing_page_url: string}
 {@inject current_locale:   string} /** current locale. */
 <!DOCTYPE html>
@@ -130,29 +131,37 @@ label {lb} font-weight: lighter; {rb}
     {/if}
   </nav>
 </header>
-
 <main>
+{$content}
+</main>
+</div>
+<footer>
+  <img src="/images/eu.png" alt="" width=78 height=49 style="float:left; padding-right:10px">
+  {msg desc="page footer"}OASIS is a project by the EU under the Program for Competitiveness and Innovation CIP ICT PSP - N°297210{/msg}
+</footer>
+</body>
+</html>
 {/template}
 
 /**
  * Locale selector.
  */
 {template .locale_selector visibility="private"}
-{@param  locale_url_map:    map<string,string>}
+{@param  locale_url_map:    legacy_object_map<string,string>}
 {@inject current_locale:    string} /** current locale. */
-{@inject locale_name_map:   map<string,string>} /** map between language-tag and locale name. */
+{@inject locale_name_map:   legacy_object_map<string,string>} /** map between language-tag and locale name. */
 {@inject supported_locales: list<[locale: string, native_name: string, translated_name: string]>} /** List of supported locales with labels. */
 <div id=localeselector>
   <button style="font-size: 1.125em;">{$locale_name_map[$current_locale]}{sp}▼</button>
   <ul id=locales-menu>
-    {foreach $supported_locale in $supported_locales}
+    {for $supported_locale in $supported_locales}
       {call .locale_selector_item}
         {param locale: $supported_locale.locale /}
         {param native_name: $supported_locale.native_name /}
         {param translated_name: $supported_locale.translated_name /}
         {param url: $locale_url_map[$supported_locale.locale] /}
       {/call}
-    {/foreach}
+    {/for}
   </ul>
 </div>
 {/template}
@@ -173,21 +182,6 @@ label {lb} font-weight: lighter; {rb}
     <a class=selected>{$native_name}</a>
   {/if}
 </li>
-{/template}
-
-/**
- * Common footer for OASIS.
- */
-{template .footer}
-</main>
-</div>
-<footer>
-  <img src="/images/eu.png" alt="" width=78 height=49 style="float:left; padding-right:10px">
-  {msg desc="page footer"}OASIS is a project by the EU under the Program for Competitiveness and Innovation CIP ICT PSP - N°297210{/msg}
-</footer>
-
-</body>
-</html>
 {/template}
 
 /**

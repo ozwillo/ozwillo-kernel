@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-{namespace oasis autoescape="strict"}
+{namespace oasis}
 
 /**
  * Authorization page.
@@ -35,9 +35,9 @@
 {@param? code_challenge: string} /** 'code_challenge' request parameter */
 {@param? askForClientCertificate: [manageCertificatesUrl: string, hasRegisteredCertificate: bool, currentCert: null|[addFormAction: string, continueUrl: string, subject: string, issuer: string, linkedToOtherAccount: bool|null]]}
 
-{call .header}
+{call .page}
   {param title kind="text"}{msg desc="Authorization page title"}Authorize {$appName}{/msg}{/param}
-{/call}
+  {param content kind="html"}
 <style>
 h1 {lb} font-weight: lighter; font-size: 1.8em; text-align: center; {rb}
 button, a.cancel {lb}
@@ -71,9 +71,9 @@ a {lb} color: #6f438e; {rb}
   <form method="POST" action="{$formAction}">
     <input type="hidden" name="_utf8" value="&#9731;">
     <input type="hidden" name="client_id" value="{$appId}">
-    {foreach $scope in $requiredScopes}
+    {for $scope in $requiredScopes}
       <input type="hidden" name="scope" value="{$scope}">
-    {/foreach}
+    {/for}
     <input type="hidden" name="redirect_uri" value="{$redirect_uri}">
     {if $state}
       <input type="hidden" name="state" value="{$state}">
@@ -90,11 +90,11 @@ a {lb} color: #6f438e; {rb}
         {$appName} would like to:
       {/msg}</p>
       <ul>
-        {foreach $scope in $missingScopes}
+        {for $scope in $missingScopes}
           {call .scopeField data="$scope"}
             {param inputType: 'hidden' /}
           {/call}
-        {/foreach}
+        {/for}
       </ul>
       <div style="text-align: center">
         <button type="submit">
@@ -112,11 +112,11 @@ a {lb} color: #6f438e; {rb}
           {$appName} may later need to do the following; you can authorize it in advance by checking the boxes:
         {/msg}</p>
         <ul>
-          {foreach $scope in $optionalScopes}
+          {for $scope in $optionalScopes}
             {call .scopeField data="$scope"}
               {param inputType: 'checkbox' /}
             {/call}
-          {/foreach}
+          {/for}
         </ul>
       </div>
     {/if}
@@ -127,14 +127,15 @@ a {lb} color: #6f438e; {rb}
           You have already authorized {$appName} to:
         {/msg}</p>
         <ul>
-          {foreach $scope in $alreadyAuthorizedScopes}
+          {for $scope in $alreadyAuthorizedScopes}
             {call .scope data="$scope" /}
-          {/foreach}
+          {/for}
         </ul>
       </div>
     {/if}
   </form>
-{call .footer /}
+  {/param}
+{/call}
 {/template}
 
 /**
@@ -152,9 +153,9 @@ a {lb} color: #6f438e; {rb}
 {@param? code_challenge:          string} /** 'code_challenge' request parameter */
 {@param  askForClientCertificate: [manageCertificatesUrl: string, hasRegisteredCertificate: bool, currentCert: null|[addFormAction: string, continueUrl: string, subject: string, issuer: string, linkedToOtherAccount: bool|null]]}
 
-{call .header}
+{call .page}
   {param title kind="text"}{msg desc="Authorization page title"}Authorize {$appName}{/msg}{/param}
-{/call}
+  {param content kind="html"}
 <style>
 h1 {lb} font-weight: lighter; font-size: 1.8em; text-align: center; {rb}
 button, a.cancel {lb}
@@ -184,9 +185,9 @@ a {lb} color: #6f438e; {rb}
   <form method="POST" action="{$formAction}">
     <input type="hidden" name="_utf8" value="&#9731;">
     <input type="hidden" name="client_id" value="{$appId}">
-    {foreach $scope in $scopes}
+    {for $scope in $scopes}
       <input type="hidden" name="scope" value="{$scope}">
-    {/foreach}
+    {/for}
     <input type="hidden" name="redirect_uri" value="{$redirect_uri}">
     {if $state}
       <input type="hidden" name="state" value="{$state}">
@@ -206,7 +207,8 @@ a {lb} color: #6f438e; {rb}
       </a>
     </div>
   </form>
-{call .footer /}
+  {/param}
+{/call}
 {/template}
 
 /**
