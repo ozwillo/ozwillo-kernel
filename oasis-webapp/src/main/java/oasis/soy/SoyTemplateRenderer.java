@@ -111,7 +111,7 @@ public class SoyTemplateRenderer {
 
   public void render(SoyTemplate template, Appendable writer) {
     SoyMsgBundle msgBundle = soyMsgBundleLoader.get(template.getLocale());
-    SoyTofu.Renderer renderer = soyTofu.newRenderer(template.getTemplateInfo())
+    soyTofu.newRenderer(template.getTemplateInfo())
         .setData(template.getData())
         .setMsgBundle(msgBundle)
         .setIjData(ImmutableMap.of(
@@ -119,11 +119,9 @@ public class SoyTemplateRenderer {
             "current_locale", msgBundle.getLocaleString(),
             "locale_name_map", LOCALE_NAMES,
             "supported_locales", SUPPORTED_LOCALES.getUnchecked(msgBundle.getLocaleString())
-        ));
-    if (template.getContentKind() != null) {
-      renderer.setContentKind(template.getContentKind());
-    }
-    renderer.render(writer);
+        ))
+        .setContentKind(template.getContentKind())
+        .render(writer);
   }
 
   public String renderAsString(SoyTemplate template) {

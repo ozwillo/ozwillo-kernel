@@ -32,7 +32,7 @@ public class SoyTemplate {
   private final SoyTemplateInfo templateInfo;
   @SuppressWarnings("Immutable")
   private final ULocale locale;
-  private final @Nullable SanitizedContent.ContentKind contentKind;
+  private final SanitizedContent.ContentKind contentKind;
   @SuppressWarnings("Immutable")
   private final @Nullable ImmutableMap<String, ?> data;
 
@@ -52,7 +52,7 @@ public class SoyTemplate {
       @Nullable ImmutableMap<String, ?> data) {
     this.templateInfo = Preconditions.checkNotNull(templateInfo);
     this.locale = locale;
-    this.contentKind = contentKind;
+    this.contentKind = MoreObjects.firstNonNull(contentKind, SanitizedContent.ContentKind.HTML);
     this.data = data;
   }
 
@@ -64,7 +64,6 @@ public class SoyTemplate {
     return locale;
   }
 
-  @Nullable
   public SanitizedContent.ContentKind getContentKind() {
     return contentKind;
   }
