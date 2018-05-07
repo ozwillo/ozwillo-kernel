@@ -22,7 +22,7 @@
  */
 {template .page}
 {@param? title:            string} /** title for this page. */
-{@param? locale_url_map:   legacy_object_map<string,string>}
+{@param? locale_url_map:   map<string,string>}
 {@param  content:          html}   /** content of the page. */
 {@inject landing_page_url: string}
 {@inject current_locale:   string} /** current locale. */
@@ -124,7 +124,7 @@ label {lb} font-weight: lighter; {rb}
   <nav>
     <a href="{$landing_page_url}" title="{msg desc="link title on header logo"}Go to the Ozwillo portal{/msg}" style="padding:3px 15px 4px;display:inline-block;"><img src="/images/logo_ozwillo.png" alt="Ozwillo" width=108 height=43 valign=middle></a>
 
-    {if $locale_url_map and length(keys($locale_url_map)) > 0}
+    {if $locale_url_map and length(mapKeys($locale_url_map)) > 0}
       {call .locale_selector}
         {param locale_url_map: $locale_url_map /}
       {/call}
@@ -147,9 +147,9 @@ label {lb} font-weight: lighter; {rb}
  * Locale selector.
  */
 {template .locale_selector visibility="private"}
-{@param  locale_url_map:    legacy_object_map<string,string>}
+{@param  locale_url_map:    map<string,string>}
 {@inject current_locale:    string} /** current locale. */
-{@inject locale_name_map:   legacy_object_map<string,string>} /** map between language-tag and locale name. */
+{@inject locale_name_map:   map<string,string>} /** map between language-tag and locale name. */
 {@inject supported_locales: list<[locale: string, native_name: string, translated_name: string]>} /** List of supported locales with labels. */
 <div id=localeselector>
   <button style="font-size: 1.125em;">{$locale_name_map[$current_locale]}{sp}▼</button>

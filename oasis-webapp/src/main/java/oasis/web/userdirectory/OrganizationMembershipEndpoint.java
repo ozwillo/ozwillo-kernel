@@ -42,9 +42,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Streams;
 import com.google.template.soy.data.SanitizedContent;
-import com.google.template.soy.data.SoyMapData;
 import com.ibm.icu.util.ULocale;
 
 import oasis.mail.MailMessage;
@@ -195,7 +195,7 @@ public class OrganizationMembershipEndpoint {
 
   private void notifyUserForNewMembershipInvitation(String invitedUserEmail, Organization organization, UserAccount requester,
       MembershipInvitationToken membershipInvitationToken, String tokenPass) {
-    SoyMapData data = new SoyMapData();
+    ImmutableMap.Builder<String, String> data = ImmutableMap.builderWithExpectedSize(4);
     // Subject data
     data.put(OrgMembershipInvitationMailSoyInfo.NewMembershipInvitationSubjectSoyTemplateInfo.ORGANIZATION_NAME, organization.getName());
     // Body data
@@ -203,7 +203,8 @@ public class OrganizationMembershipEndpoint {
         .path(MembershipInvitationPage.class, "showInvitation")
         .build(TokenSerializer.serialize(membershipInvitationToken, tokenPass));
     data.put(NewMembershipInvitationBodySoyTemplateInfo.MEMBERSHIP_INVITATION_URL, uri.toString());
-    data.put(NewMembershipInvitationBodySoyTemplateInfo.ORGANIZATION_NAME, organization.getName());
+    // This is actually the same key as above (and the same value), so would create a duplicate:
+    // data.put(NewMembershipInvitationBodySoyTemplateInfo.ORGANIZATION_NAME, organization.getName());
     data.put(NewMembershipInvitationBodySoyTemplateInfo.REQUESTER_NAME, requester.getDisplayName());
 
     try {
@@ -212,7 +213,7 @@ public class OrganizationMembershipEndpoint {
           .setLocale(requester.getLocale())
           .setSubject(OrgMembershipInvitationMailSoyInfo.NEW_MEMBERSHIP_INVITATION_SUBJECT)
           .setBody(OrgMembershipInvitationMailSoyInfo.NEW_MEMBERSHIP_INVITATION_BODY)
-          .setData(data)
+          .setData(data.build())
           .setHtml());
     } catch (MessagingException e) {
       logger.error("Error while sending new membership invitation email to the invited user", e);
@@ -221,10 +222,11 @@ public class OrganizationMembershipEndpoint {
   }
 
   private void notifyAdminsForNewMembershipInvitation(String invitedUserEmail, Organization organization, UserAccount requester) {
-    SoyMapData data = new SoyMapData();
-    data.put(NewMembershipInvitationAdminMessageSoyTemplateInfo.INVITED_USER_EMAIL, invitedUserEmail);
-    data.put(NewMembershipInvitationAdminMessageSoyTemplateInfo.REQUESTER_NAME, requester.getDisplayName());
-    data.put(NewMembershipInvitationAdminMessageSoyTemplateInfo.ORGANIZATION_NAME, organization.getName());
+    ImmutableMap<String, String> data = ImmutableMap.of(
+        NewMembershipInvitationAdminMessageSoyTemplateInfo.INVITED_USER_EMAIL, invitedUserEmail,
+        NewMembershipInvitationAdminMessageSoyTemplateInfo.REQUESTER_NAME, requester.getDisplayName(),
+        NewMembershipInvitationAdminMessageSoyTemplateInfo.ORGANIZATION_NAME, organization.getName()
+    );
 
     Notification notificationPrototype = new Notification();
     notificationPrototype.setTime(Instant.now());

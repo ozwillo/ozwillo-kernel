@@ -24,7 +24,7 @@ import javax.annotation.Nullable;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 
-import com.google.template.soy.data.SoyMapData;
+import com.google.common.collect.ImmutableMap;
 import com.google.template.soy.parseinfo.SoyTemplateInfo;
 import com.ibm.icu.util.ULocale;
 
@@ -34,7 +34,7 @@ public class MailMessage {
   private SoyTemplateInfo subject;
   private SoyTemplateInfo body;
   private boolean html = true;
-  private SoyMapData data;
+  private ImmutableMap<String, ?> data;
 
   public ULocale getLocale() {
     return locale;
@@ -101,11 +101,11 @@ public class MailMessage {
     return this;
   }
 
-  public SoyMapData getData() {
+  public ImmutableMap<String, ?> getData() {
     return data;
   }
 
-  public MailMessage setData(SoyMapData data) {
+  public MailMessage setData(ImmutableMap<String, ?> data) {
     this.data = data;
     return this;
   }

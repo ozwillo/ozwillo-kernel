@@ -42,7 +42,7 @@ import javax.ws.rs.core.UriInfo;
 import org.jose4j.lang.JoseException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.template.soy.data.SoyMapData;
+import com.google.common.collect.ImmutableMap;
 import com.ibm.icu.util.ULocale;
 
 import oasis.auditlog.AuditLogService;
@@ -126,7 +126,7 @@ public class FranceConnectLinkPage {
     }).build();
   }
 
-  private Response linkForm(ULocale locale, URI continueUrl, String state, LoginError error) {
+  private Response linkForm(ULocale locale, URI continueUrl, String state, @Nullable LoginError error) {
     return linkForm(Response.status(Response.Status.BAD_REQUEST), locale, null, false, continueUrl.toString(), state, error)
         .build();
   }
@@ -139,19 +139,24 @@ public class FranceConnectLinkPage {
     }
   }
 
-  private static Response.ResponseBuilder linkForm(Response.ResponseBuilder rb, ULocale locale, @Nullable String email, boolean alreadyLinked, String continueUrl, String state, LoginError error) {
+  private static Response.ResponseBuilder linkForm(Response.ResponseBuilder rb, ULocale locale, @Nullable String email, boolean alreadyLinked, String continueUrl, String state, @Nullable LoginError error) {
+    ImmutableMap.Builder<String, Object> data = ImmutableMap.<String, Object>builderWithExpectedSize(8)
+        .put(FranceconnectLinkSoyTemplateInfo.SIGN_UP_FORM_ACTION, UriBuilder.fromResource(FranceConnectSignUpPage.class).build().toString())
+        .put(FranceconnectLinkSoyTemplateInfo.LOGIN_FORM_ACTION, UriBuilder.fromResource(FranceConnectLinkPage.class).build().toString())
+        .put(FranceconnectLinkSoyTemplateInfo.FORGOT_PASSWORD, UriBuilder.fromResource(ForgotPasswordPage.class).queryParam(LOCALE_PARAM, locale.toLanguageTag()).build().toString())
+        .put(FranceconnectLinkSoyTemplateInfo.ALREADY_LINKED, alreadyLinked)
+        .put(FranceconnectLinkSoyTemplateInfo.CONTINUE, continueUrl)
+        .put(FranceconnectLinkSoyTemplateInfo.ENCRYPTED_STATE, state);
+    if (email != null) {
+      data.put(FranceconnectLinkSoyTemplateInfo.EMAIL, email);
+    }
+    if (error != null) {
+      data.put(FranceconnectLinkSoyTemplateInfo.ERROR, error.name());
+    }
+
     return rb
         .type(MediaType.TEXT_HTML_TYPE)
-        .entity(new SoyTemplate(FranceConnectSoyInfo.FRANCECONNECT_LINK, locale, new SoyMapData(
-            FranceconnectLinkSoyTemplateInfo.SIGN_UP_FORM_ACTION, UriBuilder.fromResource(FranceConnectSignUpPage.class).build().toString(),
-            FranceconnectLinkSoyTemplateInfo.LOGIN_FORM_ACTION, UriBuilder.fromResource(FranceConnectLinkPage.class).build().toString(),
-            FranceconnectLinkSoyTemplateInfo.FORGOT_PASSWORD, UriBuilder.fromResource(ForgotPasswordPage.class).queryParam(LOCALE_PARAM, locale.toLanguageTag()).build().toString(),
-            FranceconnectLinkSoyTemplateInfo.EMAIL, email,
-            FranceconnectLinkSoyTemplateInfo.ALREADY_LINKED, alreadyLinked,
-            FranceconnectLinkSoyTemplateInfo.CONTINUE, continueUrl,
-            FranceconnectLinkSoyTemplateInfo.ENCRYPTED_STATE, state,
-            FranceconnectLinkSoyTemplateInfo.ERROR, error
-        )));
+        .entity(new SoyTemplate(FranceConnectSoyInfo.FRANCECONNECT_LINK, locale, data.build()));
   }
 
   enum LoginError {

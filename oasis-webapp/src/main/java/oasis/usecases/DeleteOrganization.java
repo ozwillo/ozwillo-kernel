@@ -29,8 +29,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.template.soy.data.SanitizedContent;
-import com.google.template.soy.data.SoyMapData;
 import com.ibm.icu.util.ULocale;
 
 import oasis.model.applications.v2.AppInstance;
@@ -122,8 +122,9 @@ public class DeleteOrganization {
     Notification notificationPrototype = new Notification();
     notificationPrototype.setTime(Instant.now());
     notificationPrototype.setStatus(Notification.Status.UNREAD);
-    SoyMapData data = new SoyMapData();
-    data.put(DeletedOrganizationMessageSoyTemplateInfo.ORGANIZATION_NAME, organizationName);
+    ImmutableMap<String, ?> data = ImmutableMap.of(
+      DeletedOrganizationMessageSoyTemplateInfo.ORGANIZATION_NAME, organizationName
+    );
     for (ULocale locale : LocaleHelper.SUPPORTED_LOCALES) {
       ULocale messageLocale = locale;
       if (LocaleHelper.DEFAULT_LOCALE.equals(locale)) {

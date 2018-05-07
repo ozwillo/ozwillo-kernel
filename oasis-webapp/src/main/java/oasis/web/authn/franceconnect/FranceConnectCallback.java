@@ -17,37 +17,8 @@
  */
 package oasis.web.authn.franceconnect;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.io.BaseEncoding;
-import com.google.template.soy.data.SoyMapData;
-import com.ibm.icu.util.ULocale;
-
-import oasis.auth.AuthModule;
-import oasis.auth.FranceConnectModule;
-import oasis.model.DuplicateKeyException;
-import oasis.model.accounts.AccountRepository;
-import oasis.model.accounts.UserAccount;
-import oasis.model.authn.SidToken;
-import oasis.model.authn.TokenRepository;
-import oasis.soy.SoyTemplate;
-import oasis.soy.templates.FranceConnectSoyInfo;
-import oasis.soy.templates.FranceConnectSoyInfo.FranceconnectErrorSoyTemplateInfo;
-import oasis.web.authn.LoginHelper;
-import oasis.web.authn.SessionManagementHelper;
-import oasis.web.authn.User;
-import oasis.web.authn.UserSessionPrincipal;
-import oasis.web.i18n.LocaleHelper;
-
-import org.jose4j.jwa.AlgorithmConstraints;
-import org.jose4j.jws.AlgorithmIdentifiers;
-import org.jose4j.jwt.JwtClaims;
-import org.jose4j.jwt.MalformedClaimException;
-import org.jose4j.jwt.consumer.InvalidJwtException;
-import org.jose4j.jwt.consumer.JwtConsumerBuilder;
-import org.jose4j.jwt.consumer.Validator;
-import org.jose4j.keys.HmacKey;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -68,8 +39,37 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
+
+import org.jose4j.jwa.AlgorithmConstraints;
+import org.jose4j.jws.AlgorithmIdentifiers;
+import org.jose4j.jwt.JwtClaims;
+import org.jose4j.jwt.MalformedClaimException;
+import org.jose4j.jwt.consumer.InvalidJwtException;
+import org.jose4j.jwt.consumer.JwtConsumerBuilder;
+import org.jose4j.jwt.consumer.Validator;
+import org.jose4j.keys.HmacKey;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.io.BaseEncoding;
+import com.ibm.icu.util.ULocale;
+
+import oasis.auth.AuthModule;
+import oasis.auth.FranceConnectModule;
+import oasis.model.DuplicateKeyException;
+import oasis.model.accounts.AccountRepository;
+import oasis.model.accounts.UserAccount;
+import oasis.model.authn.SidToken;
+import oasis.model.authn.TokenRepository;
+import oasis.soy.SoyTemplate;
+import oasis.soy.templates.FranceConnectSoyInfo;
+import oasis.soy.templates.FranceConnectSoyInfo.FranceconnectErrorSoyTemplateInfo;
+import oasis.web.authn.LoginHelper;
+import oasis.web.authn.SessionManagementHelper;
+import oasis.web.authn.User;
+import oasis.web.authn.UserSessionPrincipal;
+import oasis.web.i18n.LocaleHelper;
 
 @User
 @Path("/a/franceconnect/callback")
@@ -327,14 +327,13 @@ public class FranceConnectCallback {
   }
 
   private static Response.ResponseBuilder error(Response.ResponseBuilder rb, ULocale locale, @Nullable String continueUrl) {
+    ImmutableMap.Builder<String, String> data = ImmutableMap.<String, String>builderWithExpectedSize(2)
+        .put(FranceconnectErrorSoyTemplateInfo.FRANCECONNECT, UriBuilder.fromResource(FranceConnectLogin.class).build().toString());
+    if (continueUrl != null) {
+      data.put(FranceconnectErrorSoyTemplateInfo.CONTINUE, continueUrl);
+    }
     return rb.type(MediaType.TEXT_HTML_TYPE)
-        .entity(new SoyTemplate(FranceConnectSoyInfo.FRANCECONNECT_ERROR,
-            locale,
-            new SoyMapData(
-                FranceconnectErrorSoyTemplateInfo.FRANCECONNECT, UriBuilder.fromResource(FranceConnectLogin.class).build().toString(),
-                FranceconnectErrorSoyTemplateInfo.CONTINUE, continueUrl
-            )
-        ));
+        .entity(new SoyTemplate(FranceConnectSoyInfo.FRANCECONNECT_ERROR, locale, data.build()));
   }
 
   static class TokenResponse {

@@ -19,6 +19,7 @@ package oasis.web.applications;
 
 import java.net.URI;
 import java.time.Instant;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import javax.inject.Inject;
@@ -40,8 +41,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableMap;
 import com.google.template.soy.data.SanitizedContent;
-import com.google.template.soy.data.SoyMapData;
 import com.google.template.soy.parseinfo.SoyTemplateInfo;
 import com.ibm.icu.util.ULocale;
 
@@ -240,7 +241,7 @@ public class AppInstanceInvitationPage {
         .entity(new SoyTemplate(
             AppInstanceInvitationSoyInfo.APP_INSTANCE_INVITATION,
             locale,
-            new SoyMapData(
+            ImmutableMap.of(
                 AppInstanceInvitationSoyTemplateInfo.ACCEPT_FORM_ACTION, acceptFormAction.toString(),
                 AppInstanceInvitationSoyTemplateInfo.REFUSE_FORM_ACTION, refuseFormAction.toString(),
                 AppInstanceInvitationSoyTemplateInfo.APP_INSTANCE_NAME, appInstance.getName().get(locale),
@@ -291,45 +292,48 @@ public class AppInstanceInvitationPage {
         .entity(new SoyTemplate(
             AppInstanceInvitationSoyInfo.APP_INSTANCE_INVITATION_ALREADY_USER_ERROR,
             user.getLocale(),
-            new SoyMapData(
-                AppInstanceInvitationAlreadyUserErrorSoyTemplateInfo.LOGOUT_PAGE_URL, logoutPageUrl.toString(),
-                AppInstanceInvitationAlreadyUserErrorSoyTemplateInfo.REFUSE_FORM_ACTION, refuseFormAction.toString(),
-                AppInstanceInvitationAlreadyUserErrorSoyTemplateInfo.APP_INSTANCE_NAME, appInstance.getName().get(user.getLocale()),
-                AppInstanceInvitationAlreadyUserErrorSoyTemplateInfo.REQUESTER_NAME, requester.getDisplayName(),
-                AppInstanceInvitationAlreadyUserErrorSoyTemplateInfo.INVITED_EMAIL, pendingAccessControlEntry.getEmail(),
-                AppInstanceInvitationAlreadyUserErrorSoyTemplateInfo.CURRENT_USER, MoreObjects.firstNonNull(user.getEmail_address(), user.getDisplayName())
-            )
+            ImmutableMap.<String, String>builder()
+                .put(AppInstanceInvitationAlreadyUserErrorSoyTemplateInfo.LOGOUT_PAGE_URL, logoutPageUrl.toString())
+                .put(AppInstanceInvitationAlreadyUserErrorSoyTemplateInfo.REFUSE_FORM_ACTION, refuseFormAction.toString())
+                .put(AppInstanceInvitationAlreadyUserErrorSoyTemplateInfo.APP_INSTANCE_NAME, appInstance.getName().get(user.getLocale()))
+                .put(AppInstanceInvitationAlreadyUserErrorSoyTemplateInfo.REQUESTER_NAME, requester.getDisplayName())
+                .put(AppInstanceInvitationAlreadyUserErrorSoyTemplateInfo.INVITED_EMAIL, pendingAccessControlEntry.getEmail())
+                .put(AppInstanceInvitationAlreadyUserErrorSoyTemplateInfo.CURRENT_USER, MoreObjects.firstNonNull(user.getEmail_address(), user.getDisplayName())
+            ).build()
         ))
         .build();
   }
 
   private void notifyAdmins(AppInstance appInstance, String invitedUserEmail, UserAccount requester, boolean acceptedInvitation) {
-    SoyMapData data = new SoyMapData();
+    final String requesterName = requester.getDisplayName();
     final SoyTemplateInfo templateInfo;
-    final String appInstanceNameParamName;
+    final Function<ULocale, ImmutableMap<String, ?>> dataProvider;
     if (acceptedInvitation) {
       templateInfo = AppInstanceInvitationNotificationSoyInfo.ACCEPTED_APP_INSTANCE_INVITATION_ADMIN_MESSAGE;
-      data.put(AcceptedAppInstanceInvitationAdminMessageSoyTemplateInfo.INVITED_USER_EMAIL, invitedUserEmail);
-      data.put(AcceptedAppInstanceInvitationAdminMessageSoyTemplateInfo.REQUESTER_NAME, requester.getDisplayName());
-      appInstanceNameParamName = AcceptedAppInstanceInvitationAdminMessageSoyTemplateInfo.APP_INSTANCE_NAME;
+      dataProvider = locale -> ImmutableMap.of(
+          AcceptedAppInstanceInvitationAdminMessageSoyTemplateInfo.INVITED_USER_EMAIL, invitedUserEmail,
+          AcceptedAppInstanceInvitationAdminMessageSoyTemplateInfo.REQUESTER_NAME, requesterName,
+          AcceptedAppInstanceInvitationAdminMessageSoyTemplateInfo.APP_INSTANCE_NAME, appInstance.getName().get(locale)
+      );
     } else {
       templateInfo = AppInstanceInvitationNotificationSoyInfo.REJECTED_APP_INSTANCE_INVITATION_ADMIN_MESSAGE;
-      data.put(RejectedAppInstanceInvitationAdminMessageSoyTemplateInfo.INVITED_USER_EMAIL, invitedUserEmail);
-      data.put(RejectedAppInstanceInvitationAdminMessageSoyTemplateInfo.REQUESTER_NAME, requester.getDisplayName());
-      appInstanceNameParamName = RejectedAppInstanceInvitationAdminMessageSoyTemplateInfo.APP_INSTANCE_NAME;
+      dataProvider = locale -> ImmutableMap.of(
+          RejectedAppInstanceInvitationAdminMessageSoyTemplateInfo.INVITED_USER_EMAIL, invitedUserEmail,
+          RejectedAppInstanceInvitationAdminMessageSoyTemplateInfo.REQUESTER_NAME, requesterName,
+          RejectedAppInstanceInvitationAdminMessageSoyTemplateInfo.APP_INSTANCE_NAME, appInstance.getName().get(locale)
+      );
     }
 
     Notification notificationPrototype = new Notification();
     notificationPrototype.setTime(Instant.now());
     notificationPrototype.setStatus(Notification.Status.UNREAD);
     for (ULocale locale : LocaleHelper.SUPPORTED_LOCALES) {
-      data.put(appInstanceNameParamName, appInstance.getName().get(locale));
       ULocale messageLocale = locale;
       if (LocaleHelper.DEFAULT_LOCALE.equals(locale)) {
         messageLocale = ULocale.ROOT;
       }
       notificationPrototype.getMessage().set(messageLocale, templateRenderer.renderAsString(new SoyTemplate(templateInfo, locale,
-          SanitizedContent.ContentKind.TEXT, data)));
+          SanitizedContent.ContentKind.TEXT, dataProvider.apply(locale))));
     }
 
     appAdminHelper.getAdmins(appInstance)
@@ -347,17 +351,20 @@ public class AppInstanceInvitationPage {
   }
 
   private void notifyRequester(AppInstance appInstance, String invitedUserEmail, String requesterId, boolean acceptedInvitation) {
-    SoyMapData data = new SoyMapData();
     final SoyTemplateInfo templateInfo;
-    final String appInstanceNameParamName;
+    final Function<ULocale, ImmutableMap<String, String>> dataProvider;
     if (acceptedInvitation) {
       templateInfo = AppInstanceInvitationNotificationSoyInfo.ACCEPTED_APP_INSTANCE_INVITATION_REQUESTER_MESSAGE;
-      data.put(AcceptedAppInstanceInvitationRequesterMessageSoyTemplateInfo.INVITED_USER_EMAIL, invitedUserEmail);
-      appInstanceNameParamName = AcceptedAppInstanceInvitationRequesterMessageSoyTemplateInfo.APP_INSTANCE_NAME;
+      dataProvider = locale -> ImmutableMap.of(
+          AcceptedAppInstanceInvitationRequesterMessageSoyTemplateInfo.INVITED_USER_EMAIL, invitedUserEmail,
+          AcceptedAppInstanceInvitationRequesterMessageSoyTemplateInfo.APP_INSTANCE_NAME, appInstance.getName().get(locale)
+      );
     } else {
       templateInfo = AppInstanceInvitationNotificationSoyInfo.REJECTED_APP_INSTANCE_INVITATION_REQUESTER_MESSAGE;
-      data.put(RejectedAppInstanceInvitationRequesterMessageSoyTemplateInfo.INVITED_USER_EMAIL, invitedUserEmail);
-      appInstanceNameParamName = RejectedAppInstanceInvitationRequesterMessageSoyTemplateInfo.APP_INSTANCE_NAME;
+      dataProvider = locale -> ImmutableMap.of(
+          RejectedAppInstanceInvitationRequesterMessageSoyTemplateInfo.INVITED_USER_EMAIL, invitedUserEmail,
+          RejectedAppInstanceInvitationRequesterMessageSoyTemplateInfo.APP_INSTANCE_NAME, appInstance.getName().get(locale)
+      );
     }
 
     Notification notification = new Notification();
@@ -365,13 +372,12 @@ public class AppInstanceInvitationPage {
     notification.setStatus(Notification.Status.UNREAD);
     notification.setUser_id(requesterId);
     for (ULocale locale : LocaleHelper.SUPPORTED_LOCALES) {
-      data.put(appInstanceNameParamName, appInstance.getName().get(locale));
       ULocale messageLocale = locale;
       if (LocaleHelper.DEFAULT_LOCALE.equals(locale)) {
         messageLocale = ULocale.ROOT;
       }
       notification.getMessage().set(messageLocale, templateRenderer.renderAsString(new SoyTemplate(templateInfo, locale,
-          SanitizedContent.ContentKind.TEXT, data)));
+          SanitizedContent.ContentKind.TEXT, dataProvider.apply(locale))));
     }
 
     try {

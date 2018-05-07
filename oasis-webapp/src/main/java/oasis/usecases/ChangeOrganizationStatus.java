@@ -26,8 +26,8 @@ import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.template.soy.data.SanitizedContent;
-import com.google.template.soy.data.SoyMapData;
 import com.ibm.icu.util.ULocale;
 
 import oasis.model.InvalidVersionException;
@@ -132,9 +132,10 @@ public class ChangeOrganizationStatus {
     notificationPrototype.getAction_uri().set(ULocale.ROOT, urls.myNetwork().map(URI::toString).orElse(null));
 
     UserAccount requester = accountRepository.getUserAccountById(requesterId);
-    SoyMapData data = new SoyMapData();
-    data.put(SoftlyDeletedOrganizationMessageForAdminsSoyTemplateInfo.ORGANIZATION_NAME, organization.getName());
-    data.put(SoftlyDeletedOrganizationMessageForAdminsSoyTemplateInfo.REQUESTER_NAME, requester.getDisplayName());
+    ImmutableMap<String, ?> data = ImmutableMap.of(
+        SoftlyDeletedOrganizationMessageForAdminsSoyTemplateInfo.ORGANIZATION_NAME, organization.getName(),
+        SoftlyDeletedOrganizationMessageForAdminsSoyTemplateInfo.REQUESTER_NAME, requester.getDisplayName()
+    );
 
     for (ULocale locale : LocaleHelper.SUPPORTED_LOCALES) {
       ULocale messageLocale = locale;
@@ -171,8 +172,9 @@ public class ChangeOrganizationStatus {
     notification.setUser_id(requesterId);
     notification.getAction_uri().set(ULocale.ROOT, urls.myNetwork().map(URI::toString).orElse(null));
 
-    SoyMapData data = new SoyMapData();
-    data.put(SoftlyDeletedOrganizationMessageForRequesterSoyTemplateInfo.ORGANIZATION_NAME, organization.getName());
+    ImmutableMap<String, ?> data = ImmutableMap.of(
+        SoftlyDeletedOrganizationMessageForRequesterSoyTemplateInfo.ORGANIZATION_NAME, organization.getName()
+    );
 
     for (ULocale locale : LocaleHelper.SUPPORTED_LOCALES) {
       ULocale messageLocale = locale;
@@ -198,10 +200,11 @@ public class ChangeOrganizationStatus {
     notificationPrototype.setTime(Instant.now());
     notificationPrototype.setStatus(Notification.Status.UNREAD);
 
-    for (ULocale locale : LocaleHelper.SUPPORTED_LOCALES) {
-      SoyMapData data = new SoyMapData();
-      data.put(RestoredOrganizationMessageSoyTemplateInfo.ORGANIZATION_NAME, organization.getName());
+    ImmutableMap<String, ?> data = ImmutableMap.of(
+        RestoredOrganizationMessageSoyTemplateInfo.ORGANIZATION_NAME, organization.getName()
+    );
 
+    for (ULocale locale : LocaleHelper.SUPPORTED_LOCALES) {
       ULocale messageLocale = locale;
       if (LocaleHelper.DEFAULT_LOCALE.equals(locale)) {
         messageLocale = ULocale.ROOT;

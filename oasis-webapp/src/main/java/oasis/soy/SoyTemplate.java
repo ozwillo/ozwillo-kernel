@@ -19,23 +19,28 @@ package oasis.soy;
 
 import javax.annotation.Nullable;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
+import com.google.errorprone.annotations.Immutable;
 import com.google.template.soy.data.SanitizedContent;
-import com.google.template.soy.data.SoyMapData;
 import com.google.template.soy.parseinfo.SoyTemplateInfo;
 import com.ibm.icu.util.ULocale;
 
+@Immutable
 public class SoyTemplate {
   private final SoyTemplateInfo templateInfo;
+  @SuppressWarnings("Immutable")
   private final ULocale locale;
   private final @Nullable SanitizedContent.ContentKind contentKind;
-  private final @Nullable SoyMapData data;
+  @SuppressWarnings("Immutable")
+  private final @Nullable ImmutableMap<String, ?> data;
 
   public SoyTemplate(SoyTemplateInfo templateInfo, ULocale locale) {
     this(templateInfo, locale, null, null);
   }
 
-  public SoyTemplate(SoyTemplateInfo templateInfo, ULocale locale, @Nullable SoyMapData data) {
+  public SoyTemplate(SoyTemplateInfo templateInfo, ULocale locale, @Nullable ImmutableMap<String, ?> data) {
     this(templateInfo, locale, null, data);
   }
 
@@ -44,7 +49,7 @@ public class SoyTemplate {
   }
 
   public SoyTemplate(SoyTemplateInfo templateInfo, ULocale locale, @Nullable SanitizedContent.ContentKind contentKind,
-      @Nullable SoyMapData data) {
+      @Nullable ImmutableMap<String, ?> data) {
     this.templateInfo = Preconditions.checkNotNull(templateInfo);
     this.locale = locale;
     this.contentKind = contentKind;
@@ -65,7 +70,7 @@ public class SoyTemplate {
   }
 
   @Nullable
-  public SoyMapData getData() {
+  public ImmutableMap<String, ?> getData() {
     return data;
   }
 }

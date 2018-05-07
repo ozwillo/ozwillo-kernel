@@ -23,7 +23,7 @@
 {template .forgotPassword}
 {@param  formAction:     string} /** URL to post the form to. */
 {@param? error:          string} /** error; can be one of MISSING_REQUIRED_FIELD, MESSAGING_ERROR, or EXPIRED_LINK */
-{@param  locale_url_map: legacy_object_map<string,string>}
+{@param  locale_url_map: map<string,string>}
 {@inject current_locale: string} /** current locale. */
 {call .page}
   {param title kind="text"}{msg desc="Forgot password page title"}Forgot password{/msg}{/param}

@@ -26,10 +26,8 @@ import javax.inject.Inject;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.template.soy.data.SoyList;
-import com.google.template.soy.data.SoyListData;
-import com.google.template.soy.data.SoyMap;
-import com.google.template.soy.data.SoyMapData;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.template.soy.msgs.SoyMsgBundle;
 import com.google.template.soy.tofu.SoyTofu;
 import com.ibm.icu.lang.UCharacter;
@@ -43,18 +41,18 @@ import oasis.urls.Urls;
 import oasis.web.i18n.LocaleHelper;
 
 public class SoyTemplateRenderer {
-  private static final LoadingCache<String, SoyList> SUPPORTED_LOCALES = CacheBuilder.newBuilder()
+  private static final LoadingCache<String, ImmutableList<ImmutableMap<String, String>>> SUPPORTED_LOCALES = CacheBuilder.newBuilder()
       .initialCapacity(LocaleHelper.SUPPORTED_LOCALES.size())
       .maximumSize(LocaleHelper.SUPPORTED_LOCALES.size())
-      .build(new CacheLoader<String, SoyList>() {
+      .build(new CacheLoader<String, ImmutableList<ImmutableMap<String, String>>>() {
         @Override
-        public SoyList load(String key) throws Exception {
+        public ImmutableList<ImmutableMap<String, String>> load(String key) {
           final ULocale currentLocale = ULocale.forLanguageTag(key);
           final LocaleDisplayNames currentLocaleDisplayNames = getLocaleDisplayNames(currentLocale);
-          final ArrayList<SoyMapData> list = new ArrayList<>();
+          final ArrayList<ImmutableMap<String, String>> list = new ArrayList<>();
           for (ULocale locale : LocaleHelper.SUPPORTED_LOCALES) {
             LocaleDisplayNames localeDisplayNames = getLocaleDisplayNames(locale);
-            SoyMapData localeDesc = new SoyMapData(
+            ImmutableMap<String, String>localeDesc = ImmutableMap.of(
                 "locale", locale.toLanguageTag(),
                 "native_name", getDisplayName(locale, localeDisplayNames),
                 "translated_name", getDisplayName(locale, currentLocaleDisplayNames)
@@ -62,24 +60,24 @@ public class SoyTemplateRenderer {
             list.add(localeDesc);
           }
           // We need a consistent ordering for all locales, so sort on the native_name using a locale-independent collator.
-          list.sort(new Comparator<SoyMapData>() {
+          list.sort(new Comparator<ImmutableMap<String, String>>() {
             final Collator collator = Collator.getInstance(ULocale.ROOT);
             @Override
-            public int compare(SoyMapData o1, SoyMapData o2) {
-              return collator.compare(o1.getString("native_name"), o2.getString("native_name"));
+            public int compare(ImmutableMap<String, String> o1, ImmutableMap<String, String> o2) {
+              return collator.compare(o1.get("native_name"), o2.get("native_name"));
             }
           });
-          return new SoyListData(list);
+          return ImmutableList.copyOf(list);
         }
       });
 
-  private static final SoyMapData LOCALE_NAMES;
+  private static final ImmutableMap<String, String> LOCALE_NAMES;
   static {
-    SoyMapData localeNames = new SoyMapData();
+    ImmutableMap.Builder<String, String> localeNames = ImmutableMap.builder();
     for (ULocale locale : LocaleHelper.SUPPORTED_LOCALES) {
       localeNames.put(locale.toLanguageTag(), getDisplayName(locale, getLocaleDisplayNames(locale)));
     }
-    LOCALE_NAMES = localeNames;
+    LOCALE_NAMES = localeNames.build();
   }
 
   private static LocaleDisplayNames getLocaleDisplayNames(ULocale locale) {
@@ -116,7 +114,7 @@ public class SoyTemplateRenderer {
     SoyTofu.Renderer renderer = soyTofu.newRenderer(template.getTemplateInfo())
         .setData(template.getData())
         .setMsgBundle(msgBundle)
-        .setIjData(new SoyMapData(
+        .setIjData(ImmutableMap.of(
             "landing_page_url", urls.landingPage().map(URI::toString).orElse(""),
             "current_locale", msgBundle.getLocaleString(),
             "locale_name_map", LOCALE_NAMES,

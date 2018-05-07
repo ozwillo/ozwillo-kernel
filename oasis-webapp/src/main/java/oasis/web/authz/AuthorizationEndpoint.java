@@ -54,11 +54,11 @@ import javax.ws.rs.core.UriInfo;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Streams;
-import com.google.template.soy.data.SoyListData;
-import com.google.template.soy.data.SoyMapData;
 import com.ibm.icu.util.ULocale;
 
 import oasis.auth.AuthModule;
@@ -388,6 +388,24 @@ public class AuthorizationEndpoint {
     Response.ResponseBuilder rb = Response.ok();
     setSessionState(rb, serviceProvider.getId(), redirect_uri);
 
+    ImmutableMap.Builder<String, Object> data = ImmutableMap.<String, Object>builderWithExpectedSize(10)
+        .put(AskForClientCertificateSoyTemplateInfo.APP_ID, serviceProvider.getId())
+        .put(AskForClientCertificateSoyTemplateInfo.APP_NAME, serviceProvider.getName().get(account.getLocale()))
+        .put(AskForClientCertificateSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(AuthorizationEndpoint.class).path(APPROVE_PATH).build().toString())
+        .put(AskForClientCertificateSoyTemplateInfo.CANCEL_URL, redirectUri.toString())
+        .put(AskForClientCertificateSoyTemplateInfo.SCOPES, requiredScopeIds)
+        .put(AskForClientCertificateSoyTemplateInfo.REDIRECT_URI, redirect_uri)
+        .put(AskForClientCertificateSoyTemplateInfo.ASK_FOR_CLIENT_CERTIFICATE, getAskForClientCertificateData(uriInfo, accountId));
+    if (state != null) {
+      data.put(AskForClientCertificateSoyTemplateInfo.STATE, state);
+    }
+    if (nonce != null) {
+      data.put(AskForClientCertificateSoyTemplateInfo.NONCE, nonce);
+    }
+    if (code_challenge != null) {
+      data.put(AskForClientCertificateSoyTemplateInfo.CODE_CHALLENGE, code_challenge);
+    }
+
     // TODO: Improve security by adding a token created by encrypting scopes with a secret
     return rb
         .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store")
@@ -396,21 +414,7 @@ public class AuthorizationEndpoint {
         .header("X-Frame-Options", "DENY")
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
-        .entity(new SoyTemplate(AuthorizeSoyInfo.ASK_FOR_CLIENT_CERTIFICATE,
-            account.getLocale(),
-            new SoyMapData(
-                AskForClientCertificateSoyTemplateInfo.APP_ID, serviceProvider.getId(),
-                AskForClientCertificateSoyTemplateInfo.APP_NAME, serviceProvider.getName().get(account.getLocale()),
-                AskForClientCertificateSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(AuthorizationEndpoint.class).path(APPROVE_PATH).build().toString(),
-                AskForClientCertificateSoyTemplateInfo.CANCEL_URL, redirectUri.toString(),
-                AskForClientCertificateSoyTemplateInfo.SCOPES, new SoyListData(requiredScopeIds),
-                AskForClientCertificateSoyTemplateInfo.REDIRECT_URI, redirect_uri,
-                AskForClientCertificateSoyTemplateInfo.STATE, state,
-                AskForClientCertificateSoyTemplateInfo.NONCE, nonce,
-                AskForClientCertificateSoyTemplateInfo.CODE_CHALLENGE, code_challenge,
-                AskForClientCertificateSoyTemplateInfo.ASK_FOR_CLIENT_CERTIFICATE, getAskForClientCertificateData(uriInfo, accountId)
-            )
-        ))
+        .entity(new SoyTemplate(AuthorizeSoyInfo.ASK_FOR_CLIENT_CERTIFICATE, account.getLocale(), data.build()))
         .build();
   }
 
@@ -437,34 +441,60 @@ public class AuthorizationEndpoint {
     UserAccount account = accountRepository.getUserAccountById(accountId);
 
     // Some scopes need explicit approval, generate approval form
-    SoyListData missingScopes = new SoyListData();
-    SoyListData optionalScopes = new SoyListData();
-    SoyListData alreadyAuthorizedScopes = new SoyListData();
+    ImmutableList.Builder<ImmutableMap<String, String>> missingScopes = ImmutableList.builder();
+    ImmutableList.Builder<ImmutableMap<String, String>> optionalScopes = ImmutableList.builder();
+    ImmutableList.Builder<ImmutableMap<String, String>> alreadyAuthorizedScopes = ImmutableList.builder();
     for (Scope claimedScope : globalClaimedScopes) {
       String scopeId = claimedScope.getId();
-      SoyMapData scope = new SoyMapData(
-          AuthorizeSoyInfo.Param.ID, scopeId,
-          AuthorizeSoyInfo.Param.TITLE, claimedScope.getName().get(account.getLocale()),
-          AuthorizeSoyInfo.Param.DESCRIPTION, claimedScope.getDescription().get(account.getLocale())
-      );
+      ImmutableMap.Builder<String, String> scope = ImmutableMap.<String, String>builderWithExpectedSize(3)
+          .put(AuthorizeSoyInfo.Param.ID, scopeId);
+      String title = claimedScope.getName().get(account.getLocale());
+      if (title != null) {
+          scope.put(AuthorizeSoyInfo.Param.TITLE, title);
+      }
+      String description = claimedScope.getDescription().get(account.getLocale());
+      if (description != null) {
+        scope.put(AuthorizeSoyInfo.Param.DESCRIPTION, description);
+      }
       if (authorizedScopeIds.contains(scopeId)) {
-        alreadyAuthorizedScopes.add(scope);
+        alreadyAuthorizedScopes.add(scope.build());
       } else if (requiredScopeIds.contains(scopeId)) {
-        missingScopes.add(scope);
+        missingScopes.add(scope.build());
       } else {
-        optionalScopes.add(scope);
+        optionalScopes.add(scope.build());
       }
     }
 
     // TODO: Get the application in order to have more information
-
-    SoyMapData askForClientCertificateData = askForClientCertificate ? getAskForClientCertificateData(uriInfo, accountId) : null;
 
     // redirectUri is now used for creating the cancel Uri for the authorization step with the user
     redirectUri.setError("access_denied", null);
 
     Response.ResponseBuilder rb = Response.ok();
     setSessionState(rb, serviceProvider.getId(), redirect_uri);
+
+    ImmutableMap.Builder<String, Object> data = ImmutableMap.<String, Object>builderWithExpectedSize(13)
+        .put(AuthorizeSoyTemplateInfo.APP_ID, serviceProvider.getId())
+        .put(AuthorizeSoyTemplateInfo.APP_NAME, serviceProvider.getName().get(account.getLocale()))
+        .put(AuthorizeSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(AuthorizationEndpoint.class).path(APPROVE_PATH).build().toString())
+        .put(AuthorizeSoyTemplateInfo.CANCEL_URL, redirectUri.toString())
+        .put(AuthorizeSoyTemplateInfo.REQUIRED_SCOPES, ImmutableList.copyOf(requiredScopeIds))
+        .put(AuthorizeSoyTemplateInfo.MISSING_SCOPES, missingScopes.build())
+        .put(AuthorizeSoyTemplateInfo.OPTIONAL_SCOPES, optionalScopes.build())
+        .put(AuthorizeSoyTemplateInfo.ALREADY_AUTHORIZED_SCOPES, alreadyAuthorizedScopes.build())
+        .put(AuthorizeSoyTemplateInfo.REDIRECT_URI, redirect_uri);
+    if (state != null) {
+      data.put(AuthorizeSoyTemplateInfo.STATE, state);
+    }
+    if (nonce != null) {
+      data.put(AuthorizeSoyTemplateInfo.NONCE, nonce);
+    }
+    if (code_challenge != null) {
+      data.put(AuthorizeSoyTemplateInfo.CODE_CHALLENGE, code_challenge);
+    }
+    if (askForClientCertificate) {
+      data.put(AuthorizeSoyTemplateInfo.ASK_FOR_CLIENT_CERTIFICATE, getAskForClientCertificateData(uriInfo, accountId));
+    }
 
     // TODO: Improve security by adding a token created by encrypting scopes with a secret
     return rb
@@ -474,62 +504,42 @@ public class AuthorizationEndpoint {
         .header("X-Frame-Options", "DENY")
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
-        .entity(new SoyTemplate(AuthorizeSoyInfo.AUTHORIZE,
-            account.getLocale(),
-            new SoyMapData(
-                AuthorizeSoyTemplateInfo.APP_ID, serviceProvider.getId(),
-                AuthorizeSoyTemplateInfo.APP_NAME, serviceProvider.getName().get(account.getLocale()),
-                AuthorizeSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(AuthorizationEndpoint.class).path(APPROVE_PATH).build().toString(),
-                AuthorizeSoyTemplateInfo.CANCEL_URL, redirectUri.toString(),
-                AuthorizeSoyTemplateInfo.REQUIRED_SCOPES, new SoyListData(requiredScopeIds),
-                AuthorizeSoyTemplateInfo.MISSING_SCOPES, missingScopes,
-                AuthorizeSoyTemplateInfo.OPTIONAL_SCOPES, optionalScopes,
-                AuthorizeSoyTemplateInfo.ALREADY_AUTHORIZED_SCOPES, alreadyAuthorizedScopes,
-                AuthorizeSoyTemplateInfo.REDIRECT_URI, redirect_uri,
-                AuthorizeSoyTemplateInfo.STATE, state,
-                AuthorizeSoyTemplateInfo.NONCE, nonce,
-                AuthorizeSoyTemplateInfo.CODE_CHALLENGE, code_challenge,
-                AuthorizeSoyTemplateInfo.ASK_FOR_CLIENT_CERTIFICATE, askForClientCertificateData
-            )
-        ))
+        .entity(new SoyTemplate(AuthorizeSoyInfo.AUTHORIZE, account.getLocale(), data.build()))
         .build();
   }
 
-  private SoyMapData getAskForClientCertificateData(UriInfo uriInfo, String accountId) {
-    final boolean hasRegisteredCertificates = !Iterables.isEmpty(clientCertificateRepository.getClientCertificatesForClient(ClientType.USER, accountId));
-    final SoyMapData currentCert;
+  private ImmutableMap<String, Object> getAskForClientCertificateData(UriInfo uriInfo, String accountId) {
+    final ImmutableMap.Builder<String, Object> askForClientCertificateData = ImmutableMap.<String, Object>builderWithExpectedSize(3)
+        .put(AuthorizeSoyInfo.Param.MANAGE_CERTIFICATES_URL,
+            UriBuilder.fromResource(UserCertificatesPage.class).path(UserCertificatesPage.class, "get").build().toString())
+        .put(AuthorizeSoyInfo.Param.HAS_REGISTERED_CERTIFICATE,
+            !Iterables.isEmpty(clientCertificateRepository.getClientCertificatesForClient(ClientType.USER, accountId)));
+
     ClientCertificateData clientCertificateData = helper.getClientCertificateData(httpHeaders.getRequestHeaders());
     if (clientCertificateData != null) {
+      final ImmutableMap.Builder<String, Object> currentCert;
       ClientCertificate currentCertificate = clientCertificateRepository.getClientCertificate(
           clientCertificateData.getSubjectDN(), clientCertificateData.getIssuerDN());
       if (currentCertificate != null) {
         boolean linkedToOtherAccount = currentCertificate.getClient_type() != ClientType.USER ||
             !currentCertificate.getClient_id().equals(accountId);
-        currentCert = new SoyMapData(
-            UserCertificatesSoyInfo.Param.SUBJECT, currentCertificate.getSubject_dn(),
-            UserCertificatesSoyInfo.Param.ISSUER, currentCertificate.getIssuer_dn(),
-            UserCertificatesSoyInfo.Param.LINKED_TO_OTHER_ACCOUNT, linkedToOtherAccount
-        );
+        currentCert = ImmutableMap.<String, Object>builderWithExpectedSize(5)
+            .put(UserCertificatesSoyInfo.Param.SUBJECT, currentCertificate.getSubject_dn())
+            .put(UserCertificatesSoyInfo.Param.ISSUER, currentCertificate.getIssuer_dn())
+            .put(UserCertificatesSoyInfo.Param.LINKED_TO_OTHER_ACCOUNT, linkedToOtherAccount);
       } else {
-        currentCert = new SoyMapData(
-            UserCertificatesSoyInfo.Param.SUBJECT, clientCertificateData.getSubjectDN(),
-            UserCertificatesSoyInfo.Param.ISSUER, clientCertificateData.getIssuerDN()
-        );
+        currentCert = ImmutableMap.<String, Object>builderWithExpectedSize(4)
+            .put(UserCertificatesSoyInfo.Param.SUBJECT, clientCertificateData.getSubjectDN())
+            .put(UserCertificatesSoyInfo.Param.ISSUER, clientCertificateData.getIssuerDN());
       }
-      currentCert.put(
-          UserCertificatesSoyInfo.Param.ADD_FORM_ACTION,
-                  UriBuilder.fromResource(UserCertificatesPage.class).path(UserCertificatesPage.class, "addCurrent").build().toString(),
-          UserCertificatesSoyInfo.Param.CONTINUE_URL, uriInfo.getRequestUri().toString()
-      );
-    } else {
-      currentCert = null;
+      currentCert.put(UserCertificatesSoyInfo.Param.ADD_FORM_ACTION,
+          UriBuilder.fromResource(UserCertificatesPage.class).path(UserCertificatesPage.class, "addCurrent").build().toString());
+      currentCert.put(UserCertificatesSoyInfo.Param.CONTINUE_URL, uriInfo.getRequestUri().toString());
+
+      askForClientCertificateData.put(AuthorizeSoyInfo.Param.CURRENT_CERT, currentCert.build());
     }
-    return new SoyMapData(
-        AuthorizeSoyInfo.Param.MANAGE_CERTIFICATES_URL,
-                UriBuilder.fromResource(UserCertificatesPage.class).path(UserCertificatesPage.class, "get").build().toString(),
-        AuthorizeSoyInfo.Param.HAS_REGISTERED_CERTIFICATE, hasRegisteredCertificates,
-        AuthorizeSoyInfo.Param.CURRENT_CERT, currentCert
-    );
+
+    return askForClientCertificateData.build();
   }
 
   private AppInstance getAppInstance(String client_id) {

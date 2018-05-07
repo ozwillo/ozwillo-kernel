@@ -38,7 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
-import com.google.template.soy.data.SoyMapData;
+import com.google.common.collect.ImmutableMap;
 
 import oasis.auth.AuthModule;
 import oasis.mail.MailMessage;
@@ -114,7 +114,7 @@ public class SetPasswordPage {
           .setSubject(InitPasswordMailSoyInfo.ACTIVATE_PASSWORD_SUBJECT)
           .setBody(InitPasswordMailSoyInfo.ACTIVATE_PASSWORD)
           .setHtml()
-          .setData(new SoyMapData(
+          .setData(ImmutableMap.of(
               ActivatePasswordSoyTemplateInfo.NICKNAME, MoreObjects.firstNonNull(account.getNickname(), account.getDisplayName()),
               ActivatePasswordSoyTemplateInfo.ACTIVATION_LINK, initPasswordLink.toString()
           )));
@@ -139,6 +139,15 @@ public class SetPasswordPage {
   }
 
   static Response form(Response.ResponseBuilder builder, AuthModule.Settings authSettings, Urls urls, UserAccount account, @Nullable PasswordInitError error) {
+    ImmutableMap.Builder<String, Object> data = ImmutableMap.<String, Object>builderWithExpectedSize(4)
+        .put(InitPasswordSoyTemplateInfo.EMAIL, account.getEmail_address())
+        .put(InitPasswordSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(SetPasswordPage.class).build().toString())
+        .put(InitPasswordSoyTemplateInfo.PWD_MIN_LENGTH, authSettings.passwordMinimumLength);
+    urls.myProfile().ifPresent(url -> data.put(InitPasswordSoyTemplateInfo.PORTAL_URL, url.toString()));
+    if (error != null) {
+      data.put(InitPasswordSoyTemplateInfo.ERROR, error.name());
+    }
+
     return builder
         .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store")
         .header("Pragma", "no-cache")
@@ -146,16 +155,7 @@ public class SetPasswordPage {
         .header("X-Frame-Options", "DENY")
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
-        .entity(new SoyTemplate(InitPasswordSoyInfo.INIT_PASSWORD,
-            account.getLocale(),
-            new SoyMapData(
-                InitPasswordSoyTemplateInfo.EMAIL, account.getEmail_address(),
-                InitPasswordSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(SetPasswordPage.class).build().toString(),
-                InitPasswordSoyTemplateInfo.PORTAL_URL, urls.myProfile().map(URI::toString).orElse(null),
-                InitPasswordSoyTemplateInfo.ERROR, error == null ? null : error.name(),
-                InitPasswordSoyTemplateInfo.PWD_MIN_LENGTH, authSettings.passwordMinimumLength
-            )
-        ))
+        .entity(new SoyTemplate(InitPasswordSoyInfo.INIT_PASSWORD, account.getLocale(), data.build()))
         .build();
   }
 

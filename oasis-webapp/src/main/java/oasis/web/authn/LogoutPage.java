@@ -40,8 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
-import com.google.template.soy.data.SoyListData;
-import com.google.template.soy.data.SoyMapData;
+import com.google.common.collect.ImmutableMap;
 import com.ibm.icu.text.Collator;
 
 import oasis.auth.AuthModule;
@@ -63,8 +62,8 @@ import oasis.soy.templates.LogoutSoyInfo.LogoutSoyTemplateInfo;
 import oasis.urls.Urls;
 import oasis.web.authn.franceconnect.FranceConnectLogoutCallback;
 import oasis.web.authn.franceconnect.FranceConnectLogoutState;
-import oasis.web.security.StrictReferer;
 import oasis.web.openidconnect.IdTokenHintParser;
+import oasis.web.security.StrictReferer;
 
 @User
 @Path("/a/logout")
@@ -138,8 +137,8 @@ public class LogoutPage {
 
     UserAccount account = accountRepository.getUserAccountById(sidToken.getAccountId());
 
-    SoyMapData viewModel = new SoyMapData();
-    viewModel.put(LogoutSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(LogoutPage.class).build().toString());
+    ImmutableMap.Builder<String, Object> viewModel = ImmutableMap.<String, Object>builder()
+        .put(LogoutSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(LogoutPage.class).build().toString());
     if (post_logout_redirect_uri != null) {
       viewModel.put(LogoutSoyTemplateInfo.POST_LOGOUT_REDIRECT_URI, post_logout_redirect_uri);
       if (state != null) {
@@ -163,13 +162,11 @@ public class LogoutPage {
       otherApps.add(otherAppInstance.getName().get(account.getLocale()));
     }
     otherApps.sort(Collator.getInstance(account.getLocale()));
-    viewModel.put(LogoutSoyTemplateInfo.OTHER_APPS, new SoyListData(otherApps));
+    viewModel.put(LogoutSoyTemplateInfo.OTHER_APPS, otherApps);
     viewModel.put(LogoutSoyTemplateInfo.IS_PORTAL, appInstance != null && appInstance.getId().equals(ClientIds.PORTAL));
-    if (urls.myOasis().isPresent()) {
-      viewModel.put(LogoutSoyTemplateInfo.PORTAL_URL, urls.myOasis().get().toString());
-    }
+    urls.myOasis().ifPresent(url -> viewModel.put(LogoutSoyTemplateInfo.PORTAL_URL, url.toString()));
 
-    return Response.ok(new SoyTemplate(LogoutSoyInfo.LOGOUT, account.getLocale(), viewModel)).build();
+    return Response.ok(new SoyTemplate(LogoutSoyInfo.LOGOUT, account.getLocale(), viewModel.build())).build();
   }
 
   private Response redirectTo(@Nullable URI continueUrl) {

@@ -43,7 +43,7 @@ import javax.ws.rs.core.UriInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.template.soy.data.SoyMapData;
+import com.google.common.collect.ImmutableMap;
 import com.ibm.icu.util.ULocale;
 
 import oasis.auditlog.AuditLogEvent;
@@ -189,14 +189,15 @@ public class LoginPage {
     }
     assert userAccount.getEmail_address() != null;
 
-    SoyTemplate soyTemplate = new SoyTemplate(LoginSoyInfo.REAUTH, userAccount.getLocale(), new SoyMapData(
-        ReauthSoyTemplateInfo.REAUTH_EMAIL, userAccount.getEmail_address(),
-        ReauthSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(LoginPage.class).build().toString(),
-        ReauthSoyTemplateInfo.CONTINUE, continueUrl.toString(),
-        ReauthSoyTemplateInfo.ERROR, error == null ? null : error.name()
-    ));
+    ImmutableMap.Builder<String, String> data = ImmutableMap.<String, String>builderWithExpectedSize(4)
+        .put(ReauthSoyTemplateInfo.REAUTH_EMAIL, userAccount.getEmail_address())
+        .put(ReauthSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(LoginPage.class).build().toString())
+        .put(ReauthSoyTemplateInfo.CONTINUE, continueUrl.toString());
+    if (error != null) {
+      data.put(ReauthSoyTemplateInfo.ERROR, error.name());
+    }
 
-    return buildResponseFromView(builder, soyTemplate);
+    return buildResponseFromView(builder, new SoyTemplate(LoginSoyInfo.REAUTH, userAccount.getLocale(), data.build()));
   }
 
   private static Response loginForm(Response.ResponseBuilder builder, URI continueUrl, ULocale locale, boolean withFranceConnect, @Nullable LoginError error) {
@@ -209,7 +210,7 @@ public class LoginPage {
 
   private static Response loginAndSignupForm(Response.ResponseBuilder builder, URI continueUrl,
       ULocale locale, @Nullable AuthModule.Settings authSettings, boolean withFranceConnect, @Nullable Enum<?> error) {
-    SoyMapData localeUrlMap = new SoyMapData();
+    ImmutableMap.Builder<String, String> localeUrlMap = ImmutableMap.builderWithExpectedSize(LocaleHelper.SUPPORTED_LOCALES.size());
     for (ULocale supportedLocale : LocaleHelper.SUPPORTED_LOCALES) {
       String languageTag = supportedLocale.toLanguageTag();
       URI uri = UriBuilder.fromResource(LoginPage.class)
@@ -218,18 +219,24 @@ public class LoginPage {
           .build();
       localeUrlMap.put(languageTag, uri.toString());
     }
-    SoyTemplate soyTemplate = new SoyTemplate(LoginSoyInfo.LOGIN, locale, new SoyMapData(
-        LoginSoyTemplateInfo.SIGN_UP_FORM_ACTION, UriBuilder.fromResource(SignUpPage.class).build().toString(),
-        LoginSoyTemplateInfo.LOGIN_FORM_ACTION, UriBuilder.fromResource(LoginPage.class).build().toString(),
-        LoginSoyTemplateInfo.FORGOT_PASSWORD, UriBuilder.fromResource(ForgotPasswordPage.class).queryParam(LOCALE_PARAM, locale.toLanguageTag()).build().toString(),
-        LoginSoyTemplateInfo.CONTINUE, continueUrl.toString(),
-        LoginSoyTemplateInfo.FRANCECONNECT, withFranceConnect ? UriBuilder.fromResource(FranceConnectLogin.class).build().toString() : null,
-        LoginSoyTemplateInfo.ERROR, error == null ? null : error.name(),
-        LoginSoyTemplateInfo.LOCALE_URL_MAP, localeUrlMap,
-        LoginSoyTemplateInfo.PWD_MIN_LENGTH, authSettings == null ? null : authSettings.passwordMinimumLength
-    ));
 
-    return buildResponseFromView(builder, soyTemplate);
+    ImmutableMap.Builder<String, Object> data = ImmutableMap.<String, Object>builder()
+        .put(LoginSoyTemplateInfo.SIGN_UP_FORM_ACTION, UriBuilder.fromResource(SignUpPage.class).build().toString())
+        .put(LoginSoyTemplateInfo.LOGIN_FORM_ACTION, UriBuilder.fromResource(LoginPage.class).build().toString())
+        .put(LoginSoyTemplateInfo.FORGOT_PASSWORD, UriBuilder.fromResource(ForgotPasswordPage.class).queryParam(LOCALE_PARAM, locale.toLanguageTag()).build().toString())
+        .put(LoginSoyTemplateInfo.CONTINUE, continueUrl.toString())
+        .put(LoginSoyTemplateInfo.LOCALE_URL_MAP, localeUrlMap.build());
+    if (withFranceConnect) {
+      data.put(LoginSoyTemplateInfo.FRANCECONNECT, UriBuilder.fromResource(FranceConnectLogin.class).build().toString());
+    }
+    if (error != null) {
+      data.put(LoginSoyTemplateInfo.ERROR, error.name());
+    }
+    if (authSettings != null) {
+      data.put(LoginSoyTemplateInfo.PWD_MIN_LENGTH, authSettings.passwordMinimumLength);
+    }
+
+    return buildResponseFromView(builder, new SoyTemplate(LoginSoyInfo.LOGIN, locale, data.build()));
   }
 
   private static Response buildResponseFromView(Response.ResponseBuilder builder, SoyTemplate soyTemplate) {

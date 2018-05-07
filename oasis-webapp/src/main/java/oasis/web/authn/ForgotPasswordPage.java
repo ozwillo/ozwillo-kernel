@@ -36,14 +36,11 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
-import oasis.model.authn.ClientType;
-import oasis.model.authn.CredentialsRepository;
-import oasis.web.security.StrictReferer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
-import com.google.template.soy.data.SoyMapData;
+import com.google.common.collect.ImmutableMap;
 import com.ibm.icu.util.ULocale;
 
 import oasis.mail.MailMessage;
@@ -51,12 +48,15 @@ import oasis.mail.MailSender;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.authn.ChangePasswordToken;
+import oasis.model.authn.ClientType;
+import oasis.model.authn.CredentialsRepository;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.soy.SoyTemplate;
 import oasis.soy.templates.RecoverMailSoyInfo;
 import oasis.soy.templates.RecoverSoyInfo;
 import oasis.web.i18n.LocaleHelper;
+import oasis.web.security.StrictReferer;
 
 @Path("/a/recover")
 public class ForgotPasswordPage {
@@ -113,7 +113,7 @@ public class ForgotPasswordPage {
             .setSubject(RecoverMailSoyInfo.FORGOT_PASSWORD_EXISTING_ACCOUNT_SUBJECT)
             .setBody(RecoverMailSoyInfo.FORGOT_PASSWORD_EXISTING_ACCOUNT)
             .setHtml()
-            .setData(new SoyMapData(
+            .setData(ImmutableMap.of(
                 RecoverMailSoyInfo.ForgotPasswordExistingAccountSoyTemplateInfo.RESET_PASSWORD_LINK, resetPasswordLink.toString()
             )));
       }
@@ -124,14 +124,14 @@ public class ForgotPasswordPage {
 
     // XXX: do not use the account's locale (if it exists) as that would be a hint that the account exists.
     return Response.ok()
-        .entity(new SoyTemplate(RecoverSoyInfo.EMAIL_SENT, locale, new SoyMapData(
+        .entity(new SoyTemplate(RecoverSoyInfo.EMAIL_SENT, locale, ImmutableMap.of(
             RecoverSoyInfo.EmailSentSoyTemplateInfo.EMAIL_ADDRESS, email
         )))
         .build();
   }
 
   static Response form(Response.ResponseBuilder builder, ULocale locale, @Nullable ForgotPasswordError error) {
-    SoyMapData localeUrlMap = new SoyMapData();
+    ImmutableMap.Builder<String, String> localeUrlMap = ImmutableMap.builderWithExpectedSize(LocaleHelper.SUPPORTED_LOCALES.size());
     for (ULocale supportedLocale : LocaleHelper.SUPPORTED_LOCALES) {
       String languageTag = supportedLocale.toLanguageTag();
       URI uri = UriBuilder.fromResource(ForgotPasswordPage.class)
@@ -139,6 +139,14 @@ public class ForgotPasswordPage {
           .build();
       localeUrlMap.put(languageTag, uri.toString());
     }
+
+    ImmutableMap.Builder<String, Object> data = ImmutableMap.<String, Object>builderWithExpectedSize(3)
+        .put(RecoverSoyInfo.ForgotPasswordSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(ForgotPasswordPage.class).build().toString())
+        .put(RecoverSoyInfo.ForgotPasswordSoyTemplateInfo.LOCALE_URL_MAP, localeUrlMap.build());
+    if (error != null) {
+      data.put(RecoverSoyInfo.ForgotPasswordSoyTemplateInfo.ERROR, error.name());
+    }
+
     return builder
         .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store")
         .header("Pragma", "no-cache")
@@ -146,14 +154,7 @@ public class ForgotPasswordPage {
         .header("X-Frame-Options", "DENY")
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
-        .entity(new SoyTemplate(RecoverSoyInfo.FORGOT_PASSWORD,
-            locale,
-            new SoyMapData(
-                RecoverSoyInfo.ForgotPasswordSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(ForgotPasswordPage.class).build().toString(),
-                RecoverSoyInfo.ForgotPasswordSoyTemplateInfo.ERROR, error == null ? null : error.name(),
-                RecoverSoyInfo.ForgotPasswordSoyTemplateInfo.LOCALE_URL_MAP, localeUrlMap
-            )
-        ))
+        .entity(new SoyTemplate(RecoverSoyInfo.FORGOT_PASSWORD, locale, data.build()))
         .build();
   }
 

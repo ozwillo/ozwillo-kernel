@@ -40,8 +40,8 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableMap;
 import com.google.template.soy.data.SanitizedContent;
-import com.google.template.soy.data.SoyMapData;
 import com.ibm.icu.util.ULocale;
 
 import net.ltgt.jaxrs.webhook.client.WebhookSignatureFilter;
@@ -187,8 +187,9 @@ public class DeleteAppInstance {
     notificationPrototype.setTime(Instant.now());
     notificationPrototype.setStatus(Notification.Status.UNREAD);
     for (ULocale locale : LocaleHelper.SUPPORTED_LOCALES) {
-      SoyMapData data = new SoyMapData();
-      data.put(DeletedAppInstanceMessageSoyTemplateInfo.APP_INSTANCE_NAME, appInstance.getName().get(locale));
+      ImmutableMap<String, ?> data = ImmutableMap.of(
+          DeletedAppInstanceMessageSoyTemplateInfo.APP_INSTANCE_NAME, appInstance.getName().get(locale)
+      );
 
       ULocale messageLocale = locale;
       if (LocaleHelper.DEFAULT_LOCALE.equals(locale)) {

@@ -34,14 +34,13 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableMap;
 import com.google.template.soy.data.SanitizedContent;
-import com.google.template.soy.data.SoyMapData;
 import com.ibm.icu.util.ULocale;
 
 import net.ltgt.jaxrs.webhook.client.WebhookSignatureFilter;
 import oasis.model.InvalidVersionException;
 import oasis.model.accounts.AccountRepository;
-import oasis.model.accounts.UserAccount;
 import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.applications.v2.Service;
@@ -179,15 +178,16 @@ public class ChangeAppInstanceStatus {
       try {
         Notification notification = new Notification(notificationPrototype);
         for (ULocale locale : LocaleHelper.SUPPORTED_LOCALES) {
-          SoyMapData data = new SoyMapData();
-          data.put(RestoredAppInstanceMessageSoyTemplateInfo.APP_INSTANCE_NAME, instance.getName().get(locale));
 
           ULocale messageLocale = locale;
           if (LocaleHelper.DEFAULT_LOCALE.equals(locale)) {
             messageLocale = ULocale.ROOT;
           }
           notification.getMessage().set(messageLocale, templateRenderer.renderAsString(new SoyTemplate(
-              ChangedAppInstanceStatusSoyInfo.RESTORED_APP_INSTANCE_MESSAGE, locale, SanitizedContent.ContentKind.TEXT, data)));
+              ChangedAppInstanceStatusSoyInfo.RESTORED_APP_INSTANCE_MESSAGE, locale, SanitizedContent.ContentKind.TEXT,
+              ImmutableMap.of(
+                  RestoredAppInstanceMessageSoyTemplateInfo.APP_INSTANCE_NAME, instance.getName().get(locale)
+              ))));
         }
         notification.setUser_id(adminId);
         notificationRepository.createNotification(notification);
@@ -204,9 +204,7 @@ public class ChangeAppInstanceStatus {
     notificationPrototype.setTime(Instant.now());
     notificationPrototype.setStatus(Notification.Status.UNREAD);
 
-    UserAccount requester = accountRepository.getUserAccountById(requesterId);
-    SoyMapData data = new SoyMapData();
-    data.put(StoppedAppInstanceMessageForAdminsSoyTemplateInfo.REQUESTER_NAME, requester.getDisplayName());
+    final String requesterName = accountRepository.getUserAccountById(requesterId).getDisplayName();
 
     for (ULocale locale : LocaleHelper.SUPPORTED_LOCALES) {
       ULocale messageLocale = locale;
@@ -214,9 +212,12 @@ public class ChangeAppInstanceStatus {
         messageLocale = ULocale.ROOT;
       }
 
-      data.put(StoppedAppInstanceMessageForAdminsSoyTemplateInfo.APP_INSTANCE_NAME, instance.getName().get(locale));
       notificationPrototype.getMessage().set(messageLocale, templateRenderer.renderAsString(new SoyTemplate(
-          ChangedAppInstanceStatusSoyInfo.STOPPED_APP_INSTANCE_MESSAGE_FOR_ADMINS, locale, SanitizedContent.ContentKind.TEXT, data)));
+          ChangedAppInstanceStatusSoyInfo.STOPPED_APP_INSTANCE_MESSAGE_FOR_ADMINS, locale, SanitizedContent.ContentKind.TEXT,
+          ImmutableMap.of(
+              StoppedAppInstanceMessageForAdminsSoyTemplateInfo.REQUESTER_NAME, requesterName,
+              StoppedAppInstanceMessageForAdminsSoyTemplateInfo.APP_INSTANCE_NAME, instance.getName().get(locale)
+          ))));
     }
 
     if (urls.myApps().isPresent()) {
@@ -259,11 +260,11 @@ public class ChangeAppInstanceStatus {
         messageLocale = ULocale.ROOT;
       }
 
-      SoyMapData data = new SoyMapData();
-      data.put(StoppedAppInstanceMessageForRequesterSoyTemplateInfo.APP_INSTANCE_NAME, instance.getName().get(locale));
-
       notification.getMessage().set(messageLocale, templateRenderer.renderAsString(new SoyTemplate(
-          ChangedAppInstanceStatusSoyInfo.STOPPED_APP_INSTANCE_MESSAGE_FOR_REQUESTER, locale, SanitizedContent.ContentKind.TEXT, data)));
+          ChangedAppInstanceStatusSoyInfo.STOPPED_APP_INSTANCE_MESSAGE_FOR_REQUESTER, locale, SanitizedContent.ContentKind.TEXT,
+          ImmutableMap.of(
+              StoppedAppInstanceMessageForRequesterSoyTemplateInfo.APP_INSTANCE_NAME, instance.getName().get(locale)
+          ))));
       if (urls.myApps().isPresent()) {
         notification.getAction_label().set(messageLocale, templateRenderer.renderAsString(new SoyTemplate(
             ChangedAppInstanceStatusSoyInfo.STOPPED_APP_INSTANCE_ACTION, locale, SanitizedContent.ContentKind.TEXT)));

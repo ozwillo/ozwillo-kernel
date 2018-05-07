@@ -17,8 +17,6 @@
  */
 package oasis.web.authn;
 
-import java.net.URI;
-
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.ws.rs.DefaultValue;
@@ -34,7 +32,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 
-import com.google.template.soy.data.SoyMapData;
+import com.google.common.collect.ImmutableMap;
 
 import oasis.auth.AuthModule;
 import oasis.model.accounts.AccountRepository;
@@ -105,9 +103,10 @@ public class ChangePasswordPage {
         .cookie(SessionManagementHelper.createBrowserStateCookie(securityContext.isSecure(), sessionManagementHelper.generateBrowserState()))
         .entity(new SoyTemplate(ChangePasswordSoyInfo.PASSWORD_CHANGED,
             account.getLocale(),
-            new SoyMapData(
-                PasswordChangedSoyTemplateInfo.CONTINUE, urls.myOasis().map(URI::toString).orElse(null)
-            )))
+            urls.myOasis()
+                .map(url -> ImmutableMap.of(PasswordChangedSoyTemplateInfo.CONTINUE, url.toString()))
+                .orElse(null)
+            ))
         .build();
   }
 
@@ -116,6 +115,15 @@ public class ChangePasswordPage {
   }
 
   static Response form(Response.ResponseBuilder builder, AuthModule.Settings authSettings, Urls urls, UserAccount account, @Nullable PasswordChangeError error) {
+    ImmutableMap.Builder<String, Object> data = ImmutableMap.<String, Object>builderWithExpectedSize(5)
+        .put(ChangePasswordSoyTemplateInfo.EMAIL, account.getEmail_address())
+        .put(ChangePasswordSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(ChangePasswordPage.class).build().toString())
+        .put(ChangePasswordSoyTemplateInfo.PWD_MIN_LENGTH, authSettings.passwordMinimumLength);
+    urls.myProfile().ifPresent(url -> data.put(ChangePasswordSoyTemplateInfo.PORTAL_URL, url.toString()));
+    if (error != null) {
+      data.put(ChangePasswordSoyTemplateInfo.ERROR, error.name());
+    }
+
     return builder
         .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store")
         .header("Pragma", "no-cache")
@@ -123,16 +131,7 @@ public class ChangePasswordPage {
         .header("X-Frame-Options", "DENY")
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
-        .entity(new SoyTemplate(ChangePasswordSoyInfo.CHANGE_PASSWORD,
-            account.getLocale(),
-            new SoyMapData(
-                ChangePasswordSoyTemplateInfo.EMAIL, account.getEmail_address(),
-                ChangePasswordSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(ChangePasswordPage.class).build().toString(),
-                ChangePasswordSoyTemplateInfo.PORTAL_URL, urls.myProfile().map(URI::toString).orElse(null),
-                ChangePasswordSoyTemplateInfo.ERROR, error == null ? null : error.name(),
-                ChangePasswordSoyTemplateInfo.PWD_MIN_LENGTH, authSettings.passwordMinimumLength
-            )
-        ))
+        .entity(new SoyTemplate(ChangePasswordSoyInfo.CHANGE_PASSWORD, account.getLocale(), data.build()))
         .build();
   }
 

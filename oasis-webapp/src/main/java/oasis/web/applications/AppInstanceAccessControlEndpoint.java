@@ -44,8 +44,8 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableMap;
 import com.google.template.soy.data.SanitizedContent;
-import com.google.template.soy.data.SoyMapData;
 import com.ibm.icu.util.ULocale;
 
 import oasis.mail.MailMessage;
@@ -246,7 +246,7 @@ public class AppInstanceAccessControlEndpoint {
 
   private void notifyUserForNewAppInstanceInvitation(String invitedUserEmail, AppInstance appInstance, UserAccount requester,
       AppInstanceInvitationToken appInstanceInvitationToken, String tokenPass) {
-    SoyMapData data = new SoyMapData();
+    ImmutableMap.Builder<String, String> data = ImmutableMap.builderWithExpectedSize(5);
     // Subject data
     data.put(NewAppInstanceInvitationSubjectSoyTemplateInfo.APP_INSTANCE_NAME, appInstance.getName().get(requester.getLocale()));
     data.put(NewAppInstanceInvitationSubjectSoyTemplateInfo.REQUESTER_NAME, requester.getDisplayName());
@@ -255,7 +255,8 @@ public class AppInstanceAccessControlEndpoint {
         .path(AppInstanceInvitationPage.class, "showInvitation")
         .build(TokenSerializer.serialize(appInstanceInvitationToken, tokenPass));
     data.put(NewAppInstanceInvitationBodySoyTemplateInfo.APP_INSTANCE_INVITATION_URL, uri.toString());
-    data.put(NewAppInstanceInvitationBodySoyTemplateInfo.APP_INSTANCE_NAME, appInstance.getName().get(requester.getLocale()));
+    // This is actually the same key as above (and the same value), so would create a duplicate:
+    // data.put(NewAppInstanceInvitationBodySoyTemplateInfo.APP_INSTANCE_NAME, appInstance.getName().get(requester.getLocale()));
     data.put(NewAppInstanceInvitationBodySoyTemplateInfo.REQUESTER_NAME, requester.getDisplayName());
 
     try {
@@ -264,7 +265,7 @@ public class AppInstanceAccessControlEndpoint {
           .setLocale(requester.getLocale())
           .setSubject(AppInstanceInvitationMailSoyInfo.NEW_APP_INSTANCE_INVITATION_SUBJECT)
           .setBody(AppInstanceInvitationMailSoyInfo.NEW_APP_INSTANCE_INVITATION_BODY)
-          .setData(data)
+          .setData(data.build())
           .setHtml());
     } catch (MessagingException e) {
       logger.error("Error while sending new app-instance invitation email to the invited user", e);
@@ -273,21 +274,23 @@ public class AppInstanceAccessControlEndpoint {
   }
 
   private void notifyAdminsForNewAppInstanceInvitation(String invitedUserEmail, AppInstance appInstance, UserAccount requester) {
-    SoyMapData data = new SoyMapData();
-    data.put(NewAppInstanceInvitationAdminMessageSoyTemplateInfo.INVITED_USER_EMAIL, invitedUserEmail);
-    data.put(NewAppInstanceInvitationAdminMessageSoyTemplateInfo.REQUESTER_NAME, requester.getDisplayName());
+    final String requesterName = requester.getDisplayName();
 
     Notification notificationPrototype = new Notification();
     notificationPrototype.setTime(Instant.now());
     notificationPrototype.setStatus(Notification.Status.UNREAD);
     for (ULocale locale : LocaleHelper.SUPPORTED_LOCALES) {
-      data.put(NewAppInstanceInvitationAdminMessageSoyTemplateInfo.APP_INSTANCE_NAME, appInstance.getName().get(locale));
       ULocale messageLocale = locale;
       if (LocaleHelper.DEFAULT_LOCALE.equals(locale)) {
         messageLocale = ULocale.ROOT;
       }
       notificationPrototype.getMessage().set(messageLocale, templateRenderer.renderAsString(new SoyTemplate(
-          AppInstanceInvitationNotificationSoyInfo.NEW_APP_INSTANCE_INVITATION_ADMIN_MESSAGE, locale, SanitizedContent.ContentKind.TEXT, data)));
+          AppInstanceInvitationNotificationSoyInfo.NEW_APP_INSTANCE_INVITATION_ADMIN_MESSAGE, locale, SanitizedContent.ContentKind.TEXT,
+          ImmutableMap.of(
+              NewAppInstanceInvitationAdminMessageSoyTemplateInfo.INVITED_USER_EMAIL, invitedUserEmail,
+              NewAppInstanceInvitationAdminMessageSoyTemplateInfo.REQUESTER_NAME, requesterName,
+              NewAppInstanceInvitationAdminMessageSoyTemplateInfo.APP_INSTANCE_NAME, appInstance.getName().get(locale)
+          ))));
     }
 
     appAdminHelper.getAdmins(appInstance)

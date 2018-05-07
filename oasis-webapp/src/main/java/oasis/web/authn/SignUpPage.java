@@ -41,7 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
-import com.google.template.soy.data.SoyMapData;
+import com.google.common.collect.ImmutableMap;
 import com.ibm.icu.util.ULocale;
 
 import oasis.auth.AuthModule;
@@ -134,7 +134,7 @@ public class SignUpPage {
           .setSubject(SignUpSoyInfo.ACTIVATE_ACCOUNT_SUBJECT)
           .setBody(SignUpSoyInfo.ACTIVATE_ACCOUNT)
           .setHtml()
-          .setData(new SoyMapData(
+          .setData(ImmutableMap.of(
               SignUpSoyInfo.ActivateAccountSoyTemplateInfo.NICKNAME, nickname,
               SignUpSoyInfo.ActivateAccountSoyTemplateInfo.ACTIVATION_LINK, activationLink.toString(),
               SignUpSoyInfo.ActivateAccountSoyTemplateInfo.PORTAL_URL, LoginPage.defaultContinueUrl(urls.landingPage(), uriInfo).toString()

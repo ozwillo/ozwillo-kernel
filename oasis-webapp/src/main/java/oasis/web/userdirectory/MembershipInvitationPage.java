@@ -39,8 +39,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableMap;
 import com.google.template.soy.data.SanitizedContent;
-import com.google.template.soy.data.SoyMapData;
 import com.google.template.soy.parseinfo.SoyTemplateInfo;
 import com.ibm.icu.util.ULocale;
 
@@ -236,7 +236,7 @@ public class MembershipInvitationPage {
         .entity(new SoyTemplate(
             OrgMembershipInvitationSoyInfo.MEMBERSHIP_INVITATION,
             locale,
-            new SoyMapData(
+            ImmutableMap.of(
                 MembershipInvitationSoyTemplateInfo.ACCEPT_FORM_ACTION, acceptFormAction.toString(),
                 MembershipInvitationSoyTemplateInfo.REFUSE_FORM_ACTION, refuseFormAction.toString(),
                 MembershipInvitationSoyTemplateInfo.ORGANIZATION_NAME, organization.getName(),
@@ -287,31 +287,35 @@ public class MembershipInvitationPage {
         .entity(new SoyTemplate(
             OrgMembershipInvitationSoyInfo.MEMBERSHIP_INVITATION_ALREADY_MEMBER_ERROR,
             user.getLocale(),
-            new SoyMapData(
-                MembershipInvitationAlreadyMemberErrorSoyTemplateInfo.LOGOUT_PAGE_URL, logoutPageUrl.toString(),
-                MembershipInvitationAlreadyMemberErrorSoyTemplateInfo.REFUSE_FORM_ACTION, refuseFormAction.toString(),
-                MembershipInvitationAlreadyMemberErrorSoyTemplateInfo.ORGANIZATION_NAME, organization.getName(),
-                MembershipInvitationAlreadyMemberErrorSoyTemplateInfo.REQUESTER_NAME, requester.getDisplayName(),
-                MembershipInvitationAlreadyMemberErrorSoyTemplateInfo.INVITED_EMAIL, pendingOrganizationMembership.getEmail(),
-                MembershipInvitationAlreadyMemberErrorSoyTemplateInfo.CURRENT_USER, MoreObjects.firstNonNull(user.getEmail_address(), user.getDisplayName())
-            )
+            ImmutableMap.<String, String>builderWithExpectedSize(6)
+                .put(MembershipInvitationAlreadyMemberErrorSoyTemplateInfo.LOGOUT_PAGE_URL, logoutPageUrl.toString())
+                .put(MembershipInvitationAlreadyMemberErrorSoyTemplateInfo.REFUSE_FORM_ACTION, refuseFormAction.toString())
+                .put(MembershipInvitationAlreadyMemberErrorSoyTemplateInfo.ORGANIZATION_NAME, organization.getName())
+                .put(MembershipInvitationAlreadyMemberErrorSoyTemplateInfo.REQUESTER_NAME, requester.getDisplayName())
+                .put(MembershipInvitationAlreadyMemberErrorSoyTemplateInfo.INVITED_EMAIL, pendingOrganizationMembership.getEmail())
+                .put(MembershipInvitationAlreadyMemberErrorSoyTemplateInfo.CURRENT_USER, MoreObjects.firstNonNull(user.getEmail_address(), user.getDisplayName()))
+                .build()
         ))
         .build();
   }
 
   private void notifyAdmins(Organization organization, String invitedUserEmail, UserAccount requester, boolean acceptedInvitation) {
-    SoyMapData data = new SoyMapData();
+    ImmutableMap<String, String> data;
     final SoyTemplateInfo templateInfo;
     if (acceptedInvitation) {
       templateInfo = OrgMembershipInvitationNotificationSoyInfo.ACCEPTED_MEMBERSHIP_INVITATION_ADMIN_MESSAGE;
-      data.put(AcceptedMembershipInvitationAdminMessageSoyTemplateInfo.INVITED_USER_EMAIL, invitedUserEmail);
-      data.put(AcceptedMembershipInvitationAdminMessageSoyTemplateInfo.REQUESTER_NAME, requester.getDisplayName());
-      data.put(AcceptedMembershipInvitationAdminMessageSoyTemplateInfo.ORGANIZATION_NAME, organization.getName());
+      data = ImmutableMap.of(
+          AcceptedMembershipInvitationAdminMessageSoyTemplateInfo.INVITED_USER_EMAIL, invitedUserEmail,
+          AcceptedMembershipInvitationAdminMessageSoyTemplateInfo.REQUESTER_NAME, requester.getDisplayName(),
+          AcceptedMembershipInvitationAdminMessageSoyTemplateInfo.ORGANIZATION_NAME, organization.getName()
+      );
     } else {
       templateInfo = OrgMembershipInvitationNotificationSoyInfo.REJECTED_MEMBERSHIP_INVITATION_ADMIN_MESSAGE;
-      data.put(RejectedMembershipInvitationAdminMessageSoyTemplateInfo.INVITED_USER_EMAIL, invitedUserEmail);
-      data.put(RejectedMembershipInvitationAdminMessageSoyTemplateInfo.REQUESTER_NAME, requester.getDisplayName());
-      data.put(RejectedMembershipInvitationAdminMessageSoyTemplateInfo.ORGANIZATION_NAME, organization.getName());
+      data = ImmutableMap.of(
+          RejectedMembershipInvitationAdminMessageSoyTemplateInfo.INVITED_USER_EMAIL, invitedUserEmail,
+          RejectedMembershipInvitationAdminMessageSoyTemplateInfo.REQUESTER_NAME, requester.getDisplayName(),
+          RejectedMembershipInvitationAdminMessageSoyTemplateInfo.ORGANIZATION_NAME, organization.getName()
+      );
     }
 
     Notification notificationPrototype = new Notification();
@@ -344,16 +348,20 @@ public class MembershipInvitationPage {
   }
 
   private void notifyRequester(Organization organization, String invitedUserEmail, String requesterId, boolean acceptedInvitation) {
-    SoyMapData data = new SoyMapData();
+    ImmutableMap<String, String> data;
     final SoyTemplateInfo templateInfo;
     if (acceptedInvitation) {
       templateInfo = OrgMembershipInvitationNotificationSoyInfo.ACCEPTED_MEMBERSHIP_INVITATION_REQUESTER_MESSAGE;
-      data.put(AcceptedMembershipInvitationRequesterMessageSoyTemplateInfo.INVITED_USER_EMAIL, invitedUserEmail);
-      data.put(AcceptedMembershipInvitationRequesterMessageSoyTemplateInfo.ORGANIZATION_NAME, organization.getName());
+      data = ImmutableMap.of(
+          AcceptedMembershipInvitationRequesterMessageSoyTemplateInfo.INVITED_USER_EMAIL, invitedUserEmail,
+          AcceptedMembershipInvitationRequesterMessageSoyTemplateInfo.ORGANIZATION_NAME, organization.getName()
+      );
     } else {
       templateInfo = OrgMembershipInvitationNotificationSoyInfo.REJECTED_MEMBERSHIP_INVITATION_REQUESTER_MESSAGE;
-      data.put(RejectedMembershipInvitationRequesterMessageSoyTemplateInfo.INVITED_USER_EMAIL, invitedUserEmail);
-      data.put(RejectedMembershipInvitationRequesterMessageSoyTemplateInfo.ORGANIZATION_NAME, organization.getName());
+      data = ImmutableMap.of(
+          RejectedMembershipInvitationRequesterMessageSoyTemplateInfo.INVITED_USER_EMAIL, invitedUserEmail,
+          RejectedMembershipInvitationRequesterMessageSoyTemplateInfo.ORGANIZATION_NAME, organization.getName()
+      );
     }
 
     Notification notification = new Notification();

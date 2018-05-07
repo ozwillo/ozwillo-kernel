@@ -34,8 +34,9 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
-import com.google.template.soy.data.SoyListData;
-import com.google.template.soy.data.SoyMapData;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Streams;
 
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
@@ -147,21 +148,21 @@ public class UserCertificatesPage {
   private Response form(boolean error, String accountId, @Nullable ClientCertificateData clientCertificateData) {
     UserAccount account = accountRepository.getUserAccountById(accountId);
 
-    SoyMapData currentCert;
+    ImmutableMap<String, Object> currentCert;
     if (clientCertificateData != null) {
       ClientCertificate currentCertificate = clientCertificateRepository.getClientCertificate(
           clientCertificateData.getSubjectDN(), clientCertificateData.getIssuerDN());
       if (currentCertificate != null) {
         boolean linkedToOtherAccount = currentCertificate.getClient_type() != ClientType.USER ||
             !currentCertificate.getClient_id().equals(accountId);
-        currentCert = new SoyMapData(
+        currentCert = ImmutableMap.of(
             UserCertificatesSoyInfo.Param.ID, currentCertificate.getId(),
             UserCertificatesSoyInfo.Param.SUBJECT, currentCertificate.getSubject_dn(),
             UserCertificatesSoyInfo.Param.ISSUER, currentCertificate.getIssuer_dn(),
             UserCertificatesSoyInfo.Param.LINKED_TO_OTHER_ACCOUNT, linkedToOtherAccount
         );
       } else {
-        currentCert = new SoyMapData(
+        currentCert = ImmutableMap.of(
             UserCertificatesSoyInfo.Param.SUBJECT, clientCertificateData.getSubjectDN(),
             UserCertificatesSoyInfo.Param.ISSUER, clientCertificateData.getIssuerDN()
         );
@@ -170,15 +171,24 @@ public class UserCertificatesPage {
       currentCert = null;
     }
 
-    SoyListData clientCerts = new SoyListData();
-    for (ClientCertificate clientCertificate : clientCertificateRepository.getClientCertificatesForClient(ClientType.USER, accountId)) {
-      SoyMapData clientCert = new SoyMapData(
+    ImmutableList<ImmutableMap<String, String>> clientCerts = Streams.stream(clientCertificateRepository.getClientCertificatesForClient(ClientType.USER, accountId))
+        .map(clientCertificate -> ImmutableMap.of(
           UserCertificatesSoyInfo.Param.ID, clientCertificate.getId(),
           UserCertificatesSoyInfo.Param.SUBJECT, clientCertificate.getSubject_dn(),
           UserCertificatesSoyInfo.Param.ISSUER, clientCertificate.getIssuer_dn()
-      );
-      clientCerts.add(clientCert);
+        ))
+        .collect(ImmutableList.toImmutableList());
+
+    ImmutableMap.Builder<String, Object> data = ImmutableMap.<String, Object>builderWithExpectedSize(7)
+        .put(UserCertificatesSoyInfo.UserCertificatesSoyTemplateInfo.ERROR, error)
+        .put(UserCertificatesSoyInfo.UserCertificatesSoyTemplateInfo.EMAIL, account.getEmail_address())
+        .put(UserCertificatesSoyInfo.UserCertificatesSoyTemplateInfo.ADD_FORM_ACTION, UriBuilder.fromResource(UserCertificatesPage.class).path(UserCertificatesPage.class, "addCurrent").build().toString())
+        .put(UserCertificatesSoyInfo.UserCertificatesSoyTemplateInfo.DELETE_FORM_ACTION, UriBuilder.fromResource(UserCertificatesPage.class).path(UserCertificatesPage.class, "remove").build().toString())
+        .put(UserCertificatesSoyInfo.UserCertificatesSoyTemplateInfo.CERTS, clientCerts);
+    if (currentCert != null) {
+      data.put(UserCertificatesSoyInfo.UserCertificatesSoyTemplateInfo.CURRENT_CERT, currentCert);
     }
+    urls.myProfile().ifPresent(url -> data.put(UserCertificatesSoyInfo.UserCertificatesSoyTemplateInfo.PORTAL_URL, url.toString()));
 
     return (error ? Response.status(Response.Status.BAD_REQUEST) : Response.ok())
         .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store")
@@ -187,18 +197,7 @@ public class UserCertificatesPage {
         .header("X-Frame-Options", "DENY")
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
-        .entity(new SoyTemplate(UserCertificatesSoyInfo.USER_CERTIFICATES,
-            account.getLocale(),
-            new SoyMapData(
-                UserCertificatesSoyInfo.UserCertificatesSoyTemplateInfo.ERROR, error,
-                UserCertificatesSoyInfo.UserCertificatesSoyTemplateInfo.EMAIL, account.getEmail_address(),
-                UserCertificatesSoyInfo.UserCertificatesSoyTemplateInfo.ADD_FORM_ACTION, UriBuilder.fromResource(UserCertificatesPage.class).path(UserCertificatesPage.class, "addCurrent").build().toString(),
-                UserCertificatesSoyInfo.UserCertificatesSoyTemplateInfo.DELETE_FORM_ACTION, UriBuilder.fromResource(UserCertificatesPage.class).path(UserCertificatesPage.class, "remove").build().toString(),
-                UserCertificatesSoyInfo.UserCertificatesSoyTemplateInfo.CERTS, clientCerts,
-                UserCertificatesSoyInfo.UserCertificatesSoyTemplateInfo.CURRENT_CERT, currentCert,
-                UserCertificatesSoyInfo.UserCertificatesSoyTemplateInfo.PORTAL_URL, urls.myProfile().map(URI::toString).orElse(null)
-            )
-        ))
+        .entity(new SoyTemplate(UserCertificatesSoyInfo.USER_CERTIFICATES, account.getLocale(), data.build()))
         .build();
   }
 }

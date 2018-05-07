@@ -36,7 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
-import com.google.template.soy.data.SoyMapData;
+import com.google.common.collect.ImmutableMap;
 import com.ibm.icu.util.ULocale;
 
 import oasis.mail.MailMessage;
@@ -89,7 +89,7 @@ public class ActivateAccountPage {
           .setSubject(SignUpSoyInfo.ACCOUNT_ACTIVATED_SUBJECT)
           .setBody(SignUpSoyInfo.ACCOUNT_ACTIVATED)
           .setHtml()
-          .setData(new SoyMapData(
+          .setData(ImmutableMap.of(
               SignUpSoyInfo.AccountActivatedSoyTemplateInfo.NICKNAME, userAccount.getDisplayName(),
               SignUpSoyInfo.AccountActivatedSoyTemplateInfo.PORTAL_URL, LoginPage.defaultContinueUrl(urls.landingPage(), uriInfo).toString(),
               SignUpSoyInfo.AccountActivatedSoyTemplateInfo.MY_OZWILLO_URL, portalUrl.toString()

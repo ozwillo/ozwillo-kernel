@@ -19,8 +19,6 @@ package oasis.web.authn.franceconnect;
 
 import static oasis.web.authn.LoginPage.log;
 
-import java.net.URI;
-
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.security.auth.login.LoginException;
@@ -39,7 +37,7 @@ import javax.ws.rs.core.UriInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.template.soy.data.SoyMapData;
+import com.google.common.collect.ImmutableMap;
 
 import oasis.auditlog.AuditLogService;
 import oasis.model.accounts.AccountRepository;
@@ -133,21 +131,28 @@ public class FranceConnectUnlinkPage {
     if (account.getFranceconnect_sub() == null) {
       return redirectAfterSuccess();
     }
+
     boolean hasPassword = credentialsRepository.getCredentials(ClientType.USER, account.getId()) != null;
     if (error == null && !hasPassword) {
       error = LoginError.ACCOUNT_WITHOUT_PASSWORD;
     }
+
+    ImmutableMap.Builder<String, Object> data = ImmutableMap.<String, Object>builderWithExpectedSize(7)
+        .put(FranceconnectUnlinkSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(FranceConnectUnlinkPage.class).build().toString())
+        .put(FranceconnectUnlinkSoyTemplateInfo.INIT_PWD_URL, UriBuilder.fromResource(ChangePasswordPage.class).build().toString())
+        .put(FranceconnectUnlinkSoyTemplateInfo.AUTHND_WITHFC, sidToken.getFranceconnectIdToken() != null)
+        .put(FranceconnectUnlinkSoyTemplateInfo.HAS_PASSWORD, hasPassword);
+    urls.myProfile().ifPresent(url -> data.put(FranceconnectUnlinkSoyTemplateInfo.PORTAL_URL, url.toString()));
+    if (account.getEmail_address() != null) {
+      data.put(FranceconnectUnlinkSoyTemplateInfo.EMAIL, account.getEmail_address());
+    }
+    if (error != null) {
+      data.put(FranceconnectUnlinkSoyTemplateInfo.ERROR, error.name());
+    }
+
     return rb
         .type(MediaType.TEXT_HTML_TYPE)
-        .entity(new SoyTemplate(FranceConnectSoyInfo.FRANCECONNECT_UNLINK, account.getLocale(), new SoyMapData(
-            FranceconnectUnlinkSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(FranceConnectUnlinkPage.class).build().toString(),
-            FranceconnectUnlinkSoyTemplateInfo.PORTAL_URL, urls.myProfile().map(URI::toString).orElse(null),
-            FranceconnectUnlinkSoyTemplateInfo.INIT_PWD_URL, UriBuilder.fromResource(ChangePasswordPage.class).build().toString(),
-            FranceconnectUnlinkSoyTemplateInfo.AUTHND_WITHFC, sidToken.getFranceconnectIdToken() != null,
-            FranceconnectUnlinkSoyTemplateInfo.EMAIL, account.getEmail_address(),
-            FranceconnectUnlinkSoyTemplateInfo.HAS_PASSWORD, hasPassword,
-            FranceconnectUnlinkSoyTemplateInfo.ERROR, error == null ? null : error.name()
-        )))
+        .entity(new SoyTemplate(FranceConnectSoyInfo.FRANCECONNECT_UNLINK, account.getLocale(), data.build()))
         .build();
   }
 

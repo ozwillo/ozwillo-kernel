@@ -27,7 +27,7 @@
 {@param  continue:         string} /** URL to continue to after successful login/re-auth. */
 {@param? franceconnect:    string} /** URL to FranceConnect login. */
 {@param? error:            string} /** error; can be one of INCORRECT_USERNAME_OR_PASSWORD, MISSING_REQUIRED_FIELD, ACCOUNT_ALREADY_EXISTS, MESSAGING_ERROR, or PASSWORD_TOO_SHORT */
-{@param  locale_url_map:   legacy_object_map<string,string>}
+{@param  locale_url_map:   map<string,string>}
 {@param? pwdMinLength:     int}    /** password minimum length; only used on sign-up errors. */
 {@inject current_locale:   string} /** current locale. */
 {call .page}

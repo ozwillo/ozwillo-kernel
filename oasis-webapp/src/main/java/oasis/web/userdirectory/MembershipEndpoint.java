@@ -43,8 +43,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.ImmutableMap;
 import com.google.template.soy.data.SanitizedContent;
-import com.google.template.soy.data.SoyMapData;
 import com.ibm.icu.util.ULocale;
 
 import oasis.model.InvalidVersionException;
@@ -189,10 +189,11 @@ public class MembershipEndpoint {
     UserAccount userAccount = accountRepository.getUserAccountById(userId);
 
     Notification notificationPrototype = new Notification();
-    SoyMapData data = new SoyMapData();
-    data.put(DeletedMembershipMessageSoyTemplateInfo.USER_NAME, userAccount.getDisplayName());
-    data.put(DeletedMembershipMessageSoyTemplateInfo.ORGANIZATION_NAME, organization.getName());
-    data.put(DeletedMembershipMessageSoyTemplateInfo.IS_ADMIN, isAdmin);
+    ImmutableMap<String, Object> data = ImmutableMap.of(
+        DeletedMembershipMessageSoyTemplateInfo.USER_NAME, userAccount.getDisplayName(),
+        DeletedMembershipMessageSoyTemplateInfo.ORGANIZATION_NAME, organization.getName(),
+        DeletedMembershipMessageSoyTemplateInfo.IS_ADMIN, isAdmin
+    );
     for (ULocale locale : LocaleHelper.SUPPORTED_LOCALES) {
       ULocale messageLocale = locale;
       if (LocaleHelper.DEFAULT_LOCALE.equals(locale)) {
