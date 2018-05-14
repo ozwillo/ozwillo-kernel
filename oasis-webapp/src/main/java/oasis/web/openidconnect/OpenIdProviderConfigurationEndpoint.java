@@ -111,7 +111,7 @@ public class OpenIdProviderConfigurationEndpoint {
     @JsonProperty String service_documentation = urls.developerDoc().map(URI::toString).orElse(null);
     // claims_locales_supported
     @JsonProperty String[] ui_locales_supported = UI_LOCALES_SUPPORTED;
-    // This is the default value: @JsonProperty boolean claims_parameter_supported = false;
+    @JsonProperty boolean claims_parameter_supported = true;
     // This is the default value: @JsonProperty boolean request_parameter_supported = false;
     @JsonProperty boolean request_uri_parameter_supported = false;
     // This is the default value: @JsonProperty boolean require_request_uri_registration = false;

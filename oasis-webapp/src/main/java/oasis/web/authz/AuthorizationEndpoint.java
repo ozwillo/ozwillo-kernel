@@ -19,6 +19,7 @@ package oasis.web.authz;
 
 import static java.util.function.Predicate.isEqual;
 
+import java.io.IOException;
 import java.net.URI;
 import java.time.Clock;
 import java.time.ZoneId;
@@ -32,6 +33,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -58,9 +60,13 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -228,6 +234,9 @@ public class AuthorizationEndpoint {
   private String redirect_uri;
   private RedirectUri redirectUri;
 
+  private final Supplier<UserAccount> userAccountSupplier = Suppliers.memoize(() ->
+      accountRepository.getUserAccountById(((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken().getAccountId()));
+
   @GET
   public Response get(@Context UriInfo uriInfo) {
     return post(uriInfo, uriInfo.getQueryParameters());
@@ -336,38 +345,41 @@ public class AuthorizationEndpoint {
       }
     }
 
-    // TODO: process 'claims' request parameter
-    final ImmutableMap<String, Boolean> parsedClaims = ScopesAndClaims.of(scopeIds, ImmutableSet.of()).getClaimNames().stream()
-        .collect(ImmutableMap.toImmutableMap(Function.identity(), k -> false));
+    final String claims = getParameter("claims");
+    ImmutableMap<String, Boolean> parsedClaims = parseClaims(claims);
+    if (parsedClaims == null) {
+      throw invalidParam("claims");
+    }
+    final ScopesAndClaims scopesAndClaims = ScopesAndClaims.of(scopeIds, parsedClaims.keySet());
+    // reintegrate claims mapped from scopes as voluntary claims
+    parsedClaims = mergeClaims(parsedClaims, scopesAndClaims.getClaimNames());
 
-    Set<String> authorizedScopeIds = getAuthorizedScopeIds(appInstance.getId(), sidToken.getAccountId());
-    if (ClientIds.PORTAL.equals(appInstance.getId()) && !authorizedScopeIds.containsAll(scopeIds)) {
+    ScopesAndClaims authorizedScopesAndClaims = getAuthorizedScopesAndClaims(appInstance.getId(), sidToken.getAccountId());
+    if (ClientIds.PORTAL.equals(appInstance.getId()) && !authorizedScopesAndClaims.containsAll(scopesAndClaims)) {
       // Automatically grant all the Portal's needed_scopes to any user, and thus skip the prompt
-      LinkedHashSet<String> portalScopeIds = new LinkedHashSet<>(appInstance.getNeeded_scopes().size());
-      for (NeededScope neededScope : appInstance.getNeeded_scopes()) {
-        portalScopeIds.add(neededScope.getScope_id());
-      }
-      if (!authorizedScopeIds.containsAll(portalScopeIds)) {
-        authorizationRepository.authorize(sidToken.getAccountId(), appInstance.getId(), portalScopeIds,
-            ScopesAndClaims.of(portalScopeIds, ImmutableSet.of()).getClaimNames());
-        // Safer to make a copy
-        authorizedScopeIds = new LinkedHashSet<>(authorizedScopeIds);
-        authorizedScopeIds.addAll(portalScopeIds);
+      ImmutableSet<String> portalScopeIds = appInstance.getNeeded_scopes().stream()
+          .map(NeededScope::getScope_id)
+          .collect(ImmutableSet.toImmutableSet());
+      ScopesAndClaims portalScopesAndClaims = ScopesAndClaims.of(portalScopeIds, ImmutableSet.of());
+      if (!authorizedScopesAndClaims.containsAll(portalScopesAndClaims)) {
+        authorizationRepository.authorize(sidToken.getAccountId(), appInstance.getId(), portalScopeIds, portalScopesAndClaims.getClaimNames());
+        authorizedScopesAndClaims = authorizedScopesAndClaims.union(portalScopesAndClaims);
       }
     }
-    if (authorizedScopeIds.containsAll(scopeIds) && !prompt.consent) {
-      // User already authorized all claimed scopes, let it be a "transparent" redirect
+    if (authorizedScopesAndClaims.containsAll(scopesAndClaims) && !prompt.consent &&
+        (!parsedClaims.containsValue(true) || profileFulfillsEssentialClaims(parsedClaims))) {
+      // User already authorized all claimed scopes (and no essential claim is missing), let it be a "transparent" redirect
       if (askForClientCertificate) {
         // that is, unless we need to ask the user for a client certificate
-        return askForClientCertificate(uriInfo, sidToken.getAccountId(), appInstance, scopeIds, redirect_uri, state, nonce, code_challenge);
+        return askForClientCertificate(uriInfo, sidToken.getAccountId(), appInstance, scopeIds, parsedClaims.keySet(), redirect_uri, state, nonce, code_challenge);
       }
-      return generateAuthorizationCodeAndRedirect(sidToken, scopeIds, parsedClaims.keySet(), appInstance.getId(), nonce, redirect_uri, code_challenge);
+      return generateAuthorizationCodeAndRedirect(sidToken, scopeIds, scopesAndClaims.getClaimNames(), appInstance.getId(), nonce, redirect_uri, code_challenge);
     }
 
     if (!prompt.interactive) {
       throw error("consent_required", null);
     }
-    return promptUser(uriInfo, sidToken.getAccountId(), appInstance, scopeIds, parsedClaims, authorizedScopeIds, redirect_uri, state, nonce, code_challenge, askForClientCertificate);
+    return promptUser(uriInfo, sidToken.getAccountId(), appInstance, scopeIds, parsedClaims, authorizedScopesAndClaims, redirect_uri, state, nonce, code_challenge, askForClientCertificate);
   }
 
   @POST
@@ -378,24 +390,22 @@ public class AuthorizationEndpoint {
   public Response postScopes(
       @FormParam("scope") Set<String> scopeIds,
       @FormParam("selected_scope") Set<String> selectedScopeIds,
+      @FormParam("claims") Set<String> claimNames,
       @FormParam("client_id") String client_id,
       @FormParam("redirect_uri") String redirect_uri,
       @Nullable @FormParam("state") String state,
       @Nullable @FormParam("nonce") String nonce,
       @Nullable @FormParam("code_challenge") String code_challenge
   ) {
-    // TODO: once template is updated to display individual claims, pass them back here:
-    ImmutableSet<String> claims = ScopesAndClaims.of(scopeIds, ImmutableSet.of()).getClaimNames();
-
     // TODO: check XSS (check data hasn't been tampered since generation of the form, so we can skip some validations we had already done)
 
     redirectUri = new RedirectUri(redirect_uri).setState(state);
 
     SidToken sidToken = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken();
 
-    authorizationRepository.authorize(sidToken.getAccountId(), client_id, selectedScopeIds, claims);
+    authorizationRepository.authorize(sidToken.getAccountId(), client_id, selectedScopeIds, claimNames);
 
-    return generateAuthorizationCodeAndRedirect(sidToken, scopeIds, claims, client_id, nonce, redirect_uri, code_challenge);
+    return generateAuthorizationCodeAndRedirect(sidToken, scopeIds, claimNames, client_id, nonce, redirect_uri, code_challenge);
   }
 
   private Response redirectToLogin(UriInfo uriInfo, Prompt prompt) {
@@ -446,9 +456,9 @@ public class AuthorizationEndpoint {
     redirectUri.setSessionState(sessionManagementHelper.computeSessionState(client_id, redirect_uri, browserState));
   }
 
-  private Response askForClientCertificate(UriInfo uriInfo, String accountId, AppInstance serviceProvider, Set<String> requiredScopeIds,
+  private Response askForClientCertificate(UriInfo uriInfo, String accountId, AppInstance serviceProvider, Set<String> requiredScopeIds, Set<String> claims,
       String redirect_uri, @Nullable String state, @Nullable String nonce, @Nullable String code_challenge) {
-    UserAccount account = accountRepository.getUserAccountById(accountId);
+    UserAccount account = userAccountSupplier.get();
 
     // redirectUri is now used for creating the cancel Uri for the authorization step with the user
     redirectUri.setError("access_denied", null);
@@ -462,6 +472,7 @@ public class AuthorizationEndpoint {
         .put(AskForClientCertificateSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(AuthorizationEndpoint.class).path(APPROVE_PATH).build().toString())
         .put(AskForClientCertificateSoyTemplateInfo.CANCEL_URL, redirectUri.toString())
         .put(AskForClientCertificateSoyTemplateInfo.SCOPES, requiredScopeIds)
+        .put(AskForClientCertificateSoyTemplateInfo.CLAIMS, claims)
         .put(AskForClientCertificateSoyTemplateInfo.REDIRECT_URI, redirect_uri)
         .put(AskForClientCertificateSoyTemplateInfo.ASK_FOR_CLIENT_CERTIFICATE, getAskForClientCertificateData(uriInfo, accountId));
     if (state != null) {
@@ -486,9 +497,10 @@ public class AuthorizationEndpoint {
         .build();
   }
 
-  private Response promptUser(UriInfo uriInfo, String accountId, AppInstance serviceProvider, Set<String> requiredScopeIds,ImmutableMap<String, Boolean> parsedClaims,
-      Set<String> authorizedScopeIds, String redirect_uri, @Nullable String state, @Nullable String nonce, @Nullable String code_challenge, boolean askForClientCertificate) {
+  private Response promptUser(UriInfo uriInfo, String accountId, AppInstance serviceProvider, Set<String> requiredScopeIds, Map<String, Boolean> parsedClaims, ScopesAndClaims authorizedScopesAndClaims,
+      String redirect_uri, @Nullable String state, @Nullable String nonce, @Nullable String code_challenge, boolean askForClientCertificate) {
     Set<String> globalClaimedScopeIds = new HashSet<>();
+    // XXX: add needed claims?
     Set<NeededScope> neededScopes = serviceProvider.getNeeded_scopes();
     if (neededScopes != null) {
       // TODO: display needed scope motivation
@@ -508,7 +520,7 @@ public class AuthorizationEndpoint {
       throw error("invalid_scope", e.getMessage());
     }
 
-    UserAccount account = accountRepository.getUserAccountById(accountId);
+    UserAccount account = userAccountSupplier.get();
 
     // Some scopes need explicit approval, generate approval form
     ImmutableList.Builder<ImmutableMap<String, String>> missingScopes = ImmutableList.builder();
@@ -526,7 +538,7 @@ public class AuthorizationEndpoint {
       if (description != null) {
         scope.put(AuthorizeSoyInfo.Param.DESCRIPTION, description);
       }
-      if (authorizedScopeIds.contains(scopeId)) {
+      if (authorizedScopesAndClaims.getScopeIds().contains(scopeId)) {
         alreadyAuthorizedScopes.add(scope.build());
       } else if (requiredScopeIds.contains(scopeId)) {
         missingScopes.add(scope.build());
@@ -534,8 +546,6 @@ public class AuthorizationEndpoint {
         optionalScopes.add(scope.build());
       }
     }
-
-    ImmutableSet<String> alreadyAuthorizedClaimNames = ScopesAndClaims.of(authorizedScopeIds, Collections.emptySet()).getClaimNames();
 
     ImmutableMap.Builder<String, ImmutableMap<String, Object>> claims = ImmutableMap.builder();
     boolean allClaimsAlreadyAuthorized = true;
@@ -560,7 +570,7 @@ public class AuthorizationEndpoint {
       }
       map.put(AuthorizeSoyInfo.Param.ESSENTIAL, essential);
 
-      boolean alreadyAuthorized = alreadyAuthorizedClaimNames.contains(claimName);
+      boolean alreadyAuthorized = authorizedScopesAndClaims.getClaimNames().contains(claimName);
       map.put(AuthorizeSoyInfo.Param.ALREADY_AUTHORIZED, alreadyAuthorized);
       if (!alreadyAuthorized) {
         allClaimsAlreadyAuthorized = false;
@@ -630,6 +640,18 @@ public class AuthorizationEndpoint {
         .header("X-XSS-Protection", "1; mode=block")
         .entity(new SoyTemplate(AuthorizeSoyInfo.AUTHORIZE, account.getLocale(), data.build()))
         .build();
+  }
+
+  private boolean profileFulfillsEssentialClaims(ImmutableMap<String, Boolean> parsedClaims) {
+    UserAccount account = userAccountSupplier.get();
+    return parsedClaims.entrySet().stream()
+        // Only keep the names of essential claims
+        .filter(Map.Entry::getValue).map(Map.Entry::getKey)
+        // XXX: only keep claims that we'll also display to the user (otherwise that'd be confusing)
+        // TODO: split CLAIMS_PROVIDERS so we don't "format" the claims here (as we're only interested in null-checks)
+        .map(CLAIM_PROVIDERS::get).filter(Objects::nonNull)
+        // Get the claims value; all have to be present.
+        .map(f -> f.apply(account)).allMatch(Objects::nonNull);
   }
 
   private ImmutableMap<String, Object> getAskForClientCertificateData(UriInfo uriInfo, String accountId) {
@@ -740,6 +762,54 @@ public class AuthorizationEndpoint {
         && CODE_CHALLENGE_MATCHER.matchesAllOf(code_challenge);
   }
 
+  @VisibleForTesting
+  @Nullable
+  static ImmutableMap<String, Boolean> parseClaims(@Nullable String claims) {
+    if (claims == null) {
+      return ImmutableMap.of();
+    }
+
+    JsonNode node;
+    try {
+      node = new ObjectMapper().readTree(claims);
+    } catch (IOException e) {
+      return null;
+    }
+    if (node == null || !node.isObject()) return null;
+    node = node.get("userinfo");
+    if (node == null) return ImmutableMap.of();
+    if (!node.isObject()) return null;
+
+    ImmutableMap.Builder<String, Boolean> result = ImmutableMap.builder();
+    for (Map.Entry<String, JsonNode> entry : (Iterable<Map.Entry<String, JsonNode>>) node::fields) {
+      Boolean essential;
+      if (entry.getValue().isNull()) {
+        essential = false;
+      } else if (entry.getValue().isObject()) {
+        JsonNode essentialNode = entry.getValue().get("essential");
+        if (essentialNode != null && !essentialNode.isBoolean()) return null;
+        essential = essentialNode != null && essentialNode.booleanValue();
+      } else {
+        return null;
+      }
+
+      // Ignore unknown claims / only keep supported claims
+      if (Scopes.SUPPORTED_CLAIMS.contains(entry.getKey())) {
+        result.put(entry.getKey(), essential);
+      }
+    }
+    return result.build();
+  }
+
+  @VisibleForTesting
+  static ImmutableMap<String, Boolean> mergeClaims(ImmutableMap<String, Boolean> parsedClaims, Set<String> claimNames) {
+    return Stream.concat(parsedClaims.keySet().stream(), claimNames.stream())
+        .collect(ImmutableMap.toImmutableMap(
+            Function.identity(),
+            claimName -> parsedClaims.getOrDefault(claimName, false),
+            Boolean::logicalOr));
+  }
+
   private String getIssuer(UriInfo uriInfo) {
     if (urls.canonicalBaseUri().isPresent()) {
       return urls.canonicalBaseUri().get().toString();
@@ -747,12 +817,12 @@ public class AuthorizationEndpoint {
     return uriInfo.getBaseUri().toString();
   }
 
-  private Set<String> getAuthorizedScopeIds(String client_id, String userId) {
+  private ScopesAndClaims getAuthorizedScopesAndClaims(String client_id, String userId) {
     AuthorizedScopes authorizedScopes = authorizationRepository.getAuthorizedScopes(userId, client_id);
     if (authorizedScopes == null) {
-      return Collections.emptySet();
+      return ScopesAndClaims.of();
     }
-    return authorizedScopes.getScope_ids();
+    return ScopesAndClaims.of(authorizedScopes.getScope_ids(), authorizedScopes.getClaim_names());
   }
 
   private WebApplicationException invalidParam(String paramName) {

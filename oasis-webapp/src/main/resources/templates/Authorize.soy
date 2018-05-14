@@ -83,6 +83,9 @@ button:disabled {lb}
     {for $scope in $requiredScopes}
       <input type="hidden" name="scope" value="{$scope}">
     {/for}
+    {for $claim in mapKeys($claims)}
+      <input type="hidden" name="claim" value="{$claim}">
+    {/for}
     <input type="hidden" name="redirect_uri" value="{$redirect_uri}">
     {if $state}
       <input type="hidden" name="state" value="{$state}">
@@ -171,6 +174,7 @@ button:disabled {lb}
 {@param  formAction:              string} /** URL to post the form to. */
 {@param  cancelUrl:               string} /** URL to go to when cancelling. */
 {@param  scopes:                  list<string>} /** list of requested (and thus required) scope IDs. */
+{@param  claims:                  list<string>} /** list of requested claim names. */
 {@param  redirect_uri:            string} /** 'redirect_uri' request parameter */
 {@param? state:                   string} /** 'state' request parameter */
 {@param? nonce:                   string} /** 'nonce' request parameter */
@@ -211,6 +215,9 @@ a {lb} color: #6f438e; {rb}
     <input type="hidden" name="client_id" value="{$appId}">
     {for $scope in $scopes}
       <input type="hidden" name="scope" value="{$scope}">
+    {/for}
+    {for $claim in $claims}
+      <input type="hidden" name="claim" value="{$claim}">
     {/for}
     <input type="hidden" name="redirect_uri" value="{$redirect_uri}">
     {if $state}
