@@ -32,15 +32,15 @@
         <target>Certificats</target>
         <note priority="1" from="description">User certificates page title</note>
       </trans-unit>
+      <trans-unit id="3804394114013945675" datatype="html">
+        <source><x id="START_PARAGRAPH"/>Congratulations <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>Your Ozwillo account has been validated.<x id="START_PARAGRAPH"/>The Ozwillo team<x id="START_BREAK"/><x id="START_SMALL"/>Discover <x id="START_LINK_1"/>Ozwillo<x id="END_LINK"/><x id="END_SMALL"/><x id="START_BREAK"/><x id="START_SMALL"/>Go to <x id="START_LINK_2"/>your Ozwillo dashboard<x id="END_LINK"/><x id="END_SMALL"/></source>
+        <target><x id="START_PARAGRAPH"/>Félicitations <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>Vous venez de valider votre compte Ozwillo.<x id="START_PARAGRAPH"/>L'équipe d'Ozwillo<x id="START_BREAK"/><x id="START_SMALL"/>Découvrez <x id="START_LINK_1"/>Ozwillo<x id="END_LINK"/><x id="END_SMALL"/><x id="START_BREAK"/><x id="START_SMALL"/>Accédez à <x id="START_LINK_2"/>votre environnement Ozwillo<x id="END_LINK"/><x id="END_SMALL"/></target>
+        <note priority="1" from="description">Welcome email body</note>
+      </trans-unit>
       <trans-unit id="667496017372169371" datatype="html">
         <source>Password must be at least <x id="PWD_MIN_LENGTH"/> characters long.</source>
         <target>Mot de passe trop court (longueur minimale: <x id="PWD_MIN_LENGTH"/>).</target>
         <note priority="1" from="description">Password too short; when changing password</note>
-      </trans-unit>
-      <trans-unit id="701551202013573405" datatype="html">
-        <source><x id="START_PARAGRAPH"/>Congratulations <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>Your Ozwillo account has been validated.<x id="START_PARAGRAPH"/>The Ozwillo team<x id="START_BREAK"/><x id="START_SMALL"/>Discover <x id="START_LINK_1"/>Ozwillo<x id="END_LINK"/><x id="END_SMALL"/><x id="START_BREAK"/><x id="START_SMALL"/>Go to <x id="START_LINK_2"/>your Ozwillo dashboard<x id="END_LINK"/></source>
-        <target><x id="START_PARAGRAPH"/>Félicitations <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>Vous venez de valider votre compte Ozwillo.<x id="START_PARAGRAPH"/>L'équipe d'Ozwillo<x id="START_BREAK"/><x id="START_SMALL"/>Découvrez <x id="START_LINK_1"/>Ozwillo<x id="END_LINK"/><x id="END_SMALL"/><x id="START_BREAK"/><x id="START_SMALL"/>Accédez à <x id="START_LINK_2"/>votre environnement Ozwillo<x id="END_LINK"/></target>
-        <note priority="1" from="description">Welcome email body</note>
       </trans-unit>
       <trans-unit id="706458367103369348" datatype="html">
         <source>Ozwillo password reset</source>

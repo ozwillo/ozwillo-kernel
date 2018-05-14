@@ -27,15 +27,15 @@
         <target>Kaydınızı gerçekleştirmek suretiyle <x id="START_LINK"/>Kullanım Şartları’nı<x id="END_LINK"/> okuduğunuzu ve kabul ettiğinizi teyit etmiş oluyorsunuz.</target>
         <note priority="1" from="description">Accept terms of use when signing up</note>
       </trans-unit>
+      <trans-unit id="3804394114013945675" datatype="html">
+        <source><x id="START_PARAGRAPH"/>Congratulations <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>Your Ozwillo account has been validated.<x id="START_PARAGRAPH"/>The Ozwillo team<x id="START_BREAK"/><x id="START_SMALL"/>Discover <x id="START_LINK_1"/>Ozwillo<x id="END_LINK"/><x id="END_SMALL"/><x id="START_BREAK"/><x id="START_SMALL"/>Go to <x id="START_LINK_2"/>your Ozwillo dashboard<x id="END_LINK"/><x id="END_SMALL"/></source>
+        <target><x id="START_PARAGRAPH"/>Tebrikler <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>Ozwillo hesabınız doğrulandı.<x id="START_PARAGRAPH"/>Ozwillo Ekibi<x id="START_BREAK"/><x id="START_SMALL"/><x id="START_LINK_1"/>Ozwillo’yu<x id="END_LINK"/> keşfedin!<x id="END_SMALL"/><x id="START_BREAK"/><x id="START_SMALL"/><x id="START_LINK_2"/>Ozwillo Kontrol Paneline<x id="END_LINK"/> gidebilirsiniz.<x id="END_SMALL"/></target>
+        <note priority="1" from="description">Welcome email body</note>
+      </trans-unit>
       <trans-unit id="667496017372169371" datatype="html">
         <source>Password must be at least <x id="PWD_MIN_LENGTH"/> characters long.</source>
         <target>Şifreniz en az <x id="PWD_MIN_LENGTH"/> karakter uzunluğunda olmalıdır.</target>
         <note priority="1" from="description">Password too short; when changing password</note>
-      </trans-unit>
-      <trans-unit id="701551202013573405" datatype="html">
-        <source><x id="START_PARAGRAPH"/>Congratulations <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>Your Ozwillo account has been validated.<x id="START_PARAGRAPH"/>The Ozwillo team<x id="START_BREAK"/><x id="START_SMALL"/>Discover <x id="START_LINK_1"/>Ozwillo<x id="END_LINK"/><x id="END_SMALL"/><x id="START_BREAK"/><x id="START_SMALL"/>Go to <x id="START_LINK_2"/>your Ozwillo dashboard<x id="END_LINK"/></source>
-        <target><x id="START_PARAGRAPH"/>Tebrikler <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>Ozwillo hesabınız doğrulandı.<x id="START_PARAGRAPH"/>Ozwillo Ekibi<x id="START_BREAK"/><x id="START_SMALL"/><x id="START_LINK_1"/>Ozwillo’yu<x id="END_LINK"/> keşfedin!<x id="END_SMALL"/><x id="START_BREAK"/><x id="START_SMALL"/><x id="START_LINK_2"/>Ozwillo Kontrol Paneline<x id="END_LINK"/> gidebilirsiniz.</target>
-        <note priority="1" from="description">Welcome email body</note>
       </trans-unit>
       <trans-unit id="706458367103369348" datatype="html">
         <source>Ozwillo password reset</source>
