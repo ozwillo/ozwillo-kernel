@@ -28,7 +28,6 @@ import java.util.concurrent.TimeUnit;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
 
 import org.jukito.JukitoModule;
 import org.jukito.JukitoRunner;
@@ -122,5 +121,25 @@ public class UserInfoEndpointTest {
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
     assertThat(response.getMediaType()).isEqualTo(new MediaType("application", "jwt"));
     // TODO: check content
+  }
+
+  @Test public void testWithClaims() {
+    resteasy.getDeployment().getProviderFactory().register(new TestOAuthFilter(new AccessToken() {{
+      setAccountId(citizenAccount.getId());
+      setScopeIds(ImmutableSet.of(Scopes.OPENID));
+      setClaimNames(ImmutableSet.of("locale"));
+    }}));
+
+    Response response = resteasy.getClient()
+        .target(resteasy.getBaseUriBuilder().path(UserInfoEndpoint.class))
+        .request().get();
+
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
+    assertThat(response.getMediaType()).isEqualTo(MediaType.APPLICATION_JSON_TYPE);
+    assertThat(response.readEntity(new GenericType<Map<String, Object>>() {}))
+        .containsOnly(
+            entry("sub", citizenAccount.getId()),
+            entry("locale", citizenAccount.getLocale().toLanguageTag()),
+            entry("updated_at", (int) TimeUnit.MILLISECONDS.toSeconds(citizenAccount.getUpdated_at())));
   }
 }

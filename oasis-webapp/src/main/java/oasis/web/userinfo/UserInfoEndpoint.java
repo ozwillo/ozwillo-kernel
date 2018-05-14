@@ -17,9 +17,11 @@
  */
 package oasis.web.userinfo;
 
+import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -40,7 +42,11 @@ import org.jose4j.jwt.JwtClaims;
 import org.jose4j.jwt.NumericDate;
 import org.jose4j.lang.JoseException;
 
+import com.google.common.collect.ImmutableMap;
+import com.ibm.icu.util.ULocale;
+
 import oasis.auth.AuthModule;
+import oasis.auth.ScopesAndClaims;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.authn.AccessToken;
@@ -57,6 +63,40 @@ import oasis.web.authz.KeysEndpoint;
 public class UserInfoEndpoint {
   /** Note: we'd prefer JWT, but OpenID Connect wants us to prefer JSON, so using qs&lt;1.0 here. */
   private static final String APPLICATION_JWT = "application/jwt; qs=0.99";
+
+  private static final ImmutableMap<String, Function<UserAccount, Object>> CLAIM_PROVIDERS = ImmutableMap.<String, Function<UserAccount, Object>>builder()
+      .put("name", UserAccount::getName)
+      .put("family_name", UserAccount::getFamily_name)
+      .put("given_name", UserAccount::getGiven_name)
+      .put("middle_name", UserAccount::getMiddle_name)
+      .put("nickname", UserAccount::getNickname)
+      .put("gender", UserAccount::getGender)
+      .put("birthdate", formatted(UserAccount::getBirthdate, LocalDate::toString))
+      .put("locale", formatted(UserAccount::getLocale, ULocale::toLanguageTag))
+      .put("email", UserAccount::getEmail_address)
+      .put("email_verified", formatted(UserAccount::getEmail_verified, Boolean.TRUE::equals))
+      .put("address", formatted(UserAccount::getAddress, address -> {
+        LinkedHashMap<String, Object> result = new LinkedHashMap<>();
+        putIfNotNull(result, "street_address", address.getStreet_address());
+        putIfNotNull(result, "locality", address.getLocality());
+        putIfNotNull(result, "region", address.getRegion());
+        putIfNotNull(result, "postal_code", address.getPostal_code());
+        putIfNotNull(result, "country", address.getCountry());
+        return result;
+      }))
+      .put("phone_number", UserAccount::getPhone_number)
+      .put("phone_number_verified", formatted(UserAccount::getPhone_number_verified, Boolean.TRUE::equals))
+      .build();
+
+  private static <T> Function<UserAccount, Object> formatted(Function<UserAccount, T> provider, Function<T, Object> formatter) {
+    return provider.andThen(t -> t == null ? null : formatter.apply(t));
+  }
+
+  private static void putIfNotNull(Map<String, Object> map, String key, Object value) {
+    if (value != null) {
+      map.put(key, value);
+    }
+  }
 
   @Context UriInfo uriInfo;
   @Context SecurityContext securityContext;
@@ -122,49 +162,21 @@ public class UserInfoEndpoint {
     AccessToken accessToken = oAuthPrincipal.getAccessToken();
     assert accessToken != null;
 
-    Set<String> scopeIds = accessToken.getScopeIds();
+    Set<String> claims = ScopesAndClaims.of(accessToken.getScopeIds(), accessToken.getClaimNames()).getClaimNames();
 
-    JwtClaims userInfo = getUserInfo(userAccount, scopeIds);
+    JwtClaims userInfo = getUserInfo(userAccount, claims);
     userInfo.setSubject(userAccount.getId());
     return userInfo;
   }
 
-  private JwtClaims getUserInfo(UserAccount userAccount, Set<String> scopeIds) {
+  private JwtClaims getUserInfo(UserAccount userAccount, Set<String> claims) {
     JwtClaims userInfo = new JwtClaims();
 
-    if (scopeIds.contains(Scopes.PROFILE)) {
-      setClaimIfNotNull(userInfo, "name", userAccount.getName());
-      setClaimIfNotNull(userInfo, "family_name", userAccount.getFamily_name());
-      setClaimIfNotNull(userInfo, "given_name", userAccount.getGiven_name());
-      setClaimIfNotNull(userInfo, "middle_name", userAccount.getMiddle_name());
-      setClaimIfNotNull(userInfo, "nickname", userAccount.getNickname());
-      setClaimIfNotNull(userInfo, "gender", userAccount.getGender());
-      if (userAccount.getBirthdate() != null) {
-        userInfo.setClaim("birthdate", userAccount.getBirthdate().toString());
+    for (String claim : claims) {
+      Object value = CLAIM_PROVIDERS.getOrDefault(claim, account -> null).apply(userAccount);
+      if (value != null) {
+        userInfo.setClaim(claim, value);
       }
-      if (userAccount.getLocale() != null) {
-        setClaimIfNotNull(userInfo, "locale", userAccount.getLocale().toLanguageTag());
-      }
-    }
-
-    if (scopeIds.contains(Scopes.EMAIL) && userAccount.getEmail_address() != null) {
-      userInfo.setClaim("email", userAccount.getEmail_address());
-      userInfo.setClaim("email_verified", Boolean.TRUE.equals(userAccount.getEmail_verified()));
-    }
-
-    if (scopeIds.contains(Scopes.ADDRESS) && userAccount.getAddress() != null) {
-      LinkedHashMap<String, Object> address = new LinkedHashMap<>();
-      putIfNotNull(address, "street_address", userAccount.getAddress().getStreet_address());
-      putIfNotNull(address, "locality", userAccount.getAddress().getLocality());
-      putIfNotNull(address, "region", userAccount.getAddress().getRegion());
-      putIfNotNull(address, "postal_code", userAccount.getAddress().getPostal_code());
-      putIfNotNull(address, "country", userAccount.getAddress().getCountry());
-      userInfo.setClaim("address", address);
-    }
-
-    if (scopeIds.contains(Scopes.PHONE) && userAccount.getPhone_number() != null) {
-      userInfo.setClaim("phone_number", userAccount.getPhone_number());
-      userInfo.setClaim("phone_number_verified", Boolean.TRUE.equals(userAccount.getPhone_number_verified()));
     }
 
     long updatedAt = userAccount.getUpdated_at();
@@ -173,18 +185,6 @@ public class UserInfoEndpoint {
     }
 
     return userInfo;
-  }
-
-  private void setClaimIfNotNull(JwtClaims claims, String claimName, Object value) {
-    if (value != null) {
-      claims.setClaim(claimName, value);
-    }
-  }
-
-  private void putIfNotNull(Map<String, Object> map, String key, Object value) {
-    if (value != null) {
-      map.put(key, value);
-    }
   }
 
   private WebApplicationException invalidTokenResponse() {
