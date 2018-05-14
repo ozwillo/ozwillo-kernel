@@ -17,6 +17,13 @@
  */
 package oasis.model.authz;
 
+import java.util.Objects;
+import java.util.stream.Stream;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Streams;
+
 public interface Scopes {
   // OpenID Connect 1.0
   public static final String OPENID = "openid";
@@ -28,4 +35,27 @@ public interface Scopes {
 
   // Portal
   public static final String PORTAL = "portal";
+
+  public static final ImmutableMap<String, ImmutableSet<String>> SCOPES_TO_CLAIMS = ImmutableMap.of(
+      OPENID, ImmutableSet.of(), // XXX: do not record the "sub" claim; this scope is required anyway
+      PROFILE, ImmutableSet.of(
+          "name", "family_name", "given_name", "middle_name", "nickname", "preferred_username",
+          "profile", "picture", "website",
+          "gender", "birthdate",
+          "zoneinfo", "locale",
+          "updated_at"),
+      EMAIL, ImmutableSet.of("email", "email_verified"),
+      ADDRESS, ImmutableSet.of("address"),
+      PHONE, ImmutableSet.of("phone_number", "phone_number_verified")
+  );
+  public static final ImmutableSet<String> SUPPORTED_CLAIMS = SCOPES_TO_CLAIMS.values().stream()
+      .flatMap(ImmutableSet::stream)
+      .collect(ImmutableSet.toImmutableSet());
+
+  public static Stream<String> mapScopesToClaims(Iterable<String> scopeIds) {
+    return Streams.stream(scopeIds)
+        .map(SCOPES_TO_CLAIMS::get)
+        .filter(Objects::nonNull)
+        .flatMap(ImmutableSet::stream);
+  }
 }
