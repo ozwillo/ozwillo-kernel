@@ -44,6 +44,9 @@ dependencies {
 }
 
 processResources {
+  inputs.file("src/main/ozwillo-style/favicons/snippet_head_for_favicons.html")
+      .withPathSensitivity(PathSensitivity.NONE)
+
   from("src/main/ozwillo-style/favicons") {
     exclude("**/*.html")
     rename { file -> "oasis-ui/" + file }
