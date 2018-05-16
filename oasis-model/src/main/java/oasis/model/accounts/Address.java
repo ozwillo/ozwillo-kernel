@@ -17,7 +17,12 @@
  */
 package oasis.model.accounts;
 
+import java.util.stream.Stream;
+
 import javax.annotation.Nonnull;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.Strings;
 
 public class Address {
   private String street_address;
@@ -79,5 +84,11 @@ public class Address {
 
   public void setCountry(String country) {
     this.country = country;
+  }
+
+  @JsonIgnore
+  public boolean isEmpty(){
+    return Stream.of(street_address, locality, region, postal_code, country)
+        .allMatch(Strings::isNullOrEmpty);
   }
 }

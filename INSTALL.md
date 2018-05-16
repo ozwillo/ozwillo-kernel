@@ -86,6 +86,7 @@ Properties that should generally be configured on a production server are:
    will generally be the public Ozwillo website, e.g. `https://www.ozwillo.com`.
  * `oasis.urls.my-oasis`: the URL to the Ozwillo Portal's _My Ozwillo_ page
  * `oasis.urls.my-profile`: the URL to the Ozwillo Portal's _My Profile_ page
+ * `oasis.urls.popup-profile`: the URL to the Ozwillo Portal's page to edit the user's profile in a popup window
  * `oasis.urls.my-apps`: the URL to the Ozwillo Portal's _My Applications_ page
  * `oasis.urls.my-network`: the URL to the Ozwillo Portal's _My Network_ page
  * `oasis.urls.developer-doc`: the URL to the developer documention's website

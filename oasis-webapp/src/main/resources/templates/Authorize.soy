@@ -34,7 +34,11 @@
 {@param? nonce:          string} /** 'nonce' request parameter */
 {@param? code_challenge: string} /** 'code_challenge' request parameter */
 {@param? askForClientCertificate: [manageCertificatesUrl: string, hasRegisteredCertificate: bool, currentCert: null|[addFormAction: string, continueUrl: string, subject: string, issuer: string, linkedToOtherAccount: bool|null]]}
-
+{@param  claims: map<string, [value: html|string|null, alreadyAuthorized: bool, essential: bool]>} /** list of scope name and value. */
+{@param  allClaimsAlreadyAuthorized:        bool}   /** if all profile scope are authorized  */
+{@param  essentialClaimMissing:             bool}   /** for disabling the submit button when claims are empty */
+{@param? updateProfileUrl:                  string} /** url to update the profile */
+{@param? updateProfileOrigin:               string} /** url of the origin to check the post message */
 {call .page}
   {param title kind="text"}{msg desc="Authorization page title"}Authorize {$appName}{/msg}{/param}
   {param content kind="html"}
@@ -55,6 +59,11 @@ a.cancel {lb}
   background: white; color: #6f438e;
 {rb}
 a {lb} color: #6f438e; {rb}
+
+button:disabled {lb}
+  opacity: 0.7;
+  cursor: default;
+{rb}
 </style>
   <h1>{msg desc="Some app needs authorizations"}
     {$appName} needs some authorizations
@@ -84,12 +93,14 @@ a {lb} color: #6f438e; {rb}
     {if $code_challenge}
       <input type="hidden" name="code_challenge" value="{$code_challenge}">
     {/if}
-
     <div>
       <p>{msg desc="Introduce list of required (and not already granted) scopes"}
         {$appName} would like to:
       {/msg}</p>
       <ul>
+        {if not $allClaimsAlreadyAuthorized}
+          {call .claims data="all" /}
+        {/if}
         {for $scope in $missingScopes}
           {call .scopeField data="$scope"}
             {param inputType: 'hidden' /}
@@ -97,7 +108,7 @@ a {lb} color: #6f438e; {rb}
         {/for}
       </ul>
       <div style="text-align: center">
-        <button type="submit">
+        <button type="submit" {if $essentialClaimMissing}disabled{/if}>
           {msg desc="Button to grant the scopes"}Grant it{/msg}
         </button>
         <a href="{$cancelUrl}" class=cancel>
@@ -121,12 +132,15 @@ a {lb} color: #6f438e; {rb}
       </div>
     {/if}
 
-    {if $alreadyAuthorizedScopes and length($alreadyAuthorizedScopes)}
+    {if ($alreadyAuthorizedScopes and length($alreadyAuthorizedScopes)) or $claims}
       <div>
         <p>{msg desc="Introduce list of already authorized scopes"}
           You have already authorized {$appName} to:
         {/msg}</p>
         <ul>
+          {if $allClaimsAlreadyAuthorized}
+            {call .claims data="all" /}
+          {/if}
           {for $scope in $alreadyAuthorizedScopes}
             {call .scope data="$scope" /}
           {/for}
@@ -134,6 +148,16 @@ a {lb} color: #6f438e; {rb}
       </div>
     {/if}
   </form>
+  <script>
+    {if $updateProfileOrigin}
+      function receiveMessage(event) {lb}
+        if (event.origin !== "{$updateProfileOrigin}") return;
+
+        location.reload();
+      {rb}
+      window.addEventListener("message", receiveMessage, false);
+    {/if}
+  </script>
   {/param}
 {/call}
 {/template}
@@ -305,4 +329,243 @@ a {lb} color: #6f438e; {rb}
     <dt>{$title ? $title : $id}</dt>
     <dd>{$description}</dd>
   </dl>
+{/template}
+
+/**
+ * Displays the profile information
+ */
+{template .claims visibility="private"}
+  {@param  claims: map<string, [value: html|string|null, alreadyAuthorized: bool, essential: bool]>} /** List of scope name and value. */
+  {@param  allClaimsAlreadyAuthorized:        bool}   /** When all the scope have been already authorized. */
+  {@param? updateProfileUrl:                  string} /** url to update the profile */
+
+<style>
+.claim-name {lb}
+  min-width: 30%;
+{rb}
+.row-claim {lb}
+  display: flex;
+  flex-direction: row;
+  padding: 0.7em;
+  flex-wrap: wrap;
+{rb}
+.row-required {lb}
+  color: #F01D11;
+  font-weight: bold;
+{rb}
+.row-need-auth {lb}
+  color: black;
+  font-weight: bold;
+{rb}
+.info-claim {lb}
+  margin-left: auto;
+{rb}
+.row-claim p {lb}
+  margin: 0px;
+{rb}
+.row-claim img {lb}
+  max-width: 180px;
+{rb}
+</style>
+  <dl>
+    <dt>
+      {msg desc="Introduce claims being authorized"}
+        View the following information about you:
+      {/msg}
+    </dt>
+    <dd>
+
+      {if $claims['nickname']}
+        {call .oneClaim data="$claims['nickname']"}
+          {param label kind="text"}
+            {msg desc="label of nickname profile information during authorizations"}
+                Nickname:
+            {/msg}
+          {/param}
+          {param allClaimsAlreadyAuthorized: $allClaimsAlreadyAuthorized /}
+        {/call}
+      {/if}
+
+      {if ($claims['name'])}
+      {call .oneClaim data="$claims['name']"}
+        {param label kind="text"}
+          {msg desc="label of name profile information during authorizations"}
+            Full name:
+          {/msg}
+        {/param}
+        {param allClaimsAlreadyAuthorized: $allClaimsAlreadyAuthorized /}
+      {/call}
+      {/if}
+
+      {if $claims['given_name']}
+        {call .oneClaim data="$claims['given_name']"}
+          {param label kind="text"}
+            {msg desc="label of given_name profile information during authorizations"}
+                Given name:
+            {/msg}
+          {/param}
+          {param allClaimsAlreadyAuthorized: $allClaimsAlreadyAuthorized /}
+        {/call}
+      {/if}
+
+      {if $claims['middle_name']}
+        {call .oneClaim data="$claims['middle_name']"}
+          {param label kind="text"}
+            {msg desc="label of middle_name profile information during authorizations"}
+                Middle name:
+            {/msg}
+          {/param}
+          {param allClaimsAlreadyAuthorized: $allClaimsAlreadyAuthorized /}
+        {/call}
+      {/if}
+
+      {if $claims['family_name']}
+      {call .oneClaim data="$claims['family_name']"}
+        {param label kind="text"}
+          {msg desc="label of family_name profile information during authorizations"}
+            Family name:
+          {/msg}
+        {/param}
+        {param allClaimsAlreadyAuthorized: $allClaimsAlreadyAuthorized /}
+      {/call}
+      {/if}
+
+      {if $claims['gender']}
+      {call .oneClaim}
+        {param label kind="text"}
+          {msg desc="label of gender profile information during authorizations"}
+              Gender:
+          {/msg}
+        {/param}
+        {param value kind="text"}
+          {switch $claims['gender'].value}
+            {case 'male'}
+              {msg desc="label of gender male during authorizations"}
+                  Male
+              {/msg}
+            {case 'female'}
+            {msg desc="label of gender female during authorizations"}
+                Female
+            {/msg}
+            {default}
+            {if $claims['gender'].value}{$claims['gender'].value}{/if}
+          {/switch}
+        {/param}
+        {param alreadyAuthorized: $claims['gender'].alreadyAuthorized /}
+        {param essential: $claims['gender'].essential /}
+        {param allClaimsAlreadyAuthorized: $allClaimsAlreadyAuthorized /}
+      {/call}
+      {/if}
+
+      {if $claims['birthdate']}
+      {call .oneClaim data="$claims['birthdate']"}
+        {param label kind="text"}
+          {msg desc="label of birthdate profile information during authorizations"}
+              Birthdate:
+          {/msg}
+        {/param}
+        {param allClaimsAlreadyAuthorized: $allClaimsAlreadyAuthorized /}
+      {/call}
+      {/if}
+
+      {if $claims['email']}
+      {call .oneClaim data="$claims['email']"}
+        {param label kind="text"}
+          {msg desc="label of email profile information during authorizations"}
+              Email:
+          {/msg}
+        {/param}
+        {param allClaimsAlreadyAuthorized: $allClaimsAlreadyAuthorized /}
+      {/call}
+      {/if}
+
+      {if $claims['address']}
+      {call .oneClaim}
+        {param label kind="text"}
+          {msg desc="label of address profile information during authorizations"}
+              Address:
+          {/msg}
+        {/param}
+        {param value kind="html"}
+          {if $claims['address'].value}{$claims['address'].value}{/if}
+        {/param}
+        {param alreadyAuthorized: $claims['address'].alreadyAuthorized /}
+        {param essential: $claims['address'].essential /}
+        {param allClaimsAlreadyAuthorized: $allClaimsAlreadyAuthorized /}
+      {/call}
+      {/if}
+
+      {if $claims['phone_number']}
+      {call .oneClaim data="$claims['phone_number']"}
+        {param label kind="text"}
+          {msg desc="label of phone_number profile information during authorizations"}
+              Phone:
+          {/msg}
+        {/param}
+        {param allClaimsAlreadyAuthorized: $allClaimsAlreadyAuthorized /}
+      {/call}
+      {/if}
+
+      {if $claims['locale']}
+        {call .oneClaim data="$claims['locale']"}
+          {param label kind="text"}
+            {msg desc="label of locale profile information during authorizations"}
+                Locale:
+            {/msg}
+          {/param}
+          {param allClaimsAlreadyAuthorized: $allClaimsAlreadyAuthorized /}
+        {/call}
+      {/if}
+
+      {if $updateProfileUrl}
+        <div style="text-align: right; margin-right: 0.7em;">
+            <a href="{$updateProfileUrl}"
+               onclick="window.open('{$updateProfileUrl}', 'popup', 'scrollbars=1,resizable=1,height=860,width=770'); return false;"
+            >
+              {msg desc="update profile"}
+                Update profile
+              {/msg}
+            </a>
+        </div>
+      {/if}
+    </dd>
+  </dl>
+
+{/template}
+
+/**
+* Display one claim
+*/
+{template .oneClaim visibility="private"}
+  {@param label:                      string}
+  {@param value:                      html|string|null}
+  {@param alreadyAuthorized:          bool}
+  {@param essential:                  bool}
+  {@param allClaimsAlreadyAuthorized: bool}
+
+<div class="row-claim {if $essential and not $value}row-required{elseif not $alreadyAuthorized}row-need-auth{/if}">
+  <div class="claim-name">{$label}</div>
+  <div>
+    {if not $value and $essential}
+      {msg desc="required"}
+          (required)
+      {/msg}
+    {elseif $value}
+      {$value}
+    {/if}
+  </div>
+  {if not $allClaimsAlreadyAuthorized}
+    <div class="info-claim">
+      {if $alreadyAuthorized}
+        {msg desc="already authorized"}
+            (already authorized)
+        {/msg}
+      {elseif not $alreadyAuthorized}
+        {msg desc="need your authorization"}
+            (need your authorization)
+        {/msg}
+      {/if}
+    </div>
+  {/if}
+</div>
 {/template}

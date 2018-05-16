@@ -21,12 +21,19 @@ import static java.util.function.Predicate.isEqual;
 
 import java.net.URI;
 import java.time.Clock;
+import java.time.ZoneId;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -56,14 +63,23 @@ import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Streams;
+import com.google.common.html.types.SafeHtml;
+import com.google.common.html.types.SafeHtmlBuilder;
+import com.google.common.html.types.SafeHtmls;
+import com.google.common.html.types.SafeUrls;
+import com.ibm.icu.text.DateFormat;
+import com.ibm.icu.util.TimeZone;
 import com.ibm.icu.util.ULocale;
 
 import oasis.auth.AuthModule;
 import oasis.auth.RedirectUri;
+import oasis.auth.ScopesAndClaims;
 import oasis.model.accounts.AccountRepository;
+import oasis.model.accounts.Address;
 import oasis.model.accounts.UserAccount;
 import oasis.model.applications.v2.AccessControlRepository;
 import oasis.model.applications.v2.AppInstance;
@@ -87,6 +103,7 @@ import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.services.authz.AppAdminHelper;
 import oasis.services.cookies.CookieFactory;
+import oasis.services.security.OriginHelper;
 import oasis.soy.SoyTemplate;
 import oasis.soy.templates.AuthorizeSoyInfo;
 import oasis.soy.templates.AuthorizeSoyInfo.AskForClientCertificateSoyTemplateInfo;
@@ -142,6 +159,49 @@ public class AuthorizationEndpoint {
       return joiner.toString();
     }
   }
+
+  private static final ImmutableMap<String, Function<UserAccount, Object>> CLAIM_PROVIDERS = ImmutableMap.<String, Function<UserAccount, Object>>builder()
+      .put("name", UserAccount::getName)
+      .put("family_name", UserAccount::getFamily_name)
+      .put("given_name", UserAccount::getGiven_name)
+      .put("middle_name", UserAccount::getMiddle_name)
+      .put("nickname", UserAccount::getNickname)
+      .put("gender", UserAccount::getGender)
+      .put("birthdate", userAccount -> {
+        if (userAccount.getBirthdate() == null) {
+          return null;
+        }
+        DateFormat dt = DateFormat.getDateInstance(DateFormat.SHORT, userAccount.getLocale());
+        return dt.format(Date.from(userAccount.getBirthdate().atStartOfDay(ZoneId.systemDefault()).toInstant()));
+      })
+      .put("locale", userAccount -> {
+        if (userAccount.getLocale() == null){
+          return null;
+        }
+        return userAccount.getLocale().getDisplayName(userAccount.getLocale());
+      })
+      .put("email", UserAccount::getEmail_address)
+      .put("address", userAccount -> {
+        Address address = userAccount.getAddress();
+        if (address == null || address.isEmpty()){
+          return null;
+        }
+        List<SafeHtml> listSafeHtml = Stream.of(
+            address.getStreet_address(),
+            Stream.of(
+                address.getPostal_code(),
+                address.getLocality()
+            ).filter(Objects::nonNull).collect(Collectors.joining(" ")),
+            address.getRegion(),
+            address.getCountry()
+        ).filter(Objects::nonNull)
+            .map(s -> new SafeHtmlBuilder("p").appendContent(SafeHtmls.htmlEscape(s)).build())
+            .collect(Collectors.toList());
+
+        return new SafeHtmlBuilder("div").appendContent(listSafeHtml).build();
+      })
+      .put("phone_number", UserAccount::getPhone_number)
+      .build();
 
   @Context SecurityContext securityContext;
   @Context Request request;
@@ -276,6 +336,10 @@ public class AuthorizationEndpoint {
       }
     }
 
+    // TODO: process 'claims' request parameter
+    final ImmutableMap<String, Boolean> parsedClaims = ScopesAndClaims.of(scopeIds, ImmutableSet.of()).getClaimNames().stream()
+        .collect(ImmutableMap.toImmutableMap(Function.identity(), k -> false));
+
     Set<String> authorizedScopeIds = getAuthorizedScopeIds(appInstance.getId(), sidToken.getAccountId());
     if (ClientIds.PORTAL.equals(appInstance.getId()) && !authorizedScopeIds.containsAll(scopeIds)) {
       // Automatically grant all the Portal's needed_scopes to any user, and thus skip the prompt
@@ -302,7 +366,7 @@ public class AuthorizationEndpoint {
     if (!prompt.interactive) {
       throw error("consent_required", null);
     }
-    return promptUser(uriInfo, sidToken.getAccountId(), appInstance, scopeIds, authorizedScopeIds, redirect_uri, state, nonce, code_challenge, askForClientCertificate);
+    return promptUser(uriInfo, sidToken.getAccountId(), appInstance, scopeIds, parsedClaims, authorizedScopeIds, redirect_uri, state, nonce, code_challenge, askForClientCertificate);
   }
 
   @POST
@@ -418,8 +482,8 @@ public class AuthorizationEndpoint {
         .build();
   }
 
-  private Response promptUser(UriInfo uriInfo, String accountId, AppInstance serviceProvider, Set<String> requiredScopeIds, Set<String> authorizedScopeIds,
-      String redirect_uri, @Nullable String state, @Nullable String nonce, @Nullable String code_challenge, boolean askForClientCertificate) {
+  private Response promptUser(UriInfo uriInfo, String accountId, AppInstance serviceProvider, Set<String> requiredScopeIds,ImmutableMap<String, Boolean> parsedClaims,
+      Set<String> authorizedScopeIds, String redirect_uri, @Nullable String state, @Nullable String nonce, @Nullable String code_challenge, boolean askForClientCertificate) {
     Set<String> globalClaimedScopeIds = new HashSet<>();
     Set<NeededScope> neededScopes = serviceProvider.getNeeded_scopes();
     if (neededScopes != null) {
@@ -430,6 +494,8 @@ public class AuthorizationEndpoint {
     }
     globalClaimedScopeIds.addAll(requiredScopeIds);
     // TODO: Manage automatically authorized scopes
+    // Ignore scopes that we handle as claims
+    globalClaimedScopeIds.removeAll(Scopes.SCOPES_TO_CLAIMS.keySet());
 
     Iterable<Scope> globalClaimedScopes;
     try {
@@ -465,6 +531,40 @@ public class AuthorizationEndpoint {
       }
     }
 
+    ImmutableSet<String> alreadyAuthorizedClaimNames = ScopesAndClaims.of(authorizedScopeIds, Collections.emptySet()).getClaimNames();
+
+    ImmutableMap.Builder<String, ImmutableMap<String, Object>> claims = ImmutableMap.builder();
+    boolean allClaimsAlreadyAuthorized = true;
+    boolean essentialClaimMissing = false;
+
+    for (Map.Entry<String, Boolean> parsedClaim : parsedClaims.entrySet()){
+      String claimName = parsedClaim.getKey();
+      Boolean essential = parsedClaim.getValue();
+
+      Function<UserAccount, Object> claimProvider = CLAIM_PROVIDERS.get(claimName);
+      Object value = claimProvider != null ? claimProvider.apply(account) : null;
+      if (essential && claimProvider != null && value == null) {
+        // XXX: we only track essential claims for those that will be displayed to the user,
+        // otherwise they might be blocked with missing claims that they don't know how to provide.
+        // (actually, worse, a disabled submit button and no indication as to why it's disabled.)
+        essentialClaimMissing = true;
+      }
+
+      ImmutableMap.Builder<String, Object> map = ImmutableMap.builder();
+      if (value != null) {
+        map.put(AuthorizeSoyInfo.Param.VALUE, value);
+      }
+      map.put(AuthorizeSoyInfo.Param.ESSENTIAL, essential);
+
+      boolean alreadyAuthorized = alreadyAuthorizedClaimNames.contains(claimName);
+      map.put(AuthorizeSoyInfo.Param.ALREADY_AUTHORIZED, alreadyAuthorized);
+      if (!alreadyAuthorized) {
+        allClaimsAlreadyAuthorized = false;
+      }
+
+      claims.put(claimName, map.build());
+    }
+
     // TODO: Get the application in order to have more information
 
     // redirectUri is now used for creating the cancel Uri for the authorization step with the user
@@ -473,7 +573,7 @@ public class AuthorizationEndpoint {
     Response.ResponseBuilder rb = Response.ok();
     setSessionState(rb, serviceProvider.getId(), redirect_uri);
 
-    ImmutableMap.Builder<String, Object> data = ImmutableMap.<String, Object>builderWithExpectedSize(13)
+    ImmutableMap.Builder<String, Object> data = ImmutableMap.<String, Object>builderWithExpectedSize(17)
         .put(AuthorizeSoyTemplateInfo.APP_ID, serviceProvider.getId())
         .put(AuthorizeSoyTemplateInfo.APP_NAME, serviceProvider.getName().get(account.getLocale()))
         .put(AuthorizeSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(AuthorizationEndpoint.class).path(APPROVE_PATH).build().toString())
@@ -482,7 +582,10 @@ public class AuthorizationEndpoint {
         .put(AuthorizeSoyTemplateInfo.MISSING_SCOPES, missingScopes.build())
         .put(AuthorizeSoyTemplateInfo.OPTIONAL_SCOPES, optionalScopes.build())
         .put(AuthorizeSoyTemplateInfo.ALREADY_AUTHORIZED_SCOPES, alreadyAuthorizedScopes.build())
-        .put(AuthorizeSoyTemplateInfo.REDIRECT_URI, redirect_uri);
+        .put(AuthorizeSoyTemplateInfo.REDIRECT_URI, redirect_uri)
+        .put(AuthorizeSoyTemplateInfo.CLAIMS, claims.build())
+        .put(AuthorizeSoyTemplateInfo.ALL_CLAIMS_ALREADY_AUTHORIZED, allClaimsAlreadyAuthorized)
+        .put(AuthorizeSoyTemplateInfo.ESSENTIAL_CLAIM_MISSING, essentialClaimMissing);
     if (state != null) {
       data.put(AuthorizeSoyTemplateInfo.STATE, state);
     }
@@ -495,6 +598,23 @@ public class AuthorizationEndpoint {
     if (askForClientCertificate) {
       data.put(AuthorizeSoyTemplateInfo.ASK_FOR_CLIENT_CERTIFICATE, getAskForClientCertificateData(uriInfo, accountId));
     }
+    urls.popupProfile().ifPresent(uri -> {
+      String updateProfileUrl = UriBuilder.fromUri(uri)
+          .queryParam("essential_claims", parsedClaims.entrySet()
+              .stream()
+              .filter(e -> e.getValue())
+              .map(Map.Entry::getKey)
+              .collect(Collectors.joining(" ")))
+          .queryParam("voluntary_claims", parsedClaims.entrySet()
+              .stream()
+              .filter(e -> !e.getValue())
+              .map(Map.Entry::getKey)
+              .collect(Collectors.joining(" ")))
+          .build()
+          .toString();
+      data.put(AuthorizeSoyTemplateInfo.UPDATE_PROFILE_URL, updateProfileUrl);
+      data.put(AuthorizeSoyTemplateInfo.UPDATE_PROFILE_ORIGIN, OriginHelper.originFromUri(updateProfileUrl));
+    });
 
     // TODO: Improve security by adding a token created by encrypting scopes with a secret
     return rb

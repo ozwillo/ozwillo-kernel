@@ -32,6 +32,8 @@ public interface Urls {
 
   Optional<URI> myProfile();
 
+  Optional<URI> popupProfile();
+
   Optional<URI> myApps();
 
   Optional<URI> myNetwork();

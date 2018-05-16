@@ -37,6 +37,7 @@ public class UrlsModule extends AbstractModule {
         .landingPage(get(config, "landing-page"))
         .myOasis(get(config, "my-oasis"))
         .myProfile(get(config, "my-profile"))
+        .popupProfile(get(config, "popup-profile"))
         .myApps(get(config, "my-apps"))
         .myNetwork(get(config, "my-network"))
         .developerDoc(get(config, "developer-doc"))

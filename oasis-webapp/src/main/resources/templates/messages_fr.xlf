@@ -72,6 +72,11 @@
         <target>Une erreur empêche la création de votre compte. Vérifiez votre boîte mail et réessayez dans quelques minutes.</target>
         <note priority="1" from="description">Error message during sign-up</note>
       </trans-unit>
+      <trans-unit id="1308339574461776185" datatype="html">
+        <source>Middle name:</source>
+        <target>Deuxième prénom :</target>
+        <note priority="1" from="description">label of middle_name profile information during authorizations</note>
+      </trans-unit>
       <trans-unit id="1333277581336758352" datatype="html">
         <source>Current certificate</source>
         <target>Certificat actuel</target>
@@ -156,6 +161,11 @@
         <target>Mot de passe oublié ?</target>
         <note priority="1" from="description">forgot password page heading</note>
       </trans-unit>
+      <trans-unit id="2083306153840951484" datatype="html">
+        <source>(required)</source>
+        <target>(obligatoire)</target>
+        <note priority="1" from="description">required</note>
+      </trans-unit>
       <trans-unit id="2138735712130224013" datatype="html">
         <source><x id="USER_NAME"/> left the organization <x id="ORGANIZATION_NAME"/>.</source>
         <target><x id="USER_NAME"/> a quitté l'organisation <x id="ORGANIZATION_NAME"/>.</target>
@@ -191,6 +201,11 @@
         <target>Vous n'utilisez pas actuellement un certificat.</target>
         <note priority="1" from="description">Not current using a certificate</note>
       </trans-unit>
+      <trans-unit id="2525461091528891408" datatype="html">
+        <source>(already authorized)</source>
+        <target>(déjà authorisé)</target>
+        <note priority="1" from="description">already authorized</note>
+      </trans-unit>
       <trans-unit id="2565164139557117651" datatype="html">
         <source>Password reset</source>
         <target>Réinitialisation de mot de passe</target>
@@ -210,6 +225,11 @@
         <source><x id="REQUESTER_NAME"/> requested the deletion of the organization <x id="ORGANIZATION_NAME"/>, deletion will be effective in a week.</source>
         <target><x id="REQUESTER_NAME"/> a demandé la suppression de l'organisation <x id="ORGANIZATION_NAME"/>. La suppression sera effective dans une semaine.</target>
         <note priority="1" from="description">Soflty deleted organization admin notification message</note>
+      </trans-unit>
+      <trans-unit id="2650040249203729637" datatype="html">
+        <source>Update profile</source>
+        <target>Mettre à jour mon profil</target>
+        <note priority="1" from="description">update profile</note>
       </trans-unit>
       <trans-unit id="270305284570699535" datatype="html">
         <source>You must <x id="START_LINK"/>setup a password<x id="END_LINK"/> for your account before unlinking it from FranceConnect.</source>
@@ -286,6 +306,11 @@
         <target>Ce certificat n'est pas associé à votre compte. Vous pouvez l'ajouter maintenant pour commencer à l'utiliser.</target>
         <note priority="1" from="description">User certificate is not linked to account</note>
       </trans-unit>
+      <trans-unit id="3752674780860571548" datatype="html">
+        <source>Full name:</source>
+        <target>Nom complet :</target>
+        <note priority="1" from="description">label of name profile information during authorizations</note>
+      </trans-unit>
       <trans-unit id="3797778920049399855" datatype="html">
         <source>Logout</source>
         <target>Déconnexion</target>
@@ -331,6 +356,11 @@
         <target>Cette identité FranceConnect est déjà liée à un autre compte Ozwillo.</target>
         <note priority="1" from="description">FranceConnect already linked error page heading</note>
       </trans-unit>
+      <trans-unit id="4378227938065070603" datatype="html">
+        <source>Phone:</source>
+        <target>Numéro de téléphone :</target>
+        <note priority="1" from="description">label of phone_number profile information during authorizations</note>
+      </trans-unit>
       <trans-unit id="441471097694116396" datatype="html">
         <source>Activate your Ozwillo password</source>
         <target>Activez votre mot de passe Ozwillo</target>
@@ -345,6 +375,11 @@
         <source>Some required fields are not filled.</source>
         <target>Certains champs requis sont vides.</target>
         <note priority="1" from="description">Error message during account recovery</note>
+      </trans-unit>
+      <trans-unit id="4531953626950154821" datatype="html">
+        <source>Birthdate:</source>
+        <target>Date de naissance :</target>
+        <note priority="1" from="description">label of birthdate profile information during authorizations</note>
       </trans-unit>
       <trans-unit id="4540670165625286003" datatype="html">
         <source>Please insert your certificate and refresh the page to take it into account.</source>
@@ -401,6 +436,11 @@
         <target><x id="START_PARAGRAPH"/>Bonjour <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>Vous recevez ce message parce que vous avez demandé à définir un mot de passe pour votre compte Ozwillo.<x id="START_PARAGRAPH"/>Pour activer votre mot de passe, cliquez sur le lien suivant :<x id="START_BREAK"/><x id="START_LINK"/><x id="ACTIVATION_LINK"/><x id="END_LINK"/><x id="START_PARAGRAPH"/>L'équipe d'Ozwillo<x id="START_BREAK"/></target>
         <note priority="1" from="description">Init password email body</note>
       </trans-unit>
+      <trans-unit id="5025457187887640726" datatype="html">
+        <source>Address:</source>
+        <target>Adresse :</target>
+        <note priority="1" from="description">label of address profile information during authorizations</note>
+      </trans-unit>
       <trans-unit id="5108418000757845610" datatype="html">
         <source>Password changed</source>
         <target>Mot de passe modifié</target>
@@ -451,6 +491,11 @@
         <target><x id="START_PARAGRAPH"/>Vous (ou quelqu'un d'autre) avez saisi cette adresse email dans une demande de changement de mot de passe d'un compte Ozwillo.<x id="START_PARAGRAPH"/>Cependant, cette adresse n'est pas dans notre base de données utilisateurs et la tentative de changement de mot de passe a échoué.<x id="START_PARAGRAPH"/>Si vous êtes un utilisateur d'Ozwillo et que vous attendiez ce message, refaites la demande en utilisant l'adresse email que vous aviez donné à la création de votre compte.<x id="START_PARAGRAPH"/>Si vous n'êtes pas un utilisateur d'Ozwillo, ignorez ce message.<x id="START_PARAGRAPH"/>L'équipe d'Ozwillo</target>
         <note priority="1" from="description">Forgot-password email body, for an unknown account</note>
       </trans-unit>
+      <trans-unit id="5667840900782067941" datatype="html">
+        <source>Female</source>
+        <target>Femme</target>
+        <note priority="1" from="description">label of gender female during authorizations</note>
+      </trans-unit>
       <trans-unit id="5669015892066019430" datatype="html">
         <source>You can manage your certificates <x id="START_LINK"/>here<x id="END_LINK"/>, then refresh this page to take your certificate into account.</source>
         <target>Vous pouvez gérer vos certificats <x id="START_LINK"/>sur cette page<x id="END_LINK"/> ; rechargez ensuite cette page pour prendre votre certificat en compte.</target>
@@ -480,6 +525,16 @@
         <source>Activate your Ozwillo account</source>
         <target>Activez votre compte Ozwillo</target>
         <note priority="1" from="description">Sign-up email subject</note>
+      </trans-unit>
+      <trans-unit id="6283914624769804238" datatype="html">
+        <source>Gender:</source>
+        <target>Sexe :</target>
+        <note priority="1" from="description">label of gender profile information during authorizations</note>
+      </trans-unit>
+      <trans-unit id="6354659380377436972" datatype="html">
+        <source>(need your authorization)</source>
+        <target>(déjà autorisé)</target>
+        <note priority="1" from="description">need your authorization</note>
       </trans-unit>
       <trans-unit id="6631334172623029500" datatype="html">
         <source>Email:</source>
@@ -526,6 +581,11 @@
         <target>Gérer mon réseau.</target>
         <note priority="1" from="description">Soflty deleted organization notification action label</note>
       </trans-unit>
+      <trans-unit id="7226986446579492107" datatype="html">
+        <source>Family name:</source>
+        <target>Nom :</target>
+        <note priority="1" from="description">label of family_name profile information during authorizations</note>
+      </trans-unit>
       <trans-unit id="7285596352322007191" datatype="html">
         <source><x id="APP_NAME"/> would like to:</source>
         <target><x id="APP_NAME"/> souhaite :</target>
@@ -540,6 +600,11 @@
         <source>Account pending activation</source>
         <target>Compte en attente d'activation</target>
         <note priority="1" from="description">activation pending title</note>
+      </trans-unit>
+      <trans-unit id="75566442645815905" datatype="html">
+        <source>View the following information about you:</source>
+        <target>Voir les informations suivantes de votre profil :</target>
+        <note priority="1" from="description">Introduce claims being authorized</note>
       </trans-unit>
       <trans-unit id="7584118525039558774" datatype="html">
         <source><x id="INVITED_USER_EMAIL"/> has accepted <x id="REQUESTER_NAME"/> invitation to join the <x id="ORGANIZATION_NAME"/> organization.</source>
@@ -601,6 +666,16 @@
         <target><x id="APP_NAME"/> demande une authentification forte</target>
         <note priority="1" from="description">Some app asks for stronger authentication (client certificate)</note>
       </trans-unit>
+      <trans-unit id="8012344910054029733" datatype="html">
+        <source>Male</source>
+        <target>Homme</target>
+        <note priority="1" from="description">label of gender male during authorizations</note>
+      </trans-unit>
+      <trans-unit id="8066848175872464489" datatype="html">
+        <source>Given name:</source>
+        <target>Prénom :</target>
+        <note priority="1" from="description">label of given_name profile information during authorizations</note>
+      </trans-unit>
       <trans-unit id="8083850607833732083" datatype="html">
         <source>Authorize <x id="APP_NAME"/></source>
         <target>Autoriser <x id="APP_NAME"/></target>
@@ -611,10 +686,20 @@
         <target>Mot de passe actuel :</target>
         <note priority="1" from="description">Current password when changing password</note>
       </trans-unit>
+      <trans-unit id="8168555707673684367" datatype="html">
+        <source>Nickname:</source>
+        <target>Surnom :</target>
+        <note priority="1" from="description">label of nickname profile information during authorizations</note>
+      </trans-unit>
       <trans-unit id="8175006045572546420" datatype="html">
         <source><x id="START_PARAGRAPH"/><x id="REQUESTER_NAME"/> has invited you to join the <x id="ORGANIZATION_NAME"/> organization on Ozwillo.<x id="START_PARAGRAPH"/>To accept or reject the invitation, follow this link: <x id="START_LINK"/><x id="MEMBERSHIP_INVITATION_URL"/><x id="END_LINK"/>.<x id="START_PARAGRAPH"/>If you were not expecting this invitation, you can ignore this email.<x id="START_PARAGRAPH"/>The Ozwillo team</source>
         <target><x id="START_PARAGRAPH"/><x id="REQUESTER_NAME"/> vous a invité à rejoindre l'organisation <x id="ORGANIZATION_NAME"/> sur Ozwillo.<x id="START_PARAGRAPH"/>Pour accepter ou refuser l'invitation, suivez ce lien: <x id="START_LINK"/><x id="MEMBERSHIP_INVITATION_URL"/><x id="END_LINK"/>.<x id="START_PARAGRAPH"/>Si vous n'attendiez pas cette invitation, vous pouvez ignorer cet e-mail.<x id="START_PARAGRAPH"/>L'équipe d'Ozwillo</target>
         <note priority="1" from="description">Organization membership invitation email body</note>
+      </trans-unit>
+      <trans-unit id="8181179154368686793" datatype="html">
+        <source>Locale:</source>
+        <target>Langue :</target>
+        <note priority="1" from="description">label of locale profile information during authorizations</note>
       </trans-unit>
       <trans-unit id="8264044238565501678" datatype="html">
         <source>Forgot password</source>
