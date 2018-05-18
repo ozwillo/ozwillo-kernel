@@ -20,6 +20,12 @@ package oasis.web.userinfo;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
@@ -64,6 +70,8 @@ public class UserInfoEndpointTest {
   private static final UserAccount citizenAccount = new UserAccount() {{
     setId("citizen");
     setLocale(ULocale.ITALY);
+    setGender("male");
+    setUpdated_at(Instant.now().minus(2, ChronoUnit.HOURS).toEpochMilli());
   }};
 
   @Inject @Rule public InProcessResteasy resteasy;
@@ -92,8 +100,12 @@ public class UserInfoEndpointTest {
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
     assertThat(response.getMediaType()).isEqualTo(MediaType.APPLICATION_JSON_TYPE);
-    // TODO: check content
-    assertThat(response.readEntity(String.class)).contains(citizenAccount.getLocale().toLanguageTag());
+    assertThat(response.readEntity(new GenericType<Map<String, Object>>() {}))
+        .containsOnly(
+            entry("sub", citizenAccount.getId()),
+            entry("locale", citizenAccount.getLocale().toLanguageTag()),
+            entry("gender", citizenAccount.getGender()),
+            entry("updated_at", (int) TimeUnit.MILLISECONDS.toSeconds(citizenAccount.getUpdated_at())));
   }
 
   @Test public void testJwtIfAskedFor() {
