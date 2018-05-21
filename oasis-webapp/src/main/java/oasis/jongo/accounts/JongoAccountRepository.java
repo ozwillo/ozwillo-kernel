@@ -113,10 +113,7 @@ public class JongoAccountRepository implements AccountRepository, JongoBootstrap
     // Allow resetting fields to null/empty
     // TODO: find a better way to do it! (leveraging Jackson)
     Map<String, Boolean> unsetObject = new LinkedHashMap<>();
-    // NOTE: don't allow resetting the nickname and locale (set during account creation), and zoneinfo
-    if (Strings.isNullOrEmpty(account.getName())) {
-      unsetObject.put("name", true);
-    }
+    // NOTE: don't allow resetting the nickname and locale (set during account creation)
     if (Strings.isNullOrEmpty(account.getFamily_name())) {
       unsetObject.put("family_name", true);
     }
@@ -125,9 +122,6 @@ public class JongoAccountRepository implements AccountRepository, JongoBootstrap
     }
     if (Strings.isNullOrEmpty(account.getGiven_name())) {
       unsetObject.put("given_name", true);
-    }
-    if (Strings.isNullOrEmpty(account.getPicture())) {
-      unsetObject.put("picture", true);
     }
     if (account.getBirthdate() == null) {
       unsetObject.put("birthdate", true);

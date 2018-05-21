@@ -18,7 +18,6 @@
 package oasis.web.authn.franceconnect;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
-import static java.util.stream.Collectors.joining;
 import static oasis.web.authn.LoginPage.LOCALE_PARAM;
 
 import java.io.IOException;
@@ -26,7 +25,6 @@ import java.net.URI;
 import java.time.LocalDate;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -122,28 +120,20 @@ public class FranceConnectSignUpPage {
     // FranceConnect will always return the 'email' claim (if requested)
     accountFromClaims.setEmail_address(userInfo.email);
     accountFromClaims.setEmail_verified(userInfo.email_verified);
-    // Default to Paris timezone for FranceConnect
-    accountFromClaims.setZoneinfo(firstNonNull(userInfo.zoneinfo, "Europe/Paris"));
     // Default to fr-FR for FranceConnect
     accountFromClaims.setLocale(firstNonNull(userInfo.locale, ULocale.FRANCE));
-    // FranceConnect doesn't return a name, middle_name, or nickname (but let's pretend it
-    // could), but will always have the given_name and family_name.
+    // FranceConnect doesn't return a middle_name or nickname (but let's pretend it could),
+    // but will always have the given_name and family_name.
     // Beware, FranceConnect will put all given names in given_name (not just the first name),
     // and uses preferred_username for the "nom d'usage" (family_name is always the name at
     // birth, e.g. maiden name). Note that this is different, in France, from a pseudonym
     // (e.g. "Johnny Hallyday" is Jean-Philippe Smet's pseudonym, not a "nom d'usage".)
     // As a result:
     //  1. we use the preferred_username (if supplied) as the family_name
-    //  2. we compute the name as the concatenation of given, middle, and family name
-    //  3. we use the name as the nickname
-    //  4. we never set our preferred_username
+    //  2. we use the name (which is the concatenation of given, middle, and family name) as the nickname
     accountFromClaims.setGiven_name(userInfo.given_name);
     accountFromClaims.setMiddle_name(userInfo.middle_name);
     accountFromClaims.setFamily_name(Optional.ofNullable(userInfo.preferred_username).orElse(userInfo.family_name));
-    accountFromClaims.setName(Optional.ofNullable(userInfo.name).orElseGet(() ->
-      Stream.of(accountFromClaims.getGiven_name(), accountFromClaims.getMiddle_name(), accountFromClaims.getFamily_name())
-          .filter(Objects::nonNull)
-          .collect(joining(" "))));
     accountFromClaims.setNickname(Optional.ofNullable(userInfo.nickname).orElseGet(accountFromClaims::getName));
     // Other claims that FranceConnect returns, or can return (let's pretend they can always be omitted)
     accountFromClaims.setGender(userInfo.gender);
@@ -153,8 +143,6 @@ public class FranceConnectSignUpPage {
     // XXX: address is nullified when stored, so no need to check if any of those claims is provided
     // XXX: note that we don't support the 'formatted' claim, but FranceConnect has the "exploded" claims anyway
     accountFromClaims.setAddress(userInfo.address);
-    // Other claims that FranceConnect doesn't return, but we'll pretend it possibly could
-    accountFromClaims.setPicture(userInfo.picture);
 
     UserAccount account = accountRepository.createUserAccount(accountFromClaims, true);
     if (account == null) {
@@ -177,19 +165,16 @@ public class FranceConnectSignUpPage {
     @JsonProperty String sub;
     @JsonProperty String email;
     @JsonProperty Boolean email_verified;
-    @JsonProperty String zoneinfo;
     @JsonProperty ULocale locale;
     @JsonProperty String given_name;
     @JsonProperty String middle_name;
     @JsonProperty String family_name;
     @JsonProperty String preferred_username;
-    @JsonProperty String name;
     @JsonProperty String nickname;
     @JsonProperty String gender;
     @JsonProperty LocalDate birthdate;
     @JsonProperty String phone_number;
     @JsonProperty Boolean phone_number_verified;
     @JsonProperty Address address;
-    @JsonProperty String picture;
   }
 }

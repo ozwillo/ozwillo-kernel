@@ -17,13 +17,19 @@
  */
 package oasis.model.accounts;
 
+import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.joining;
+
 import java.time.LocalDate;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.Strings;
 import com.ibm.icu.util.ULocale;
 
 import oasis.model.annotations.Id;
@@ -36,13 +42,7 @@ public class UserAccount {
 
   private Boolean email_verified;
 
-  private String picture;
-
-  private String zoneinfo;
-
   private ULocale locale;
-
-  private String name;
 
   private String given_name;
 
@@ -81,10 +81,7 @@ public class UserAccount {
   public UserAccount(@Nonnull UserAccount other) {
     email_address = other.getEmail_address();
     email_verified = other.getEmail_verified();
-    picture = other.getPicture();
-    zoneinfo = other.getZoneinfo();
     locale = other.getLocale();
-    name = other.getName();
     given_name = other.getGiven_name();
     family_name = other.getFamily_name();
     middle_name = other.getMiddle_name();
@@ -123,36 +120,12 @@ public class UserAccount {
     this.email_verified = email_address_verified;
   }
 
-  public String getPicture() {
-    return picture;
-  }
-
-  public void setPicture(String picture) {
-    this.picture = picture;
-  }
-
-  public String getZoneinfo() {
-    return zoneinfo;
-  }
-
-  public void setZoneinfo(String zoneinfo) {
-    this.zoneinfo = zoneinfo;
-  }
-
   public ULocale getLocale() {
     return locale == null ? ULocale.ROOT : locale;
   }
 
   public void setLocale(ULocale locale) {
     this.locale = locale;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
   }
 
   public String getGiven_name() {
@@ -249,6 +222,14 @@ public class UserAccount {
 
   public void setCreated_at(Long created_at) {
     this.created_at = created_at;
+  }
+
+
+  @JsonIgnore
+  public String getName() {
+    return Stream.of(getGiven_name(), getMiddle_name(), getFamily_name())
+        .filter(s -> !Strings.isNullOrEmpty(s))
+        .collect(collectingAndThen(joining(" "), Strings::emptyToNull));
   }
 
   @JsonIgnore

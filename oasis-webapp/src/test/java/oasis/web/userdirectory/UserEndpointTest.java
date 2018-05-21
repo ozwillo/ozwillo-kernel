@@ -26,7 +26,6 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.util.List;
 
-import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -68,10 +67,7 @@ public class UserEndpointTest {
     setId("account id");
     setEmail_address("foo@example.net");
     setEmail_verified(true);
-    setPicture("account picture");
-    setZoneinfo("Europe/Paris");
     setLocale(ULocale.FRANCE);
-    setName("account name");
     setGiven_name("account given name");
     setFamily_name("account family name");
     setMiddle_name("account middle name");
@@ -120,12 +116,8 @@ public class UserEndpointTest {
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
     assertThat(response.getMediaType()).isEqualTo(MediaType.APPLICATION_JSON_TYPE);
-    PortalUserAccount user = response.readEntity(PortalUserAccount.class);
-    assertThat(user).isEqualToComparingFieldByFieldRecursively(new PortalUserAccount() {{
-      setId(userAccount.getId());
-      setName(userAccount.getName());
-      setNickname(userAccount.getNickname());
-    }});
+    UserAccount user = response.readEntity(UserAccount.class);
+    assertThat(user).isEqualToComparingFieldByFieldRecursively(new AppUserAccount(userAccount));
 
     verifyZeroInteractions(credentialsRepository);
   }
@@ -142,12 +134,8 @@ public class UserEndpointTest {
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
     assertThat(response.getMediaType()).isEqualTo(MediaType.APPLICATION_JSON_TYPE);
-    PortalUserAccount user = response.readEntity(PortalUserAccount.class);
-    assertThat(user).isEqualToComparingFieldByFieldRecursively(new PortalUserAccount() {{
-      setId(userAccountWithFC.getId());
-      setName(userAccountWithFC.getName());
-      setNickname(userAccountWithFC.getNickname());
-    }});
+    AppUserAccount user = response.readEntity(AppUserAccount.class);
+    assertThat(user).isEqualToComparingFieldByFieldRecursively(new AppUserAccount(userAccountWithFC));
 
     verifyZeroInteractions(credentialsRepository);
   }
@@ -251,6 +239,18 @@ public class UserEndpointTest {
     PortalUserAccount(UserAccount userAccount) {
       super(userAccount);
       setId(userAccount.getId());
+    }
+  }
+
+  static class AppUserAccount extends UserAccount {
+    @JsonProperty String name;
+
+    AppUserAccount() {}
+    AppUserAccount(UserAccount userAccount) {
+      super();
+      setId(userAccount.getId());
+      setNickname(userAccount.getNickname());
+      name = userAccount.getName();
     }
   }
 }

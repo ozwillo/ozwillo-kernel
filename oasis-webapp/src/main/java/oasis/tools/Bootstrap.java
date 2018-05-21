@@ -29,7 +29,6 @@ import com.google.common.base.Strings;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.ibm.icu.util.TimeZone;
 import com.ibm.icu.util.ULocale;
 import com.typesafe.config.Config;
 
@@ -272,7 +271,6 @@ public class Bootstrap extends CommandLineTool {
     admin.setEmail_verified(true);
     admin.setNickname("Administrator");
     admin.setLocale(ULocale.getDefault());
-    admin.setZoneinfo(TimeZone.getDefault().getID());
     admin = accountRepositoryProvider.get().createUserAccount(admin, true);
     credentialsServiceProvider.get().setPassword(ClientType.USER, admin.getId(), adminPassword);
     return admin.getId();

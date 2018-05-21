@@ -78,9 +78,14 @@ public class UserEndpoint {
       boolean hasPassword = credentialsRepository.getCredentials(ClientType.USER, account.getId()) != null;
       filteredAccount = new PortalUserAccount(account, hasPassword);
     } else {
-      filteredAccount = new UserAccount();
+      filteredAccount = new UserAccount() {
+        @JsonProperty
+        @Override
+        public String getName() {
+          return account.getName();
+        }
+      };
       filteredAccount.setId(account.getId());
-      filteredAccount.setName(account.getName());
       filteredAccount.setNickname(account.getNickname());
     }
     return Response.ok()

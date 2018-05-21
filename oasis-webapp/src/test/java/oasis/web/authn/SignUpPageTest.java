@@ -96,7 +96,6 @@ public class SignUpPageTest {
     setEmail_address("foo@example.com");
     setNickname("nick");
     setLocale(LocaleHelper.DEFAULT_LOCALE);
-    setZoneinfo("Europe/Paris");
   }};
   private static final AccountActivationToken someActivationToken = new AccountActivationToken() {{
     setId("someActivationToken");

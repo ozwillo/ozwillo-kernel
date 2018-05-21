@@ -138,12 +138,10 @@ public class UserInfoEndpoint {
       setClaimIfNotNull(userInfo, "given_name", userAccount.getGiven_name());
       setClaimIfNotNull(userInfo, "middle_name", userAccount.getMiddle_name());
       setClaimIfNotNull(userInfo, "nickname", userAccount.getNickname());
-      setClaimIfNotNull(userInfo, "picture", userAccount.getPicture());
       setClaimIfNotNull(userInfo, "gender", userAccount.getGender());
       if (userAccount.getBirthdate() != null) {
         userInfo.setClaim("birthdate", userAccount.getBirthdate().toString());
       }
-      setClaimIfNotNull(userInfo, "zoneinfo", userAccount.getZoneinfo());
       if (userAccount.getLocale() != null) {
         setClaimIfNotNull(userInfo, "locale", userAccount.getLocale().toLanguageTag());
       }

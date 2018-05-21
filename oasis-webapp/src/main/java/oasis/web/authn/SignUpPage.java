@@ -110,8 +110,6 @@ public class SignUpPage {
     account.setEmail_address(email);
     account.setNickname(nickname);
     account.setLocale(locale);
-    // TODO: Use a zoneinfo "matching" the selected locale
-    account.setZoneinfo("Europe/Paris");
     account = accountRepository.createUserAccount(account, false);
     if (account == null) {
       return signupForm(Response.ok(), continueUrl, locale, LoginPage.SignupError.ACCOUNT_ALREADY_EXISTS);
