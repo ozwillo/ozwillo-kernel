@@ -294,6 +294,7 @@ public class AuthorizationEndpointTest {
     when(authorizationRepository.getAuthorizedScopes(sidToken.getAccountId(), appInstance.getId()))
         .thenReturn(new AuthorizedScopes() {{
           setScope_ids(ImmutableSet.of(Scopes.OPENID, authorizedScope.getId()));
+          setClaim_names(ImmutableSet.of("nickname", "name"));
         }});
 
     when(tokenHandler.generateRandom()).thenReturn("pass");
@@ -359,6 +360,46 @@ public class AuthorizationEndpointTest {
         .containsEntry(browserStateCookieName, SessionManagementHelper.createBrowserStateCookie(true, "browser-state"));
 
     verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(Scopes.OPENID), ImmutableSet.of(), appInstance.getId(), null,
+        Iterables.getOnlyElement(service.getRedirect_uris()), null, "pass");
+  }
+
+  @Test public void testTransparentRedirection_withClaims(TokenHandler tokenHandler) {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(AuthorizationEndpoint.class))
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
+        .queryParam("state", encodedState)
+        .queryParam("response_type", "code")
+        .queryParam("scope", Scopes.OPENID)
+        .queryParam("claims", UrlEscapers.urlFormParameterEscaper().escape("{\"userinfo\":{\"name\":null}}"))
+        .request().get();
+
+    assertRedirectToApplication(response, service);
+    assertThat(response.getCookies())
+        .containsEntry(browserStateCookieName, SessionManagementHelper.createBrowserStateCookie(true, "browser-state"));
+
+    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(Scopes.OPENID), ImmutableSet.of("name"), appInstance.getId(), null,
+        Iterables.getOnlyElement(service.getRedirect_uris()), null, "pass");
+  }
+
+  @Test public void testTransparentRedirection_withClaims_essential(TokenHandler tokenHandler) {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(AuthorizationEndpoint.class))
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
+        .queryParam("state", encodedState)
+        .queryParam("response_type", "code")
+        .queryParam("scope", Scopes.OPENID)
+        .queryParam("claims", UrlEscapers.urlFormParameterEscaper().escape("{\"userinfo\":{\"nickname\":{\"essential\":true}}}"))
+        .request().get();
+
+    assertRedirectToApplication(response, service);
+    assertThat(response.getCookies())
+        .containsEntry(browserStateCookieName, SessionManagementHelper.createBrowserStateCookie(true, "browser-state"));
+
+    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(Scopes.OPENID), ImmutableSet.of("nickname"), appInstance.getId(), null,
         Iterables.getOnlyElement(service.getRedirect_uris()), null, "pass");
   }
 
@@ -494,6 +535,36 @@ public class AuthorizationEndpointTest {
     assertConsentPage(response);
   }
 
+  @Test public void testPromptUser_fromClaims_unauthorized() {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(AuthorizationEndpoint.class))
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
+        .queryParam("state", encodedState)
+        .queryParam("response_type", "code")
+        .queryParam("scope", Scopes.OPENID)
+        .queryParam("claims", UrlEscapers.urlFormParameterEscaper().escape("{\"userinfo\":{\"locale\":null}}"))
+        .request().get();
+
+    assertConsentPage(response);
+  }
+
+  @Test public void testPromptUser_fromClaims_essentialAndMissing() {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(AuthorizationEndpoint.class))
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
+        .queryParam("state", encodedState)
+        .queryParam("response_type", "code")
+        .queryParam("scope", Scopes.OPENID)
+        .queryParam("claims", UrlEscapers.urlFormParameterEscaper().escape("{\"userinfo\":{\"name\":{\"essential\":true}}}"))
+        .request().get();
+
+    assertConsentPage(response);
+  }
+
   @Test public void testAutomaticallyAuthorizePortalsNeededScopes(AuthorizationRepository authorizationRepository, TokenHandler tokenHandler) {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
 
@@ -614,6 +685,40 @@ public class AuthorizationEndpointTest {
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
         .queryParam("scope", Scopes.OPENID + " " + unauthorizedScope.getId())
+        .queryParam("prompt", "none")
+        .request().get();
+
+    assertRedirectError(response, service, "consent_required", null);
+  }
+
+  /** Same as {@link #testPromptUser_fromClaims_unauthorized()} except with {@code prompt=none}. */
+  @Test public void testPromptNone_consentRequired_fromClaims_unauthorized() {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(AuthorizationEndpoint.class))
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
+        .queryParam("state", encodedState)
+        .queryParam("response_type", "code")
+        .queryParam("scope", Scopes.OPENID + " " + unauthorizedScope.getId())
+        .queryParam("claims", UrlEscapers.urlFormParameterEscaper().escape("{\"userinfo\":{\"locale\":null}}"))
+        .queryParam("prompt", "none")
+        .request().get();
+
+    assertRedirectError(response, service, "consent_required", null);
+  }
+
+  /** Same as {@link #testPromptUser_fromClaims_essentialAndMissing()} except with {@code prompt=none}. */
+  @Test public void testPromptNone_consentRequired_fromClaims_essentialAndMissing() {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(sidToken));
+
+    Response response = resteasy.getClient().target(resteasy.getBaseUriBuilder().path(AuthorizationEndpoint.class))
+        .queryParam("client_id", appInstance.getId())
+        .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
+        .queryParam("state", encodedState)
+        .queryParam("response_type", "code")
+        .queryParam("scope", Scopes.OPENID + " " + unauthorizedScope.getId())
+        .queryParam("claims", UrlEscapers.urlFormParameterEscaper().escape("{\"userinfo\":{\"name\":{\"essential\":true}}}"))
         .queryParam("prompt", "none")
         .request().get();
 
