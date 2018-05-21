@@ -240,9 +240,9 @@ public class AuthorizationEndpointTest {
     setId(ClientIds.PORTAL);
     setName(new LocalizableString("Test Application Instance"));
     setProvider_id("organizationId");
-    for (Scope scope : new Scope[] { openidScope, profileScope }) {
+    for (String scopeId : new String[] { Scopes.OPENID, Scopes.PROFILE}) {
       NeededScope neededScope = new NeededScope();
-      neededScope.setScope_id(scope.getId());
+      neededScope.setScope_id(scopeId);
       getNeeded_scopes().add(neededScope);
     }
     setStatus(InstantiationStatus.RUNNING);
@@ -290,14 +290,10 @@ public class AuthorizationEndpointTest {
       }
       return ret;
     });
-    when(scopeRepository.getScopes(ImmutableSet.of(openidScope.getId())))
-        .thenReturn(singletonList(openidScope));
-    when(scopeRepository.getScopes(ImmutableSet.of(openidScope.getId(), unauthorizedScope.getId())))
-        .thenReturn(singletonList(openidScope));
 
     when(authorizationRepository.getAuthorizedScopes(sidToken.getAccountId(), appInstance.getId()))
         .thenReturn(new AuthorizedScopes() {{
-          setScope_ids(ImmutableSet.of(openidScope.getId(), authorizedScope.getId()));
+          setScope_ids(ImmutableSet.of(Scopes.OPENID, authorizedScope.getId()));
         }});
 
     when(tokenHandler.generateRandom()).thenReturn("pass");
@@ -341,7 +337,7 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId())
+        .queryParam("scope", Scopes.OPENID)
         .request().get();
 
     assertRedirectToLogin(response);
@@ -355,14 +351,14 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId())
+        .queryParam("scope", Scopes.OPENID)
         .request().get();
 
     assertRedirectToApplication(response, service);
     assertThat(response.getCookies())
         .containsEntry(browserStateCookieName, SessionManagementHelper.createBrowserStateCookie(true, "browser-state"));
 
-    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(openidScope.getId()), ImmutableSet.of(), appInstance.getId(), null,
+    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(Scopes.OPENID), ImmutableSet.of(), appInstance.getId(), null,
         Iterables.getOnlyElement(service.getRedirect_uris()), null, "pass");
   }
 
@@ -374,7 +370,7 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId())
+        .queryParam("scope", Scopes.OPENID)
         .request()
         .cookie(SessionManagementHelper.createBrowserStateCookie(true, "browser-state"))
         .get();
@@ -382,7 +378,7 @@ public class AuthorizationEndpointTest {
     assertRedirectToApplication(response, service);
     assertThat(response.getCookies()).doesNotContainKey(SessionManagementHelper.COOKIE_NAME);
 
-    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(openidScope.getId()), ImmutableSet.of(), appInstance.getId(), null,
+    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(Scopes.OPENID), ImmutableSet.of(), appInstance.getId(), null,
         Iterables.getOnlyElement(service.getRedirect_uris()), null, "pass");
   }
 
@@ -394,14 +390,14 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId())
+        .queryParam("scope", Scopes.OPENID)
         .queryParam("code_challenge", codeChallenge)
         .queryParam("code_challenge_method", "S256")
         .request().get();
 
     assertRedirectToApplication(response, service);
 
-    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(openidScope.getId()), ImmutableSet.of(), appInstance.getId(), null,
+    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(Scopes.OPENID), ImmutableSet.of(), appInstance.getId(), null,
         Iterables.getOnlyElement(service.getRedirect_uris()), codeChallenge, "pass");
   }
 
@@ -413,7 +409,7 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId())
+        .queryParam("scope", Scopes.OPENID)
         .queryParam("code_challenge", codeChallenge)
         .request().get();
 
@@ -428,7 +424,7 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId())
+        .queryParam("scope", Scopes.OPENID)
         .queryParam("code_challenge", codeChallenge)
         .queryParam("code_challenge_method", "unknown")
         .request().get();
@@ -444,7 +440,7 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId())
+        .queryParam("scope", Scopes.OPENID)
         .queryParam("code_challenge", "too-short")
         .queryParam("code_challenge_method", "S256")
         .request().get();
@@ -460,7 +456,7 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId())
+        .queryParam("scope", Scopes.OPENID)
         .queryParam("code_challenge", Strings.repeat(codeChallenge, 4))
         .queryParam("code_challenge_method", "S256")
         .request().get();
@@ -476,7 +472,7 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId())
+        .queryParam("scope", Scopes.OPENID)
         .queryParam("code_challenge", codeChallenge.replace('.', '/'))
         .queryParam("code_challenge_method", "S256")
         .request().get();
@@ -492,7 +488,7 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId() + " " + unauthorizedScope.getId())
+        .queryParam("scope", Scopes.OPENID + " " + unauthorizedScope.getId())
         .request().get();
 
     assertConsentPage(response);
@@ -506,16 +502,16 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(portalService.getRedirect_uris())))
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId() + " " + profileScope.getId())
+        .queryParam("scope", Scopes.OPENID + " " + Scopes.PROFILE)
         .request().get();
 
     assertRedirectToApplication(response, portalService);
 
     verify(authorizationRepository).authorize(sidToken.getAccountId(), portalAppInstance.getId(),
-        ImmutableSet.of(openidScope.getId(), profileScope.getId()),
-        Scopes.mapScopesToClaims(ImmutableSet.of(openidScope.getId(), profileScope.getId())).collect(ImmutableSet.toImmutableSet()));
-    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(openidScope.getId(), profileScope.getId()),
-        Scopes.mapScopesToClaims(ImmutableSet.of(openidScope.getId(), profileScope.getId())).collect(ImmutableSet.toImmutableSet()),
+        ImmutableSet.of(Scopes.OPENID, Scopes.PROFILE),
+        Scopes.mapScopesToClaims(ImmutableSet.of(Scopes.OPENID, Scopes.PROFILE)).collect(ImmutableSet.toImmutableSet()));
+    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(Scopes.OPENID, Scopes.PROFILE),
+        Scopes.mapScopesToClaims(ImmutableSet.of(Scopes.OPENID, Scopes.PROFILE)).collect(ImmutableSet.toImmutableSet()),
         portalAppInstance.getId(), null, Iterables.getOnlyElement(portalService.getRedirect_uris()), null, "pass");
   }
 
@@ -527,15 +523,15 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(portalService.getRedirect_uris())))
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId() + " " + unauthorizedScope.getId())
+        .queryParam("scope", Scopes.OPENID + " " + unauthorizedScope.getId())
         .request().get();
 
     assertConsentPage(response);
 
     // Verify that we still automatically authorize portal's needed scopes
     verify(authorizationRepository).authorize(sidToken.getAccountId(), portalAppInstance.getId(),
-        ImmutableSet.of(openidScope.getId(), profileScope.getId()),
-        Scopes.mapScopesToClaims(ImmutableSet.of(openidScope.getId(), profileScope.getId())).collect(ImmutableSet.toImmutableSet()));
+        ImmutableSet.of(Scopes.OPENID, Scopes.PROFILE),
+        Scopes.mapScopesToClaims(ImmutableSet.of(Scopes.OPENID, Scopes.PROFILE)).collect(ImmutableSet.toImmutableSet()));
   }
 
   /** This is the same as {@link #testAutomaticallyAuthorizePortalsNeededScopes} except with prompt=consent. */
@@ -547,7 +543,7 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(portalService.getRedirect_uris())))
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId() + " " + profileScope.getId())
+        .queryParam("scope", Scopes.OPENID + " " + Scopes.PROFILE)
         .queryParam("prompt", "consent")
         .request().get();
 
@@ -555,8 +551,8 @@ public class AuthorizationEndpointTest {
 
     // Verify that we still automatically authorize portal's needed scopes
     verify(authorizationRepository).authorize(sidToken.getAccountId(), portalAppInstance.getId(),
-        ImmutableSet.of(openidScope.getId(), profileScope.getId()),
-        Scopes.mapScopesToClaims(ImmutableSet.of(openidScope.getId(), profileScope.getId())).collect(ImmutableSet.toImmutableSet()));
+        ImmutableSet.of(Scopes.OPENID, Scopes.PROFILE),
+        Scopes.mapScopesToClaims(ImmutableSet.of(Scopes.OPENID, Scopes.PROFILE)).collect(ImmutableSet.toImmutableSet()));
   }
 
   /**
@@ -571,7 +567,7 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId())
+        .queryParam("scope", Scopes.OPENID)
         .queryParam("prompt", "login")
         .request().get();
 
@@ -587,7 +583,7 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId())
+        .queryParam("scope", Scopes.OPENID)
         .queryParam("prompt", "consent")
         .request().get();
 
@@ -601,7 +597,7 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId())
+        .queryParam("scope", Scopes.OPENID)
         .queryParam("prompt", "none")
         .request().get();
 
@@ -617,7 +613,7 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId() + " " + unauthorizedScope.getId())
+        .queryParam("scope", Scopes.OPENID + " " + unauthorizedScope.getId())
         .queryParam("prompt", "none")
         .request().get();
 
@@ -634,7 +630,7 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId())
+        .queryParam("scope", Scopes.OPENID)
         .queryParam("acr_values", "ignored " + AuthorizationContextClasses.EIDAS_LOW + " " + AuthorizationContextClasses.EIDAS_SUBSTANTIAL + " foo bar")
         .request().get();
 
@@ -654,7 +650,7 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId())
+        .queryParam("scope", Scopes.OPENID)
         .queryParam("acr_values", "ignored " + AuthorizationContextClasses.EIDAS_LOW + " " + AuthorizationContextClasses.EIDAS_SUBSTANTIAL + " foo bar")
         .request().get();
 
@@ -673,7 +669,7 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId())
+        .queryParam("scope", Scopes.OPENID)
         .queryParam("acr_values", "ignored " + AuthorizationContextClasses.EIDAS_LOW + " " + AuthorizationContextClasses.EIDAS_SUBSTANTIAL + " foo bar")
         .request().get();
 
@@ -687,7 +683,7 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId())
+        .queryParam("scope", Scopes.OPENID)
         .request().get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
@@ -700,7 +696,7 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId())
+        .queryParam("scope", Scopes.OPENID)
         .request().get();
 
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
@@ -712,7 +708,7 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId())
+        .queryParam("scope", Scopes.OPENID)
         .request().get();
 
     assertErrorNoRedirect(response, "invalid_request", "client_id");
@@ -724,7 +720,7 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(redirectUri))
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId())
+        .queryParam("scope", Scopes.OPENID)
         .request().get();
 
     assertErrorNoRedirect(response, "invalid_request", "redirect_uri");
@@ -735,7 +731,7 @@ public class AuthorizationEndpointTest {
         .queryParam("client_id", appInstance.getId())
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId())
+        .queryParam("scope", Scopes.OPENID)
         .request().get();
 
     assertErrorNoRedirect(response, "invalid_request", "redirect_uri");
@@ -747,7 +743,7 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
         .queryParam("response_type", "foobar")
-        .queryParam("scope", openidScope.getId())
+        .queryParam("scope", Scopes.OPENID)
         .request().get();
 
     assertRedirectError(response, service, "unsupported_response_type", null);
@@ -758,7 +754,7 @@ public class AuthorizationEndpointTest {
         .queryParam("client_id", appInstance.getId())
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
-        .queryParam("scope", openidScope.getId())
+        .queryParam("scope", Scopes.OPENID)
         .request().get();
 
     assertRedirectError(response, service, "invalid_request", "response_type");
@@ -774,7 +770,7 @@ public class AuthorizationEndpointTest {
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
         .queryParam("response_mode", "query")
-        .queryParam("scope", openidScope.getId())
+        .queryParam("scope", Scopes.OPENID)
         .request().get();
 
     assertRedirectToApplication(response, service);
@@ -791,7 +787,7 @@ public class AuthorizationEndpointTest {
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
         .queryParam("response_mode", "fragment")
-        .queryParam("scope", openidScope.getId())
+        .queryParam("scope", Scopes.OPENID)
         .request().get();
 
     assertRedirectError(response, service, "invalid_request", "response_mode");
@@ -805,7 +801,7 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId() + " unknown_scope")
+        .queryParam("scope", Scopes.OPENID + " unknown_scope")
         .request().get();
 
     assertRedirectError(response, service, "invalid_scope", null);
@@ -822,7 +818,7 @@ public class AuthorizationEndpointTest {
         .queryParam("scope", authorizedScope.getId())
         .request().get();
 
-    assertRedirectError(response, service, "invalid_scope", openidScope.getId());
+    assertRedirectError(response, service, "invalid_scope", Scopes.OPENID);
   }
 
   @Test public void testMissingScope() {
@@ -844,7 +840,7 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId())
+        .queryParam("scope", Scopes.OPENID)
         .queryParam("prompt", "login none")
         .request().get();
 
@@ -857,7 +853,7 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId())
+        .queryParam("scope", Scopes.OPENID)
         .queryParam("prompt", "login unknown_value")
         .request().get();
 
@@ -872,12 +868,12 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId() + " " + offlineAccessScope.getId())
+        .queryParam("scope", Scopes.OPENID + " " + Scopes.OFFLINE_ACCESS)
         .request().get();
 
     assertRedirectToApplication(response, service);
 
-    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(openidScope.getId()), ImmutableSet.of(), appInstance.getId(), null,
+    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(Scopes.OPENID), ImmutableSet.of(), appInstance.getId(), null,
         Iterables.getOnlyElement(service.getRedirect_uris()), null, "pass");
   }
 
@@ -887,7 +883,7 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId())
+        .queryParam("scope", Scopes.OPENID)
         .queryParam("request", "whatever")
         .request().get();
 
@@ -900,7 +896,7 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId())
+        .queryParam("scope", Scopes.OPENID)
         .queryParam("request_uri", "whatever")
         .request().get();
 
@@ -925,7 +921,7 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId())
+        .queryParam("scope", Scopes.OPENID)
         .queryParam("id_token_hint", idToken)
         .request().get();
 
@@ -940,7 +936,7 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId())
+        .queryParam("scope", Scopes.OPENID)
         .queryParam("id_token_hint", "not.a.jwt")
         .request().get();
 
@@ -965,7 +961,7 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId())
+        .queryParam("scope", Scopes.OPENID)
         .queryParam("id_token_hint", idToken)
         .request().get();
 
@@ -991,7 +987,7 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId())
+        .queryParam("scope", Scopes.OPENID)
         .queryParam("id_token_hint", idToken)
         .request().get();
 
@@ -1017,7 +1013,7 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId())
+        .queryParam("scope", Scopes.OPENID)
         .queryParam("id_token_hint", idToken)
         .request().get();
 
@@ -1033,7 +1029,7 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId())
+        .queryParam("scope", Scopes.OPENID)
         .queryParam("max_age", "1000")
         .request().get();
 
@@ -1049,13 +1045,13 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(service.getRedirect_uris())))
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId())
+        .queryParam("scope", Scopes.OPENID)
         .queryParam("max_age", "4000")
         .request().get();
 
     assertRedirectToApplication(response, service);
 
-    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(openidScope.getId()), ImmutableSet.of(), appInstance.getId(), null,
+    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(Scopes.OPENID), ImmutableSet.of(), appInstance.getId(), null,
         Iterables.getOnlyElement(service.getRedirect_uris()), null, "pass");
   }
 
@@ -1070,12 +1066,12 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(privateService.getRedirect_uris())))
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId())
+        .queryParam("scope", Scopes.OPENID)
         .request().get();
 
     assertRedirectToApplication(response, privateService);
 
-    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(openidScope.getId()), ImmutableSet.of(), appInstance.getId(), null,
+    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(Scopes.OPENID), ImmutableSet.of(), appInstance.getId(), null,
         Iterables.getOnlyElement(privateService.getRedirect_uris()), null, "pass");
   }
 
@@ -1095,12 +1091,12 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(privateService.getRedirect_uris())))
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId())
+        .queryParam("scope", Scopes.OPENID)
         .request().get();
 
     assertRedirectToApplication(response, privateService);
 
-    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(openidScope.getId()), ImmutableSet.of(), appInstance.getId(), null,
+    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(Scopes.OPENID), ImmutableSet.of(), appInstance.getId(), null,
         Iterables.getOnlyElement(privateService.getRedirect_uris()), null, "pass");
   }
 
@@ -1113,7 +1109,7 @@ public class AuthorizationEndpointTest {
         .queryParam("redirect_uri", UrlEscapers.urlFormParameterEscaper().escape(Iterables.getOnlyElement(privateService.getRedirect_uris())))
         .queryParam("state", encodedState)
         .queryParam("response_type", "code")
-        .queryParam("scope", openidScope.getId())
+        .queryParam("scope", Scopes.OPENID)
         .request().get();
 
     assertRedirectError(response, privateService, "access_denied", "app_admin or app_user");
@@ -1141,7 +1137,7 @@ public class AuthorizationEndpointTest {
         .containsEntry("redirect_uri", singletonList(Iterables.getOnlyElement(service.getRedirect_uris())))
         .containsEntry("state", singletonList(state))
         .containsEntry("response_type", singletonList("code"))
-        .containsEntry("scope", singletonList(openidScope.getId()))
+        .containsEntry("scope", singletonList(Scopes.OPENID))
         .doesNotContainEntry("prompt", singletonList("login"));
 
     UriInfo cancelUrl = new ResteasyUriInfo(URI.create(location.getQueryParameters().getFirst(LoginPage.CANCEL_PARAM)));
