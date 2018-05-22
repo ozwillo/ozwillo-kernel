@@ -347,13 +347,9 @@ a {lb} color: #6f438e; {rb}
   {@param? updateProfileUrl:                  string} /** url to update the profile */
 
 <style>
-.claim-name {lb}
-  min-width: 30%;
-{rb}
 .row-claim {lb}
   display: flex;
-  flex-direction: row;
-  padding: 0.7em;
+  padding: .5em .5em .5em 0;
   flex-wrap: wrap;
 {rb}
 .row-required {lb}
@@ -364,14 +360,14 @@ a {lb} color: #6f438e; {rb}
   color: black;
   font-weight: bold;
 {rb}
-.info-claim {lb}
-  margin-left: auto;
+.claim-name {lb}
+  min-width: 30%;
 {rb}
-.row-claim p {lb}
+.claim-value {lb}
+  flex: 1;
+{rb}
+.claim-value p {lb}
   margin: 0px;
-{rb}
-.row-claim img {lb}
-  max-width: 180px;
 {rb}
 </style>
   <dl>
@@ -381,6 +377,28 @@ a {lb} color: #6f438e; {rb}
       {/msg}
     </dt>
     <dd>
+
+      {if $claims['email']}
+        {call .oneClaim data="$claims['email']"}
+          {param label kind="text"}
+            {msg desc="label of email profile information during authorizations"}
+                Email:
+            {/msg}
+          {/param}
+          {param allClaimsAlreadyAuthorized: $allClaimsAlreadyAuthorized /}
+        {/call}
+      {/if}
+
+      {if $claims['locale']}
+        {call .oneClaim data="$claims['locale']"}
+          {param label kind="text"}
+            {msg desc="label of locale profile information during authorizations"}
+                Locale:
+            {/msg}
+          {/param}
+          {param allClaimsAlreadyAuthorized: $allClaimsAlreadyAuthorized /}
+        {/call}
+      {/if}
 
       {if $claims['nickname']}
         {call .oneClaim data="$claims['nickname']"}
@@ -437,6 +455,28 @@ a {lb} color: #6f438e; {rb}
       {/call}
       {/if}
 
+      {if $claims['birthdate']}
+        {call .oneClaim data="$claims['birthdate']"}
+          {param label kind="text"}
+            {msg desc="label of birthdate profile information during authorizations"}
+                Birthdate:
+            {/msg}
+          {/param}
+          {param allClaimsAlreadyAuthorized: $allClaimsAlreadyAuthorized /}
+        {/call}
+      {/if}
+
+      {if $claims['phone_number']}
+        {call .oneClaim data="$claims['phone_number']"}
+          {param label kind="text"}
+            {msg desc="label of phone_number profile information during authorizations"}
+                Phone:
+            {/msg}
+          {/param}
+          {param allClaimsAlreadyAuthorized: $allClaimsAlreadyAuthorized /}
+        {/call}
+      {/if}
+
       {if $claims['gender']}
       {call .oneClaim}
         {param label kind="text"}
@@ -464,28 +504,6 @@ a {lb} color: #6f438e; {rb}
       {/call}
       {/if}
 
-      {if $claims['birthdate']}
-      {call .oneClaim data="$claims['birthdate']"}
-        {param label kind="text"}
-          {msg desc="label of birthdate profile information during authorizations"}
-              Birthdate:
-          {/msg}
-        {/param}
-        {param allClaimsAlreadyAuthorized: $allClaimsAlreadyAuthorized /}
-      {/call}
-      {/if}
-
-      {if $claims['email']}
-      {call .oneClaim data="$claims['email']"}
-        {param label kind="text"}
-          {msg desc="label of email profile information during authorizations"}
-              Email:
-          {/msg}
-        {/param}
-        {param allClaimsAlreadyAuthorized: $allClaimsAlreadyAuthorized /}
-      {/call}
-      {/if}
-
       {if $claims['address']}
       {call .oneClaim}
         {param label kind="text"}
@@ -500,28 +518,6 @@ a {lb} color: #6f438e; {rb}
         {param essential: $claims['address'].essential /}
         {param allClaimsAlreadyAuthorized: $allClaimsAlreadyAuthorized /}
       {/call}
-      {/if}
-
-      {if $claims['phone_number']}
-      {call .oneClaim data="$claims['phone_number']"}
-        {param label kind="text"}
-          {msg desc="label of phone_number profile information during authorizations"}
-              Phone:
-          {/msg}
-        {/param}
-        {param allClaimsAlreadyAuthorized: $allClaimsAlreadyAuthorized /}
-      {/call}
-      {/if}
-
-      {if $claims['locale']}
-        {call .oneClaim data="$claims['locale']"}
-          {param label kind="text"}
-            {msg desc="label of locale profile information during authorizations"}
-                Locale:
-            {/msg}
-          {/param}
-          {param allClaimsAlreadyAuthorized: $allClaimsAlreadyAuthorized /}
-        {/call}
       {/if}
 
       {if $updateProfileUrl}
@@ -552,24 +548,18 @@ a {lb} color: #6f438e; {rb}
 
 <div class="row-claim {if $essential and not $value}row-required{elseif not $alreadyAuthorized}row-need-auth{/if}">
   <div class="claim-name">{$label}</div>
-  <div>
-    {if not $value and $essential}
-      {msg desc="required"}
-          (required)
-      {/msg}
-    {elseif $value}
-      {$value}
-    {/if}
+  <div class="claim-value">
+    {if $value}{$value}{/if}
   </div>
   {if not $allClaimsAlreadyAuthorized}
-    <div class="info-claim">
-      {if $alreadyAuthorized}
+    <div class="claim-info">
+      {if not $value and $essential}
+        {msg desc="required"}
+            (required)
+        {/msg}
+      {elseif $alreadyAuthorized}
         {msg desc="already authorized"}
             (already authorized)
-        {/msg}
-      {elseif not $alreadyAuthorized}
-        {msg desc="need your authorization"}
-            (need your authorization)
         {/msg}
       {/if}
     </div>

@@ -203,7 +203,7 @@
       </trans-unit>
       <trans-unit id="2525461091528891408" datatype="html">
         <source>(already authorized)</source>
-        <target>(déjà authorisé)</target>
+        <target>(déjà autorisé)</target>
         <note priority="1" from="description">already authorized</note>
       </trans-unit>
       <trans-unit id="2565164139557117651" datatype="html">
@@ -530,11 +530,6 @@
         <source>Gender:</source>
         <target>Sexe :</target>
         <note priority="1" from="description">label of gender profile information during authorizations</note>
-      </trans-unit>
-      <trans-unit id="6354659380377436972" datatype="html">
-        <source>(need your authorization)</source>
-        <target>(déjà autorisé)</target>
-        <note priority="1" from="description">need your authorization</note>
       </trans-unit>
       <trans-unit id="6631334172623029500" datatype="html">
         <source>Email:</source>
