@@ -23,6 +23,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -122,17 +124,20 @@ public class MarketSearchEndpoint {
         .build();
   }
 
-  private Collection<String> preProcessStr(@Nullable Collection<String> strings) {
-    strings = preProcess(strings);
-    strings.removeIf(String::isEmpty);
-    return strings;
+  private Iterable<String> preProcessStr(@Nullable Collection<String> strings) {
+    return preProcessToStream(strings)
+        .filter(s -> !s.isEmpty())
+        ::iterator;
   }
 
-  private <T> Collection<T> preProcess(@Nullable Collection<T> objects) {
+  private <T> Iterable<T> preProcess(@Nullable Collection<T> objects) {
+    return preProcessToStream(objects)::iterator;
+  }
+
+  private <T> Stream<T> preProcessToStream(@Nullable Collection<T> objects) {
     if (objects == null) {
-      return Collections.emptyList();
+      return Stream.empty();
     }
-    objects.removeIf(Objects::isNull);
-    return objects;
+    return objects.stream().filter(Objects::nonNull);
   }
 }
