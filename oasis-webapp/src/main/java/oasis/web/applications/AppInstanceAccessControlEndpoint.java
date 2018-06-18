@@ -267,9 +267,9 @@ public class AppInstanceAccessControlEndpoint {
         .path(AppInstanceInvitationPage.class, "showInvitation")
         .build(TokenSerializer.serialize(appInstanceInvitationToken, tokenPass));
     data.put(NewAppInstanceInvitationBodySoyTemplateInfo.APP_INSTANCE_INVITATION_URL, uri.toString());
-    // This is actually the same key as above (and the same value), so would create a duplicate:
+    // These are actually the same keys as above (and the same values), so would create duplicates:
     // data.put(NewAppInstanceInvitationBodySoyTemplateInfo.APP_INSTANCE_NAME, appInstance.getName().get(requester.getLocale()));
-    data.put(NewAppInstanceInvitationBodySoyTemplateInfo.REQUESTER_NAME, requester.getDisplayName());
+    // data.put(NewAppInstanceInvitationBodySoyTemplateInfo.REQUESTER_NAME, requester.getDisplayName());
 
     try {
       mailSender.send(new MailMessage()
