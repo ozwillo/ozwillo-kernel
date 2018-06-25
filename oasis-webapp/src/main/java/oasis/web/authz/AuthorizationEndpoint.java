@@ -390,7 +390,7 @@ public class AuthorizationEndpoint {
   public Response postScopes(
       @FormParam("scope") Set<String> scopeIds,
       @FormParam("selected_scope") Set<String> selectedScopeIds,
-      @FormParam("claims") Set<String> claimNames,
+      @FormParam("claim") Set<String> claimNames,
       @FormParam("client_id") String client_id,
       @FormParam("redirect_uri") String redirect_uri,
       @Nullable @FormParam("state") String state,
