@@ -35,6 +35,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
 import javax.ws.rs.core.MultivaluedMap;
@@ -42,6 +43,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
+import org.assertj.core.api.AbstractCharSequenceAssert;
 import org.jboss.resteasy.spi.ResteasyUriInfo;
 import org.jose4j.jws.AlgorithmIdentifiers;
 import org.jose4j.jws.JsonWebSignature;
@@ -58,11 +60,13 @@ import org.junit.runner.RunWith;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.html.HtmlEscapers;
 import com.google.common.net.UrlEscapers;
 import com.google.inject.Inject;
 import com.ibm.icu.util.ULocale;
 
 import oasis.auth.AuthModule;
+import oasis.auth.ScopesAndClaims;
 import oasis.http.testing.InProcessResteasy;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
@@ -532,7 +536,8 @@ public class AuthorizationEndpointTest {
         .queryParam("scope", Scopes.OPENID + " " + unauthorizedScope.getId())
         .request().get();
 
-    assertConsentPage(response);
+    assertConsentPage(response)
+        .matches(hiddenInput("scope", unauthorizedScope.getId()));
   }
 
   @Test public void testPromptUser_fromClaims_unauthorized() {
@@ -547,7 +552,8 @@ public class AuthorizationEndpointTest {
         .queryParam("claims", UrlEscapers.urlFormParameterEscaper().escape("{\"userinfo\":{\"locale\":null}}"))
         .request().get();
 
-    assertConsentPage(response);
+    assertConsentPage(response)
+        .matches(hiddenInput("claim", "locale"));
   }
 
   @Test public void testPromptUser_fromClaims_essentialAndMissing() {
@@ -562,7 +568,8 @@ public class AuthorizationEndpointTest {
         .queryParam("claims", UrlEscapers.urlFormParameterEscaper().escape("{\"userinfo\":{\"name\":{\"essential\":true}}}"))
         .request().get();
 
-    assertConsentPage(response);
+    assertConsentPage(response)
+        .matches(hiddenInput("claim", "name"));
   }
 
   @Test public void testAutomaticallyAuthorizePortalsNeededScopes(AuthorizationRepository authorizationRepository, TokenHandler tokenHandler) {
@@ -597,7 +604,8 @@ public class AuthorizationEndpointTest {
         .queryParam("scope", Scopes.OPENID + " " + unauthorizedScope.getId())
         .request().get();
 
-    assertConsentPage(response);
+    assertConsentPage(response)
+        .matches(hiddenInput("scope", unauthorizedScope.getId()));
 
     // Verify that we still automatically authorize portal's needed scopes
     verify(authorizationRepository).authorize(sidToken.getAccountId(), portalAppInstance.getId(),
@@ -618,7 +626,9 @@ public class AuthorizationEndpointTest {
         .queryParam("prompt", "consent")
         .request().get();
 
-    assertConsentPage(response);
+    AbstractCharSequenceAssert<?, String> consentPage = assertConsentPage(response);
+    Scopes.mapScopesToClaims(ImmutableSet.of(Scopes.OPENID, Scopes.PROFILE))
+        .forEach(claimName -> consentPage.matches(hiddenInput("claim", claimName)));
 
     // Verify that we still automatically authorize portal's needed scopes
     verify(authorizationRepository).authorize(sidToken.getAccountId(), portalAppInstance.getId(),
@@ -1249,9 +1259,10 @@ public class AuthorizationEndpointTest {
     assertRedirectError(cancelUrl, service, "login_required", null);
   }
 
-  private void assertConsentPage(Response response) {
+  private AbstractCharSequenceAssert<?, String> assertConsentPage(Response response) {
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
-    // XXX: test the response (run the template?)
+    return assertThat(response.readEntity(String.class))
+        .matches(hiddenInput("scope", Scopes.OPENID));
   }
 
   private void assertErrorNoRedirect(Response response, String error, String errorDescription) {
@@ -1283,5 +1294,13 @@ public class AuthorizationEndpointTest {
     for (Map.Entry<String, List<String>> entry : new ResteasyUriInfo(redirect_uri).getQueryParameters().entrySet()) {
       assertThat(location.getQueryParameters()).containsEntry(entry.getKey(), entry.getValue());
     }
+  }
+
+  private String hiddenInput(String name, @Nullable String value) {
+    return "(?s).*<input[^>]+type=([\"']?)hidden\\1[^>]+name=([\"']?)"
+        + Pattern.quote(HtmlEscapers.htmlEscaper().escape(name))
+        + "(\\2)[^>]+value=([\"']?)"
+        + (value == null ? "[^\"]*" : Pattern.quote(HtmlEscapers.htmlEscaper().escape(value)))
+        + "\\3[\\s>].*";
   }
 }
