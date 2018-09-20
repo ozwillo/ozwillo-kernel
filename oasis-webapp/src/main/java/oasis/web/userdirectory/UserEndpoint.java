@@ -43,7 +43,6 @@ import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.authn.ClientType;
 import oasis.model.authn.CredentialsRepository;
-import oasis.model.bootstrap.ClientIds;
 import oasis.services.etag.EtagService;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
@@ -73,7 +72,7 @@ public class UserEndpoint {
     // TODO: implement sharing rights to filter properties depending on requesting user
     // FIXME: temporarily give full-access to the portal only; sharing only the name and nickname to other applications.
     UserAccount filteredAccount;
-    if (ClientIds.PORTAL.equals(((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getServiceProviderId())) {
+    if (((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().isPortal()) {
       boolean hasPassword = credentialsRepository.getCredentials(ClientType.USER, account.getId()) != null;
       filteredAccount = new PortalUserAccount(account, hasPassword);
     } else {

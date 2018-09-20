@@ -60,7 +60,6 @@ import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.authn.AccessToken;
 import oasis.model.authn.AppInstanceInvitationToken;
 import oasis.model.authn.TokenRepository;
-import oasis.model.bootstrap.ClientIds;
 import oasis.model.directory.OrganizationMembershipRepository;
 import oasis.model.notification.Notification;
 import oasis.model.notification.NotificationRepository;
@@ -114,7 +113,7 @@ public class AppInstanceAccessControlEndpoint {
     }
 
     AccessToken accessToken = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken();
-    if (!instance_id.equals(accessToken.getServiceProviderId()) && !ClientIds.PORTAL.equals(accessToken.getServiceProviderId())) {
+    if (!instance_id.equals(accessToken.getServiceProviderId()) && !accessToken.isPortal()) {
       return ResponseFactory.forbidden("Cannot read the access control list of another instance");
     }
     if (!appAdminHelper.isAdmin(accessToken.getAccountId(), instance)) {

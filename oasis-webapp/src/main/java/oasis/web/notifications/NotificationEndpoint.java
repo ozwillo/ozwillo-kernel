@@ -41,7 +41,6 @@ import com.google.common.collect.ImmutableList;
 import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.ServiceRepository;
 import oasis.model.authn.AccessToken;
-import oasis.model.bootstrap.ClientIds;
 import oasis.model.notification.Notification;
 import oasis.model.notification.NotificationRepository;
 import oasis.web.authn.Authenticated;
@@ -111,7 +110,7 @@ public class NotificationEndpoint {
 
     // TODO: rework NetworkRepository API wrt filtering
     if (instanceId == null) {
-      if (!ClientIds.PORTAL.equals(accessToken.getServiceProviderId())) {
+      if (!accessToken.isPortal()) {
         return ResponseFactory.forbidden("Cannot read all notifications for user");
       }
       return Response.ok()
@@ -123,7 +122,7 @@ public class NotificationEndpoint {
           .build();
     }
 
-    if (!instanceId.equals(accessToken.getServiceProviderId()) && !ClientIds.PORTAL.equals(accessToken.getServiceProviderId())) {
+    if (!instanceId.equals(accessToken.getServiceProviderId()) && !accessToken.isPortal()) {
       return ResponseFactory.forbidden("Cannot read notifications for another app-instance");
     }
     return Response.ok()

@@ -298,8 +298,10 @@ public class AuthorizationEndpoint {
     final String id_token_hint = getParameter("id_token_hint");
     validateIdTokenHint(uriInfo, sidToken, id_token_hint);
 
+    final boolean isPortal = ClientIds.PORTAL.equals(client_id);
+
     // Check ACL if the service is "private" (unless it's the Portal)
-    if ((service != null && service.isAccessRestricted()) && !ClientIds.PORTAL.equals(client_id)) {
+    if ((service != null && service.isAccessRestricted()) && !isPortal) {
       boolean isAppUser = accessControlRepository.getAccessControlEntry(appInstance.getId(), sidToken.getAccountId()) != null;
       boolean isAppAdmin = appAdminHelper.isAdmin(sidToken.getAccountId(), appInstance);
       if (!isAppUser && !isAppAdmin) {
@@ -352,7 +354,7 @@ public class AuthorizationEndpoint {
     parsedClaims = mergeClaims(parsedClaims, scopesAndClaims.getClaimNames());
 
     ScopesAndClaims authorizedScopesAndClaims = getAuthorizedScopesAndClaims(appInstance.getId(), sidToken.getAccountId());
-    if (ClientIds.PORTAL.equals(appInstance.getId()) && !authorizedScopesAndClaims.containsAll(scopesAndClaims)) {
+    if (isPortal && !authorizedScopesAndClaims.containsAll(scopesAndClaims)) {
       // Automatically grant all the Portal's needed_scopes to any user, and thus skip the prompt
       ImmutableSet<String> portalScopeIds = appInstance.getNeeded_scopes().stream()
           .map(NeededScope::getScope_id)

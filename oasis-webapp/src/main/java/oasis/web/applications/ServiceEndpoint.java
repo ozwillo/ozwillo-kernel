@@ -43,7 +43,6 @@ import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.ServiceRepository;
 import oasis.model.authn.AccessToken;
-import oasis.model.bootstrap.ClientIds;
 import oasis.services.authz.AppAdminHelper;
 import oasis.services.etag.EtagService;
 import oasis.usecases.DeleteService;
@@ -87,7 +86,7 @@ public class ServiceEndpoint {
         return OAuthAuthenticationFilter.challengeResponse();
       }
       AccessToken accessToken = principal.getAccessToken();
-      if (!ClientIds.PORTAL.equals(accessToken.getServiceProviderId())) {
+      if (!accessToken.isPortal()) {
         return Response.status(Response.Status.FORBIDDEN).build();
       }
       String userId = accessToken.getAccountId();

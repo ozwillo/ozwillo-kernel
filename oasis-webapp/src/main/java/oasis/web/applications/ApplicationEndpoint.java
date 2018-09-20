@@ -31,7 +31,6 @@ import javax.ws.rs.core.SecurityContext;
 import oasis.model.applications.v2.Application;
 import oasis.model.applications.v2.ApplicationRepository;
 import oasis.model.authn.AccessToken;
-import oasis.model.bootstrap.ClientIds;
 import oasis.model.directory.OrganizationMembership;
 import oasis.model.directory.OrganizationMembershipRepository;
 import oasis.web.authn.OAuth;
@@ -65,7 +64,7 @@ public class ApplicationEndpoint {
         return OAuthAuthenticationFilter.challengeResponse();
       }
       AccessToken accessToken = principal.getAccessToken();
-      if (!ClientIds.PORTAL.equals(accessToken.getServiceProviderId())) {
+      if (!accessToken.isPortal()) {
         return Response.status(Response.Status.FORBIDDEN).build();
       }
       OrganizationMembership organizationMembership = organizationMembershipRepository.getOrganizationMembership(accessToken.getAccountId(), application.getProvider_id());

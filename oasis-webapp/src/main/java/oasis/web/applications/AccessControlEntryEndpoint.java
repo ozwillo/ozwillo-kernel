@@ -41,7 +41,6 @@ import oasis.model.applications.v2.AccessControlEntry;
 import oasis.model.applications.v2.AccessControlRepository;
 import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.authn.AccessToken;
-import oasis.model.bootstrap.ClientIds;
 import oasis.services.authz.AppAdminHelper;
 import oasis.services.etag.EtagService;
 import oasis.web.authn.Authenticated;
@@ -72,7 +71,7 @@ public class AccessControlEntryEndpoint {
     }
 
     AccessToken accessToken = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken();
-    if (!ace.getInstance_id().equals(accessToken.getServiceProviderId()) && !ClientIds.PORTAL.equals(accessToken.getServiceProviderId())) {
+    if (!ace.getInstance_id().equals(accessToken.getServiceProviderId()) && !accessToken.isPortal()) {
       return ResponseFactory.forbidden("Cannot read an access control entry about another instance");
     }
     final String userId = accessToken.getAccountId();

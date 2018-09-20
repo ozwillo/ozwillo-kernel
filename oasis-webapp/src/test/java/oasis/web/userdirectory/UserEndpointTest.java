@@ -149,6 +149,7 @@ public class UserEndpointTest {
     resteasy.getDeployment().getProviderFactory().register(new TestOAuthFilter(new AccessToken() {{
       setAccountId(userAccount.getId());
       setServiceProviderId(ClientIds.PORTAL);
+      setPortal(true);
     }}));
 
     Response response = resteasy.getClient()
@@ -172,6 +173,7 @@ public class UserEndpointTest {
     resteasy.getDeployment().getProviderFactory().register(new TestOAuthFilter(new AccessToken() {{
       setAccountId(userAccount.getId());
       setServiceProviderId(ClientIds.PORTAL);
+      setPortal(true);
     }}));
 
     Response response = resteasy.getClient()
@@ -190,6 +192,7 @@ public class UserEndpointTest {
     resteasy.getDeployment().getProviderFactory().register(new TestOAuthFilter(new AccessToken() {{
       setAccountId(userAccountWithFC.getId());
       setServiceProviderId(ClientIds.PORTAL);
+      setPortal(true);
     }}));
 
     Response response = resteasy.getClient()
@@ -210,6 +213,7 @@ public class UserEndpointTest {
     resteasy.getDeployment().getProviderFactory().register(new TestOAuthFilter(new AccessToken() {{
       setAccountId(userAccount.getId());
       setServiceProviderId(ClientIds.PORTAL);
+      setPortal(true);
     }}));
 
     Response response = resteasy.getClient()

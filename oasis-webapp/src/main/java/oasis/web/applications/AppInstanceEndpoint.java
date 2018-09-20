@@ -50,7 +50,6 @@ import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.ServiceRepository;
 import oasis.model.authn.AccessToken;
-import oasis.model.bootstrap.ClientIds;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Organization;
 import oasis.services.authz.AppAdminHelper;
@@ -93,7 +92,7 @@ public class AppInstanceEndpoint {
     }
 
     AccessToken accessToken = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken();
-    if (!instanceId.equals(accessToken.getServiceProviderId()) && !ClientIds.PORTAL.equals(accessToken.getServiceProviderId())) {
+    if (!instanceId.equals(accessToken.getServiceProviderId()) && !accessToken.isPortal()) {
       return ResponseFactory.forbidden("Cannot read information about another instance");
     }
     if (!appAdminHelper.isAdmin(accessToken.getAccountId(), instance)) {
@@ -121,7 +120,7 @@ public class AppInstanceEndpoint {
     }
 
     AccessToken accessToken = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken();
-    if (!instanceId.equals(accessToken.getServiceProviderId()) && !ClientIds.PORTAL.equals(accessToken.getServiceProviderId())) {
+    if (!instanceId.equals(accessToken.getServiceProviderId()) && !accessToken.isPortal()) {
       return ResponseFactory.forbidden("Cannot list services of another instance");
     }
     if (!appAdminHelper.isAdmin(accessToken.getAccountId(), instance)) {
@@ -149,7 +148,7 @@ public class AppInstanceEndpoint {
     }
 
     AccessToken accessToken = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken();
-    if (!instanceId.equals(accessToken.getServiceProviderId()) && !ClientIds.PORTAL.equals(accessToken.getServiceProviderId())) {
+    if (!instanceId.equals(accessToken.getServiceProviderId()) && !accessToken.isPortal()) {
       return ResponseFactory.forbidden("Cannot create service in another instance");
     }
     if (!appAdminHelper.isAdmin(accessToken.getAccountId(), instance)) {

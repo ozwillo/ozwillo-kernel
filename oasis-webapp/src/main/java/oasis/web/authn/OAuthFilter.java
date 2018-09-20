@@ -43,7 +43,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Splitter;
 
 import oasis.model.authn.AccessToken;
-import oasis.model.bootstrap.ClientIds;
 import oasis.services.authn.TokenHandler;
 
 /**
@@ -99,7 +98,7 @@ public class OAuthFilter implements ContainerRequestFilter {
           resourceInfo.getResourceMethod() != null ? resourceInfo.getResourceMethod() : resourceInfo.getResourceClass());
       // XXX: should we send a forbidden response rather than let the request go in?
     }
-    if (portalAnnotation != null && !ClientIds.PORTAL.equals(accessToken.getServiceProviderId())) {
+    if (portalAnnotation != null && !accessToken.isPortal()) {
       // We're not using scopes per se, so this is not accurate but will do,
       // and is backwards compatible with previous behavior of synthesizing a "portal" scope for portal instances
       insufficientScope(requestContext);

@@ -21,7 +21,10 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import oasis.model.bootstrap.ClientIds;
 
 public abstract class AbstractOAuthToken extends AbstractAccountToken {
   @JsonProperty
@@ -32,6 +35,9 @@ public abstract class AbstractOAuthToken extends AbstractAccountToken {
 
   @JsonProperty
   private Set<String> claimNames = new HashSet<>();
+
+  @JsonProperty
+  private Boolean portal;
 
   public String getServiceProviderId() {
     return serviceProviderId;
@@ -55,5 +61,17 @@ public abstract class AbstractOAuthToken extends AbstractAccountToken {
 
   public void setClaimNames(Set<String> claimNames) {
     this.claimNames = new HashSet<>(claimNames);
+  }
+
+  @JsonIgnore
+  public boolean isPortal() {
+    return Boolean.TRUE.equals(portal)
+        // backwards compatibility
+        || (portal == null && ClientIds.PORTAL.equals(serviceProviderId));
+  }
+
+  @JsonIgnore
+  public void setPortal(boolean portal) {
+    this.portal = portal ? Boolean.TRUE : null;
   }
 }
