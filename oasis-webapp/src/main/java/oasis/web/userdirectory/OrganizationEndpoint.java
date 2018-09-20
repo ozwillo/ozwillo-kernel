@@ -40,7 +40,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import oasis.model.DuplicateKeyException;
 import oasis.model.InvalidVersionException;
-import oasis.model.authz.Scopes;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Organization;
 import oasis.model.directory.OrganizationMembership;
@@ -51,7 +50,7 @@ import oasis.usecases.ImmutableChangeOrganizationStatus;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
-import oasis.web.authn.WithScopes;
+import oasis.web.authn.Portal;
 import oasis.web.utils.ResponseFactory;
 
 @Path("/d/org/{organizationId}")
@@ -82,7 +81,7 @@ public class OrganizationEndpoint {
 
   @PUT
   @Authenticated @OAuth
-  @WithScopes(Scopes.PORTAL)
+  @Portal
   public Response updateOrganization(
       @Context UriInfo uriInfo,
       @HeaderParam("If-Match") List<EntityTag> ifMatch,
@@ -121,7 +120,7 @@ public class OrganizationEndpoint {
 
   @POST
   @Authenticated @OAuth
-  @WithScopes(Scopes.PORTAL)
+  @Portal
   public Response changeOrganizationStatus(
       @HeaderParam("If-Match") List<EntityTag> ifMatch,
       ChangeOrganizationStatusRequest request

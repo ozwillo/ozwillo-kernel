@@ -43,13 +43,12 @@ import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.authn.ClientType;
 import oasis.model.authn.CredentialsRepository;
-import oasis.model.authz.Scopes;
 import oasis.model.bootstrap.ClientIds;
 import oasis.services.etag.EtagService;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
-import oasis.web.authn.WithScopes;
+import oasis.web.authn.Portal;
 import oasis.web.utils.ResponseFactory;
 
 @Path("/d/user/{user_id}")
@@ -95,7 +94,7 @@ public class UserEndpoint {
   }
 
   @PUT
-  @WithScopes(Scopes.PORTAL)
+  @Portal
   public Response replace(
       @HeaderParam(HttpHeaders.IF_MATCH) List<EntityTag> ifMatch,
       UserAccount account

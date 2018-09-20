@@ -37,7 +37,6 @@ import javax.ws.rs.core.UriInfo;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Streams;
 
-import oasis.model.authz.Scopes;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Organization;
 import oasis.model.directory.OrganizationMembership;
@@ -46,13 +45,13 @@ import oasis.services.etag.EtagService;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
-import oasis.web.authn.WithScopes;
+import oasis.web.authn.Portal;
 
 @Path("/d/memberships/user/{user_id}")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 @Authenticated @OAuth
-@WithScopes(Scopes.PORTAL)
+@Portal
 public class UserMembershipEndpoint {
   @Inject OrganizationMembershipRepository organizationMembershipRepository;
   @Inject DirectoryRepository directoryRepository;

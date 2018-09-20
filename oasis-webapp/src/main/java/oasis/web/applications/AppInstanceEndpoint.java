@@ -50,7 +50,6 @@ import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.ServiceRepository;
 import oasis.model.authn.AccessToken;
-import oasis.model.authz.Scopes;
 import oasis.model.bootstrap.ClientIds;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Organization;
@@ -64,7 +63,7 @@ import oasis.usecases.ServiceValidator;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
-import oasis.web.authn.WithScopes;
+import oasis.web.authn.Portal;
 import oasis.web.utils.ResponseFactory;
 
 @Path("/apps/instance/{instance_id}")
@@ -184,7 +183,7 @@ public class AppInstanceEndpoint {
   }
 
   @POST
-  @WithScopes(Scopes.PORTAL)
+  @Portal
   public Response changeStatus(
       @HeaderParam(HttpHeaders.IF_MATCH) List<EntityTag> ifMatch,
       ModifyStatusRequest request
@@ -237,7 +236,7 @@ public class AppInstanceEndpoint {
   }
 
   @DELETE
-  @WithScopes(Scopes.PORTAL)
+  @Portal
   public Response deleteInstance(
       @HeaderParam(HttpHeaders.IF_MATCH) List<EntityTag> ifMatch
   ) {

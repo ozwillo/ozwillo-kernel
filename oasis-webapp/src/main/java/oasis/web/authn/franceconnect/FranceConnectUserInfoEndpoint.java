@@ -32,20 +32,18 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Iterables;
 
 import oasis.auth.FranceConnectModule;
 import oasis.model.authn.AccessToken;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.Token;
 import oasis.model.authn.TokenRepository;
-import oasis.model.authz.Scopes;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
-import oasis.web.authn.WithScopes;
+import oasis.web.authn.Portal;
 
-@Authenticated @OAuth @WithScopes(Scopes.PORTAL)
+@Authenticated @OAuth @Portal
 @Path("/a/franceconnect/userinfo")
 @Produces(MediaType.APPLICATION_JSON)
 public class FranceConnectUserInfoEndpoint {

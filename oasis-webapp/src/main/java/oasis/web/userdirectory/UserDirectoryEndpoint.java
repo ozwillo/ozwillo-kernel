@@ -31,7 +31,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 
-import oasis.model.authz.Scopes;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Organization;
 import oasis.model.directory.OrganizationMembership;
@@ -40,13 +39,13 @@ import oasis.services.etag.EtagService;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
-import oasis.web.authn.WithScopes;
+import oasis.web.authn.Portal;
 import oasis.web.utils.ResponseFactory;
 
 @Path("/d")
 @Produces(MediaType.APPLICATION_JSON)
 @Authenticated @OAuth
-@WithScopes(Scopes.PORTAL)
+@Portal
 public class UserDirectoryEndpoint {
 
   @Inject DirectoryRepository directory;

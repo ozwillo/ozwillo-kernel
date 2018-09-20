@@ -53,7 +53,6 @@ import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.authn.MembershipInvitationToken;
 import oasis.model.authn.TokenRepository;
-import oasis.model.authz.Scopes;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Organization;
 import oasis.model.directory.OrganizationMembership;
@@ -72,7 +71,7 @@ import oasis.soy.templates.OrgMembershipInvitationNotificationSoyInfo.NewMembers
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
-import oasis.web.authn.WithScopes;
+import oasis.web.authn.Portal;
 import oasis.web.i18n.LocaleHelper;
 import oasis.web.utils.ResponseFactory;
 
@@ -80,7 +79,7 @@ import oasis.web.utils.ResponseFactory;
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 @Authenticated @OAuth
-@WithScopes(Scopes.PORTAL)
+@Portal
 public class OrganizationMembershipEndpoint {
   private static final Logger logger = LoggerFactory.getLogger(OrganizationMembershipEndpoint.class);
 

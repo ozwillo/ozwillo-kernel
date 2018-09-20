@@ -37,17 +37,16 @@ import com.google.common.collect.Streams;
 
 import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstanceRepository;
-import oasis.model.authz.Scopes;
 import oasis.model.directory.OrganizationMembership;
 import oasis.model.directory.OrganizationMembershipRepository;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
-import oasis.web.authn.WithScopes;
+import oasis.web.authn.Portal;
 import oasis.web.utils.ResponseFactory;
 
 @Authenticated @OAuth
-@WithScopes(Scopes.PORTAL)
+@Portal
 @Path("/apps/instance/user/{user_id}")
 @Produces(MediaType.APPLICATION_JSON)
 public class UserAppInstanceEndpoint {

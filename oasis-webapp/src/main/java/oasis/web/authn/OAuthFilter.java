@@ -18,9 +18,13 @@
 package oasis.web.authn;
 
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
 
+import javax.annotation.Nullable;
 import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.ws.rs.Priorities;
@@ -37,10 +41,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableSet;
 
 import oasis.model.authn.AccessToken;
-import oasis.model.authz.Scopes;
 import oasis.model.bootstrap.ClientIds;
 import oasis.services.authn.TokenHandler;
 
@@ -89,23 +91,19 @@ public class OAuthFilter implements ContainerRequestFilter {
       return;
     }
 
-    // Automatically grant "portal" scope to "portal" app
-    if (ClientIds.PORTAL.equals(accessToken.getServiceProviderId())) {
-      accessToken.setScopeIds(ImmutableSet.<String>builder()
-          .addAll(accessToken.getScopeIds())
-          .add(Scopes.PORTAL)
-          .build());
+    /* Check if the resource has a @WithScopes or @Portal annotation */
+    WithScopes withScopesAnnotation = getResourceAnnotation(WithScopes.class);
+    Portal portalAnnotation = getResourceAnnotation(Portal.class);
+    if (withScopesAnnotation == null && portalAnnotation == null) {
+      logger.debug("Resource requires OAuth token but doesn't declare @WithScopes or @Portal: {}",
+          resourceInfo.getResourceMethod() != null ? resourceInfo.getResourceMethod() : resourceInfo.getResourceClass());
+      // XXX: should we send a forbidden response rather than let the request go in?
     }
-
-    /** Check if the resource have an annotation {@link WithScopes} **/
-    WithScopes withScopesAnnotation = resourceInfo.getResourceMethod().getAnnotation(WithScopes.class);
-    if (withScopesAnnotation == null) {
-      withScopesAnnotation = resourceInfo.getResourceClass().getAnnotation(WithScopes.class);
-      if (withScopesAnnotation == null) {
-        logger.debug("Resource requires OAuth token but doesn't declare required scopes: {}",
-            resourceInfo.getResourceMethod() != null ? resourceInfo.getResourceMethod() : resourceInfo.getResourceClass());
-        // XXX: should we send a forbidden response rather than let the request go in?
-      }
+    if (portalAnnotation != null && !ClientIds.PORTAL.equals(accessToken.getServiceProviderId())) {
+      // We're not using scopes per se, so this is not accurate but will do,
+      // and is backwards compatible with previous behavior of synthesizing a "portal" scope for portal instances
+      insufficientScope(requestContext);
+      return;
     }
     if (withScopesAnnotation != null && !accessToken.getScopeIds().containsAll(Arrays.asList(withScopesAnnotation.value()))) {
       insufficientScope(requestContext);
@@ -157,5 +155,17 @@ public class OAuthFilter implements ContainerRequestFilter {
         .status(Response.Status.UNAUTHORIZED)
         .header(HttpHeaders.WWW_AUTHENTICATE, AUTH_SCHEME + " error=\"invalid_token\"")
         .build());
+  }
+
+  @Nullable
+  private <A extends Annotation> A getResourceAnnotation(Class<A> annotationClass) {
+    return Stream.of(
+        resourceInfo.getResourceMethod(),
+        resourceInfo.getResourceClass()
+    )
+        .map(r -> r.getAnnotation(annotationClass))
+        .filter(Objects::nonNull)
+        .findFirst()
+        .orElse(null);
   }
 }

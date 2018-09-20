@@ -33,9 +33,6 @@ public interface Scopes {
   public static final String PHONE = "phone";
   public static final String OFFLINE_ACCESS = "offline_access";
 
-  // Portal
-  public static final String PORTAL = "portal";
-
   public static final ImmutableMap<String, ImmutableSet<String>> SCOPES_TO_CLAIMS = ImmutableMap.of(
       OPENID, ImmutableSet.of(), // XXX: do not record the "sub" claim; this scope is required anyway
       PROFILE, ImmutableSet.of(

@@ -60,7 +60,6 @@ import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.authn.AccessToken;
 import oasis.model.authn.AppInstanceInvitationToken;
 import oasis.model.authn.TokenRepository;
-import oasis.model.authz.Scopes;
 import oasis.model.bootstrap.ClientIds;
 import oasis.model.directory.OrganizationMembershipRepository;
 import oasis.model.notification.Notification;
@@ -79,7 +78,7 @@ import oasis.soy.templates.AppInstanceInvitationNotificationSoyInfo.NewAppInstan
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
-import oasis.web.authn.WithScopes;
+import oasis.web.authn.Portal;
 import oasis.web.i18n.LocaleHelper;
 import oasis.web.utils.ResponseFactory;
 
@@ -181,7 +180,7 @@ public class AppInstanceAccessControlEndpoint {
   }
 
   @POST
-  @WithScopes(Scopes.PORTAL)
+  @Portal
   public Response addToList(AccessControlEntry ace) {
     if (ace.getInstance_id() != null && !instance_id.equals(ace.getInstance_id())) {
       return ResponseFactory.unprocessableEntity("instance_id doesn't match URL");
