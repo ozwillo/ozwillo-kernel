@@ -49,6 +49,7 @@ import oasis.model.accounts.UserAccount;
 import oasis.model.authn.ClientType;
 import oasis.model.authn.CredentialsRepository;
 import oasis.model.authn.SetPasswordToken;
+import oasis.services.branding.BrandHelper;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.soy.SoyTemplate;
@@ -85,7 +86,7 @@ public class SetPasswordPage {
       // If the account already has a password, this is most likely a race condition (or tampered form)
       UserAccount account = accountRepository.getUserAccountById(userId);
       return ChangePasswordPage.form(Response.status(Response.Status.CONFLICT), authSettings, urls,
-          account, ChangePasswordPage.PasswordChangeError.BAD_PASSWORD);
+          account, ChangePasswordPage.PasswordChangeError.BAD_PASSWORD, BrandHelper.getBrandIdFromUri(uriInfo));
     }
 
     if (pwd.length() < authSettings.passwordMinimumLength) {
@@ -130,15 +131,16 @@ public class SetPasswordPage {
         .header("X-Frame-Options", "DENY")
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
-        .entity(new SoyTemplate(InitPasswordSoyInfo.PASSWORD_PENDING_ACTIVATION, account.getLocale()))
+        .entity(new SoyTemplate(InitPasswordSoyInfo.PASSWORD_PENDING_ACTIVATION, account.getLocale(), null,
+            BrandHelper.getBrandIdFromUri(uriInfo)))
         .build();
   }
 
   private Response form(Response.ResponseBuilder builder, UserAccount account, @Nullable PasswordInitError error) {
-    return form(builder, authSettings, urls, account, error);
+    return form(builder, authSettings, urls, account, error, BrandHelper.getBrandIdFromUri(uriInfo));
   }
 
-  static Response form(Response.ResponseBuilder builder, AuthModule.Settings authSettings, Urls urls, UserAccount account, @Nullable PasswordInitError error) {
+  static Response form(Response.ResponseBuilder builder, AuthModule.Settings authSettings, Urls urls, UserAccount account, @Nullable PasswordInitError error, String brandId) {
     ImmutableMap.Builder<String, Object> data = ImmutableMap.<String, Object>builderWithExpectedSize(4)
         .put(InitPasswordSoyTemplateInfo.EMAIL, account.getEmail_address())
         .put(InitPasswordSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(SetPasswordPage.class).build().toString())
@@ -155,7 +157,8 @@ public class SetPasswordPage {
         .header("X-Frame-Options", "DENY")
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
-        .entity(new SoyTemplate(InitPasswordSoyInfo.INIT_PASSWORD, account.getLocale(), data.build()))
+        .entity(new SoyTemplate(InitPasswordSoyInfo.INIT_PASSWORD, account.getLocale(), data.build(),
+            brandId))
         .build();
   }
 

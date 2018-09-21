@@ -25,6 +25,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -40,6 +41,7 @@ import oasis.model.accounts.UserAccount;
 import oasis.model.authn.ClientType;
 import oasis.model.authn.CredentialsRepository;
 import oasis.model.authn.TokenRepository;
+import oasis.services.branding.BrandHelper;
 import oasis.services.authn.CredentialsService;
 import oasis.services.cookies.CookieFactory;
 import oasis.soy.SoyTemplate;
@@ -64,28 +66,29 @@ public class ChangePasswordPage {
   @Context SecurityContext securityContext;
 
   @GET
-  public Response get() {
+  public Response get(@QueryParam(BrandHelper.BRAND_PARAM) @Nullable String brandId) {
     String userId = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken().getAccountId();
     UserAccount account = accountRepository.getUserAccountById(userId);
     if (credentialsRepository.getCredentials(ClientType.USER, account.getId()) == null) {
-      return SetPasswordPage.form(Response.ok(), authSettings, urls, account, null);
+      return SetPasswordPage.form(Response.ok(), authSettings, urls, account, null, brandId);
     }
-    return form(Response.ok(), account, null);
+    return form(Response.ok(), account, null, brandId);
   }
 
   @POST @StrictReferer
   public Response post(
+      @FormParam(BrandHelper.BRAND_PARAM) String brandId,
       @FormParam("oldpwd") String oldpwd,
       @FormParam("newpwd") @DefaultValue("") String newpwd
   ) {
     String userId = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken().getAccountId();
     UserAccount account = accountRepository.getUserAccountById(userId);
     if (!credentialsService.checkPassword(ClientType.USER, userId, oldpwd)) {
-      return form(Response.status(Response.Status.BAD_REQUEST), account, PasswordChangeError.BAD_PASSWORD);
+      return form(Response.status(Response.Status.BAD_REQUEST), account, PasswordChangeError.BAD_PASSWORD, brandId);
     }
 
     if (newpwd.length() < authSettings.passwordMinimumLength) {
-      return form(Response.status(Response.Status.BAD_REQUEST), account, PasswordChangeError.PASSWORD_TOO_SHORT);
+      return form(Response.status(Response.Status.BAD_REQUEST), account, PasswordChangeError.PASSWORD_TOO_SHORT, brandId);
     }
     credentialsService.setPassword(ClientType.USER, userId, newpwd);
 
@@ -105,16 +108,18 @@ public class ChangePasswordPage {
             account.getLocale(),
             urls.myOasis()
                 .map(url -> ImmutableMap.of(PasswordChangedSoyTemplateInfo.CONTINUE, url.toString()))
-                .orElse(null)
+                .orElse(null),
+            brandId
             ))
         .build();
   }
 
-  private Response form(Response.ResponseBuilder builder, UserAccount account, @Nullable PasswordChangeError error) {
-    return form(builder, authSettings, urls, account, error);
+  private Response form(Response.ResponseBuilder builder, UserAccount account, @Nullable PasswordChangeError error, String brandId) {
+    return form(builder, authSettings, urls, account, error, brandId);
   }
 
-  static Response form(Response.ResponseBuilder builder, AuthModule.Settings authSettings, Urls urls, UserAccount account, @Nullable PasswordChangeError error) {
+  static Response form(Response.ResponseBuilder builder, AuthModule.Settings authSettings, Urls urls, UserAccount account, @Nullable PasswordChangeError error,
+      String brandId) {
     ImmutableMap.Builder<String, Object> data = ImmutableMap.<String, Object>builderWithExpectedSize(5)
         .put(ChangePasswordSoyTemplateInfo.EMAIL, account.getEmail_address())
         .put(ChangePasswordSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(ChangePasswordPage.class).build().toString())
@@ -131,7 +136,7 @@ public class ChangePasswordPage {
         .header("X-Frame-Options", "DENY")
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
-        .entity(new SoyTemplate(ChangePasswordSoyInfo.CHANGE_PASSWORD, account.getLocale(), data.build()))
+        .entity(new SoyTemplate(ChangePasswordSoyInfo.CHANGE_PASSWORD, account.getLocale(), data.build(), brandId))
         .build();
   }
 

@@ -57,6 +57,7 @@ import oasis.model.authn.ClientType;
 import oasis.model.authn.CredentialsRepository;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
+import oasis.services.branding.BrandHelper;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.UserPasswordAuthenticator;
 import oasis.soy.SoyTemplate;
@@ -178,7 +179,8 @@ public class LoginPage {
       }
     }
 
-    return loginForm(builder, continueUrl, locale, franceConnectSettings != null, error);
+    return loginForm(builder, continueUrl, locale, franceConnectSettings != null, error,
+        BrandHelper.getBrandIdFromUri(uriInfo));
   }
 
   private Response reauthForm(Response.ResponseBuilder builder, URI continueUrl, @Nullable LoginError error, UserAccount userAccount) {
@@ -197,19 +199,20 @@ public class LoginPage {
       data.put(ReauthSoyTemplateInfo.ERROR, error.name());
     }
 
-    return buildResponseFromView(builder, new SoyTemplate(LoginSoyInfo.REAUTH, userAccount.getLocale(), data.build()));
+    return buildResponseFromView(builder, new SoyTemplate(LoginSoyInfo.REAUTH, userAccount.getLocale(), data.build(),
+        BrandHelper.getBrandIdFromUri(uriInfo)));
   }
 
-  private static Response loginForm(Response.ResponseBuilder builder, URI continueUrl, ULocale locale, boolean withFranceConnect, @Nullable LoginError error) {
-    return loginAndSignupForm(builder, continueUrl, locale, null, withFranceConnect, error);
+  private static Response loginForm(Response.ResponseBuilder builder, URI continueUrl, ULocale locale, boolean withFranceConnect, @Nullable LoginError error, String brandId) {
+    return loginAndSignupForm(builder, continueUrl, locale, null, withFranceConnect, error, brandId);
   }
 
-  static Response signupForm(Response.ResponseBuilder builder, URI continueUrl, ULocale locale, AuthModule.Settings authSettings, boolean withFranceConnect, @Nullable SignupError error) {
-    return loginAndSignupForm(builder, continueUrl, locale, authSettings, withFranceConnect, error);
+  static Response signupForm(Response.ResponseBuilder builder, URI continueUrl, ULocale locale, AuthModule.Settings authSettings, boolean withFranceConnect, @Nullable SignupError error, String brandId) {
+    return loginAndSignupForm(builder, continueUrl, locale, authSettings, withFranceConnect, error, brandId);
   }
 
   private static Response loginAndSignupForm(Response.ResponseBuilder builder, URI continueUrl,
-      ULocale locale, @Nullable AuthModule.Settings authSettings, boolean withFranceConnect, @Nullable Enum<?> error) {
+      ULocale locale, @Nullable AuthModule.Settings authSettings, boolean withFranceConnect, @Nullable Enum<?> error, String brandId) {
     ImmutableMap.Builder<String, String> localeUrlMap = ImmutableMap.builderWithExpectedSize(LocaleHelper.SUPPORTED_LOCALES.size());
     for (ULocale supportedLocale : LocaleHelper.SUPPORTED_LOCALES) {
       String languageTag = supportedLocale.toLanguageTag();
@@ -236,7 +239,8 @@ public class LoginPage {
       data.put(LoginSoyTemplateInfo.PWD_MIN_LENGTH, authSettings.passwordMinimumLength);
     }
 
-    return buildResponseFromView(builder, new SoyTemplate(LoginSoyInfo.LOGIN, locale, data.build()));
+    return buildResponseFromView(builder, new SoyTemplate(LoginSoyInfo.LOGIN, locale, data.build(),
+        brandId));
   }
 
   private static Response buildResponseFromView(Response.ResponseBuilder builder, SoyTemplate soyTemplate) {

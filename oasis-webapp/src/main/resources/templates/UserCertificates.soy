@@ -88,6 +88,7 @@ a.portal {lb}
     {if $certs and length($certs)}
       <form method=POST action="{$deleteFormAction}">
         <input type=hidden name=_utf8 value="&#9731;">
+        <input type=hidden name=brand value="{$brand_info['brand_id']}">
 
         {for $cert in $certs}
           {call .userCertificate data="$cert"}
@@ -130,6 +131,7 @@ a.portal {lb}
 {@param? linkedToOtherAccount: bool}   /** whether the certificate is linked to another account. In this case, 'id' is irrelevant. */
 {@param  addFormAction:        string} /** URL to post the add form to. */
 {@param? continueUrl:          string} /** URL to continue to after the add form is posted. */
+{@inject brand_info:           map<string,string>}
 
   {call .userCertificate}
     {param subject: $subject /}
@@ -140,6 +142,7 @@ a.portal {lb}
           <input type=hidden name=_utf8 value="&#9731;">
           <input type=hidden name=subject value="{$subject}">
           <input type=hidden name=issuer value="{$issuer}">
+          <input type=hidden name=brand value="{$brand_info['brand_id']}">
           {if $continueUrl}
             <input type=hidden name=continue value="{$continueUrl}">
           {/if}

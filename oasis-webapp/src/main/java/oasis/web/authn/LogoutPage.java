@@ -55,6 +55,7 @@ import oasis.model.applications.v2.ServiceRepository;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
 import oasis.model.bootstrap.ClientIds;
+import oasis.services.branding.BrandHelper;
 import oasis.services.cookies.CookieFactory;
 import oasis.soy.SoyTemplate;
 import oasis.soy.templates.LogoutSoyInfo;
@@ -166,7 +167,8 @@ public class LogoutPage {
     viewModel.put(LogoutSoyTemplateInfo.IS_PORTAL, appInstance != null && appInstance.getId().equals(ClientIds.PORTAL));
     urls.myOasis().ifPresent(url -> viewModel.put(LogoutSoyTemplateInfo.PORTAL_URL, url.toString()));
 
-    return Response.ok(new SoyTemplate(LogoutSoyInfo.LOGOUT, account.getLocale(), viewModel.build())).build();
+    return Response.ok(new SoyTemplate(LogoutSoyInfo.LOGOUT, account.getLocale(), viewModel.build(),
+        BrandHelper.getBrandIdFromUri(uriInfo))).build();// TODO : get brandId from AppInstance
   }
 
   private Response redirectTo(@Nullable URI continueUrl) {

@@ -55,6 +55,7 @@ import oasis.model.applications.v2.ServiceRepository;
 import oasis.model.authn.AccountActivationToken;
 import oasis.model.authn.ClientType;
 import oasis.model.authn.CredentialsRepository;
+import oasis.services.branding.BrandHelper;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.services.authn.UserPasswordAuthenticator;
@@ -153,7 +154,8 @@ public class SignUpPage {
     if (continueUrl == null) {
       continueUrl = LoginPage.defaultContinueUrl(urls.myOasis(), uriInfo);
     }
-    return LoginPage.signupForm(builder, continueUrl, locale, authSettings, franceConnectSettings != null, error);
+    return LoginPage.signupForm(builder, continueUrl, locale, authSettings, franceConnectSettings != null, error,
+        BrandHelper.getBrandIdFromUri(uriInfo));
   }
 
   @Nullable

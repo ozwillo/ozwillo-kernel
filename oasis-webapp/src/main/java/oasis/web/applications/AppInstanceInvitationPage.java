@@ -57,6 +57,7 @@ import oasis.model.authn.AppInstanceInvitationToken;
 import oasis.model.authn.TokenRepository;
 import oasis.model.notification.Notification;
 import oasis.model.notification.NotificationRepository;
+import oasis.services.branding.BrandHelper;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authz.AppAdminHelper;
 import oasis.soy.SoyTemplate;
@@ -247,7 +248,8 @@ public class AppInstanceInvitationPage {
                 AppInstanceInvitationSoyTemplateInfo.APP_INSTANCE_NAME, appInstance.getName().get(locale),
                 AppInstanceInvitationSoyTemplateInfo.REQUESTER_NAME, requester.getDisplayName(),
                 AppInstanceInvitationSoyTemplateInfo.INVITED_EMAIL, pendingAccessControlEntry.getEmail()
-            )
+            ),
+            BrandHelper.getBrandIdFromUri(uriInfo)
         ))
         .build();
   }
@@ -260,7 +262,7 @@ public class AppInstanceInvitationPage {
         .header("X-Frame-Options", "DENY")
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
-        .entity(new SoyTemplate(AppInstanceInvitationSoyInfo.APP_INSTANCE_INVITATION_TOKEN_ERROR, locale))
+        .entity(new SoyTemplate(AppInstanceInvitationSoyInfo.APP_INSTANCE_INVITATION_TOKEN_ERROR, locale, null, BrandHelper.getBrandIdFromUri(uriInfo)))
         .build();
   }
 
@@ -299,7 +301,8 @@ public class AppInstanceInvitationPage {
                 .put(AppInstanceInvitationAlreadyUserErrorSoyTemplateInfo.REQUESTER_NAME, requester.getDisplayName())
                 .put(AppInstanceInvitationAlreadyUserErrorSoyTemplateInfo.INVITED_EMAIL, pendingAccessControlEntry.getEmail())
                 .put(AppInstanceInvitationAlreadyUserErrorSoyTemplateInfo.CURRENT_USER, MoreObjects.firstNonNull(user.getEmail_address(), user.getDisplayName())
-            ).build()
+            ).build(),
+            BrandHelper.getBrandIdFromUri(uriInfo)
         ))
         .build();
   }

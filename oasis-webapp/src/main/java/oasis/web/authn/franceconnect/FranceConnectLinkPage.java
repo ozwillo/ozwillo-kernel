@@ -50,6 +50,7 @@ import oasis.auth.AuthModule;
 import oasis.model.DuplicateKeyException;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
+import oasis.services.branding.BrandHelper;
 import oasis.services.authn.UserPasswordAuthenticator;
 import oasis.soy.SoyTemplate;
 import oasis.soy.templates.FranceConnectSoyInfo;
@@ -88,20 +89,20 @@ public class FranceConnectLinkPage {
     locale = localeHelper.selectLocale(locale, request);
 
     if (continueUrl == null || encryptedState.isEmpty()) {
-      return FranceConnectCallback.badRequest(locale, Objects.toString(continueUrl, null));
+      return FranceConnectCallback.badRequest(locale, Objects.toString(continueUrl, null), BrandHelper.getBrandIdFromUri(uriInfo));
     }
 
     final FranceConnectLinkState state;
     try {
       state = FranceConnectLinkState.decrypt(authSettings, encryptedState);
     } catch (JoseException | IOException e) {
-      return FranceConnectCallback.badRequest(locale, continueUrl.toString());
+      return FranceConnectCallback.badRequest(locale, continueUrl.toString(), BrandHelper.getBrandIdFromUri(uriInfo));
     }
 
     if (securityContext.getUserPrincipal() != null) {
       // User has signed in since we displayed the form; error out to let him retry
       // XXX: directly reprocess the FC response (encoded in 'state') as in FranceConnectCallback, for better UX
-      return FranceConnectCallback.badRequest(locale, continueUrl.toString());
+      return FranceConnectCallback.badRequest(locale, continueUrl.toString(), BrandHelper.getBrandIdFromUri(uriInfo));
     }
 
     UserAccount account;
@@ -114,11 +115,11 @@ public class FranceConnectLinkPage {
 
     try {
       if (!accountRepository.linkToFranceConnect(account.getId(), state.franceconnect_sub())) {
-        return FranceConnectCallback.serverError(locale, continueUrl.toString());
+        return FranceConnectCallback.serverError(locale, continueUrl.toString(), BrandHelper.getBrandIdFromUri(uriInfo));
       }
     } catch (DuplicateKeyException dke) {
       // race condition
-      return FranceConnectCallback.serverError(locale, continueUrl.toString());
+      return FranceConnectCallback.serverError(locale, continueUrl.toString(), BrandHelper.getBrandIdFromUri(uriInfo));
     }
 
     return loginHelper.authenticate(account, headers, securityContext, continueUrl, state.id_token(), state.access_token(), () -> {

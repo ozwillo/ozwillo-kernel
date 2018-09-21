@@ -46,6 +46,7 @@ import oasis.model.authn.ClientType;
 import oasis.model.authn.CredentialsRepository;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
+import oasis.services.branding.BrandHelper;
 import oasis.services.authn.UserPasswordAuthenticator;
 import oasis.soy.SoyTemplate;
 import oasis.soy.templates.FranceConnectSoyInfo;
@@ -119,7 +120,7 @@ public class FranceConnectUnlinkPage {
 
     if (!accountRepository.unlinkFranceConnect(sidToken.getAccountId())) {
       UserAccount account = accountRepository.getUserAccountById(sidToken.getAccountId());
-      return FranceConnectCallback.serverError(account.getLocale(), null);
+      return FranceConnectCallback.serverError(account.getLocale(), null, BrandHelper.getBrandIdFromUri(uriInfo));
     }
     return redirectAfterSuccess();
   }
@@ -152,7 +153,8 @@ public class FranceConnectUnlinkPage {
 
     return rb
         .type(MediaType.TEXT_HTML_TYPE)
-        .entity(new SoyTemplate(FranceConnectSoyInfo.FRANCECONNECT_UNLINK, account.getLocale(), data.build()))
+        .entity(new SoyTemplate(FranceConnectSoyInfo.FRANCECONNECT_UNLINK, account.getLocale(), data.build(),
+            BrandHelper.getBrandIdFromUri(uriInfo)))
         .build();
   }
 

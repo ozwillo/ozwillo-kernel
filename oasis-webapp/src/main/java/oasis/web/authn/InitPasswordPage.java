@@ -35,6 +35,7 @@ import oasis.model.authn.ClientType;
 import oasis.model.authn.CredentialsRepository;
 import oasis.model.authn.SetPasswordToken;
 import oasis.model.authn.TokenRepository;
+import oasis.services.branding.BrandHelper;
 import oasis.services.authn.TokenHandler;
 import oasis.urls.Urls;
 
@@ -61,12 +62,14 @@ public class InitPasswordPage {
     SetPasswordToken setPasswordToken = tokenHandler.getCheckedToken(token, SetPasswordToken.class);
     if (setPasswordToken == null) {
       UserAccount account = accountRepository.getUserAccountById(userId);
-      return SetPasswordPage.form(Response.status(Response.Status.NOT_FOUND), authSettings, urls, account, SetPasswordPage.PasswordInitError.EXPIRED_LINK);
+      return SetPasswordPage.form(Response.status(Response.Status.NOT_FOUND), authSettings, urls, account, SetPasswordPage.PasswordInitError.EXPIRED_LINK,
+          BrandHelper.getBrandIdFromUri(uriInfo));
     }
 
     if (!userId.equals(setPasswordToken.getAccountId())) {
       UserAccount account = accountRepository.getUserAccountById(userId);
-      return SetPasswordPage.form(Response.status(Response.Status.FORBIDDEN), authSettings, urls, account, SetPasswordPage.PasswordInitError.BAD_USER);
+      return SetPasswordPage.form(Response.status(Response.Status.FORBIDDEN), authSettings, urls, account, SetPasswordPage.PasswordInitError.BAD_USER,
+          BrandHelper.getBrandIdFromUri(uriInfo));
     }
 
     UserAccount account = accountRepository.verifyEmailAddress(userId, false);

@@ -62,6 +62,7 @@ import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
+import oasis.services.branding.BrandHelper;
 import oasis.soy.SoyTemplate;
 import oasis.soy.templates.FranceConnectSoyInfo;
 import oasis.soy.templates.FranceConnectSoyInfo.FranceconnectErrorSoyTemplateInfo;
@@ -167,7 +168,7 @@ public class FranceConnectCallback {
       return Response.status(Response.Status.BAD_REQUEST)
           .type(MediaType.TEXT_HTML_TYPE)
           .entity(new SoyTemplate(FranceConnectSoyInfo.FRANCECONNECT_ALREADY_LINKED,
-              localeHelper.selectLocale(state.locale(), request)));
+              localeHelper.selectLocale(state.locale(), request), null, BrandHelper.getBrandIdFromUri(uriInfo)));
     } else {
       // FranceConnect identity unknown
       if (securityContext.getUserPrincipal() != null) {
@@ -313,27 +314,27 @@ public class FranceConnectCallback {
   private Response.ResponseBuilder error(Response.ResponseBuilder rb, @Nullable FranceConnectLoginState state) {
     return error(rb,
         localeHelper.selectLocale(state == null ? null : state.locale(), request),
-        state == null ? null : state.continueUrl().toString());
+        state == null ? null : state.continueUrl().toString(), BrandHelper.getBrandIdFromUri(uriInfo));
   }
 
-  static Response badRequest(ULocale locale, @Nullable String continueUrl) {
-    return error(Response.status(Response.Status.BAD_REQUEST), locale, continueUrl)
+  static Response badRequest(ULocale locale, @Nullable String continueUrl, String brandId) {
+    return error(Response.status(Response.Status.BAD_REQUEST), locale, continueUrl, brandId)
         .build();
   }
 
-  static Response serverError(ULocale locale, @Nullable String continueUrl) {
-    return error(Response.serverError(), locale, continueUrl)
+  static Response serverError(ULocale locale, @Nullable String continueUrl, String brandId) {
+    return error(Response.serverError(), locale, continueUrl, brandId)
         .build();
   }
 
-  private static Response.ResponseBuilder error(Response.ResponseBuilder rb, ULocale locale, @Nullable String continueUrl) {
+  private static Response.ResponseBuilder error(Response.ResponseBuilder rb, ULocale locale, @Nullable String continueUrl, String brandId) {
     ImmutableMap.Builder<String, String> data = ImmutableMap.<String, String>builderWithExpectedSize(2)
         .put(FranceconnectErrorSoyTemplateInfo.FRANCECONNECT, UriBuilder.fromResource(FranceConnectLogin.class).build().toString());
     if (continueUrl != null) {
       data.put(FranceconnectErrorSoyTemplateInfo.CONTINUE, continueUrl);
     }
     return rb.type(MediaType.TEXT_HTML_TYPE)
-        .entity(new SoyTemplate(FranceConnectSoyInfo.FRANCECONNECT_ERROR, locale, data.build()));
+        .entity(new SoyTemplate(FranceConnectSoyInfo.FRANCECONNECT_ERROR, locale, data.build(), brandId));
   }
 
   static class TokenResponse {

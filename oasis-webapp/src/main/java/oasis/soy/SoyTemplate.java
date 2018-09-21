@@ -36,24 +36,36 @@ public class SoyTemplate {
   @SuppressWarnings("Immutable")
   private final @Nullable ImmutableMap<String, ?> data;
 
+  private final String brandId;
+
   public SoyTemplate(SoyTemplateInfo templateInfo, ULocale locale) {
-    this(templateInfo, locale, null, null);
+    this(templateInfo, locale, null, null, null);
   }
 
   public SoyTemplate(SoyTemplateInfo templateInfo, ULocale locale, @Nullable ImmutableMap<String, ?> data) {
-    this(templateInfo, locale, null, data);
+    this(templateInfo, locale, null, data, null);
+  }
+
+  public SoyTemplate(SoyTemplateInfo templateInfo, ULocale locale, @Nullable ImmutableMap<String, ?> data, String brandId) {
+    this(templateInfo, locale, null, data, brandId);
   }
 
   public SoyTemplate(SoyTemplateInfo templateInfo, ULocale locale, @Nullable SanitizedContent.ContentKind contentKind) {
-    this(templateInfo, locale, contentKind, null);
+    this(templateInfo, locale, contentKind, null, null);
   }
 
   public SoyTemplate(SoyTemplateInfo templateInfo, ULocale locale, @Nullable SanitizedContent.ContentKind contentKind,
-      @Nullable ImmutableMap<String, ?> data) {
+                     @Nullable ImmutableMap<String, ?> data) {
+    this(templateInfo, locale, contentKind, data, null);
+  }
+
+  private SoyTemplate(SoyTemplateInfo templateInfo, ULocale locale, @Nullable SanitizedContent.ContentKind contentKind,
+      @Nullable ImmutableMap<String, ?> data, @Nullable String brandId) {
     this.templateInfo = Preconditions.checkNotNull(templateInfo);
     this.locale = locale;
     this.contentKind = MoreObjects.firstNonNull(contentKind, SanitizedContent.ContentKind.HTML);
     this.data = data;
+    this.brandId = brandId;
   }
 
   public SoyTemplateInfo getTemplateInfo() {
@@ -71,5 +83,9 @@ public class SoyTemplate {
   @Nullable
   public ImmutableMap<String, ?> getData() {
     return data;
+  }
+
+  public String getBrandId() {
+    return brandId;
   }
 }

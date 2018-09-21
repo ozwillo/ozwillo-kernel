@@ -19,6 +19,12 @@ package oasis.model.branding;
 
 // TODO: change into an interface and provide a Jongo-based implementation
 public class BrandRepository {
+  /** Returns the {@link BrandInfo} corresponding to the {@code brandId}, or the default brand info as a fallback. */
+  public BrandInfo getBrandInfo(String brandId) {
+    // We only handle the default brand for now.
+    return new BrandInfo();
+  }
+
   // TODO
   public byte[] getSmallLogo(String brandId) {
     return null;

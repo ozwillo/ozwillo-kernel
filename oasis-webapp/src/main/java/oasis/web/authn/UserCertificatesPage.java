@@ -26,6 +26,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -44,6 +45,7 @@ import oasis.model.authn.ClientCertificate;
 import oasis.model.authn.ClientCertificateRepository;
 import oasis.model.authn.ClientType;
 import oasis.model.authn.SidToken;
+import oasis.services.branding.BrandHelper;
 import oasis.soy.SoyTemplate;
 import oasis.soy.templates.UserCertificatesSoyInfo;
 import oasis.urls.Urls;
@@ -64,9 +66,9 @@ public class UserCertificatesPage {
 
   @GET
   @Path("")
-  public Response get() {
+  public Response get(@QueryParam(BrandHelper.BRAND_PARAM) @Nullable String brandId) {
     String accountId = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken().getAccountId();
-    return form(false, accountId, clientCertificateHelper.getClientCertificateData(headers.getRequestHeaders()));
+    return form(false, accountId, clientCertificateHelper.getClientCertificateData(headers.getRequestHeaders()), brandId);
   }
 
   @POST
@@ -76,7 +78,8 @@ public class UserCertificatesPage {
       @Context UriInfo uriInfo,
       @FormParam("subject") String subject,
       @FormParam("issuer") String issuer,
-      @FormParam("continue") @Nullable URI continueUrl
+      @FormParam("continue") @Nullable URI continueUrl,
+      @FormParam(BrandHelper.BRAND_PARAM) String brandId
   ) {
     if (continueUrl != null) {
       continueUrl = uriInfo.getBaseUri().relativize(continueUrl);
@@ -91,12 +94,12 @@ public class UserCertificatesPage {
     ClientCertificateData clientCertificateData = clientCertificateHelper.getClientCertificateData(headers.getRequestHeaders());
     if (clientCertificateData == null) {
       // No certificate, we shouldn't have received that request (unless the certificate was removed between page loads)
-      return redirectOrErrorForm(continueUrl, sidToken.getAccountId(), null);
+      return redirectOrErrorForm(continueUrl, sidToken.getAccountId(), null, brandId);
     }
     if (!clientCertificateData.getSubjectDN().equals(subject) ||
         !clientCertificateData.getIssuerDN().equals(issuer)) {
       // Bad certificate (must have been swapped between page loads, or form data being tampered)
-      return redirectOrErrorForm(continueUrl, sidToken.getAccountId(), clientCertificateData);
+      return redirectOrErrorForm(continueUrl, sidToken.getAccountId(), clientCertificateData, brandId);
     }
 
     if (sidToken.isUsingClientCertificate()) {
@@ -112,7 +115,7 @@ public class UserCertificatesPage {
     clientCertificate = clientCertificateRepository.saveClientCertificate(clientCertificate);
     if (clientCertificate == null) {
       // Certificate already linked (must be to other account), reject (we shouldn't have received that request)
-      return redirectOrErrorForm(continueUrl, sidToken.getAccountId(), clientCertificateData);
+      return redirectOrErrorForm(continueUrl, sidToken.getAccountId(), clientCertificateData, brandId);
     }
     return redirect(continueUrl);
   }
@@ -124,28 +127,28 @@ public class UserCertificatesPage {
     ).build();
   }
 
-  private Response redirectOrErrorForm(@Nullable URI continueUrl, String accountId, @Nullable ClientCertificateData clientCertificateData) {
+  private Response redirectOrErrorForm(@Nullable URI continueUrl, String accountId, @Nullable ClientCertificateData clientCertificateData, String brandId) {
     return continueUrl != null
         ? Response.seeOther(continueUrl).build()
-        : form(true, accountId, clientCertificateData);
+        : form(true, accountId, clientCertificateData, brandId);
   }
 
   @POST
   @StrictReferer
   @Path("/delete")
   public Response remove(
-      @FormParam("id") String id
-  ) {
+      @FormParam(BrandHelper.BRAND_PARAM) String brandId,
+      @FormParam("id") String id) {
     String accountId = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken().getAccountId();
 
     boolean success = clientCertificateRepository.deleteClientCertificate(ClientType.USER, accountId, id);
     if (success) {
       return Response.seeOther(UriBuilder.fromResource(UserCertificatesPage.class).path(UserCertificatesPage.class, "get").build()).build();
     }
-    return form(true, accountId, clientCertificateHelper.getClientCertificateData(headers.getRequestHeaders()));
+    return form(true, accountId, clientCertificateHelper.getClientCertificateData(headers.getRequestHeaders()), brandId);
   }
 
-  private Response form(boolean error, String accountId, @Nullable ClientCertificateData clientCertificateData) {
+  private Response form(boolean error, String accountId, @Nullable ClientCertificateData clientCertificateData, String brandId) {
     UserAccount account = accountRepository.getUserAccountById(accountId);
 
     ImmutableMap<String, Object> currentCert;
@@ -197,7 +200,8 @@ public class UserCertificatesPage {
         .header("X-Frame-Options", "DENY")
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
-        .entity(new SoyTemplate(UserCertificatesSoyInfo.USER_CERTIFICATES, account.getLocale(), data.build()))
+        .entity(new SoyTemplate(UserCertificatesSoyInfo.USER_CERTIFICATES, account.getLocale(), data.build(),
+            brandId))
         .build();
   }
 }

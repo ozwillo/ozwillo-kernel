@@ -65,6 +65,7 @@ import oasis.model.directory.OrganizationMembershipRepository;
 import oasis.model.notification.Notification;
 import oasis.model.notification.NotificationRepository;
 import oasis.services.authn.TokenHandler;
+import oasis.services.branding.BrandHelper;
 import oasis.soy.SoyTemplate;
 import oasis.soy.SoyTemplateRenderer;
 import oasis.soy.templates.OrgMembershipInvitationNotificationSoyInfo;
@@ -281,7 +282,8 @@ public class MembershipInvitationPage {
                 .put(MembershipInvitationSoyTemplateInfo.REQUESTER_NAME, requester.getDisplayName())
                 .put(MembershipInvitationSoyTemplateInfo.INVITED_EMAIL, pendingOrganizationMembership.getEmail())
                 .put(MembershipInvitationSoyTemplateInfo.PENDING_APPS, pendingAppInvitations)
-                .build()
+                .build(),
+            BrandHelper.getBrandIdFromUri(uriInfo)
         ))
         .build();
   }
@@ -294,7 +296,8 @@ public class MembershipInvitationPage {
         .header("X-Frame-Options", "DENY")
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
-        .entity(new SoyTemplate(OrgMembershipInvitationSoyInfo.MEMBERSHIP_INVITATION_TOKEN_ERROR, locale))
+        .entity(new SoyTemplate(OrgMembershipInvitationSoyInfo.MEMBERSHIP_INVITATION_TOKEN_ERROR, locale, null,
+            BrandHelper.getBrandIdFromUri(uriInfo)))
         .build();
   }
 
@@ -333,7 +336,8 @@ public class MembershipInvitationPage {
                 .put(MembershipInvitationAlreadyMemberErrorSoyTemplateInfo.REQUESTER_NAME, requester.getDisplayName())
                 .put(MembershipInvitationAlreadyMemberErrorSoyTemplateInfo.INVITED_EMAIL, pendingOrganizationMembership.getEmail())
                 .put(MembershipInvitationAlreadyMemberErrorSoyTemplateInfo.CURRENT_USER, MoreObjects.firstNonNull(user.getEmail_address(), user.getDisplayName()))
-                .build()
+                .build(),
+            BrandHelper.getBrandIdFromUri(uriInfo)
         ))
         .build();
   }

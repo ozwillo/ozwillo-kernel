@@ -23,10 +23,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.time.Clock;
 import java.time.ZoneId;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -76,9 +74,7 @@ import com.google.common.collect.Streams;
 import com.google.common.html.types.SafeHtml;
 import com.google.common.html.types.SafeHtmlBuilder;
 import com.google.common.html.types.SafeHtmls;
-import com.google.common.html.types.SafeUrls;
 import com.ibm.icu.text.DateFormat;
-import com.ibm.icu.util.TimeZone;
 import com.ibm.icu.util.ULocale;
 
 import oasis.auth.AuthModule;
@@ -105,6 +101,7 @@ import oasis.model.authz.AuthorizationRepository;
 import oasis.model.authz.AuthorizedScopes;
 import oasis.model.authz.Scopes;
 import oasis.model.bootstrap.ClientIds;
+import oasis.services.branding.BrandHelper;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.services.authz.AppAdminHelper;
@@ -493,7 +490,8 @@ public class AuthorizationEndpoint {
         .header("X-Frame-Options", "DENY")
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
-        .entity(new SoyTemplate(AuthorizeSoyInfo.ASK_FOR_CLIENT_CERTIFICATE, account.getLocale(), data.build()))
+        .entity(new SoyTemplate(AuthorizeSoyInfo.ASK_FOR_CLIENT_CERTIFICATE, account.getLocale(), data.build(),
+            BrandHelper.getBrandIdFromUri(uriInfo))) // TODO : get brandId from AppInstance
         .build();
   }
 
@@ -638,7 +636,8 @@ public class AuthorizationEndpoint {
         .header("X-Frame-Options", "DENY")
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
-        .entity(new SoyTemplate(AuthorizeSoyInfo.AUTHORIZE, account.getLocale(), data.build()))
+        .entity(new SoyTemplate(AuthorizeSoyInfo.AUTHORIZE, account.getLocale(), data.build(),
+            BrandHelper.getBrandIdFromUri(uriInfo)))// TODO : get brandId from AppInstance
         .build();
   }
 
