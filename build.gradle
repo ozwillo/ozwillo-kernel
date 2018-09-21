@@ -37,15 +37,13 @@ subprojects {
 
     licenses = [
       // libraries under several licenses: pick one
-      (group("org.javassist")):              apacheTwo,
-      (group("org.reflections")):            bsd,
       (group("org.jboss.spec.javax.ws.rs")): cddlOrGpl
     ]
     aliases = [
       (apacheTwo): [ "Apache License, Version 2.0", "Apache License, version 2.0", "The Apache License, Version 2.0", "The Apache Software License, Version 2.0", "ASL", "Apache 2", "Apache 2.0", "Apache License 2.0" ],
-      (bsd):       [ "The New BSD License", "BSD-like", "BSD", "BSD licence"/*sic!*/ ],
-      (mit):       [ "Bouncy Castle Licence", "ICU License", "MIT License" ],
-      (cddlOrGpl): [ "CDDL or GPLv2 with exceptions" ],
+      (bsd):       [ "The New BSD License", "BSD-like", "BSD", "BSD licence", "BSD 3-Clause", "3-Clause BSD License" ],
+      (mit):       [ "Bouncy Castle Licence", "Unicode/ICU License", "MIT License", "MIT license", "The MIT License" ],
+      (cddlOrGpl): [ "CDDL or GPLv2 with exceptions", "Dual license consisting of the CDDL v1.1 and GPL v2" ],
     ]
   }
 
