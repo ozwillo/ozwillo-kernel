@@ -25,6 +25,7 @@
 {@param? error:          string} /** error; can be one of MISSING_REQUIRED_FIELD, MESSAGING_ERROR, or EXPIRED_LINK */
 {@param  locale_url_map: map<string,string>}
 {@inject current_locale: string} /** current locale. */
+{@inject brand_info:     map<string,string>}
 {call .page}
   {param title kind="text"}{msg desc="Forgot password page title"}Forgot password{/msg}{/param}
   {param locale_url_map: $locale_url_map /}
@@ -40,8 +41,8 @@ h2 {lb} margin-bottom: 2.5em; {rb}
 
 .btn-row {lb} margin-top: 1.8em; text-align: center; {rb}
 .btn-row button {lb}
-  border: 1px solid #4c2d62;
-  background: #6f438e; color: #fff;
+  border: 1px solid {$brand_info['main_color_dark']};
+  background: {$brand_info['main_color']}; color: {$brand_info['button_text_color']};
   cursor: pointer;
   margin: 5px 1em;
   padding: .5em 2em;
@@ -49,9 +50,9 @@ h2 {lb} margin-bottom: 2.5em; {rb}
 {rb}
 .btn-row button img {lb} vertical-align: middle; margin-right: 10px; {rb}
 </style>
-  <h1><img src="/images/ozwillo.png" alt="Ozwillo" width=200 height=55></h1>
+  <h1><img src="/images/logo/large_{$brand_info['brand_id']}.png" alt="Ozwillo" width=200 height=55></h1>
   {if $error}
-    <p style="color: white; background: #d9534f; font-weight: bold; padding: 10px; text-align: center;">
+    <p style="color: {$brand_info['error_text_color']}; background: {$brand_info['error_background_color']}; font-weight: bold; padding: 10px; text-align: center;">
     {switch $error}
     {case 'MISSING_REQUIRED_FIELD'}
       {msg desc="Error message during account recovery"}Some required fields are not filled.{/msg}
@@ -114,6 +115,7 @@ h1 {lb} text-align: center; font-weight: lighter; font-size: 1.8em; {rb}
 {@param  emailAddress: string} /** email address for the account to recover */
 {@param  locale:       string} /** current locale, to be propagated to subsequent requests. */
 {@param? error:        string} /** error; can be one of MISSING_REQUIRED_FIELD */
+{@inject brand_info:   map<string,string>}
 {call .page}
   {param title kind="text"}{msg desc="Reset password page title"}Password reset{/msg}{/param}
   {param content kind="html"}
@@ -128,8 +130,8 @@ h2 {lb} margin-bottom: 2.5em; {rb}
 
 .btn-row {lb} margin-top: 1.8em; text-align: center; {rb}
 .btn-row button {lb}
-  border: 1px solid #4c2d62;
-  background: #6f438e; color: #fff;
+  border: 1px solid {$brand_info['main_color_dark']};
+  background: {$brand_info['main_color']}; color: {$brand_info['button_text_color']};
   cursor: pointer;
   margin: 5px 1em;
   padding: .5em 2em;
@@ -137,9 +139,9 @@ h2 {lb} margin-bottom: 2.5em; {rb}
 {rb}
 .btn-row button img {lb} vertical-align: middle; margin-right: 10px; {rb}
 </style>
-  <h1><img src="/images/ozwillo.png" alt="Ozwillo" width=200 height=55></h1>
+  <h1><img src="/images/logo/large_{$brand_info['brand_id']}.png" alt="Ozwillo" width=200 height=55></h1>
   {if $error}
-    <p style="color: white; background: #d9534f; font-weight: bold; padding: 10px; text-align: center;">
+    <p style="color: {$brand_info['error_text_color']}; background: {$brand_info['error_background_color']}; font-weight: bold; padding: 10px; text-align: center;">
     {switch $error}
     {case 'MISSING_REQUIRED_FIELD'}
       {msg desc="Error message during account recovery"}Some required fields are not filled.{/msg}

@@ -39,6 +39,7 @@
 {@param  essentialClaimMissing:             bool}   /** for disabling the submit button when claims are empty */
 {@param? updateProfileUrl:                  string} /** url to update the profile */
 {@param? updateProfileOrigin:               string} /** url of the origin to check the post message */
+{@inject brand_info:                        map<string,string>}
 {call .page}
   {param title kind="text"}{msg desc="Authorization page title"}Authorize {$appName}{/msg}{/param}
   {param content kind="html"}
@@ -47,18 +48,18 @@ h1 {lb} font-weight: lighter; font-size: 1.8em; text-align: center; {rb}
 button, a.cancel {lb}
   margin: 5px 1em;
   padding: .5em 2em;
-  border: 1px solid #4c2d62;
+  border: 1px solid {$brand_info['main_color_dark']};
   cursor: pointer;
   text-decoration: none;
   display: inline-block;
 {rb}
 button {lb}
-  background: #6f438e; color: white;
+  background: {$brand_info['main_color']}; color: {$brand_info['button_text_color']};
 {rb}
 a.cancel {lb}
-  background: white; color: #6f438e;
+  background: {$brand_info['main_background_color']}; color: {$brand_info['main_color']};
 {rb}
-a {lb} color: #6f438e; {rb}
+a {lb} color: {$brand_info['main_color']}; {rb}
 
 button:disabled {lb}
   opacity: 0.7;
@@ -70,7 +71,7 @@ button:disabled {lb}
   {/msg}</h1>
 
   {if $askForClientCertificate}
-    <div style="background: #f0ad4e; color: white; border-radius: 10px; padding: .5em; margin: 2.5em auto; max-width: 500px">
+    <div style="background: {$brand_info['warning_background_color']}; color: {$brand_info['warning_text_color']}; border-radius: 10px; padding: .5em; margin: 2.5em auto; max-width: 500px">
       {call .askForClientCertificatePartial data="$askForClientCertificate"}
         {param appName: $appName /}
       {/call}
@@ -180,6 +181,7 @@ button:disabled {lb}
 {@param? nonce:                   string} /** 'nonce' request parameter */
 {@param? code_challenge:          string} /** 'code_challenge' request parameter */
 {@param  askForClientCertificate: [manageCertificatesUrl: string, hasRegisteredCertificate: bool, currentCert: null|[addFormAction: string, continueUrl: string, subject: string, issuer: string, linkedToOtherAccount: bool|null]]}
+{@inject brand_info:              map<string,string>}
 
 {call .page}
   {param title kind="text"}{msg desc="Authorization page title"}Authorize {$appName}{/msg}{/param}
@@ -189,18 +191,18 @@ h1 {lb} font-weight: lighter; font-size: 1.8em; text-align: center; {rb}
 button, a.cancel {lb}
   margin: 5px 1em;
   padding: .5em 2em;
-  border: 1px solid #4c2d62;
+  border: 1px solid {$brand_info['main_color_dark']};
   cursor: pointer;
   text-decoration: none;
   display: inline-block;
 {rb}
 button {lb}
-  background: #6f438e; color: white;
+  background: {$brand_info['main_color']}; color: {$brand_info['button_text_color']};
 {rb}
 button.continue, a.cancel {lb}
-  background: white; color: #6f438e;
+  background: {$brand_info['main_background_color']}; color: {$brand_info['main_color']};
 {rb}
-a {lb} color: #6f438e; {rb}
+a {lb} color: {$brand_info['main_color']}; {rb}
 </style>
   <h1>{msg desc="Some app asks for stronger authentication (client certificate)"}
     {$appName} asks for stronger authentication
@@ -345,6 +347,7 @@ a {lb} color: #6f438e; {rb}
   {@param  claims: map<string, [value: html|string|null, alreadyAuthorized: bool, essential: bool]>} /** List of scope name and value. */
   {@param  allClaimsAlreadyAuthorized:        bool}   /** When all the scope have been already authorized. */
   {@param? updateProfileUrl:                  string} /** url to update the profile */
+  {@inject brand_info:                        map<string,string>}
 
 <style>
 .row-claim {lb}
@@ -353,11 +356,11 @@ a {lb} color: #6f438e; {rb}
   flex-wrap: wrap;
 {rb}
 .row-required {lb}
-  color: #F01D11;
+  color: {$brand_info['claim_required_text_color']};
   font-weight: bold;
 {rb}
 .row-need-auth {lb}
-  color: black;
+  color: {$brand_info['claim_need_auth_text_color']};
   font-weight: bold;
 {rb}
 .claim-name {lb}

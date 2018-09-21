@@ -26,6 +26,7 @@
 {@param  content:          html}   /** content of the page. */
 {@inject landing_page_url: string}
 {@inject current_locale:   string} /** current locale. */
+{@inject brand_info:       map<string,string>}
 <!DOCTYPE html>
 <html lang="{$current_locale}">
 <head>
@@ -74,10 +75,10 @@ header > nav {lb} max-width: 1170px; padding: 0 15px; /* values from portal's bo
 main {lb} max-width: 700px; margin: 0 auto; border-width: 50px 15px 15px; border-style: solid {rb}
 footer {lb} max-width: 500px; margin: 0 auto; {rb}
 
-html,body {lb} background: #dfcae2; color: #4f5a65; {rb}
-.page-wrap {lb} background: #6f438e; {rb}
-header,main {lb} background: white; color: #636884; {rb}
-main {lb} border-color: #6f438e; {rb}
+html,body {lb} background: {$brand_info['footer_background_color']}; color: {$brand_info['footer_text_color']}; {rb}
+.page-wrap {lb} background: {$brand_info['main_color']}; {rb}
+header,main {lb} background: {$brand_info['main_background_color']}; color: {$brand_info['text_color']}; {rb}
+main {lb} border-color: {$brand_info['main_color']}; {rb}
 
 header > nav {lb} display: flex; justify-content: space-between; {rb}
 main {lb} padding: 25px 10px; {rb}
@@ -86,21 +87,21 @@ footer::after {lb} display: block; content: " "; clear: both; {rb}
 
 * {lb} font-family: Roboto, Arial, sans-serif; font-size: 100%; {rb}
 
-input {lb} border: 1px solid #6f438e; border-radius: 3px; padding: 7px 10px; {rb}
-input:focus {lb} border-color: #4c2d62; color: #4c2d62; {rb}
+input {lb} border: 1px solid {$brand_info['main_color']}; border-radius: 3px; padding: 7px 10px; {rb}
+input:focus {lb} border-color: {$brand_info['main_color_dark']}; color: {$brand_info['main_color_dark']}; {rb}
 
 input:not([type=checkbox]) {lb} font-weight: normal; width: 100%; max-width: 200px; {rb}
 label {lb} font-weight: lighter; {rb}
 
 /* most styles copied from Bootstrap */
 #localeselector {lb} position: relative; {rb}
-#localeselector > button {lb} padding: 14px 15px; border: none; color: #636884; background: transparent; {rb}
+#localeselector > button {lb} padding: 14px 15px; border: none; color: {$brand_info['text_color']}; background: transparent; {rb}
 #localeselector:not(:hover) > #locales-menu {lb} display: none; {rb}
 #locales-menu {lb}
   list-style: none;
   position: absolute; right: 0;
   margin: 0; padding: 5px 0;
-  background: white;
+  background: {$brand_info['main_background_color']};
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
   background-clip: padding-box;
   border: 1px solid rgba(0, 0, 0, 0.15);
@@ -108,11 +109,11 @@ label {lb} font-weight: lighter; {rb}
   font-size: 16px;
   min-width: 160px;
 {rb}
-#locales-menu > li > a {lb} display: block; padding: 5px 20px; color: #333; background: white; text-decoration: none {rb}
+#locales-menu > li > a {lb} display: block; padding: 5px 20px; color: {$brand_info['text_color']}; background: {$brand_info['main_background_color']}; text-decoration: none {rb}
 #localeselector:hover > button,
 #locales-menu:not(:hover) > li > a.selected,
 #locales-menu > li > a:hover {lb}
-  color: #555; background: #eee;
+  color: {$brand_info['text_color_hover']}; background: {$brand_info['background_color_hover']};
 {rb}
 </style>
 /* BUILD WILL INSERT FAVICONS SNIPPET HERE */
@@ -122,7 +123,7 @@ label {lb} font-weight: lighter; {rb}
 <div class=page-wrap>
 <header>
   <nav>
-    <a href="{$landing_page_url}" title="{msg desc="link title on header logo"}Go to the Ozwillo portal{/msg}" style="padding:3px 15px 4px;display:inline-block;"><img src="/images/logo_ozwillo.png" alt="Ozwillo" width=108 height=43 valign=middle></a>
+    <a href="{$landing_page_url}" title="{msg desc="link title on header logo"}Go to the Ozwillo portal{/msg}" style="padding:3px 15px 4px;display:inline-block;"><img src="/images/logo/small_{$brand_info['brand_id']}.png" alt="Ozwillo" width=108 height=43 valign=middle></a>
 
     {if $locale_url_map and length(mapKeys($locale_url_map)) > 0}
       {call .locale_selector}
@@ -188,7 +189,8 @@ label {lb} font-weight: lighter; {rb}
  * Webview detector.
  */
 {template .webviewDetector}
-<p id="isWebview" style="display: none; color: white; background: #d9534f; font-weight: bold; padding: 10px; text-align: center;">
+  {@inject brand_info: map<string,string>}
+<p id="isWebview" style="display: none; color: {$brand_info['error_text_color']}; background: {$brand_info['error_background_color']}; font-weight: bold; padding: 10px; text-align: center;">
   We've detected this page runs in a possibly insecure context.<br>
   For your security, please open the page in your browser before proceeding.
 </p>

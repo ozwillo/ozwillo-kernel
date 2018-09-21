@@ -27,6 +27,7 @@
 {@param  acceptFormAction: string} /** URL to post the accept form to. */
 {@param  refuseFormAction: string} /** URL to post the refuse form to. */
 {@param  pendingApps:      list<string>} /** List of pending app instance invitations. */
+{@inject brand_info:       map<string,string>}
 
 {call .page}
   {param title kind="text"}{msg desc="membership invitation page"}Accept or refuse membership invitation{/msg}{/param}
@@ -35,10 +36,10 @@
 main {lb} text-align: center; {rb}
 h1 {lb} font-weight: lighter; font-size: 1.8em; {rb}
 button {lb}
-  background: #6f438e; color: white;
+  background: {$brand_info['main_color']}; color: {$brand_info['button_text_color']};
   margin: 5px 1em;
   padding: .5em 2em;
-  border: 1px solid #4c2d62;
+  border: 1px solid {$brand_info['main_color_dark']};
   cursor: pointer;
   text-decoration: none;
   display: inline-block;
@@ -120,6 +121,7 @@ h1 {lb} font-weight: lighter; font-size: 1.8em; {rb}
 {@param  currentUser:      string} /** Current user. */
 {@param  logoutPageUrl:    string} /** URL to sign out of Ozwillo. */
 {@param  refuseFormAction: string} /** URL to post the refuse form to. */
+{@inject brand_info:       map<string,string>}
 
 {call .page}
   {param title kind="text"}{msg desc="membership invitation page"}Accept or refuse membership invitation{/msg}{/param}
@@ -128,10 +130,10 @@ h1 {lb} font-weight: lighter; font-size: 1.8em; {rb}
 main {lb} text-align: center; {rb}
 h1 {lb} font-weight: lighter; font-size: 1.8em; {rb}
 button, a.logout {lb}
-  background: #6f438e; color: white;
+  background: {$brand_info['main_color']}; color: {$brand_info['button_text_color']};
   margin: 5px 1em;
   padding: .5em 2em;
-  border: 1px solid #4c2d62;
+  border: 1px solid {$brand_info['main_color_dark']};
   cursor: pointer;
   text-decoration: none;
   display: inline-block;

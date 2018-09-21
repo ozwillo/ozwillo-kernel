@@ -28,6 +28,7 @@
 {@param  certs: list<[id: string, subject: string, issuer: string]>} /** certificates already linked to the account. */
 {@param? currentCert: [id: string|null, subject: string, issuer: string, linkedToOtherAccount: bool|null]} /** current certificate. If it has an 'id' then it's already registered.' */
 {@param? portalUrl:        string} /** URL of the Portal. */
+{@inject brand_info:       map<string,string>}
 {call .page}
   {param title kind="text"}{msg desc="User certificates page title"}Certificates{/msg}{/param}
   {param content kind="html"}
@@ -36,17 +37,17 @@ h1 {lb} font-weight: lighter; font-size: 1.8em; text-align: center; {rb}
 h2 {lb} font-weight: lighter; font-size: 1.8em; {rb}
 button, a.portal {lb}
   margin: 5px 1em;
-  border: 1px solid #4c2d62;
+  border: 1px solid {$brand_info['main_color_dark']};
   cursor: pointer;
   text-decoration: none;
   display: inline-block;
 {rb}
 button {lb}
-  background: #6f438e; color: white;
+  background: {$brand_info['main_color']}; color: {$brand_info['button_text_color']};
   padding: .25em 1em;
 {rb}
 a.portal {lb}
-  background: white; color: #6f438e;
+  background: {$brand_info['main_background_color']}; color: {$brand_info['main_color']};
   padding: .5em 2em;
 {rb}
 
@@ -59,7 +60,7 @@ a.portal {lb}
 </style>
   <h1>{msg desc="Certificates for user (heading)"}Certificates for {$email}{/msg}</h1>
   {if $error}
-    <p style="color: white; background: #d9534f; font-weight: bold; padding: 10px; text-align: center;">
+    <p style="color: {$brand_info['error_text_color']}; background: {$brand_info['error_background_color']}; font-weight: bold; padding: 10px; text-align: center;">
       {msg desc="Generic error message"}An error occurred. That's all we know.{/msg}
     </p>
   {/if}

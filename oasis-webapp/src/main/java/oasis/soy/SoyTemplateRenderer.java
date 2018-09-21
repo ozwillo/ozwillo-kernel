@@ -37,6 +37,8 @@ import com.ibm.icu.text.DisplayContext;
 import com.ibm.icu.text.LocaleDisplayNames;
 import com.ibm.icu.util.ULocale;
 
+import oasis.model.branding.BrandInfo;
+import oasis.services.branding.BrandHelper;
 import oasis.urls.Urls;
 import oasis.web.i18n.LocaleHelper;
 
@@ -110,6 +112,8 @@ public class SoyTemplateRenderer {
   }
 
   public void render(SoyTemplate template, Appendable writer) {
+    BrandInfo brandInfo = new BrandInfo();
+
     SoyMsgBundle msgBundle = soyMsgBundleLoader.get(template.getLocale());
     soyTofu.newRenderer(template.getTemplateInfo())
         .setData(template.getData())
@@ -118,7 +122,8 @@ public class SoyTemplateRenderer {
             "landing_page_url", urls.landingPage().map(URI::toString).orElse(""),
             "current_locale", msgBundle.getLocaleString(),
             "locale_name_map", LOCALE_NAMES,
-            "supported_locales", SUPPORTED_LOCALES.getUnchecked(msgBundle.getLocaleString())
+            "supported_locales", SUPPORTED_LOCALES.getUnchecked(msgBundle.getLocaleString()),
+            "brand_info", BrandHelper.toMap(brandInfo)
         ))
         .setContentKind(template.getContentKind())
         .render(writer);

@@ -68,6 +68,7 @@ import oasis.web.authz.IntrospectionEndpoint;
 import oasis.web.authz.KeysEndpoint;
 import oasis.web.authz.RevokeEndpoint;
 import oasis.web.authz.TokenEndpoint;
+import oasis.web.branding.Logo;
 import oasis.web.eventbus.EventBusEndpoint;
 import oasis.web.notifications.NotificationEndpoint;
 import oasis.web.openidconnect.OpenIdProviderConfigurationEndpoint;
@@ -149,6 +150,7 @@ public class Application extends javax.ws.rs.core.Application {
         // EventBus
         EventBusEndpoint.class,
         // Resources
+        Logo.class,
         StaticResources.class,
         UserDirectoryEndpoint.class,
         OrganizationEndpoint.class,
