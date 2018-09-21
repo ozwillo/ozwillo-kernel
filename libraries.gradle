@@ -81,10 +81,14 @@ ext.libs = [
 
   closure_templates_standalone: dependencies.create("com.google.template:soy:2018-03-14") {
       exclude group: "com.google.gwt"
+      exclude group: "com.google.code.gson"
+      exclude group: "org.json"
   },
   closure_templates:   [
       dependencies.create("com.google.template:soy:2018-03-14") {
-        exclude group: "com.google.gwt"
+          exclude group: "com.google.gwt"
+          exclude group: "com.google.code.gson"
+          exclude group: "org.json"
       },
       "com.google.inject.extensions:guice-assistedinject:$guiceVersion",
       "com.google.inject.extensions:guice-multibindings:$guiceVersion",
