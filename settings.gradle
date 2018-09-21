@@ -1,13 +1,3 @@
-pluginManagement {
-  resolutionStrategy {
-    eachPlugin {
-      if (requested.id.id == "de.thetaphi.forbiddenapis") {
-        useModule("de.thetaphi:forbiddenapis:${requested.version}")
-      }
-    }
-  }
-}
-
 rootProject.name = "oasis"
 
 include("oasis-model")

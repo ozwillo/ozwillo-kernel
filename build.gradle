@@ -1,10 +1,10 @@
 plugins {
-  id("net.ltgt.errorprone") version "0.0.13"
-  id("net.ltgt.apt") version "0.15"
+  id("net.ltgt.errorprone") version "0.6"
+  id("net.ltgt.apt") version "0.18"
   id("com.github.hierynomus.license") version "0.14.0"
 
-  id("de.thetaphi.forbiddenapis") version "2.5" apply false
-  id("nebula.deb") version "4.8.0" apply false
+  id("de.thetaphi.forbiddenapis") version "2.6" apply false
+  id("nebula.deb") version "5.0.1" apply false
 }
 apply {
   from("./libraries.gradle")
@@ -58,6 +58,7 @@ subprojects {
   }
   dependencies {
     errorprone("com.google.errorprone:error_prone_core:2.3.1")
+    errorproneJavac("com.google.errorprone:javac:9+181-r4173-1")
   }
 
   apply {
@@ -78,13 +79,13 @@ subprojects {
       bundledSignatures = [ "jdk-unsafe", "jdk-deprecated", "jdk-system-out" ]
     }
 
-    tasks.withType(JavaCompile) {
+    tasks.withType(JavaCompile).configureEach {
       options.encoding = "UTF-8"
       options.compilerArgs += [ "-Werror", "-Xlint:all", "-Xlint:-processing", "-Xlint:-serial", "-Xlint:-path" ]
     }
 
     if (versionlessOutputs) {
-      tasks.withType(AbstractArchiveTask) {
+      tasks.withType(AbstractArchiveTask).configureEach {
         archiveName = "${baseName}.${extension}"
       }
     }

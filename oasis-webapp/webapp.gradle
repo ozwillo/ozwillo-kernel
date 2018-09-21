@@ -43,7 +43,7 @@ dependencies {
   testCompile(libs.resteasy_testing)
 }
 
-processResources {
+tasks.named("processResources").configure {
   inputs.file("src/main/ozwillo-style/favicons/snippet_head_for_favicons.html")
       .withPathSensitivity(PathSensitivity.NONE)
 
@@ -67,7 +67,8 @@ configurations {
 dependencies {
   soy(libs.closure_templates_standalone)
 }
-task generateSoyParseInfo(type: JavaExec) {
+ext.generateSoyParseInfoOutputDir = "$buildDir/generated/source/soy/"
+tasks.register("generateSoyParseInfo", JavaExec) {
   def srcs = sourceSets.main.resources.matching {
     include "**/*.soy"
     exclude "**/Common.soy"
@@ -78,11 +79,10 @@ task generateSoyParseInfo(type: JavaExec) {
   inputs.files(srcs).skipWhenEmpty()
   inputs.files(deps)
 
-  ext.outputDir = "$buildDir/generated/source/soy/"
-  outputs.dir(outputDir)
+  outputs.dir(generateSoyParseInfoOutputDir)
 
   doFirst {
-    project.delete(outputDir)
+    project.delete(generateSoyParseInfoOutputDir)
   }
 
   def javaPackage = "oasis.soy.templates"
@@ -92,28 +92,30 @@ task generateSoyParseInfo(type: JavaExec) {
   args = [
       "--javaPackage",          javaPackage,
       "--javaClassNameSource",  "filename",
-      "--outputDirectory",      "$outputDir/${javaPackage.replace(".", "/")}/",
+      "--outputDirectory",      "$generateSoyParseInfoOutputDir/${javaPackage.replace(".", "/")}/",
       "--srcs",                 srcs.files.join(","),
       "--deps",                 deps.files.join(","),
       "--allowExternalCalls",   "false",
     ]
 }
 sourceSets.main.java {
-  srcDir(generateSoyParseInfo.outputDir)
+  srcDir(generateSoyParseInfoOutputDir)
 }
-compileJava.dependsOn(generateSoyParseInfo)
+tasks.named("compileJava").configure { dependsOn("generateSoyParseInfo") }
 idea {
   module {
-    generatedSourceDirs += file(generateSoyParseInfo.outputDir)
+    generatedSourceDirs += file(generateSoyParseInfoOutputDir)
   }
 }
 project.afterEvaluate {
   licenseMain {
-    source = sourceSets.main.allSource.minus(fileTree(generateSoyParseInfo.outputDir))
+    source = sourceSets.main.allSource.minus(fileTree(generateSoyParseInfoOutputDir))
   }
 }
 
-task run(type: JavaExec, dependsOn: classes) {
+tasks.register("run", JavaExec) {
+  dependsOn("classes")
+
   main = "oasis.web.WebApp"
   classpath = sourceSets.main.runtimeClasspath
   systemProperties = System.getProperties().findAll { it.key.startsWith("oasis.") } \
@@ -124,7 +126,9 @@ task run(type: JavaExec, dependsOn: classes) {
     ]
 }
 
-task bootstrap(type: JavaExec, dependsOn: classes) {
+tasks.register("bootstrap", JavaExec) {
+  dependsOn("classes")
+
   main = "oasis.tools.Bootstrap"
   classpath = sourceSets.main.runtimeClasspath
   systemProperties = System.getProperties().findAll { it.key.startsWith("oasis.") } \
@@ -139,7 +143,9 @@ task bootstrap(type: JavaExec, dependsOn: classes) {
     ]
 }
 
-task setPassword(type: JavaExec, dependsOn: classes) {
+tasks.register("setPassword", JavaExec) {
+  dependsOn("classes")
+
   main = "oasis.tools.SetPassword"
   classpath = sourceSets.main.runtimeClasspath
   systemProperties = System.getProperties().findAll { it.key.startsWith("oasis.") } \
@@ -171,7 +177,7 @@ task setPassword(type: JavaExec, dependsOn: classes) {
   }
 }
 
-task extractMessagesFromTemplates(type: JavaExec) {
+tasks.register("extractMessagesFromTemplates", JavaExec) {
   def srcs = sourceSets.main.resources.matching {
     include("**/*.soy")
   }

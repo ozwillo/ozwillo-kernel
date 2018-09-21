@@ -27,7 +27,7 @@ dependencies {
   distLib(project(path: ":oasis-webapp", configuration: "runtime"))
 }
 
-task deb(type: Deb) {
+tasks.register("deb", Deb) {
   outputs.cacheIf { true }
 
   packageName = oasis.service
@@ -120,7 +120,7 @@ task deb(type: Deb) {
     postUninstallFile = file("$buildDir/tmp/debControl/postrm")
   }
 }
-assemble.dependsOn deb
+tasks.named("assemble").configure { dependsOn("deb") }
 
 downloadLicenses {
   dependencyConfiguration = "distLib"
