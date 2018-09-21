@@ -62,13 +62,25 @@ public class GuiceInjectorFactory implements InjectorFactory {
   }
 
   @Override
+  @Deprecated
   public ValueInjector createParameterExtractor(Class injectTargetClass, AccessibleObject injectTarget, Class type, Type genericType, Annotation[] annotations, ResteasyProviderFactory factory) {
     return delegate.createParameterExtractor(injectTargetClass, injectTarget, type, genericType, annotations, factory);
   }
 
   @Override
+  public ValueInjector createParameterExtractor(Class injectTargetClass, AccessibleObject injectTarget, String defaultName, Class type, Type genericType, Annotation[] annotations, ResteasyProviderFactory factory) {
+    return delegate.createParameterExtractor(injectTargetClass, injectTarget, defaultName, type, genericType, annotations, factory);
+  }
+
+  @Override
+  @Deprecated
   public ValueInjector createParameterExtractor(Class injectTargetClass, AccessibleObject injectTarget, Class type, Type genericType, Annotation[] annotations, boolean useDefault, ResteasyProviderFactory factory) {
     return delegate.createParameterExtractor(injectTargetClass, injectTarget, type, genericType, annotations, useDefault, factory);
+  }
+
+  @Override
+  public ValueInjector createParameterExtractor(Class injectTargetClass, AccessibleObject injectTarget, String defaultName, Class type, Type genericType, Annotation[] annotations, boolean useDefault, ResteasyProviderFactory factory) {
+    return delegate.createParameterExtractor(injectTargetClass, injectTarget, defaultName, type, genericType, annotations, useDefault, factory);
   }
 
   @Override
