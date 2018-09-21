@@ -64,8 +64,8 @@ ext.libs = [
     ],
 
   resteasy_netty:      [
-      "org.jboss.resteasy:resteasy-netty:$resteasyVersion",
-      "io.netty:netty:3.10.6.Final",
+      "org.jboss.resteasy:resteasy-netty4:$resteasyVersion",
+      "io.netty:netty-all:4.1.29.Final",
     ],
 
   resteasy_client:     [
