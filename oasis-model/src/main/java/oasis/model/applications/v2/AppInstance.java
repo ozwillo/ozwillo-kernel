@@ -25,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import oasis.model.annotations.Id;
+import oasis.model.bootstrap.ClientIds;
 import oasis.model.i18n.LocalizableString;
 
 public class AppInstance extends CommonProperties {
@@ -41,6 +42,7 @@ public class AppInstance extends CommonProperties {
   private String status_changed_uri;
   private String status_changed_secret;
   @JsonProperty private Boolean redirect_uri_validation_disabled;
+  @JsonProperty private String portal_id;
 
   public AppInstance() {
     status = InstantiationStatus.PENDING;
@@ -68,6 +70,7 @@ public class AppInstance extends CommonProperties {
     status_changed_uri = other.getStatus_changed_uri();
     status_changed_secret = other.getStatus_changed_secret();
     redirect_uri_validation_disabled = other.redirect_uri_validation_disabled;
+    portal_id = other.portal_id;
   }
 
   public String getId() {
@@ -165,6 +168,16 @@ public class AppInstance extends CommonProperties {
 
   public void unsetRedirect_uri_validation_disabled() {
     this.redirect_uri_validation_disabled = null;
+  }
+
+  @JsonIgnore
+  public String getPortal_id() {
+    return portal_id == null ? ClientIds.PORTAL : portal_id;
+  }
+
+  @JsonIgnore
+  public void setPortal_id(String portal_id) {
+    this.portal_id = ClientIds.PORTAL.equals(portal_id) ? null : portal_id;
   }
 
   public static class NeededScope {

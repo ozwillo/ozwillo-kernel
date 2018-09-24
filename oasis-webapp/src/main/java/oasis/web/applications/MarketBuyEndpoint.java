@@ -64,6 +64,7 @@ import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.applications.v2.Application;
 import oasis.model.applications.v2.ApplicationRepository;
 import oasis.model.applications.v2.CatalogEntry;
+import oasis.model.authn.AccessToken;
 import oasis.model.authn.ClientType;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Organization;
@@ -155,10 +156,13 @@ public class MarketBuyEndpoint {
       }
     }
 
+    final AccessToken accessToken = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken();
+
     instance.setApplication_id(application.getId());
-    String userId = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId();
+    String userId = accessToken.getAccountId();
     instance.setInstantiator_id(userId);
     instance.setStatus(AppInstance.InstantiationStatus.PENDING);
+    instance.setPortal_id(accessToken.getServiceProviderId());
 
     instance = appInstanceRepository.createAppInstance(instance);
     String pwd = passwordGenerator.generate();
