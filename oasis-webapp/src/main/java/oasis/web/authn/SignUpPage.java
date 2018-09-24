@@ -125,6 +125,7 @@ public class SignUpPage {
       URI activationLink = uriInfo.getBaseUriBuilder()
           .path(ActivateAccountPage.class)
           .queryParam(LoginPage.LOCALE_PARAM, account.getLocale().toLanguageTag())
+          .queryParam(BrandHelper.BRAND_PARAM, BrandHelper.getBrandIdFromUri(uriInfo))
           .build(TokenSerializer.serialize(accountActivationToken, pass));
 
       mailSender.send(new MailMessage()

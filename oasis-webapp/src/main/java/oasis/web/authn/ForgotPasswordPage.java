@@ -107,6 +107,7 @@ public class ForgotPasswordPage {
         URI resetPasswordLink = uriInfo.getBaseUriBuilder()
             .path(ResetPasswordPage.class)
             .queryParam(LoginPage.LOCALE_PARAM, locale.toLanguageTag())
+            .queryParam(BrandHelper.BRAND_PARAM, BrandHelper.getBrandIdFromUri(uriInfo))
             .build(TokenSerializer.serialize(changePasswordToken, pass));
 
         mailSender.send(new MailMessage()

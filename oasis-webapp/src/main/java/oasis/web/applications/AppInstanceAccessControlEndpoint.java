@@ -66,6 +66,7 @@ import oasis.model.notification.NotificationRepository;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.services.authz.AppAdminHelper;
+import oasis.services.branding.BrandHelper;
 import oasis.services.etag.EtagService;
 import oasis.soy.SoyTemplate;
 import oasis.soy.SoyTemplateRenderer;
@@ -263,6 +264,7 @@ public class AppInstanceAccessControlEndpoint {
     // Body data
     URI uri = uriInfo.getBaseUriBuilder().path(AppInstanceInvitationPage.class)
         .path(AppInstanceInvitationPage.class, "showInvitation")
+        .queryParam(BrandHelper.BRAND_PARAM, BrandHelper.getBrandIdFromUri(uriInfo))
         .build(TokenSerializer.serialize(appInstanceInvitationToken, tokenPass));
     data.put(NewAppInstanceInvitationBodySoyTemplateInfo.APP_INSTANCE_INVITATION_URL, uri.toString());
     // These are actually the same keys as above (and the same values), so would create duplicates:

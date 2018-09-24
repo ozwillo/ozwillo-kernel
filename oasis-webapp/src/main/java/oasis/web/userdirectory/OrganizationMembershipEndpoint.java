@@ -61,6 +61,7 @@ import oasis.model.notification.Notification;
 import oasis.model.notification.NotificationRepository;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
+import oasis.services.branding.BrandHelper;
 import oasis.services.etag.EtagService;
 import oasis.soy.SoyTemplate;
 import oasis.soy.SoyTemplateRenderer;
@@ -200,6 +201,7 @@ public class OrganizationMembershipEndpoint {
     // Body data
     URI uri = uriInfo.getBaseUriBuilder().path(MembershipInvitationPage.class)
         .path(MembershipInvitationPage.class, "showInvitation")
+        .queryParam(BrandHelper.BRAND_PARAM, BrandHelper.getBrandIdFromUri(uriInfo))
         .build(TokenSerializer.serialize(membershipInvitationToken, tokenPass));
     data.put(NewMembershipInvitationBodySoyTemplateInfo.MEMBERSHIP_INVITATION_URL, uri.toString());
     // This is actually the same key as above (and the same value), so would create a duplicate:

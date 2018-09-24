@@ -107,6 +107,7 @@ public class SetPasswordPage {
     URI initPasswordLink = uriInfo.getBaseUriBuilder()
         .path(InitPasswordPage.class)
         .queryParam(LoginPage.LOCALE_PARAM, account.getLocale().toLanguageTag())
+        .queryParam(BrandHelper.BRAND_PARAM, BrandHelper.getBrandIdFromUri(uriInfo))
         .build(TokenSerializer.serialize(setPasswordToken, pass));
     try {
       mailSender.send(new MailMessage()
