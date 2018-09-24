@@ -43,6 +43,7 @@ import javax.ws.rs.core.UriInfo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
 import com.google.common.collect.Streams;
 
 import oasis.model.applications.v2.AppInstance;
@@ -105,6 +106,11 @@ public class AppInstanceEndpoint {
     // XXX: keep the redirect_uri_validation_disabled "secret"
     instance.unsetRedirect_uri_validation_disabled();
 
+    // XXX: hide the portal to non-portal clients
+    if (!accessToken.isPortal()) {
+      instance.setPortal_id(null);
+    }
+
     return Response.ok()
         .tag(etagService.getEtag(instance))
         .entity(instance)
@@ -120,7 +126,8 @@ public class AppInstanceEndpoint {
     }
 
     AccessToken accessToken = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken();
-    if (!instanceId.equals(accessToken.getServiceProviderId()) && !accessToken.isPortal()) {
+    final boolean isPortal = accessToken.isPortal();
+    if (!instanceId.equals(accessToken.getServiceProviderId()) && !isPortal) {
       return ResponseFactory.forbidden("Cannot list services of another instance");
     }
     if (!appAdminHelper.isAdmin(accessToken.getAccountId(), instance)) {
@@ -128,12 +135,15 @@ public class AppInstanceEndpoint {
     }
 
     Iterable<Service> services = serviceRepository.getServicesOfInstance(instanceId);
-    // TODO: check that the instance exists and return a 404 otherwise
     return Response.ok()
         .entity(new GenericEntity<Stream<Service>>(Streams.stream(services)
             .map(input -> {
               // XXX: don't send secrets over the wire
               input.setSubscription_secret(null);
+              // XXX: hide 'portals' to non-portal clients
+              if (!isPortal) {
+                input.setPortals(null);
+              }
               return input;
             })) {})
         .build();
@@ -165,6 +175,7 @@ public class AppInstanceEndpoint {
     // The instance could be STOPPED
     Service.Status serviceStatus = Service.Status.forAppInstanceStatus(instance.getStatus());
     service.setStatus(serviceStatus);
+    service.setPortals(Sets.newHashSet(instance.getPortal_id()));
     service = serviceRepository.createService(service);
     if (service == null) {
       if (appInstanceRepository.getAppInstance(instanceId) == null) {

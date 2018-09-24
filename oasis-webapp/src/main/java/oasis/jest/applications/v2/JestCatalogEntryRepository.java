@@ -189,6 +189,10 @@ public class JestCatalogEntryRepository implements CatalogEntryRepository, JestB
       mustFiltersBuilder.must(shouldFiltersBuilder);
     }
 
+    if (!Strings.isNullOrEmpty(request.portal())) {
+      mustFiltersBuilder.must(FilterBuilders.termFilter("portals", request.portal()));
+    }
+
     if (!mustFiltersBuilder.hasClauses()) {
       return FilterBuilders.matchAllFilter();
     }

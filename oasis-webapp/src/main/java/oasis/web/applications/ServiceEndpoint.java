@@ -78,6 +78,7 @@ public class ServiceEndpoint {
       return ResponseFactory.notFound("Service not found");
     }
 
+    final boolean isPortal;
     if (!service.isVisible()) {
       // only the admins or designated users should be able to see the service if it's "hidden"
       // and only through the "portal" app
@@ -86,7 +87,8 @@ public class ServiceEndpoint {
         return OAuthAuthenticationFilter.challengeResponse();
       }
       AccessToken accessToken = principal.getAccessToken();
-      if (!accessToken.isPortal()) {
+      isPortal = accessToken.isPortal();
+      if (!isPortal) {
         return Response.status(Response.Status.FORBIDDEN).build();
       }
       String userId = accessToken.getAccountId();
@@ -94,10 +96,16 @@ public class ServiceEndpoint {
       if (!isAppUser && !isAppAdmin(userId, service)) {
         return ResponseFactory.forbidden("Current user is neither an app_admin or app_user for the service");
       }
+    } else {
+      isPortal = false;
     }
 
     // XXX: don't send secrets over the wire
     service.setSubscription_secret(null);
+    // XXX: hide 'portals' to non-portal clients
+    if (!isPortal) {
+      service.setPortals(null);
+    }
 
     return Response.ok()
         .tag(etagService.getEtag(service))

@@ -43,5 +43,6 @@ public interface CatalogEntryRepository {
     Set<CatalogEntry.TargetAudience> target_audience();
     Set<CatalogEntry.PaymentOption> payment_option();
     Set<String> category_id();
+    @Nullable String portal();
   }
 }

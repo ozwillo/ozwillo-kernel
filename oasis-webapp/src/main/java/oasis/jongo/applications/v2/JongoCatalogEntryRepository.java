@@ -34,6 +34,7 @@ import org.jongo.Jongo;
 import org.jongo.MongoCollection;
 
 import com.google.common.base.Predicates;
+import com.google.common.base.Strings;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
@@ -43,13 +44,15 @@ import com.ibm.icu.util.LocaleMatcher;
 import com.ibm.icu.util.LocalePriorityList;
 import com.ibm.icu.util.ULocale;
 
+import oasis.jongo.JongoBootstrapper;
 import oasis.model.applications.v2.CatalogEntry;
 import oasis.model.applications.v2.CatalogEntryRepository;
 import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.SimpleCatalogEntry;
+import oasis.model.bootstrap.ClientIds;
 
 @Value.Enclosing
-public class JongoCatalogEntryRepository implements CatalogEntryRepository {
+public class JongoCatalogEntryRepository implements CatalogEntryRepository, JongoBootstrapper {
 
   private final Jongo jongo;
 
@@ -64,6 +67,17 @@ public class JongoCatalogEntryRepository implements CatalogEntryRepository {
 
   private MongoCollection getServicesCollection() {
     return jongo.getCollection(JongoServiceRepository.SERVICES_COLLECTION);
+  }
+
+  @Override
+  public void bootstrap() {
+    Stream.of(getApplicationsCollection(), getServicesCollection()).forEach(collection -> {
+      collection.update("{ portals: { $exists: false } }")
+          .multi()
+          .with("{ $set: { portals: [ # ] } }", ClientIds.PORTAL);
+
+      collection.ensureIndex("{ portals: 1 }");
+    });
   }
 
   @Override
@@ -94,6 +108,10 @@ public class JongoCatalogEntryRepository implements CatalogEntryRepository {
       addIfNotEmpty(request.target_audience(), "target_audience", query, params);
       addIfNotEmpty(request.payment_option(), "payment_option", query, params);
       addIfNotEmpty(request.category_id(), "category_ids", query, params);
+      if (!Strings.isNullOrEmpty(request.portal())) {
+        query.add("portals: #");
+        params.add(request.portal());
+      }
       // TODO: return entries with visible:false but which are visible to the current user
       // TODO: return entries with visible:false / visibility:HIDDEN/NEVER_VISIBLE but which are visible to the current user
       // visible:true is for applications (and old services); visibility:'VISIBLE' for newer services
@@ -118,6 +136,7 @@ public class JongoCatalogEntryRepository implements CatalogEntryRepository {
         fields.put("category_ids", 1);
         fields.put("contacts", 1);
         fields.put("screenshot_uris", 1);
+        fields.put("portals", 1);
         fields.put("modified", 1); // used to compute ETag eventually
         for (Locale candidateLocale : control.getCandidateLocales("", request.displayLocale().toLocale())) {
           final String suffix = Locale.ROOT.equals(candidateLocale)

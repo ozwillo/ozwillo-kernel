@@ -167,6 +167,7 @@ public class InstanceRegistrationEndpoint {
         service.setInstance_id(instanceId);
         service.setProvider_id(instance.getProvider_id());
         service.setStatus(serviceStatus);
+        service.setPortals(Sets.newHashSet(instance.getPortal_id()));
         service = serviceRepository.createService(service);
         acknowledgementResponse.put(service.getLocal_id(), service.getId());
 

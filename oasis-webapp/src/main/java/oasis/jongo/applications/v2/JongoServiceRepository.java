@@ -131,6 +131,7 @@ public class JongoServiceRepository implements ServiceRepository, JongoBootstrap
     service.setLocal_id(null);
     service.setInstance_id(null);
     service.setProvider_id(null);
+    service.setPortals(null);
     // FIXME: allow unsetting properties; for now only support visible/restricted
     Map<String, Boolean> unsetObject = new LinkedHashMap<>();
     if (service.getVisible() == null) {

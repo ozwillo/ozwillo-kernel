@@ -56,6 +56,7 @@ public class ApplicationEndpoint {
       return ResponseFactory.notFound("Application not found");
     }
 
+    final boolean isPortal;
     if (!application.isVisible()) {
       // only the application admins should be able to see it if it's "hidden"
       // and only through the "portal" app
@@ -64,7 +65,8 @@ public class ApplicationEndpoint {
         return OAuthAuthenticationFilter.challengeResponse();
       }
       AccessToken accessToken = principal.getAccessToken();
-      if (!accessToken.isPortal()) {
+      isPortal = accessToken.isPortal();
+      if (!isPortal) {
         return Response.status(Response.Status.FORBIDDEN).build();
       }
       OrganizationMembership organizationMembership = organizationMembershipRepository.getOrganizationMembership(accessToken.getAccountId(), application.getProvider_id());
@@ -74,11 +76,18 @@ public class ApplicationEndpoint {
       if (!organizationMembership.isAdmin()) {
         return ResponseFactory.forbidden("Current user is not an administrator of the application's provider organization");
       }
+    } else {
+      isPortal = false;
     }
 
     // XXX: don't send the secrets over the wire
     application.setInstantiation_secret(null);
     application.setCancellation_secret(null);
+
+    // XXX: hide 'portals' to non-portal clients
+    if (!isPortal) {
+      application.setPortals(null);
+    }
 
     // TODO: send back the link to the MarketBuyEndpoint
     return Response.ok(application).build();

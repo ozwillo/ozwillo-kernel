@@ -19,11 +19,9 @@ package oasis.web.applications;
 
 import java.net.URI;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
@@ -43,6 +41,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Streams;
 import com.ibm.icu.util.ULocale;
 
 import oasis.model.accounts.AccountRepository;
@@ -51,6 +50,8 @@ import oasis.model.applications.v2.CatalogEntry;
 import oasis.model.applications.v2.CatalogEntryRepository;
 import oasis.model.applications.v2.ImmutableCatalogEntryRepository;
 import oasis.model.applications.v2.SimpleCatalogEntry;
+import oasis.model.authn.AccessToken;
+import oasis.model.bootstrap.ClientIds;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
 
@@ -93,8 +94,10 @@ public class MarketSearchEndpoint {
       @Nullable @FormParam("payment_option") Set<CatalogEntry.PaymentOption> payment_option,
       @Nullable @FormParam("category_id") Set<String> category_id
   ) {
+    final AccessToken accessToken = ((OAuthPrincipal) context.getUserPrincipal()).getAccessToken();
+
     if (locale == null && context.getUserPrincipal() != null) {
-      String accountId = ((OAuthPrincipal) context.getUserPrincipal()).getAccessToken().getAccountId();
+      String accountId = accessToken.getAccountId();
       UserAccount account = accountRepository.getUserAccountById(accountId);
       locale = account.getLocale();
     }
@@ -116,12 +119,28 @@ public class MarketSearchEndpoint {
         .addAllTarget_audience(preProcess(target_audience))
         .addAllPayment_option(preProcess(payment_option))
         .addAllCategory_id(preProcessStr(category_id))
+        // Behave like the canonical portal for non-portal clients
+        // XXX: should this endpoint only be accessible to portals?
+        .portal(accessToken.isPortal() ? accessToken.getServiceProviderId() : ClientIds.PORTAL)
         .build();
-    return Response.ok()
-        .entity(new GenericEntity<Iterable<SimpleCatalogEntry>>(
-            catalogEntryRepository.search(request)
-        ) {})
-        .build();
+    final Iterable<SimpleCatalogEntry> results = catalogEntryRepository.search(request);
+    if (accessToken.isPortal()) {
+      return Response.ok()
+          .entity(new GenericEntity<Iterable<SimpleCatalogEntry>>(results) {})
+          .build();
+    } else {
+      // hide 'portals' to non-portal clients
+      // XXX: should this endpoint only be accessible to portals?
+      return Response.ok()
+          .entity(new GenericEntity<Stream<SimpleCatalogEntry>>(
+              Streams.stream(results)
+                  .map(entry -> {
+                    entry.setPortals(null);
+                    return entry;
+                  })
+              ) {})
+          .build();
+    }
   }
 
   private Iterable<String> preProcessStr(@Nullable Collection<String> strings) {

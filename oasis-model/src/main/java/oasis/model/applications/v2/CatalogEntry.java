@@ -40,6 +40,7 @@ public abstract class CatalogEntry extends CommonProperties {
   private List<ULocale> supported_locales;
   private Set<URI> geographical_areas;
   private Set<URI> restricted_areas;
+  private Set<String> portals;
 
   protected CatalogEntry() {
     target_audience = new ArrayList<>();
@@ -51,6 +52,7 @@ public abstract class CatalogEntry extends CommonProperties {
     supported_locales = new ArrayList<>();
     geographical_areas = new HashSet<>();
     restricted_areas = new HashSet<>();
+    portals = new HashSet<>();
   }
 
   /**
@@ -70,6 +72,7 @@ public abstract class CatalogEntry extends CommonProperties {
     supported_locales = new ArrayList<>(other.getSupported_locales());
     geographical_areas = new HashSet<>(other.getGeographical_areas());
     restricted_areas = new HashSet<>(other.getRestricted_areas());
+    portals = new HashSet<>(other.portals);
   }
 
   public String getId() {
@@ -162,6 +165,14 @@ public abstract class CatalogEntry extends CommonProperties {
 
   public void setRestricted_areas(Set<URI> restricted_areas) {
     this.restricted_areas = restricted_areas;
+  }
+
+  public Set<String> getPortals() {
+    return portals;
+  }
+
+  public void setPortals(Set<String> portals) {
+    this.portals = portals;
   }
 
   public static enum EntryType {
