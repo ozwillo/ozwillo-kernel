@@ -48,6 +48,8 @@ import oasis.model.authn.ClientCertificate;
 import oasis.model.authn.ClientCertificateRepository;
 import oasis.model.authn.ClientType;
 import oasis.model.authn.SidToken;
+import oasis.model.branding.BrandInfo;
+import oasis.model.branding.BrandRepository;
 import oasis.soy.SoyGuiceModule;
 import oasis.urls.ImmutableUrls;
 import oasis.urls.UrlsModule;
@@ -97,12 +99,14 @@ public class UserCertificatesPageTest {
   @Inject ClientCertificateRepository clientCertificateRepository;
   @Inject ClientCertificateHelper clientCertificateHelper;
 
-  @Before public void setupMocks(AccountRepository accountRepository, ClientCertificateRepository clientCertificateRepository) {
+  @Before public void setupMocks(AccountRepository accountRepository, ClientCertificateRepository clientCertificateRepository,
+      BrandRepository brandRepository) {
     when(accountRepository.getUserAccountById(someUserAccount.getId())).thenReturn(someUserAccount);
 //    when(clientCertificateRepository.getClientCertificate(someCertificate.getSubject_dn(), someCertificate.getIssuer_dn())).thenReturn(someCertificate);
 
     // We don't verify the HTML response, so just supply an empty list to avoid exceptions.
     when(clientCertificateRepository.getClientCertificatesForClient(ClientType.USER, someUserAccount.getId())).thenReturn(ImmutableList.<ClientCertificate>of());
+    when(brandRepository.getBrandInfo(any())).thenReturn(new BrandInfo());
   }
 
   @Before public void setUp() throws Exception {

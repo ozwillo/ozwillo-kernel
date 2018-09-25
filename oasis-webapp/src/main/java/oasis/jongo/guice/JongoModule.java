@@ -40,6 +40,7 @@ import oasis.jongo.authn.JongoCredentialsRepository;
 import oasis.jongo.authn.JongoJtiRepository;
 import oasis.jongo.authn.JongoTokenRepository;
 import oasis.jongo.authz.JongoAuthorizationRepository;
+import oasis.jongo.branding.JongoBrandRepository;
 import oasis.jongo.directory.JongoDirectoryRepository;
 import oasis.jongo.directory.JongoOrganizationMembershipRepository;
 import oasis.jongo.etag.JongoEtagService;
@@ -56,6 +57,7 @@ import oasis.model.authn.CredentialsRepository;
 import oasis.model.authn.JtiRepository;
 import oasis.model.authn.TokenRepository;
 import oasis.model.authz.AuthorizationRepository;
+import oasis.model.branding.BrandRepository;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.OrganizationMembershipRepository;
 import oasis.model.eventbus.SubscriptionRepository;
@@ -130,6 +132,7 @@ public class JongoModule extends AbstractModule {
     bind(CredentialsRepository.class).to(JongoCredentialsRepository.class);
     bind(EtagService.class).to(JongoEtagService.class);
     bind(ClientCertificateRepository.class).to(JongoClientCertificateRepository.class);
+    bind(BrandRepository.class).to(JongoBrandRepository.class);
 
     Multibinder<JongoBootstrapper> bootstrappers = newSetBinder(binder(), JongoBootstrapper.class);
     bootstrappers.addBinding().to(JongoAccountRepository.class);
@@ -148,5 +151,6 @@ public class JongoModule extends AbstractModule {
     bootstrappers.addBinding().to(JongoUserSubscriptionRepository.class);
     bootstrappers.addBinding().to(JongoAccessControlRepository.class);
     bootstrappers.addBinding().to(JongoClientCertificateRepository.class);
+    bootstrappers.addBinding().to(JongoBrandRepository.class);
   }
 }

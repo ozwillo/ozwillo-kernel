@@ -18,6 +18,7 @@
 package oasis.web.authn;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -46,6 +47,8 @@ import oasis.model.accounts.UserAccount;
 import oasis.model.applications.v2.AppInstance;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
+import oasis.model.branding.BrandInfo;
+import oasis.model.branding.BrandRepository;
 import oasis.model.i18n.LocalizableString;
 import oasis.security.KeyPairLoader;
 import oasis.services.cookies.CookieFactory;
@@ -113,8 +116,9 @@ public class LogoutPageFranceConnectTest {
   @Inject @Rule public InProcessResteasy resteasy;
 
   @Before
-  public void setUpMocks(SessionManagementHelper sessionManagementHelper) {
+  public void setUpMocks(SessionManagementHelper sessionManagementHelper, BrandRepository brandRepository) {
     when(sessionManagementHelper.generateBrowserState()).thenReturn("browser-state");
+    when(brandRepository.getBrandInfo(any())).thenReturn(new BrandInfo());
   }
 
   @Before public void setUp() {

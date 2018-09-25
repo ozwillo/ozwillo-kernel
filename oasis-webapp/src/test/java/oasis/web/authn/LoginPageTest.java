@@ -63,6 +63,8 @@ import oasis.model.authn.Credentials;
 import oasis.model.authn.CredentialsRepository;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
+import oasis.model.branding.BrandInfo;
+import oasis.model.branding.BrandRepository;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.services.authn.UserPasswordAuthenticator;
@@ -158,7 +160,8 @@ public class LoginPageTest {
 
   @SuppressWarnings("unchecked")
   @Before public void setupMocks(UserPasswordAuthenticator userPasswordAuthenticator, TokenHandler tokenHandler, SessionManagementHelper sessionManagementHelper,
-      AccountRepository accountRepository, TokenRepository tokenRepository, CredentialsRepository credentialsRepository) throws LoginException {
+      AccountRepository accountRepository, TokenRepository tokenRepository, CredentialsRepository credentialsRepository,
+      BrandRepository brandRepository) throws LoginException {
     when(userPasswordAuthenticator.authenticate(someUserAccount.getEmail_address(), "password")).thenReturn(someUserAccount);
     when(userPasswordAuthenticator.authenticate(someUserAccount.getEmail_address(), "invalid")).thenThrow(FailedLoginException.class);
     when(userPasswordAuthenticator.authenticate(otherUserAccount.getEmail_address(), "password")).thenReturn(otherUserAccount);
@@ -184,6 +187,7 @@ public class LoginPageTest {
     when(tokenRepository.reAuthSidToken(anyString())).thenReturn(true);
 
     when(sessionManagementHelper.generateBrowserState()).thenReturn("browser-state");
+    when(brandRepository.getBrandInfo(any())).thenReturn(new BrandInfo());
   }
 
   @After public void verifyMocks(SessionManagementHelper sessionManagementHelper) {

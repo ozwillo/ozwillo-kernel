@@ -17,8 +17,6 @@
  */
 package oasis.model.branding;
 
-import com.google.common.collect.ImmutableMap;
-
 import oasis.model.annotations.Id;
 
 public class BrandInfo {

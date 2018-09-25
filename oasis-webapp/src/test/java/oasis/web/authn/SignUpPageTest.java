@@ -56,6 +56,8 @@ import oasis.model.applications.v2.ServiceRepository;
 import oasis.model.authn.AccountActivationToken;
 import oasis.model.authn.ClientType;
 import oasis.model.authn.CredentialsRepository;
+import oasis.model.branding.BrandInfo;
+import oasis.model.branding.BrandRepository;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.UserPasswordAuthenticator;
 import oasis.soy.SoyGuiceModule;
@@ -106,13 +108,14 @@ public class SignUpPageTest {
 
   @Inject Urls urls;
 
-  @Before public void setupMocks(AccountRepository accountRepository, TokenHandler tokenHandler) {
+  @Before public void setupMocks(AccountRepository accountRepository, TokenHandler tokenHandler, BrandRepository brandRepository) {
     when(accountRepository.createUserAccount(refEq(someUserAccount, "id"), eq(false)))
         .thenReturn(someUserAccount);
 
     when(tokenHandler.generateRandom()).thenReturn("pass");
     when(tokenHandler.createAccountActivationToken(eq(someActivationToken.getAccountId()), nullable(URI.class), eq("pass")))
         .thenReturn(someActivationToken);
+    when(brandRepository.getBrandInfo(any())).thenReturn(new BrandInfo());
   }
 
   @Before public void setUp() {

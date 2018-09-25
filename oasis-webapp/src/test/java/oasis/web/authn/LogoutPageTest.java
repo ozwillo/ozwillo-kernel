@@ -60,6 +60,8 @@ import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.ServiceRepository;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
+import oasis.model.branding.BrandInfo;
+import oasis.model.branding.BrandRepository;
 import oasis.model.i18n.LocalizableString;
 import oasis.security.KeyPairLoader;
 import oasis.services.cookies.CookieFactory;
@@ -122,7 +124,7 @@ public class LogoutPageTest {
   @Inject @Rule public InProcessResteasy resteasy;
 
   @Before public void setUpMocks(AccountRepository accountRepository, AppInstanceRepository appInstanceRepository,
-      ServiceRepository serviceRepository, SessionManagementHelper sessionManagementHelper) {
+      ServiceRepository serviceRepository, SessionManagementHelper sessionManagementHelper, BrandRepository brandRepository) {
     when(accountRepository.getUserAccountById(account.getId())).thenReturn(account);
 
     when(appInstanceRepository.getAppInstance(appInstance.getId())).thenReturn(appInstance);
@@ -132,6 +134,7 @@ public class LogoutPageTest {
         .thenReturn(service);
 
     when(sessionManagementHelper.generateBrowserState()).thenReturn("browser-state");
+    when(brandRepository.getBrandInfo(any())).thenReturn(new BrandInfo());
   }
 
   @Before public void setUp() {

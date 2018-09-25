@@ -89,6 +89,7 @@ import oasis.model.authz.AuthorizedScopes;
 import oasis.model.authz.Scopes;
 import oasis.model.bootstrap.ClientIds;
 import oasis.model.branding.BrandInfo;
+import oasis.model.branding.BrandRepository;
 import oasis.model.i18n.LocalizableString;
 import oasis.security.KeyPairLoader;
 import oasis.services.authn.TokenHandler;
@@ -274,7 +275,7 @@ public class AuthorizationEndpointTest {
   @Before public void setUpMocks(AccountRepository accountRepository, AuthorizationRepository authorizationRepository,
       AppInstanceRepository appInstanceRepository, ServiceRepository serviceRepository,
       ScopeRepository scopeRepository, TokenHandler tokenHandler, SessionManagementHelper sessionManagementHelper,
-      ClientCertificateRepository clientCertificateRepository) {
+      ClientCertificateRepository clientCertificateRepository, BrandRepository brandRepository) {
     when(accountRepository.getUserAccountById(account.getId())).thenReturn(account);
 
     when(appInstanceRepository.getAppInstance(appInstance.getId())).thenReturn(appInstance);
@@ -331,6 +332,8 @@ public class AuthorizationEndpointTest {
         .thenReturn(serviceClientCertificate);
     // TODO: check for various cases where user has certificates or not; for now simply avoid an NPE by returning an empty iterable.
     when(clientCertificateRepository.getClientCertificatesForClient(ClientType.USER, account.getId())).thenReturn(Collections.emptyList());
+
+    when(brandRepository.getBrandInfo(any())).thenReturn(new BrandInfo());
   }
 
   @Before public void setUp() {
