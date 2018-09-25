@@ -32,6 +32,7 @@ import oasis.web.applications.MarketBuyEndpoint;
 import oasis.web.applications.MarketSearchEndpoint;
 import oasis.web.applications.OrganizationAppInstanceEndpoint;
 import oasis.web.applications.PendingAccessControlEntryEndpoint;
+import oasis.web.applications.PortalMarketSearchEndpoint;
 import oasis.web.applications.ServiceEndpoint;
 import oasis.web.applications.ServiceSubscriptionEndpoint;
 import oasis.web.applications.SubscriptionEndpoint;
@@ -160,6 +161,7 @@ public class Application extends javax.ws.rs.core.Application {
         OrganizationMembershipEndpoint.class,
         MarketSearchEndpoint.class,
         MarketBuyEndpoint.class,
+        PortalMarketSearchEndpoint.class,
         InstanceRegistrationEndpoint.class,
         ApplicationEndpoint.class,
         AppInstanceEndpoint.class,

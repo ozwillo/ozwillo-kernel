@@ -18,39 +18,22 @@
 package oasis.web.applications;
 
 import java.util.Iterator;
-import java.util.stream.Stream;
 
 import javax.ws.rs.Path;
-
-import com.google.common.collect.Streams;
 
 import oasis.model.applications.v2.ImmutableCatalogEntryRepository;
 import oasis.model.applications.v2.SimpleCatalogEntry;
 import oasis.model.authn.AccessToken;
-import oasis.model.bootstrap.ClientIds;
+import oasis.web.authn.Portal;
 
-@Path("/m/search")
-public class MarketSearchEndpoint extends AbstractMarketSearchEndpoint {
+@Path("/p/m/search")
+@Portal
+public class PortalMarketSearchEndpoint extends AbstractMarketSearchEndpoint {
   @Override
   protected Iterator<SimpleCatalogEntry> doSearch(
       AccessToken accessToken, ImmutableCatalogEntryRepository.SearchRequest.Builder requestBuilder) {
-    // TODO: add information about apps the user has already "bought" (XXX: limit to client_id=portal! to avoid leaking data)
-    Iterable<SimpleCatalogEntry> results = catalogEntryRepository.search(requestBuilder
-        // Behave like the canonical portal for non-portal clients
-        // XXX: should this endpoint only be accessible to portals?
-        .portal(accessToken.isPortal() ? accessToken.getServiceProviderId() : ClientIds.PORTAL)
-        .build());
-    if (accessToken.isPortal()) {
-      return results.iterator();
-    } else {
-      // hide 'portals' to non-portal clients
-      // XXX: should this endpoint only be accessible to portals?
-      return Streams.stream(results)
-          .map(entry -> {
-            entry.setPortals(null);
-            return entry;
-          })
-          .iterator();
-    }
+    return catalogEntryRepository.search(
+        requestBuilder.portal(null).build()
+    ).iterator();
   }
 }
