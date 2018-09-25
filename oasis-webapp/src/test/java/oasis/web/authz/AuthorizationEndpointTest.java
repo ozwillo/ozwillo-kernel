@@ -88,11 +88,13 @@ import oasis.model.authz.AuthorizationRepository;
 import oasis.model.authz.AuthorizedScopes;
 import oasis.model.authz.Scopes;
 import oasis.model.bootstrap.ClientIds;
+import oasis.model.branding.BrandInfo;
 import oasis.model.i18n.LocalizableString;
 import oasis.security.KeyPairLoader;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.services.authz.AppAdminHelper;
+import oasis.services.branding.BrandHelper;
 import oasis.services.cookies.CookieFactory;
 import oasis.soy.SoyGuiceModule;
 import oasis.urls.ImmutableUrls;
@@ -1244,6 +1246,7 @@ public class AuthorizationEndpointTest {
     assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
     UriInfo location = new ResteasyUriInfo(response.getLocation());
     assertThat(location.getAbsolutePath()).isEqualTo(resteasy.getBaseUriBuilder().path(LoginPage.class).build());
+    assertThat(location.getQueryParameters().getFirst(BrandHelper.BRAND_PARAM)).isEqualTo(BrandInfo.DEFAULT_BRAND);
 
     UriInfo continueUrl = new ResteasyUriInfo(URI.create(location.getQueryParameters().getFirst(LoginPage.CONTINUE_PARAM)));
     assertThat(continueUrl.getAbsolutePath()).isEqualTo(resteasy.getBaseUriBuilder().path(AuthorizationEndpoint.class).build());

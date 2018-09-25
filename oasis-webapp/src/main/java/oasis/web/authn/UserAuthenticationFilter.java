@@ -34,6 +34,8 @@ import javax.ws.rs.ext.Provider;
 import com.google.common.net.UrlEscapers;
 import com.ibm.icu.util.ULocale;
 
+import oasis.services.branding.BrandHelper;
+
 @Authenticated @User
 @Provider
 @Priority(Priorities.AUTHENTICATION)
@@ -48,13 +50,15 @@ public class UserAuthenticationFilter implements ContainerRequestFilter {
   }
 
   private void loginResponse(ContainerRequestContext requestContext) {
-    requestContext.abortWith(loginResponse(requestContext.getUriInfo().getRequestUri(), null, null));
+    requestContext.abortWith(loginResponse(requestContext.getUriInfo().getRequestUri(), null, null,
+        BrandHelper.getBrandIdFromUri(requestContext.getUriInfo())));
   }
 
-  public static Response loginResponse(URI continueUrl, ULocale locale, @Nullable String cancelUrl) {
+  public static Response loginResponse(URI continueUrl, ULocale locale, @Nullable String cancelUrl, String brandId) {
     final UriBuilder redirectUri = UriBuilder
         .fromResource(LoginPage.class)
-        .queryParam(LoginPage.CONTINUE_PARAM, UrlEscapers.urlFormParameterEscaper().escape(continueUrl.toString()));
+        .queryParam(LoginPage.CONTINUE_PARAM, UrlEscapers.urlFormParameterEscaper().escape(continueUrl.toString()))
+        .queryParam(BrandHelper.BRAND_PARAM, brandId);
     if (locale != null) {
       redirectUri.queryParam(LoginPage.LOCALE_PARAM, UrlEscapers.urlFormParameterEscaper().escape(locale.toLanguageTag()));
     }

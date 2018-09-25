@@ -425,7 +425,7 @@ public class AuthorizationEndpoint {
       continueUrl.replaceQueryParam("prompt", promptValue);
     }
     return UserAuthenticationFilter.loginResponse(continueUrl.build(), locale,
-        redirectUri.toString());
+        redirectUri.toString(), BrandHelper.getBrandIdFromUri(uriInfo)); // TODO : get brandId from AppInstance
   }
 
   private Response generateAuthorizationCodeAndRedirect(SidToken sidToken, Set<String> scopeIds, Set<String> claims, String client_id,

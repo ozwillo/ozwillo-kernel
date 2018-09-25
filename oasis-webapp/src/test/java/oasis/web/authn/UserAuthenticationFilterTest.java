@@ -44,6 +44,7 @@ import com.google.inject.Inject;
 
 import oasis.http.testing.InProcessResteasy;
 import oasis.model.authn.SidToken;
+import oasis.services.branding.BrandHelper;
 import oasis.services.cookies.CookieFactory;
 import oasis.web.authn.testing.TestUserFilter;
 
@@ -86,6 +87,23 @@ public class UserAuthenticationFilterTest {
     assertThat(location.getQueryParameters().getFirst("continue")).isEqualTo(requestUri.toString());
   }
 
+
+  @Test public void testUnauthenticated_withBrand() {
+    URI requestUri = resteasy.getBaseUriBuilder()
+        .path(DummyResource.class).path(DummyResource.class, "authRequired")
+        .queryParam("baz", "baz")
+        .queryParam("qux", "qu&ux")
+        .queryParam(BrandHelper.BRAND_PARAM, "doo")
+        .build();
+    Response response = resteasy.getClient().target(requestUri).request().get();
+
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
+    UriInfo location = new ResteasyUriInfo(response.getLocation());
+    assertThat(location.getAbsolutePath()).isEqualTo(resteasy.getBaseUriBuilder().path(LoginPage.class).build());
+    assertThat(location.getQueryParameters().getFirst("continue")).isEqualTo(requestUri.toString());
+    assertThat(location.getQueryParameters().getFirst(BrandHelper.BRAND_PARAM)).isEqualTo("doo");
+  }
+
   @Test public void testAuthenticated() {
     resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(validSidToken));
 
@@ -116,6 +134,27 @@ public class UserAuthenticationFilterTest {
     assertThat(response.getCookies()).doesNotContainKey(CookieFactory.getCookieName(UserFilter.COOKIE_NAME, true));
   }
 
+  @Test public void testLoginResponse_withBrand() {
+    resteasy.getDeployment().getProviderFactory().register(new TestUserFilter(validSidToken));
+
+    URI requestUri = resteasy.getBaseUriBuilder()
+        .path(DummyResource.class).path(DummyResource.class, "redirectToLogin")
+        .queryParam("foo", "b&ar")
+        .queryParam("baz", "baz")
+        .queryParam(BrandHelper.BRAND_PARAM, "doo")
+        .build();
+    Response response = resteasy.getClient().target(requestUri).request().get();
+
+    assertThat(response.getStatusInfo()).isEqualTo(Response.Status.SEE_OTHER);
+    UriInfo location = new ResteasyUriInfo(response.getLocation());
+    assertThat(location.getAbsolutePath()).isEqualTo(resteasy.getBaseUriBuilder().path(LoginPage.class).build());
+    assertThat(location.getQueryParameters().getFirst("continue")).isEqualTo(requestUri.toString());
+    assertThat(location.getQueryParameters().getFirst(BrandHelper.BRAND_PARAM)).isEqualTo("doo");
+
+    // Make sure we don't log the user out!
+    assertThat(response.getCookies()).doesNotContainKey(CookieFactory.getCookieName(UserFilter.COOKIE_NAME, true));
+  }
+
   @Path("/")
   public static class DummyResource {
     @Context SecurityContext securityContext;
@@ -134,7 +173,7 @@ public class UserAuthenticationFilterTest {
     public Response redirectToLogin(@Context UriInfo uriInfo) {
       assertThat(securityContext.getUserPrincipal()).isNotNull();
 
-      return UserAuthenticationFilter.loginResponse(uriInfo.getRequestUri(), null, null);
+      return UserAuthenticationFilter.loginResponse(uriInfo.getRequestUri(), null, null, BrandHelper.getBrandIdFromUri(uriInfo));
     }
   }
 }
