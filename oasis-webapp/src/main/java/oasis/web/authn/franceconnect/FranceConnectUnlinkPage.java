@@ -27,6 +27,7 @@ import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -46,6 +47,8 @@ import oasis.model.authn.ClientType;
 import oasis.model.authn.CredentialsRepository;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
+import oasis.model.branding.BrandInfo;
+import oasis.model.branding.BrandRepository;
 import oasis.services.branding.BrandHelper;
 import oasis.services.authn.UserPasswordAuthenticator;
 import oasis.soy.SoyTemplate;
@@ -71,22 +74,27 @@ public class FranceConnectUnlinkPage {
   @Inject UserPasswordAuthenticator userPasswordAuthenticator;
   @Inject TokenRepository tokenRepository;
   @Inject AuditLogService auditLogService;
+  @Inject BrandRepository brandRepository;
 
   @Context SecurityContext securityContext;
   @Context UriInfo uriInfo;
 
   @GET
-  public Response get() {
+  public Response get(@QueryParam(BrandHelper.BRAND_PARAM) @DefaultValue(BrandInfo.DEFAULT_BRAND) String brandId) {
+    BrandInfo brandInfo = brandRepository.getBrandInfo(brandId);
     SidToken sidToken = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken();
-    return unlinkForm(Response.ok(), sidToken, null, null);
+    return unlinkForm(Response.ok(), sidToken, null, null, brandInfo);
   }
 
   @POST
   @StrictReferer
   public Response post(
       @FormParam("u") @DefaultValue("") String userName,
-      @FormParam("pwd") @DefaultValue("") String password
+      @FormParam("pwd") @DefaultValue("") String password,
+      @FormParam(BrandHelper.BRAND_PARAM) @DefaultValue(BrandInfo.DEFAULT_BRAND) String brandId
   ) {
+    BrandInfo brandInfo = brandRepository.getBrandInfo(brandId);
+
     SidToken sidToken = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken();
     if (sidToken.getFranceconnectIdToken() != null) {
       // Special care must be taken if the user is logged in through FranceConnect.
@@ -96,7 +104,7 @@ public class FranceConnectUnlinkPage {
         if (account.getFranceconnect_sub() == null) {
           return redirectAfterSuccess(); // nothing to do
         }
-        return unlinkForm(Response.status(Response.Status.BAD_REQUEST), sidToken, account, null);
+        return unlinkForm(Response.status(Response.Status.BAD_REQUEST), sidToken, account, null, brandInfo);
       }
 
       UserAccount account;
@@ -104,13 +112,13 @@ public class FranceConnectUnlinkPage {
         account = userPasswordAuthenticator.authenticate(userName, password);
       } catch (LoginException e) {
         log(auditLogService, userName, LoginPage.LoginLogEvent.LoginResult.AUTHENTICATION_FAILED);
-        return unlinkForm(Response.status(Response.Status.BAD_REQUEST), sidToken, null, LoginError.INCORRECT_USERNAME_OR_PASSWORD);
+        return unlinkForm(Response.status(Response.Status.BAD_REQUEST), sidToken, null, LoginError.INCORRECT_USERNAME_OR_PASSWORD, brandInfo);
       }
 
       if (!account.getId().equals(sidToken.getAccountId())) {
         // Form has been tampered with, or user signed in with another account since the form was generated
         // Re-display the form: if user signed out/in, it will show the new (current) user.
-        return unlinkForm(Response.status(Response.Status.BAD_REQUEST), sidToken, null, null);
+        return unlinkForm(Response.status(Response.Status.BAD_REQUEST), sidToken, null, null, brandInfo);
       }
       if (!tokenRepository.reAuthSidToken(sidToken.getId(), null, null)) {
         logger.error("Error when updating SidToken {} for Account {}.", sidToken.getId(), account.getId());
@@ -120,12 +128,12 @@ public class FranceConnectUnlinkPage {
 
     if (!accountRepository.unlinkFranceConnect(sidToken.getAccountId())) {
       UserAccount account = accountRepository.getUserAccountById(sidToken.getAccountId());
-      return FranceConnectCallback.serverError(account.getLocale(), null, BrandHelper.getBrandIdFromUri(uriInfo));
+      return FranceConnectCallback.serverError(account.getLocale(), null, brandInfo);
     }
     return redirectAfterSuccess();
   }
 
-  private Response unlinkForm(Response.ResponseBuilder rb, SidToken sidToken, @Nullable UserAccount account, LoginError error) {
+  private Response unlinkForm(Response.ResponseBuilder rb, SidToken sidToken, @Nullable UserAccount account, LoginError error, BrandInfo brandInfo) {
     if (account == null) {
       account = accountRepository.getUserAccountById(sidToken.getAccountId());
     }
@@ -154,7 +162,7 @@ public class FranceConnectUnlinkPage {
     return rb
         .type(MediaType.TEXT_HTML_TYPE)
         .entity(new SoyTemplate(FranceConnectSoyInfo.FRANCECONNECT_UNLINK, account.getLocale(), data.build(),
-            BrandHelper.getBrandIdFromUri(uriInfo)))
+            brandInfo))
         .build();
   }
 

@@ -25,11 +25,13 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -58,6 +60,8 @@ import oasis.model.applications.v2.AccessControlRepository;
 import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.authn.MembershipInvitationToken;
 import oasis.model.authn.TokenRepository;
+import oasis.model.branding.BrandInfo;
+import oasis.model.branding.BrandRepository;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Organization;
 import oasis.model.directory.OrganizationMembership;
@@ -102,6 +106,7 @@ public class MembershipInvitationPage {
   @Inject SoyTemplateRenderer templateRenderer;
   @Inject TokenHandler tokenHandler;
   @Inject Urls urls;
+  @Inject BrandRepository brandRepository;
 
   @Context Request request;
   @Context SecurityContext securityContext;
@@ -109,14 +114,16 @@ public class MembershipInvitationPage {
 
   @GET
   @Path("")
-  public Response showInvitation() {
+  public Response showInvitation(@QueryParam(BrandHelper.BRAND_PARAM) @DefaultValue(BrandInfo.DEFAULT_BRAND) String brandId) {
+    BrandInfo brandInfo = brandRepository.getBrandInfo(brandId);
+
     String userId = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken().getAccountId();
     UserAccount user = accountRepository.getUserAccountById(userId);
     ULocale userLocale = user.getLocale();
 
     MembershipInvitationToken membershipInvitationToken = tokenHandler.getCheckedToken(serializedToken, MembershipInvitationToken.class);
     if (membershipInvitationToken == null) {
-      return generateNotFoundPage(userLocale);
+      return generateNotFoundPage(userLocale, brandInfo);
     }
 
     OrganizationMembership pendingOrganizationMembership = organizationMembershipRepository.getPendingOrganizationMembership(
@@ -125,20 +132,20 @@ public class MembershipInvitationPage {
       // The token is not related to a pending membership so it is useless
       // Let's remove it
       tokenRepository.revokeToken(membershipInvitationToken.getId());
-      return generateNotFoundPage(userLocale);
+      return generateNotFoundPage(userLocale, brandInfo);
     }
 
     Organization organization = directoryRepository.getOrganization(pendingOrganizationMembership.getOrganizationId());
     if (organization == null) {
-      return generateNotFoundPage(userLocale);
+      return generateNotFoundPage(userLocale, brandInfo);
     }
 
     if (organizationMembershipRepository.getOrganizationMembership(userId, organization.getId()) != null) {
-      return generateAlreadyMemberErrorPage(user, pendingOrganizationMembership, organization);
+      return generateAlreadyMemberErrorPage(user, pendingOrganizationMembership, organization, brandInfo);
     }
 
     // XXX: if organization is in DELETED status, we allow the user to proceed, just in case it's later moved back to AVAILABLE
-    return generatePage(userLocale, pendingOrganizationMembership, organization);
+    return generatePage(userLocale, pendingOrganizationMembership, organization, brandInfo);
   }
 
   @POST
@@ -243,7 +250,7 @@ public class MembershipInvitationPage {
     ).build();
   }
 
-  private Response generatePage(ULocale locale, OrganizationMembership pendingOrganizationMembership, Organization organization) {
+  private Response generatePage(ULocale locale, OrganizationMembership pendingOrganizationMembership, Organization organization, BrandInfo brandInfo) {
     UserAccount requester = accountRepository.getUserAccountById(pendingOrganizationMembership.getCreator_id());
 
     Set<String> instanceIds = Streams.stream(
@@ -283,12 +290,12 @@ public class MembershipInvitationPage {
                 .put(MembershipInvitationSoyTemplateInfo.INVITED_EMAIL, pendingOrganizationMembership.getEmail())
                 .put(MembershipInvitationSoyTemplateInfo.PENDING_APPS, pendingAppInvitations)
                 .build(),
-            BrandHelper.getBrandIdFromUri(uriInfo)
+            brandInfo
         ))
         .build();
   }
 
-  private Response generateNotFoundPage(ULocale locale) {
+  private Response generateNotFoundPage(ULocale locale, BrandInfo brandInfo) {
     return Response.status(Response.Status.NOT_FOUND)
         .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store")
         .header("Pragma", "no-cache")
@@ -297,7 +304,7 @@ public class MembershipInvitationPage {
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
         .entity(new SoyTemplate(OrgMembershipInvitationSoyInfo.MEMBERSHIP_INVITATION_TOKEN_ERROR, locale, null,
-            BrandHelper.getBrandIdFromUri(uriInfo)))
+            brandInfo))
         .build();
   }
 
@@ -311,7 +318,7 @@ public class MembershipInvitationPage {
     return Response.seeOther(showInvitationUri).build();
   }
 
-  private Response generateAlreadyMemberErrorPage(UserAccount user, OrganizationMembership pendingOrganizationMembership, Organization organization) {
+  private Response generateAlreadyMemberErrorPage(UserAccount user, OrganizationMembership pendingOrganizationMembership, Organization organization, BrandInfo brandInfo) {
     UserAccount requester = accountRepository.getUserAccountById(pendingOrganizationMembership.getCreator_id());
 
     URI logoutPageUrl = uriInfo.getBaseUriBuilder().path(LogoutPage.class).build();
@@ -337,7 +344,7 @@ public class MembershipInvitationPage {
                 .put(MembershipInvitationAlreadyMemberErrorSoyTemplateInfo.INVITED_EMAIL, pendingOrganizationMembership.getEmail())
                 .put(MembershipInvitationAlreadyMemberErrorSoyTemplateInfo.CURRENT_USER, MoreObjects.firstNonNull(user.getEmail_address(), user.getDisplayName()))
                 .build(),
-            BrandHelper.getBrandIdFromUri(uriInfo)
+            brandInfo
         ))
         .build();
   }

@@ -22,6 +22,7 @@ import java.net.URI;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.mail.MessagingException;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -50,6 +51,8 @@ import oasis.model.accounts.UserAccount;
 import oasis.model.authn.ChangePasswordToken;
 import oasis.model.authn.ClientType;
 import oasis.model.authn.CredentialsRepository;
+import oasis.model.branding.BrandInfo;
+import oasis.model.branding.BrandRepository;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.services.branding.BrandHelper;
@@ -68,6 +71,7 @@ public class ForgotPasswordPage {
   @Inject MailSender mailSender;
   @Inject TokenHandler tokenHandler;
   @Inject LocaleHelper localeHelper;
+  @Inject BrandRepository brandRepository;
 
   @Context UriInfo uriInfo;
   @Context Request request;
@@ -75,21 +79,26 @@ public class ForgotPasswordPage {
   @GET
   @Produces(MediaType.TEXT_HTML)
   public Response get(
-      @QueryParam(LoginPage.LOCALE_PARAM) @Nullable ULocale locale
+      @QueryParam(LoginPage.LOCALE_PARAM) @Nullable ULocale locale,
+      @QueryParam(BrandHelper.BRAND_PARAM) @DefaultValue(BrandInfo.DEFAULT_BRAND) String brandId
   ) {
-    return form(Response.ok(), localeHelper.selectLocale(locale, request), null, BrandHelper.getBrandIdFromUri(uriInfo));
+    BrandInfo brandInfo = brandRepository.getBrandInfo(brandId);
+    return form(Response.ok(), localeHelper.selectLocale(locale, request), null, brandInfo);
   }
 
   @POST @StrictReferer
   public Response post(
       @FormParam(LoginPage.LOCALE_PARAM) @Nullable ULocale locale,
-      @FormParam("u") String email
+      @FormParam("u") String email,
+      @FormParam(BrandHelper.BRAND_PARAM) @DefaultValue(BrandInfo.DEFAULT_BRAND) String brandId
   ) {
+    BrandInfo brandInfo = brandRepository.getBrandInfo(brandId);
+
     locale = localeHelper.selectLocale(locale, request);
 
     if (Strings.isNullOrEmpty(email)) {
       return form(Response.status(Response.Status.BAD_REQUEST), locale, ForgotPasswordError.MISSING_REQUIRED_FIELD,
-          BrandHelper.getBrandIdFromUri(uriInfo));
+          brandInfo);
     }
 
     UserAccount account = accountRepository.getUserAccountByEmail(email);
@@ -122,18 +131,18 @@ public class ForgotPasswordPage {
       }
     } catch (MessagingException e) {
       logger.error("Error sending reset-password email", e);
-      return form(Response.serverError(), locale, ForgotPasswordError.MESSAGING_ERROR, BrandHelper.getBrandIdFromUri(uriInfo));
+      return form(Response.serverError(), locale, ForgotPasswordError.MESSAGING_ERROR, brandInfo);
     }
 
     // XXX: do not use the account's locale (if it exists) as that would be a hint that the account exists.
     return Response.ok()
         .entity(new SoyTemplate(RecoverSoyInfo.EMAIL_SENT, locale, ImmutableMap.of(
             RecoverSoyInfo.EmailSentSoyTemplateInfo.EMAIL_ADDRESS, email),
-            BrandHelper.getBrandIdFromUri(uriInfo)))
+            brandInfo))
         .build();
   }
 
-  static Response form(Response.ResponseBuilder builder, ULocale locale, @Nullable ForgotPasswordError error, String brandId) {
+  static Response form(Response.ResponseBuilder builder, ULocale locale, @Nullable ForgotPasswordError error, BrandInfo brandInfo) {
     ImmutableMap.Builder<String, String> localeUrlMap = ImmutableMap.builderWithExpectedSize(LocaleHelper.SUPPORTED_LOCALES.size());
     for (ULocale supportedLocale : LocaleHelper.SUPPORTED_LOCALES) {
       String languageTag = supportedLocale.toLanguageTag();
@@ -157,7 +166,7 @@ public class ForgotPasswordPage {
         .header("X-Frame-Options", "DENY")
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
-        .entity(new SoyTemplate(RecoverSoyInfo.FORGOT_PASSWORD, locale, data.build(), brandId))
+        .entity(new SoyTemplate(RecoverSoyInfo.FORGOT_PASSWORD, locale, data.build(), brandInfo))
         .build();
   }
 

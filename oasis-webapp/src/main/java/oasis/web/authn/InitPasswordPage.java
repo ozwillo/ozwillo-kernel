@@ -18,10 +18,12 @@
 package oasis.web.authn;
 
 import javax.inject.Inject;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -35,6 +37,8 @@ import oasis.model.authn.ClientType;
 import oasis.model.authn.CredentialsRepository;
 import oasis.model.authn.SetPasswordToken;
 import oasis.model.authn.TokenRepository;
+import oasis.model.branding.BrandInfo;
+import oasis.model.branding.BrandRepository;
 import oasis.services.branding.BrandHelper;
 import oasis.services.authn.TokenHandler;
 import oasis.urls.Urls;
@@ -49,6 +53,7 @@ public class InitPasswordPage {
   @Inject TokenHandler tokenHandler;
   @Inject Urls urls;
   @Inject AuthModule.Settings authSettings;
+  @Inject BrandRepository brandRepository;
 
   @Context SecurityContext securityContext;
   @Context UriInfo uriInfo;
@@ -56,20 +61,22 @@ public class InitPasswordPage {
   @PathParam("token") String token;
 
   @GET
-  public Response get() {
+  public Response get(@QueryParam(BrandHelper.BRAND_PARAM) @DefaultValue(BrandInfo.DEFAULT_BRAND) String brandId) {
+    BrandInfo brandInfo = brandRepository.getBrandInfo(brandId);
+
     String userId = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken().getAccountId();
 
     SetPasswordToken setPasswordToken = tokenHandler.getCheckedToken(token, SetPasswordToken.class);
     if (setPasswordToken == null) {
       UserAccount account = accountRepository.getUserAccountById(userId);
       return SetPasswordPage.form(Response.status(Response.Status.NOT_FOUND), authSettings, urls, account, SetPasswordPage.PasswordInitError.EXPIRED_LINK,
-          BrandHelper.getBrandIdFromUri(uriInfo));
+          brandInfo);
     }
 
     if (!userId.equals(setPasswordToken.getAccountId())) {
       UserAccount account = accountRepository.getUserAccountById(userId);
       return SetPasswordPage.form(Response.status(Response.Status.FORBIDDEN), authSettings, urls, account, SetPasswordPage.PasswordInitError.BAD_USER,
-          BrandHelper.getBrandIdFromUri(uriInfo));
+          brandInfo);
     }
 
     UserAccount account = accountRepository.verifyEmailAddress(userId, false);

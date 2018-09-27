@@ -55,6 +55,7 @@ h2 {lb} margin-bottom: 2.5em; {rb}
       <input type="hidden" name="_utf8" value="&#9731;">
       <input type="hidden" name="continue" value="{$continue}">
       <input type="hidden" name="hl" value="{$current_locale}">
+      <input type="hidden" name="brand" value="{$brand_info['brand_id']}">
       <button type="submit" style="cursor: pointer; background: transparent; margin: 0; padding: 0; border: none;">
         <img alt="S'identifier avec FranceConnect" src="/images/franceconnect.svg" width=172 height=50>
       </button>
@@ -117,6 +118,7 @@ a {lb} color: {$brand_info['main_color']}; {rb}
   {if $hasPassword}
     <form method="POST" action="{$formAction}">
       <input type=hidden name=_utf8 value="&#9731;">
+      <input type=hidden name=brand value="{$brand_info['brand_id']}">
 
       <p>{$email}</p>
 
@@ -234,6 +236,7 @@ small {lb} display: block; margin-top: 2em; font-size: .65em; line-height: initi
         <input type=hidden name=continue value="{$continue}">
         <input type=hidden name=hl value="{$current_locale}">
         <input type=hidden name=state value="{$encryptedState}">
+        <input type=hidden name=brand value="{$brand_info['brand_id']}">
 
         <div class=btn-row>
           <button>
@@ -248,7 +251,6 @@ small {lb} display: block; margin-top: 2em; font-size: .65em; line-height: initi
         <input type=hidden name=_utf8 value="&#9731;">
         <input type=hidden name=continue value="{$continue}">
         <input type=hidden name=hl value="{$current_locale}">
-        <input type=hidden name=state value="{$encryptedState}">
 
           <div>
               <label for=u>{msg desc="Email field label"}Email{/msg}</label>

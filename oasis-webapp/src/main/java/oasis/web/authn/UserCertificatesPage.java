@@ -21,6 +21,7 @@ import java.net.URI;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -45,6 +46,8 @@ import oasis.model.authn.ClientCertificate;
 import oasis.model.authn.ClientCertificateRepository;
 import oasis.model.authn.ClientType;
 import oasis.model.authn.SidToken;
+import oasis.model.branding.BrandInfo;
+import oasis.model.branding.BrandRepository;
 import oasis.services.branding.BrandHelper;
 import oasis.soy.SoyTemplate;
 import oasis.soy.templates.UserCertificatesSoyInfo;
@@ -60,15 +63,17 @@ public class UserCertificatesPage {
   @Inject ClientCertificateRepository clientCertificateRepository;
   @Inject ClientCertificateHelper clientCertificateHelper;
   @Inject Urls urls;
+  @Inject BrandRepository brandRepository;
 
   @Context SecurityContext securityContext;
   @Context HttpHeaders headers;
 
   @GET
   @Path("")
-  public Response get(@QueryParam(BrandHelper.BRAND_PARAM) @Nullable String brandId) {
+  public Response get(@QueryParam(BrandHelper.BRAND_PARAM) @DefaultValue(BrandInfo.DEFAULT_BRAND) String brandId) {
+    BrandInfo brandInfo = brandRepository.getBrandInfo(brandId);
     String accountId = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken().getAccountId();
-    return form(false, accountId, clientCertificateHelper.getClientCertificateData(headers.getRequestHeaders()), brandId);
+    return form(false, accountId, clientCertificateHelper.getClientCertificateData(headers.getRequestHeaders()), brandInfo);
   }
 
   @POST
@@ -79,8 +84,10 @@ public class UserCertificatesPage {
       @FormParam("subject") String subject,
       @FormParam("issuer") String issuer,
       @FormParam("continue") @Nullable URI continueUrl,
-      @FormParam(BrandHelper.BRAND_PARAM) String brandId
+      @FormParam(BrandHelper.BRAND_PARAM) @DefaultValue(BrandInfo.DEFAULT_BRAND) String brandId
   ) {
+    BrandInfo brandInfo = brandRepository.getBrandInfo(brandId);
+
     if (continueUrl != null) {
       continueUrl = uriInfo.getBaseUri().relativize(continueUrl);
       if (continueUrl.isAbsolute() || continueUrl.isOpaque()) {
@@ -94,12 +101,12 @@ public class UserCertificatesPage {
     ClientCertificateData clientCertificateData = clientCertificateHelper.getClientCertificateData(headers.getRequestHeaders());
     if (clientCertificateData == null) {
       // No certificate, we shouldn't have received that request (unless the certificate was removed between page loads)
-      return redirectOrErrorForm(continueUrl, sidToken.getAccountId(), null, brandId);
+      return redirectOrErrorForm(continueUrl, sidToken.getAccountId(), null, brandInfo);
     }
     if (!clientCertificateData.getSubjectDN().equals(subject) ||
         !clientCertificateData.getIssuerDN().equals(issuer)) {
       // Bad certificate (must have been swapped between page loads, or form data being tampered)
-      return redirectOrErrorForm(continueUrl, sidToken.getAccountId(), clientCertificateData, brandId);
+      return redirectOrErrorForm(continueUrl, sidToken.getAccountId(), clientCertificateData, brandInfo);
     }
 
     if (sidToken.isUsingClientCertificate()) {
@@ -115,7 +122,7 @@ public class UserCertificatesPage {
     clientCertificate = clientCertificateRepository.saveClientCertificate(clientCertificate);
     if (clientCertificate == null) {
       // Certificate already linked (must be to other account), reject (we shouldn't have received that request)
-      return redirectOrErrorForm(continueUrl, sidToken.getAccountId(), clientCertificateData, brandId);
+      return redirectOrErrorForm(continueUrl, sidToken.getAccountId(), clientCertificateData, brandInfo);
     }
     return redirect(continueUrl);
   }
@@ -127,28 +134,30 @@ public class UserCertificatesPage {
     ).build();
   }
 
-  private Response redirectOrErrorForm(@Nullable URI continueUrl, String accountId, @Nullable ClientCertificateData clientCertificateData, String brandId) {
+  private Response redirectOrErrorForm(@Nullable URI continueUrl, String accountId, @Nullable ClientCertificateData clientCertificateData, BrandInfo brandInfo) {
     return continueUrl != null
         ? Response.seeOther(continueUrl).build()
-        : form(true, accountId, clientCertificateData, brandId);
+        : form(true, accountId, clientCertificateData, brandInfo);
   }
 
   @POST
   @StrictReferer
   @Path("/delete")
   public Response remove(
-      @FormParam(BrandHelper.BRAND_PARAM) String brandId,
+      @FormParam(BrandHelper.BRAND_PARAM) @DefaultValue(BrandInfo.DEFAULT_BRAND) String brandId,
       @FormParam("id") String id) {
+    BrandInfo brandInfo = brandRepository.getBrandInfo(brandId);
+
     String accountId = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken().getAccountId();
 
     boolean success = clientCertificateRepository.deleteClientCertificate(ClientType.USER, accountId, id);
     if (success) {
       return Response.seeOther(UriBuilder.fromResource(UserCertificatesPage.class).path(UserCertificatesPage.class, "get").build()).build();
     }
-    return form(true, accountId, clientCertificateHelper.getClientCertificateData(headers.getRequestHeaders()), brandId);
+    return form(true, accountId, clientCertificateHelper.getClientCertificateData(headers.getRequestHeaders()), brandInfo);
   }
 
-  private Response form(boolean error, String accountId, @Nullable ClientCertificateData clientCertificateData, String brandId) {
+  private Response form(boolean error, String accountId, @Nullable ClientCertificateData clientCertificateData, BrandInfo brandInfo) {
     UserAccount account = accountRepository.getUserAccountById(accountId);
 
     ImmutableMap<String, Object> currentCert;
@@ -201,7 +210,7 @@ public class UserCertificatesPage {
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
         .entity(new SoyTemplate(UserCertificatesSoyInfo.USER_CERTIFICATES, account.getLocale(), data.build(),
-            brandId))
+            brandInfo))
         .build();
   }
 }

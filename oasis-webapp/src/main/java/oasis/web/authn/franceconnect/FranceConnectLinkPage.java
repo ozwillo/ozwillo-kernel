@@ -50,6 +50,8 @@ import oasis.auth.AuthModule;
 import oasis.model.DuplicateKeyException;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
+import oasis.model.branding.BrandInfo;
+import oasis.model.branding.BrandRepository;
 import oasis.services.branding.BrandHelper;
 import oasis.services.authn.UserPasswordAuthenticator;
 import oasis.soy.SoyTemplate;
@@ -71,6 +73,7 @@ public class FranceConnectLinkPage {
   @Inject AuditLogService auditLogService;
   @Inject LoginHelper loginHelper;
   @Inject LocaleHelper localeHelper;
+  @Inject BrandRepository brandRepository;
 
   @Context SecurityContext securityContext;
   @Context UriInfo uriInfo;
@@ -84,25 +87,28 @@ public class FranceConnectLinkPage {
       @FormParam("continue") URI continueUrl,
       @FormParam("state") @DefaultValue("") String encryptedState,
       @FormParam("u") @DefaultValue("") String userName,
-      @FormParam("pwd") @DefaultValue("") String password
+      @FormParam("pwd") @DefaultValue("") String password,
+      @FormParam(BrandHelper.BRAND_PARAM) @DefaultValue(BrandInfo.DEFAULT_BRAND) String brandId
   ) {
+    BrandInfo brandInfo = brandRepository.getBrandInfo(brandId);
+
     locale = localeHelper.selectLocale(locale, request);
 
     if (continueUrl == null || encryptedState.isEmpty()) {
-      return FranceConnectCallback.badRequest(locale, Objects.toString(continueUrl, null), BrandHelper.getBrandIdFromUri(uriInfo));
+      return FranceConnectCallback.badRequest(locale, Objects.toString(continueUrl, null), brandInfo);
     }
 
     final FranceConnectLinkState state;
     try {
       state = FranceConnectLinkState.decrypt(authSettings, encryptedState);
     } catch (JoseException | IOException e) {
-      return FranceConnectCallback.badRequest(locale, continueUrl.toString(), BrandHelper.getBrandIdFromUri(uriInfo));
+      return FranceConnectCallback.badRequest(locale, continueUrl.toString(), brandInfo);
     }
 
     if (securityContext.getUserPrincipal() != null) {
       // User has signed in since we displayed the form; error out to let him retry
       // XXX: directly reprocess the FC response (encoded in 'state') as in FranceConnectCallback, for better UX
-      return FranceConnectCallback.badRequest(locale, continueUrl.toString(), BrandHelper.getBrandIdFromUri(uriInfo));
+      return FranceConnectCallback.badRequest(locale, continueUrl.toString(), brandInfo);
     }
 
     UserAccount account;
@@ -115,11 +121,11 @@ public class FranceConnectLinkPage {
 
     try {
       if (!accountRepository.linkToFranceConnect(account.getId(), state.franceconnect_sub())) {
-        return FranceConnectCallback.serverError(locale, continueUrl.toString(), BrandHelper.getBrandIdFromUri(uriInfo));
+        return FranceConnectCallback.serverError(locale, continueUrl.toString(), brandInfo);
       }
     } catch (DuplicateKeyException dke) {
       // race condition
-      return FranceConnectCallback.serverError(locale, continueUrl.toString(), BrandHelper.getBrandIdFromUri(uriInfo));
+      return FranceConnectCallback.serverError(locale, continueUrl.toString(), brandInfo);
     }
 
     return loginHelper.authenticate(account, headers, securityContext, continueUrl, state.id_token(), state.access_token(), () -> {

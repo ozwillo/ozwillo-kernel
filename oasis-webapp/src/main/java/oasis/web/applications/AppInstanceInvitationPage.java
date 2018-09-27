@@ -24,11 +24,13 @@ import java.util.function.Predicate;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -55,6 +57,8 @@ import oasis.model.applications.v2.AppInstance;
 import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.authn.AppInstanceInvitationToken;
 import oasis.model.authn.TokenRepository;
+import oasis.model.branding.BrandInfo;
+import oasis.model.branding.BrandRepository;
 import oasis.model.notification.Notification;
 import oasis.model.notification.NotificationRepository;
 import oasis.services.branding.BrandHelper;
@@ -95,6 +99,7 @@ public class AppInstanceInvitationPage {
   @Inject TokenHandler tokenHandler;
   @Inject Urls urls;
   @Inject AppAdminHelper appAdminHelper;
+  @Inject BrandRepository brandRepository;
 
   @Context Request request;
   @Context SecurityContext securityContext;
@@ -102,14 +107,16 @@ public class AppInstanceInvitationPage {
 
   @GET
   @Path("")
-  public Response showInvitation() {
+  public Response showInvitation(@QueryParam(BrandHelper.BRAND_PARAM) @DefaultValue(BrandInfo.DEFAULT_BRAND) String brandId) {
+    BrandInfo brandInfo = brandRepository.getBrandInfo(brandId);
+
     String userId = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken().getAccountId();
     UserAccount user = accountRepository.getUserAccountById(userId);
     ULocale userLocale = user.getLocale();
 
     AppInstanceInvitationToken appInstanceInvitationToken = tokenHandler.getCheckedToken(serializedToken, AppInstanceInvitationToken.class);
     if (appInstanceInvitationToken == null) {
-      return generateNotFoundPage(userLocale);
+      return generateNotFoundPage(userLocale, brandInfo);
     }
 
     AccessControlEntry pendingAccessControlEntry = accessControlRepository.getPendingAccessControlEntry(
@@ -118,21 +125,21 @@ public class AppInstanceInvitationPage {
       // The token is not related to a pending ACE so it is useless
       // Let's remove it
       tokenRepository.revokeToken(appInstanceInvitationToken.getId());
-      return generateNotFoundPage(userLocale);
+      return generateNotFoundPage(userLocale, brandInfo);
     }
 
     AppInstance appInstance = appInstanceRepository.getAppInstance(pendingAccessControlEntry.getInstance_id());
     if (appInstance == null) {
-      return generateNotFoundPage(userLocale);
+      return generateNotFoundPage(userLocale, brandInfo);
     }
 
     if (accessControlRepository.getAccessControlEntry(appInstance.getId(), userId) != null) {
-      return generateAlreadyUserErrorPage(user, pendingAccessControlEntry, appInstance);
+      return generateAlreadyUserErrorPage(user, pendingAccessControlEntry, appInstance, brandInfo);
     }
 
     // XXX: if app-instance is in STOPPED status, we allow the user to proceed, just in case it's later moved back to RUNNING
     // app-instance should not be in PENDING state if we reach this code.
-    return generatePage(userLocale, pendingAccessControlEntry, appInstance);
+    return generatePage(userLocale, pendingAccessControlEntry, appInstance, brandInfo);
   }
 
   @POST
@@ -221,7 +228,7 @@ public class AppInstanceInvitationPage {
     ).build();
   }
 
-  private Response generatePage(ULocale locale, AccessControlEntry pendingAccessControlEntry, AppInstance appInstance) {
+  private Response generatePage(ULocale locale, AccessControlEntry pendingAccessControlEntry, AppInstance appInstance, BrandInfo brandInfo) {
     UserAccount requester = accountRepository.getUserAccountById(pendingAccessControlEntry.getCreator_id());
 
     URI acceptFormAction = uriInfo.getBaseUriBuilder()
@@ -249,12 +256,12 @@ public class AppInstanceInvitationPage {
                 AppInstanceInvitationSoyTemplateInfo.REQUESTER_NAME, requester.getDisplayName(),
                 AppInstanceInvitationSoyTemplateInfo.INVITED_EMAIL, pendingAccessControlEntry.getEmail()
             ),
-            BrandHelper.getBrandIdFromUri(uriInfo)
+            brandInfo
         ))
         .build();
   }
 
-  private Response generateNotFoundPage(ULocale locale) {
+  private Response generateNotFoundPage(ULocale locale, BrandInfo brandInfo) {
     return Response.status(Response.Status.NOT_FOUND)
         .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store")
         .header("Pragma", "no-cache")
@@ -262,7 +269,7 @@ public class AppInstanceInvitationPage {
         .header("X-Frame-Options", "DENY")
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
-        .entity(new SoyTemplate(AppInstanceInvitationSoyInfo.APP_INSTANCE_INVITATION_TOKEN_ERROR, locale, null, BrandHelper.getBrandIdFromUri(uriInfo)))
+        .entity(new SoyTemplate(AppInstanceInvitationSoyInfo.APP_INSTANCE_INVITATION_TOKEN_ERROR, locale, null, brandInfo))
         .build();
   }
 
@@ -276,7 +283,7 @@ public class AppInstanceInvitationPage {
     return Response.seeOther(showInvitationUri).build();
   }
 
-  private Response generateAlreadyUserErrorPage(UserAccount user, AccessControlEntry pendingAccessControlEntry, AppInstance appInstance) {
+  private Response generateAlreadyUserErrorPage(UserAccount user, AccessControlEntry pendingAccessControlEntry, AppInstance appInstance, BrandInfo brandInfo) {
     UserAccount requester = accountRepository.getUserAccountById(pendingAccessControlEntry.getCreator_id());
 
     URI logoutPageUrl = uriInfo.getBaseUriBuilder().path(LogoutPage.class).build();
@@ -302,7 +309,7 @@ public class AppInstanceInvitationPage {
                 .put(AppInstanceInvitationAlreadyUserErrorSoyTemplateInfo.INVITED_EMAIL, pendingAccessControlEntry.getEmail())
                 .put(AppInstanceInvitationAlreadyUserErrorSoyTemplateInfo.CURRENT_USER, MoreObjects.firstNonNull(user.getEmail_address(), user.getDisplayName())
             ).build(),
-            BrandHelper.getBrandIdFromUri(uriInfo)
+            brandInfo
         ))
         .build();
   }

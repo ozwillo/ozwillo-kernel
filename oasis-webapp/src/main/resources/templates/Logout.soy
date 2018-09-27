@@ -85,6 +85,7 @@ p {lb} margin: 0; {rb}
   {/if}
 
   <form method="POST" action="{$formAction}">
+    <input type="hidden" name="brand" value="{$brand_info['brand_id']}">
     <input type="hidden" name="_utf8" value="&#9731;">
     {if $appId}
       <input type="hidden" name="app_id" value="{$appId}">

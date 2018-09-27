@@ -53,6 +53,8 @@ import oasis.auth.FranceConnectModule;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.Address;
 import oasis.model.accounts.UserAccount;
+import oasis.model.branding.BrandInfo;
+import oasis.model.branding.BrandRepository;
 import oasis.services.branding.BrandHelper;
 import oasis.web.authn.LoginHelper;
 import oasis.web.i18n.LocaleHelper;
@@ -66,6 +68,7 @@ public class FranceConnectSignUpPage {
   @Inject LoginHelper loginHelper;
   @Inject LocaleHelper localeHelper;
   @Inject Client httpClient;
+  @Inject BrandRepository brandRepository;
 
   @Context SecurityContext securityContext;
   @Context UriInfo uriInfo;
@@ -78,25 +81,28 @@ public class FranceConnectSignUpPage {
   public Response signUp(
       @FormParam(LOCALE_PARAM) @Nullable ULocale locale,
       @FormParam("continue") URI continueUrl,
-      @FormParam("state") @DefaultValue("") String encryptedState
+      @FormParam("state") @DefaultValue("") String encryptedState,
+      @FormParam(BrandHelper.BRAND_PARAM) @DefaultValue(BrandInfo.DEFAULT_BRAND) String brandId
   ) {
+    BrandInfo brandInfo = brandRepository.getBrandInfo(brandId);
+
     locale = localeHelper.selectLocale(locale, request);
 
     if (continueUrl == null || encryptedState.isEmpty()) {
-      return FranceConnectCallback.badRequest(locale, Objects.toString(continueUrl, null), BrandHelper.getBrandIdFromUri(uriInfo));
+      return FranceConnectCallback.badRequest(locale, Objects.toString(continueUrl, null), brandInfo);
     }
 
     final FranceConnectLinkState state;
     try {
       state = FranceConnectLinkState.decrypt(authSettings, encryptedState);
     } catch (JoseException | IOException e) {
-      return FranceConnectCallback.badRequest(locale, continueUrl.toString(), BrandHelper.getBrandIdFromUri(uriInfo));
+      return FranceConnectCallback.badRequest(locale, continueUrl.toString(), brandInfo);
     }
 
     if (securityContext.getUserPrincipal() != null) {
       // User has signed in since we displayed the form; error out to let him retry
       // XXX: directly reprocess the FC response (encoded in 'state') as in FranceConnectCallback, for better UX
-      return FranceConnectCallback.badRequest(locale, continueUrl.toString(), BrandHelper.getBrandIdFromUri(uriInfo));
+      return FranceConnectCallback.badRequest(locale, continueUrl.toString(), brandInfo);
     }
 
     Response response = httpClient.target(fcSettings.userinfoEndpoint())
@@ -105,16 +111,16 @@ public class FranceConnectSignUpPage {
         .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
         .get();
     if (response.getStatusInfo().getFamily() != Response.Status.Family.SUCCESSFUL) {
-      return FranceConnectCallback.serverError(locale, continueUrl.toString(), BrandHelper.getBrandIdFromUri(uriInfo));
+      return FranceConnectCallback.serverError(locale, continueUrl.toString(), brandInfo);
     }
     UserInfoResponse userInfo;
     try {
       userInfo = response.readEntity(UserInfoResponse.class);
     } catch (ProcessingException e) {
-      return FranceConnectCallback.serverError(locale, continueUrl.toString(), BrandHelper.getBrandIdFromUri(uriInfo));
+      return FranceConnectCallback.serverError(locale, continueUrl.toString(), brandInfo);
     }
     if (!state.franceconnect_sub().equals(userInfo.sub)) {
-      return FranceConnectCallback.serverError(locale, continueUrl.toString(), BrandHelper.getBrandIdFromUri(uriInfo));
+      return FranceConnectCallback.serverError(locale, continueUrl.toString(), brandInfo);
     }
     final UserAccount accountFromClaims = new UserAccount();
     accountFromClaims.setFranceconnect_sub(userInfo.sub);
@@ -154,7 +160,7 @@ public class FranceConnectSignUpPage {
       if (account == null) {
         // Must be that the FC identity has been linked to another account since the form was displayed.
         // XXX: directly reprocess the FC response (encoded in 'state') as in FranceConnectCallback, for better UX
-        return FranceConnectCallback.serverError(locale, continueUrl.toString(), BrandHelper.getBrandIdFromUri(uriInfo));
+        return FranceConnectCallback.serverError(locale, continueUrl.toString(), brandInfo);
       }
     }
 

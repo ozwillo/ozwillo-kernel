@@ -23,6 +23,7 @@ import java.util.ArrayList;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -55,6 +56,8 @@ import oasis.model.applications.v2.ServiceRepository;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
 import oasis.model.bootstrap.ClientIds;
+import oasis.model.branding.BrandInfo;
+import oasis.model.branding.BrandRepository;
 import oasis.services.branding.BrandHelper;
 import oasis.services.cookies.CookieFactory;
 import oasis.soy.SoyTemplate;
@@ -83,6 +86,7 @@ public class LogoutPage {
   @Inject AccountRepository accountRepository;
   @Inject SessionManagementHelper sessionManagementHelper;
   @Inject SecureRandom secureRandom;
+  @Inject BrandRepository brandRepository;
 
   @GET
   @Produces(MediaType.TEXT_HTML)
@@ -167,8 +171,10 @@ public class LogoutPage {
     viewModel.put(LogoutSoyTemplateInfo.IS_PORTAL, appInstance != null && appInstance.getId().equals(ClientIds.PORTAL));
     urls.myOasis().ifPresent(url -> viewModel.put(LogoutSoyTemplateInfo.PORTAL_URL, url.toString()));
 
+    BrandInfo brandInfo = brandRepository.getBrandInfo(appInstance == null ? BrandInfo.DEFAULT_BRAND : appInstance.getBrandId());
+
     return Response.ok(new SoyTemplate(LogoutSoyInfo.LOGOUT, account.getLocale(), viewModel.build(),
-        BrandHelper.getBrandIdFromUri(uriInfo))).build();// TODO : get brandId from AppInstance
+        brandInfo)).build();
   }
 
   private Response redirectTo(@Nullable URI continueUrl) {
@@ -199,8 +205,11 @@ public class LogoutPage {
   public Response post(
       @Nullable @FormParam("app_id") String appId,
       @Nullable @FormParam("post_logout_redirect_uri") String post_logout_redirect_uri,
-      @Nullable @FormParam("state") String state
+      @Nullable @FormParam("state") String state,
+      @FormParam(BrandHelper.BRAND_PARAM) @DefaultValue(BrandInfo.DEFAULT_BRAND) String brandId
   ) {
+    BrandInfo brandInfo = brandRepository.getBrandInfo(brandId);
+
     final SidToken sidToken = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken();
     boolean tokenRevoked = tokenRepository.revokeToken(sidToken.getId());
     if (!tokenRevoked) {

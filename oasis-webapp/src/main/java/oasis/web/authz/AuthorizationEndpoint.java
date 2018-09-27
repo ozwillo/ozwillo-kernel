@@ -40,11 +40,13 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.RedirectionException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
@@ -101,6 +103,8 @@ import oasis.model.authz.AuthorizationRepository;
 import oasis.model.authz.AuthorizedScopes;
 import oasis.model.authz.Scopes;
 import oasis.model.bootstrap.ClientIds;
+import oasis.model.branding.BrandInfo;
+import oasis.model.branding.BrandRepository;
 import oasis.services.branding.BrandHelper;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
@@ -225,6 +229,7 @@ public class AuthorizationEndpoint {
   @Inject SessionManagementHelper sessionManagementHelper;
   @Inject ClientCertificateHelper helper;
   @Inject ClientCertificateRepository clientCertificateRepository;
+  @Inject BrandRepository brandRepository;
 
   private MultivaluedMap<String, String> params;
   private String client_id;
@@ -394,8 +399,11 @@ public class AuthorizationEndpoint {
       @FormParam("redirect_uri") String redirect_uri,
       @Nullable @FormParam("state") String state,
       @Nullable @FormParam("nonce") String nonce,
-      @Nullable @FormParam("code_challenge") String code_challenge
+      @Nullable @FormParam("code_challenge") String code_challenge,
+      @FormParam(BrandHelper.BRAND_PARAM) @DefaultValue(BrandInfo.DEFAULT_BRAND) String brandId
   ) {
+    BrandInfo brandInfo = brandRepository.getBrandInfo(brandId);
+
     // TODO: check XSS (check data hasn't been tampered since generation of the form, so we can skip some validations we had already done)
 
     redirectUri = new RedirectUri(redirect_uri).setState(state);
@@ -493,7 +501,7 @@ public class AuthorizationEndpoint {
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
         .entity(new SoyTemplate(AuthorizeSoyInfo.ASK_FOR_CLIENT_CERTIFICATE, account.getLocale(), data.build(),
-            BrandHelper.getBrandIdFromUri(uriInfo))) // TODO : get brandId from AppInstance
+            brandRepository.getBrandInfo(serviceProvider.getBrandId())))
         .build();
   }
 
@@ -639,7 +647,7 @@ public class AuthorizationEndpoint {
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
         .entity(new SoyTemplate(AuthorizeSoyInfo.AUTHORIZE, account.getLocale(), data.build(),
-            BrandHelper.getBrandIdFromUri(uriInfo)))// TODO : get brandId from AppInstance
+            brandRepository.getBrandInfo(serviceProvider.getBrandId())))
         .build();
   }
 

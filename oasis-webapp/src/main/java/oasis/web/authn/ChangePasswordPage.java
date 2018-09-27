@@ -41,6 +41,8 @@ import oasis.model.accounts.UserAccount;
 import oasis.model.authn.ClientType;
 import oasis.model.authn.CredentialsRepository;
 import oasis.model.authn.TokenRepository;
+import oasis.model.branding.BrandInfo;
+import oasis.model.branding.BrandRepository;
 import oasis.services.branding.BrandHelper;
 import oasis.services.authn.CredentialsService;
 import oasis.services.cookies.CookieFactory;
@@ -62,33 +64,38 @@ public class ChangePasswordPage {
   @Inject AuthModule.Settings authSettings;
   @Inject Urls urls;
   @Inject SessionManagementHelper sessionManagementHelper;
+  @Inject BrandRepository brandRepository;
 
   @Context SecurityContext securityContext;
 
   @GET
   public Response get(@QueryParam(BrandHelper.BRAND_PARAM) @Nullable String brandId) {
+    BrandInfo brandInfo = brandRepository.getBrandInfo(brandId);
+
     String userId = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken().getAccountId();
     UserAccount account = accountRepository.getUserAccountById(userId);
     if (credentialsRepository.getCredentials(ClientType.USER, account.getId()) == null) {
-      return SetPasswordPage.form(Response.ok(), authSettings, urls, account, null, brandId);
+      return SetPasswordPage.form(Response.ok(), authSettings, urls, account, null, brandInfo);
     }
-    return form(Response.ok(), account, null, brandId);
+    return form(Response.ok(), account, null, brandInfo);
   }
 
   @POST @StrictReferer
   public Response post(
-      @FormParam(BrandHelper.BRAND_PARAM) String brandId,
+      @FormParam(BrandHelper.BRAND_PARAM) @DefaultValue(BrandInfo.DEFAULT_BRAND) String brandId,
       @FormParam("oldpwd") String oldpwd,
       @FormParam("newpwd") @DefaultValue("") String newpwd
   ) {
+    BrandInfo brandInfo = brandRepository.getBrandInfo(brandId);
+
     String userId = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken().getAccountId();
     UserAccount account = accountRepository.getUserAccountById(userId);
     if (!credentialsService.checkPassword(ClientType.USER, userId, oldpwd)) {
-      return form(Response.status(Response.Status.BAD_REQUEST), account, PasswordChangeError.BAD_PASSWORD, brandId);
+      return form(Response.status(Response.Status.BAD_REQUEST), account, PasswordChangeError.BAD_PASSWORD, brandInfo);
     }
 
     if (newpwd.length() < authSettings.passwordMinimumLength) {
-      return form(Response.status(Response.Status.BAD_REQUEST), account, PasswordChangeError.PASSWORD_TOO_SHORT, brandId);
+      return form(Response.status(Response.Status.BAD_REQUEST), account, PasswordChangeError.PASSWORD_TOO_SHORT, brandInfo);
     }
     credentialsService.setPassword(ClientType.USER, userId, newpwd);
 
@@ -109,17 +116,17 @@ public class ChangePasswordPage {
             urls.myOasis()
                 .map(url -> ImmutableMap.of(PasswordChangedSoyTemplateInfo.CONTINUE, url.toString()))
                 .orElse(null),
-            brandId
+            brandInfo
             ))
         .build();
   }
 
-  private Response form(Response.ResponseBuilder builder, UserAccount account, @Nullable PasswordChangeError error, String brandId) {
-    return form(builder, authSettings, urls, account, error, brandId);
+  private Response form(Response.ResponseBuilder builder, UserAccount account, @Nullable PasswordChangeError error, BrandInfo brandInfo) {
+    return form(builder, authSettings, urls, account, error, brandInfo);
   }
 
   static Response form(Response.ResponseBuilder builder, AuthModule.Settings authSettings, Urls urls, UserAccount account, @Nullable PasswordChangeError error,
-      String brandId) {
+      BrandInfo brandInfo) {
     ImmutableMap.Builder<String, Object> data = ImmutableMap.<String, Object>builderWithExpectedSize(5)
         .put(ChangePasswordSoyTemplateInfo.EMAIL, account.getEmail_address())
         .put(ChangePasswordSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(ChangePasswordPage.class).build().toString())
@@ -136,7 +143,7 @@ public class ChangePasswordPage {
         .header("X-Frame-Options", "DENY")
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
-        .entity(new SoyTemplate(ChangePasswordSoyInfo.CHANGE_PASSWORD, account.getLocale(), data.build(), brandId))
+        .entity(new SoyTemplate(ChangePasswordSoyInfo.CHANGE_PASSWORD, account.getLocale(), data.build(), brandInfo))
         .build();
   }
 

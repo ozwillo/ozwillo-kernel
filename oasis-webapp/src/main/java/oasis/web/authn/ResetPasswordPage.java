@@ -19,6 +19,7 @@ package oasis.web.authn;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -42,6 +43,8 @@ import oasis.model.accounts.UserAccount;
 import oasis.model.authn.ChangePasswordToken;
 import oasis.model.authn.ClientType;
 import oasis.model.authn.TokenRepository;
+import oasis.model.branding.BrandInfo;
+import oasis.model.branding.BrandRepository;
 import oasis.services.branding.BrandHelper;
 import oasis.services.authn.CredentialsService;
 import oasis.services.authn.TokenHandler;
@@ -62,6 +65,7 @@ public class ResetPasswordPage {
   @Inject CredentialsService credentialsService;
   @Inject Urls urls;
   @Inject LocaleHelper localeHelper;
+  @Inject BrandRepository brandRepository;
 
   @Context Request request;
 
@@ -70,49 +74,51 @@ public class ResetPasswordPage {
   @GET
   public Response get(
       @QueryParam(LoginPage.LOCALE_PARAM) @Nullable ULocale locale,
-      @QueryParam(BrandHelper.BRAND_PARAM) @Nullable String brandId
+      @QueryParam(BrandHelper.BRAND_PARAM) @DefaultValue(BrandInfo.DEFAULT_BRAND) String brandId
   ) {
+    BrandInfo brandInfo = brandRepository.getBrandInfo(brandId);
     locale = localeHelper.selectLocale(locale, request);
 
     ChangePasswordToken changePasswordToken = tokenHandler.getCheckedToken(token, ChangePasswordToken.class);
     if (changePasswordToken == null) {
       return ForgotPasswordPage.form(Response.status(Response.Status.NOT_FOUND), locale, ForgotPasswordPage.ForgotPasswordError.EXPIRED_LINK,
-          brandId);
+          brandInfo);
     }
 
     UserAccount account = accountRepository.getUserAccountById(changePasswordToken.getAccountId());
     if (account == null) {
       // Account has been deleted since the password-reset process started; consider the link as having expired.
       return ForgotPasswordPage.form(Response.status(Response.Status.NOT_FOUND), locale, ForgotPasswordPage.ForgotPasswordError.EXPIRED_LINK,
-          brandId);
+          brandInfo);
     }
 
-    return form(Response.ok(), account, locale, null, brandId);
+    return form(Response.ok(), account, locale, null, brandInfo);
   }
 
   @POST @StrictReferer
   public Response post(
       @FormParam(LoginPage.LOCALE_PARAM) @Nullable ULocale locale,
       @FormParam("newpwd") String newpwd,
-      @FormParam(BrandHelper.BRAND_PARAM) String brandId
+      @FormParam(BrandHelper.BRAND_PARAM) @DefaultValue(BrandInfo.DEFAULT_BRAND) String brandId
   ) {
+    BrandInfo brandInfo = brandRepository.getBrandInfo(brandId);
     locale = localeHelper.selectLocale(locale, request);
 
     ChangePasswordToken changePasswordToken = tokenHandler.getCheckedToken(token, ChangePasswordToken.class);
     if (changePasswordToken == null) {
       return ForgotPasswordPage.form(Response.status(Response.Status.NOT_FOUND), locale, ForgotPasswordPage.ForgotPasswordError.EXPIRED_LINK,
-          brandId);
+          brandInfo);
     }
 
     UserAccount account = accountRepository.getUserAccountById(changePasswordToken.getAccountId());
     if (account == null) {
       // Account has been deleted since the password-reset process started; consider the link as having expired.
       return ForgotPasswordPage.form(Response.status(Response.Status.NOT_FOUND), locale, ForgotPasswordPage.ForgotPasswordError.EXPIRED_LINK,
-          brandId);
+          brandInfo);
     }
 
     if (Strings.isNullOrEmpty(newpwd)) {
-      return form(Response.status(Response.Status.BAD_REQUEST), account, locale, ResetPasswordError.MISSING_REQUIRED_FIELD, brandId);
+      return form(Response.status(Response.Status.BAD_REQUEST), account, locale, ResetPasswordError.MISSING_REQUIRED_FIELD, brandInfo);
     }
 
     credentialsService.setPassword(ClientType.USER, changePasswordToken.getAccountId(), newpwd);
@@ -132,12 +138,12 @@ public class ResetPasswordPage {
             urls.myOasis()
                 .map(url -> ImmutableMap.of(ChangePasswordSoyInfo.PasswordChangedSoyTemplateInfo.CONTINUE, url.toString()))
                 .orElse(null),
-            brandId
+            brandInfo
             ))
         .build();
   }
 
-  private Response form(Response.ResponseBuilder builder, UserAccount account, ULocale locale, @Nullable ResetPasswordError error, String brandId) {
+  private Response form(Response.ResponseBuilder builder, UserAccount account, ULocale locale, @Nullable ResetPasswordError error, BrandInfo brandInfo) {
     ImmutableMap.Builder<String, String> data = ImmutableMap.<String, String>builderWithExpectedSize(4)
         .put(RecoverSoyInfo.ResetPasswordSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(ResetPasswordPage.class).build(token).toString())
         .put(RecoverSoyInfo.ResetPasswordSoyTemplateInfo.EMAIL_ADDRESS, account.getEmail_address())
@@ -153,7 +159,7 @@ public class ResetPasswordPage {
         .header("X-Frame-Options", "DENY")
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
-        .entity(new SoyTemplate(RecoverSoyInfo.RESET_PASSWORD, account.getLocale(), data.build(), brandId))
+        .entity(new SoyTemplate(RecoverSoyInfo.RESET_PASSWORD, account.getLocale(), data.build(), brandInfo))
         .build();
   }
 

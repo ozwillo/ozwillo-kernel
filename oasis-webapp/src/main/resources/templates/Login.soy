@@ -97,6 +97,7 @@ small {lb} display: block; margin-top: 2em; font-size: .65em; line-height: initi
         <input type="hidden" name="_utf8" value="&#9731;">
         <input type="hidden" name="continue" value="{$continue}">
         <input type="hidden" name="hl" value="{$current_locale}">
+        <input type="hidden" name="brand" value="{$brand_info['brand_id']}">
         <div>
           <label for=u>{msg desc="Email field label"}Email{/msg}</label>
           <input id=u type=email name=u required autofocus autocomplete=username>
@@ -125,6 +126,7 @@ small {lb} display: block; margin-top: 2em; font-size: .65em; line-height: initi
           <input type="hidden" name="_utf8" value="&#9731;">
           <input type="hidden" name="continue" value="{$continue}">
           <input type="hidden" name="hl" value="{$current_locale}">
+          <input type="hidden" name="brand" value="{$brand_info['brand_id']}">
           <button type="submit" style="cursor: pointer; background: transparent; margin: 0; padding: 0; border: none;">
             <img alt="S'identifier avec FranceConnect" src="/images/franceconnect.svg" width=172 height=50>
           </button>
@@ -142,6 +144,7 @@ small {lb} display: block; margin-top: 2em; font-size: .65em; line-height: initi
         <input type="hidden" name="_utf8" value="&#9731;">
         <input type="hidden" name="continue" value="{$continue}">
         <input type="hidden" name="hl" value="{$current_locale}">
+        <input type="hidden" name="brand" value="{$brand_info['brand_id']}">
         <div>
           <label for=nickname>{msg desc="Nickname field label (for sign-up)"}Nickname{/msg}</label>
           <input id=nickname name=nickname required autocomplete=nickname>
@@ -229,6 +232,7 @@ h2 {lb} margin-bottom: 2.5em; {rb}
     <input type=hidden name=continue value="{$continue}">
     <input type=hidden name=hl value="{$current_locale}">
     <input type=hidden name=u value="{$reauthEmail}" autocomplete=username>
+    <input type=hidden name=brand value="{$brand_info['brand_id']}">
     <p>{$reauthEmail}</p>
     <input type=password name=pwd required autocomplete=current-password>
 

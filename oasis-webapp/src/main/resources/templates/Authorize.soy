@@ -81,6 +81,7 @@ button:disabled {lb}
   <form method="POST" action="{$formAction}">
     <input type="hidden" name="_utf8" value="&#9731;">
     <input type="hidden" name="client_id" value="{$appId}">
+    <input type="hidden" name="brand" value="{$brand_info['brand_id']}">
     {for $scope in $requiredScopes}
       <input type="hidden" name="scope" value="{$scope}">
     {/for}

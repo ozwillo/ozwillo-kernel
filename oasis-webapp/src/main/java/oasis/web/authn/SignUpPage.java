@@ -24,6 +24,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.mail.MessagingException;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -55,6 +56,8 @@ import oasis.model.applications.v2.ServiceRepository;
 import oasis.model.authn.AccountActivationToken;
 import oasis.model.authn.ClientType;
 import oasis.model.authn.CredentialsRepository;
+import oasis.model.branding.BrandInfo;
+import oasis.model.branding.BrandRepository;
 import oasis.services.branding.BrandHelper;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
@@ -82,6 +85,7 @@ public class SignUpPage {
   @Inject AuthModule.Settings authSettings;
   @Inject @Nullable FranceConnectModule.Settings franceConnectSettings;
   @Inject ServiceRepository serviceRepository;
+  @Inject BrandRepository brandRepository;
 
   @Context SecurityContext securityContext;
   @Context UriInfo uriInfo;
@@ -95,16 +99,19 @@ public class SignUpPage {
       @FormParam(LoginPage.LOCALE_PARAM) @Nullable ULocale locale,
       @FormParam("email") String email,
       @FormParam("pwd") String password,
-      @FormParam("nickname") String nickname
+      @FormParam("nickname") String nickname,
+      @FormParam(BrandHelper.BRAND_PARAM) @DefaultValue(BrandInfo.DEFAULT_BRAND) String brandId
   ) {
+    BrandInfo brandInfo = brandRepository.getBrandInfo(brandId);
+
     locale = localeHelper.selectLocale(locale, request);
 
     if (Strings.isNullOrEmpty(email) || Strings.isNullOrEmpty(password) || Strings.isNullOrEmpty(nickname)) {
-      return signupForm(Response.ok(), continueUrl, locale, LoginPage.SignupError.MISSING_REQUIRED_FIELD);
+      return signupForm(Response.ok(), continueUrl, locale, LoginPage.SignupError.MISSING_REQUIRED_FIELD, brandInfo);
     }
     // TODO: Verify that the password has a sufficiently strong entropy
     if (password.length() < authSettings.passwordMinimumLength) {
-      return signupForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, locale, LoginPage.SignupError.PASSWORD_TOO_SHORT);
+      return signupForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, locale, LoginPage.SignupError.PASSWORD_TOO_SHORT, brandInfo);
     }
 
     UserAccount account = new UserAccount();
@@ -113,7 +120,7 @@ public class SignUpPage {
     account.setLocale(locale);
     account = accountRepository.createUserAccount(account, false);
     if (account == null) {
-      return signupForm(Response.ok(), continueUrl, locale, LoginPage.SignupError.ACCOUNT_ALREADY_EXISTS);
+      return signupForm(Response.ok(), continueUrl, locale, LoginPage.SignupError.ACCOUNT_ALREADY_EXISTS, brandInfo);
     } else {
       userPasswordAuthenticator.setPassword(account.getId(), password);
     }
@@ -147,16 +154,16 @@ public class SignUpPage {
       logger.error("Error sending activation email", e);
       accountRepository.deleteUserAccount(account.getId());
       credentialsRepository.deleteCredentials(ClientType.USER, account.getId());
-      return signupForm(Response.ok(), continueUrl, locale, LoginPage.SignupError.MESSAGING_ERROR);
+      return signupForm(Response.ok(), continueUrl, locale, LoginPage.SignupError.MESSAGING_ERROR, brandInfo);
     }
   }
 
-  private Response signupForm(Response.ResponseBuilder builder, @Nullable URI continueUrl, ULocale locale, LoginPage.SignupError error) {
+  private Response signupForm(Response.ResponseBuilder builder, @Nullable URI continueUrl, ULocale locale, LoginPage.SignupError error, BrandInfo brandInfo) {
     if (continueUrl == null) {
       continueUrl = LoginPage.defaultContinueUrl(urls.myOasis(), uriInfo);
     }
     return LoginPage.signupForm(builder, continueUrl, locale, authSettings, franceConnectSettings != null, error,
-        BrandHelper.getBrandIdFromUri(uriInfo));
+        brandInfo);
   }
 
   @Nullable

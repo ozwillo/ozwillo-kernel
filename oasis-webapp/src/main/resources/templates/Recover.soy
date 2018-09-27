@@ -70,6 +70,7 @@ h2 {lb} margin-bottom: 2.5em; {rb}
   <form method=POST action="{$formAction}">
     <input type=hidden name=_utf8 value="&#9731;">
     <input type=hidden name=hl value="{$current_locale}">
+    <input type=hidden name=brand value="{$brand_info['brand_id']}">
     <div>
       <label for=u>{msg desc="Email field label for account recovery"}Your email address:{/msg}</label>
       {sp}

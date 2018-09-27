@@ -39,7 +39,6 @@ import com.ibm.icu.util.ULocale;
 
 import oasis.model.branding.BrandInfo;
 import oasis.services.branding.BrandHelper;
-import oasis.model.branding.BrandRepository;
 import oasis.urls.Urls;
 import oasis.web.i18n.LocaleHelper;
 
@@ -105,18 +104,18 @@ public class SoyTemplateRenderer {
   private final SoyTofu soyTofu;
   private final SoyMsgBundleLoader soyMsgBundleLoader;
   private final Urls urls;
-  private final BrandRepository brandRepository;
 
-  @Inject SoyTemplateRenderer(SoyTofu soyTofu, SoyMsgBundleLoader soyMsgBundleLoader, Urls urls, BrandRepository brandRepository) {
+  @Inject SoyTemplateRenderer(SoyTofu soyTofu, SoyMsgBundleLoader soyMsgBundleLoader, Urls urls) {
     this.soyTofu = soyTofu;
     this.soyMsgBundleLoader = soyMsgBundleLoader;
     this.urls = urls;
-    this.brandRepository = brandRepository;
   }
 
   public void render(SoyTemplate template, Appendable writer) {
-    // FIXME : only retreive brandInfo if needed
-    BrandInfo brandInfo = brandRepository.getBrandInfo(template.getBrandId());
+    BrandInfo brandInfo = template.getBrandInfo();
+    if (brandInfo == null) {
+      brandInfo = new BrandInfo();
+    }
 
     SoyMsgBundle msgBundle = soyMsgBundleLoader.get(template.getLocale());
     soyTofu.newRenderer(template.getTemplateInfo())

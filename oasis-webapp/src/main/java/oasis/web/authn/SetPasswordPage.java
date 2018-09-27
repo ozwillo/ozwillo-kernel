@@ -22,10 +22,12 @@ import java.net.URI;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.mail.MessagingException;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -49,6 +51,8 @@ import oasis.model.accounts.UserAccount;
 import oasis.model.authn.ClientType;
 import oasis.model.authn.CredentialsRepository;
 import oasis.model.authn.SetPasswordToken;
+import oasis.model.branding.BrandInfo;
+import oasis.model.branding.BrandRepository;
 import oasis.services.branding.BrandHelper;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
@@ -71,6 +75,7 @@ public class SetPasswordPage {
   @Inject AuthModule.Settings authSettings;
   @Inject Urls urls;
   @Inject MailSender mailSender;
+  @Inject BrandRepository brandRepository;
 
   @Context SecurityContext securityContext;
   @Context UriInfo uriInfo;
@@ -78,20 +83,23 @@ public class SetPasswordPage {
   @POST
   public Response post(
       @FormParam("u") String email,
-      @FormParam("pwd") String pwd
+      @FormParam("pwd") String pwd,
+      @FormParam(BrandHelper.BRAND_PARAM) @DefaultValue(BrandInfo.DEFAULT_BRAND) String brandId
   ) {
+    BrandInfo brandInfo = brandRepository.getBrandInfo(brandId);
+
     String userId = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken().getAccountId();
 
     if (credentialsRepository.getCredentials(ClientType.USER, userId) != null) {
       // If the account already has a password, this is most likely a race condition (or tampered form)
       UserAccount account = accountRepository.getUserAccountById(userId);
       return ChangePasswordPage.form(Response.status(Response.Status.CONFLICT), authSettings, urls,
-          account, ChangePasswordPage.PasswordChangeError.BAD_PASSWORD, BrandHelper.getBrandIdFromUri(uriInfo));
+          account, ChangePasswordPage.PasswordChangeError.BAD_PASSWORD, brandInfo);
     }
 
     if (pwd.length() < authSettings.passwordMinimumLength) {
       UserAccount account = accountRepository.getUserAccountById(userId);
-      return form(Response.status(Response.Status.BAD_REQUEST), account, PasswordInitError.PASSWORD_TOO_SHORT);
+      return form(Response.status(Response.Status.BAD_REQUEST), account, PasswordInitError.PASSWORD_TOO_SHORT, brandInfo);
     }
 
     UserAccount account;
@@ -99,7 +107,7 @@ public class SetPasswordPage {
       account = accountRepository.setEmailAddress(userId, email);
     } catch (DuplicateKeyException dke) {
       account = accountRepository.getUserAccountById(userId);
-      return form(Response.status(Response.Status.BAD_REQUEST), account, PasswordInitError.EMAIL_ALREADY_EXISTS);
+      return form(Response.status(Response.Status.BAD_REQUEST), account, PasswordInitError.EMAIL_ALREADY_EXISTS, brandInfo);
     }
 
     String pass = tokenHandler.generateRandom();
@@ -122,7 +130,7 @@ public class SetPasswordPage {
           )));
     } catch (MessagingException e) {
       logger.error("Error sending init-password email", e);
-      return form(Response.serverError(), account, PasswordInitError.MESSAGING_ERROR);
+      return form(Response.serverError(), account, PasswordInitError.MESSAGING_ERROR, brandInfo);
     }
 
     return Response.ok()
@@ -133,15 +141,15 @@ public class SetPasswordPage {
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
         .entity(new SoyTemplate(InitPasswordSoyInfo.PASSWORD_PENDING_ACTIVATION, account.getLocale(), null,
-            BrandHelper.getBrandIdFromUri(uriInfo)))
+            brandInfo))
         .build();
   }
 
-  private Response form(Response.ResponseBuilder builder, UserAccount account, @Nullable PasswordInitError error) {
-    return form(builder, authSettings, urls, account, error, BrandHelper.getBrandIdFromUri(uriInfo));
+  private Response form(Response.ResponseBuilder builder, UserAccount account, @Nullable PasswordInitError error, BrandInfo brandInfo) {
+    return form(builder, authSettings, urls, account, error, brandInfo);
   }
 
-  static Response form(Response.ResponseBuilder builder, AuthModule.Settings authSettings, Urls urls, UserAccount account, @Nullable PasswordInitError error, String brandId) {
+  static Response form(Response.ResponseBuilder builder, AuthModule.Settings authSettings, Urls urls, UserAccount account, @Nullable PasswordInitError error, BrandInfo brandInfo) {
     ImmutableMap.Builder<String, Object> data = ImmutableMap.<String, Object>builderWithExpectedSize(4)
         .put(InitPasswordSoyTemplateInfo.EMAIL, account.getEmail_address())
         .put(InitPasswordSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(SetPasswordPage.class).build().toString())
@@ -159,7 +167,7 @@ public class SetPasswordPage {
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
         .entity(new SoyTemplate(InitPasswordSoyInfo.INIT_PASSWORD, account.getLocale(), data.build(),
-            brandId))
+            brandInfo))
         .build();
   }
 

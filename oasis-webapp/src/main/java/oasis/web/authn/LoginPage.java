@@ -57,6 +57,8 @@ import oasis.model.authn.ClientType;
 import oasis.model.authn.CredentialsRepository;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
+import oasis.model.branding.BrandInfo;
+import oasis.model.branding.BrandRepository;
 import oasis.services.branding.BrandHelper;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.UserPasswordAuthenticator;
@@ -91,6 +93,7 @@ public class LoginPage {
   @Inject LoginHelper loginHelper;
   @Inject @Nullable FranceConnectModule.Settings franceConnectSettings;
   @Inject SecureRandom secureRandom;
+  @Inject BrandRepository brandRepository;
 
   @Context SecurityContext securityContext;
   @Context UriInfo uriInfo;
@@ -101,9 +104,11 @@ public class LoginPage {
   @Produces(MediaType.TEXT_HTML)
   public Response get(
       @QueryParam(CONTINUE_PARAM) URI continueUrl,
-      @QueryParam(LOCALE_PARAM) @Nullable ULocale locale
+      @QueryParam(LOCALE_PARAM) @Nullable ULocale locale,
+      @QueryParam(BrandHelper.BRAND_PARAM) @DefaultValue(BrandInfo.DEFAULT_BRAND) String brandId
   ) {
-    return loginOrReauthForm(Response.ok(), continueUrl, localeHelper.selectLocale(locale, request), null);
+    BrandInfo brandInfo = brandRepository.getBrandInfo(brandId);
+    return loginOrReauthForm(Response.ok(), continueUrl, localeHelper.selectLocale(locale, request), null, brandInfo);
   }
 
   @POST
@@ -113,12 +118,15 @@ public class LoginPage {
       @FormParam(LOCALE_PARAM) @Nullable ULocale locale,
       @FormParam("u") @DefaultValue("") String userName,
       @FormParam("pwd") @DefaultValue("") String password,
-      @FormParam("continue") URI continueUrl
+      @FormParam("continue") URI continueUrl,
+      @FormParam(BrandHelper.BRAND_PARAM) @DefaultValue(BrandInfo.DEFAULT_BRAND) String brandId
   ) {
+    BrandInfo brandInfo = brandRepository.getBrandInfo(brandId);
+
     locale = localeHelper.selectLocale(locale, request);
 
     if (userName.isEmpty()) {
-      return loginOrReauthForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, locale, null);
+      return loginOrReauthForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, locale, null, brandInfo);
     }
     if (continueUrl == null) {
       continueUrl = defaultContinueUrl();
@@ -129,11 +137,11 @@ public class LoginPage {
       account = userPasswordAuthenticator.authenticate(userName, password);
     } catch (LoginException e) {
       log(userName, LoginLogEvent.LoginResult.AUTHENTICATION_FAILED);
-      return loginOrReauthForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, locale, LoginError.INCORRECT_USERNAME_OR_PASSWORD);
+      return loginOrReauthForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, locale, LoginError.INCORRECT_USERNAME_OR_PASSWORD, brandInfo);
     }
 
     if (securityContext.getUserPrincipal() != null) {
-      return reAuthenticate(userName, account, continueUrl);
+      return reAuthenticate(userName, account, continueUrl, brandInfo);
     }
 
     return loginHelper.authenticate(account, headers, securityContext, continueUrl, null, null, () -> {
@@ -141,12 +149,12 @@ public class LoginPage {
     }).build();
   }
 
-  private Response reAuthenticate(String userName, UserAccount account, URI continueUrl) {
+  private Response reAuthenticate(String userName, UserAccount account, URI continueUrl, BrandInfo brandInfo) {
     SidToken sidToken = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken();
     if (!account.getId().equals(sidToken.getAccountId())) {
       // Form has been tampered with, or user signed in with another account since the form was generated
       // Re-display the form: if user signed out/in, it will show the new (current) user.
-      return loginOrReauthForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, account.getLocale(), null);
+      return loginOrReauthForm(Response.status(Response.Status.BAD_REQUEST), continueUrl, account.getLocale(), null, brandInfo);
     }
     if (!tokenRepository.reAuthSidToken(sidToken.getId())) {
       // XXX: This shouldn't be audited because it shouldn't be the user fault
@@ -159,7 +167,8 @@ public class LoginPage {
     return Response.seeOther(continueUrl).build();
   }
 
-  private Response loginOrReauthForm(Response.ResponseBuilder builder, @Nullable URI continueUrl, @Nullable ULocale locale, @Nullable LoginError error) {
+  private Response loginOrReauthForm(Response.ResponseBuilder builder, @Nullable URI continueUrl, @Nullable ULocale locale, @Nullable LoginError error,
+      BrandInfo brandInfo) {
     if (continueUrl == null) {
       continueUrl = defaultContinueUrl();
     }
@@ -168,22 +177,22 @@ public class LoginPage {
       SidToken sidToken = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken();
       UserAccount account = accountRepository.getUserAccountById(sidToken.getAccountId());
       // XXX: what if account is null?
-      return reauthForm(builder, continueUrl, error, account);
+      return reauthForm(builder, continueUrl, error, account, brandInfo);
     }
 
     final ClientCertificate clientCertificate = clientCertificateHelper.getClientCertificate(headers.getRequestHeaders());
     if (clientCertificate != null && clientCertificate.getClient_type() == ClientType.USER) {
       UserAccount account = accountRepository.getUserAccountById(clientCertificate.getClient_id());
       if (account != null) {
-        return reauthForm(builder, continueUrl, error, account);
+        return reauthForm(builder, continueUrl, error, account, brandInfo);
       }
     }
 
     return loginForm(builder, continueUrl, locale, franceConnectSettings != null, error,
-        BrandHelper.getBrandIdFromUri(uriInfo));
+        brandInfo);
   }
 
-  private Response reauthForm(Response.ResponseBuilder builder, URI continueUrl, @Nullable LoginError error, UserAccount userAccount) {
+  private Response reauthForm(Response.ResponseBuilder builder, URI continueUrl, @Nullable LoginError error, UserAccount userAccount, BrandInfo brandInfo) {
     if (credentialsRepository.getCredentials(ClientType.USER, userAccount.getId()) == null) {
       assert franceConnectSettings != null;
       assert userAccount.getFranceconnect_sub() != null;
@@ -200,19 +209,19 @@ public class LoginPage {
     }
 
     return buildResponseFromView(builder, new SoyTemplate(LoginSoyInfo.REAUTH, userAccount.getLocale(), data.build(),
-        BrandHelper.getBrandIdFromUri(uriInfo)));
+        brandInfo));
   }
 
-  private static Response loginForm(Response.ResponseBuilder builder, URI continueUrl, ULocale locale, boolean withFranceConnect, @Nullable LoginError error, String brandId) {
-    return loginAndSignupForm(builder, continueUrl, locale, null, withFranceConnect, error, brandId);
+  private static Response loginForm(Response.ResponseBuilder builder, URI continueUrl, ULocale locale, boolean withFranceConnect, @Nullable LoginError error, BrandInfo brandInfo) {
+    return loginAndSignupForm(builder, continueUrl, locale, null, withFranceConnect, error, brandInfo);
   }
 
-  static Response signupForm(Response.ResponseBuilder builder, URI continueUrl, ULocale locale, AuthModule.Settings authSettings, boolean withFranceConnect, @Nullable SignupError error, String brandId) {
-    return loginAndSignupForm(builder, continueUrl, locale, authSettings, withFranceConnect, error, brandId);
+  static Response signupForm(Response.ResponseBuilder builder, URI continueUrl, ULocale locale, AuthModule.Settings authSettings, boolean withFranceConnect, @Nullable SignupError error, BrandInfo brandInfo) {
+    return loginAndSignupForm(builder, continueUrl, locale, authSettings, withFranceConnect, error, brandInfo);
   }
 
   private static Response loginAndSignupForm(Response.ResponseBuilder builder, URI continueUrl,
-      ULocale locale, @Nullable AuthModule.Settings authSettings, boolean withFranceConnect, @Nullable Enum<?> error, String brandId) {
+      ULocale locale, @Nullable AuthModule.Settings authSettings, boolean withFranceConnect, @Nullable Enum<?> error, BrandInfo brandInfo) {
     ImmutableMap.Builder<String, String> localeUrlMap = ImmutableMap.builderWithExpectedSize(LocaleHelper.SUPPORTED_LOCALES.size());
     for (ULocale supportedLocale : LocaleHelper.SUPPORTED_LOCALES) {
       String languageTag = supportedLocale.toLanguageTag();
@@ -240,7 +249,7 @@ public class LoginPage {
     }
 
     return buildResponseFromView(builder, new SoyTemplate(LoginSoyInfo.LOGIN, locale, data.build(),
-        brandId));
+        brandInfo));
   }
 
   private static Response buildResponseFromView(Response.ResponseBuilder builder, SoyTemplate soyTemplate) {

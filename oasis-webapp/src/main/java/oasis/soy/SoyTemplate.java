@@ -27,6 +27,8 @@ import com.google.template.soy.data.SanitizedContent;
 import com.google.template.soy.parseinfo.SoyTemplateInfo;
 import com.ibm.icu.util.ULocale;
 
+import oasis.model.branding.BrandInfo;
+
 @Immutable
 public class SoyTemplate {
   private final SoyTemplateInfo templateInfo;
@@ -35,8 +37,8 @@ public class SoyTemplate {
   private final SanitizedContent.ContentKind contentKind;
   @SuppressWarnings("Immutable")
   private final @Nullable ImmutableMap<String, ?> data;
-
-  private final String brandId;
+  @SuppressWarnings("Immutable")
+  private final @Nullable BrandInfo brandInfo;
 
   public SoyTemplate(SoyTemplateInfo templateInfo, ULocale locale) {
     this(templateInfo, locale, null, null, null);
@@ -46,8 +48,8 @@ public class SoyTemplate {
     this(templateInfo, locale, null, data, null);
   }
 
-  public SoyTemplate(SoyTemplateInfo templateInfo, ULocale locale, @Nullable ImmutableMap<String, ?> data, String brandId) {
-    this(templateInfo, locale, null, data, brandId);
+  public SoyTemplate(SoyTemplateInfo templateInfo, ULocale locale, @Nullable ImmutableMap<String, ?> data, BrandInfo brandInfo) {
+    this(templateInfo, locale, null, data, brandInfo);
   }
 
   public SoyTemplate(SoyTemplateInfo templateInfo, ULocale locale, @Nullable SanitizedContent.ContentKind contentKind) {
@@ -60,12 +62,12 @@ public class SoyTemplate {
   }
 
   private SoyTemplate(SoyTemplateInfo templateInfo, ULocale locale, @Nullable SanitizedContent.ContentKind contentKind,
-      @Nullable ImmutableMap<String, ?> data, @Nullable String brandId) {
+      @Nullable ImmutableMap<String, ?> data, @Nullable BrandInfo brandInfo) {
     this.templateInfo = Preconditions.checkNotNull(templateInfo);
     this.locale = locale;
     this.contentKind = MoreObjects.firstNonNull(contentKind, SanitizedContent.ContentKind.HTML);
     this.data = data;
-    this.brandId = brandId;
+    this.brandInfo = brandInfo;
   }
 
   public SoyTemplateInfo getTemplateInfo() {
@@ -85,7 +87,7 @@ public class SoyTemplate {
     return data;
   }
 
-  public String getBrandId() {
-    return brandId;
+  public BrandInfo getBrandInfo() {
+    return brandInfo;
   }
 }

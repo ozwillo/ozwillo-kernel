@@ -22,10 +22,12 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Context;
@@ -62,6 +64,8 @@ import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
+import oasis.model.branding.BrandInfo;
+import oasis.model.branding.BrandRepository;
 import oasis.services.branding.BrandHelper;
 import oasis.soy.SoyTemplate;
 import oasis.soy.templates.FranceConnectSoyInfo;
@@ -86,14 +90,19 @@ public class FranceConnectCallback {
   @Inject TokenRepository tokenRepository;
   @Inject LoginHelper loginHelper;
   @Inject LocaleHelper localeHelper;
+  @Inject BrandRepository brandRepository;
 
   @Context UriInfo uriInfo;
   @Context HttpHeaders httpHeaders;
   @Context SecurityContext securityContext;
   @Context Request request;
 
+  BrandInfo brandInfo;
+
   @GET
-  public Response get() {
+  public Response get(@QueryParam(BrandHelper.BRAND_PARAM) @DefaultValue(BrandInfo.DEFAULT_BRAND) String brandId) {
+    brandInfo = brandRepository.getBrandInfo(brandId);
+
     final ImmutableMap<String, String> params = validateParams(uriInfo.getQueryParameters());
     if (params == null) {
       return badRequest(null).build();
@@ -108,12 +117,12 @@ public class FranceConnectCallback {
       // XXX: add "check that cookies are enabled in your browser" message?
       return badRequest(null).build();
     }
-    return doGet(params, stateCookie.getValue())
+    return doGet(params, stateCookie.getValue(), brandInfo)
         .cookie(FranceConnectLoginState.createExpiredCookie(stateKey, securityContext.isSecure()))
         .build();
   }
 
-  private Response.ResponseBuilder doGet(final ImmutableMap<String, String> params, final String serializedState) {
+  private Response.ResponseBuilder doGet(final ImmutableMap<String, String> params, final String serializedState, BrandInfo brandInfo) {
     FranceConnectLoginState state = FranceConnectLoginState.parse(serializedState);
     if (state == null) {
       return badRequest(null);
@@ -168,7 +177,7 @@ public class FranceConnectCallback {
       return Response.status(Response.Status.BAD_REQUEST)
           .type(MediaType.TEXT_HTML_TYPE)
           .entity(new SoyTemplate(FranceConnectSoyInfo.FRANCECONNECT_ALREADY_LINKED,
-              localeHelper.selectLocale(state.locale(), request), null, BrandHelper.getBrandIdFromUri(uriInfo)));
+              localeHelper.selectLocale(state.locale(), request), null, brandInfo));
     } else {
       // FranceConnect identity unknown
       if (securityContext.getUserPrincipal() != null) {
@@ -314,27 +323,27 @@ public class FranceConnectCallback {
   private Response.ResponseBuilder error(Response.ResponseBuilder rb, @Nullable FranceConnectLoginState state) {
     return error(rb,
         localeHelper.selectLocale(state == null ? null : state.locale(), request),
-        state == null ? null : state.continueUrl().toString(), BrandHelper.getBrandIdFromUri(uriInfo));
+        state == null ? null : state.continueUrl().toString(), brandInfo);
   }
 
-  static Response badRequest(ULocale locale, @Nullable String continueUrl, String brandId) {
-    return error(Response.status(Response.Status.BAD_REQUEST), locale, continueUrl, brandId)
+  static Response badRequest(ULocale locale, @Nullable String continueUrl, BrandInfo brandInfo) {
+    return error(Response.status(Response.Status.BAD_REQUEST), locale, continueUrl, brandInfo)
         .build();
   }
 
-  static Response serverError(ULocale locale, @Nullable String continueUrl, String brandId) {
-    return error(Response.serverError(), locale, continueUrl, brandId)
+  static Response serverError(ULocale locale, @Nullable String continueUrl, BrandInfo brandInfo) {
+    return error(Response.serverError(), locale, continueUrl, brandInfo)
         .build();
   }
 
-  private static Response.ResponseBuilder error(Response.ResponseBuilder rb, ULocale locale, @Nullable String continueUrl, String brandId) {
+  private static Response.ResponseBuilder error(Response.ResponseBuilder rb, ULocale locale, @Nullable String continueUrl, BrandInfo brandInfo) {
     ImmutableMap.Builder<String, String> data = ImmutableMap.<String, String>builderWithExpectedSize(2)
         .put(FranceconnectErrorSoyTemplateInfo.FRANCECONNECT, UriBuilder.fromResource(FranceConnectLogin.class).build().toString());
     if (continueUrl != null) {
       data.put(FranceconnectErrorSoyTemplateInfo.CONTINUE, continueUrl);
     }
     return rb.type(MediaType.TEXT_HTML_TYPE)
-        .entity(new SoyTemplate(FranceConnectSoyInfo.FRANCECONNECT_ERROR, locale, data.build(), brandId));
+        .entity(new SoyTemplate(FranceConnectSoyInfo.FRANCECONNECT_ERROR, locale, data.build(), brandInfo));
   }
 
   static class TokenResponse {

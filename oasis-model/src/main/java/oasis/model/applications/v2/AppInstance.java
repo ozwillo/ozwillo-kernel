@@ -26,6 +26,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import oasis.model.annotations.Id;
 import oasis.model.bootstrap.ClientIds;
+import oasis.model.branding.BrandInfo;
 import oasis.model.i18n.LocalizableString;
 
 public class AppInstance extends CommonProperties {
@@ -178,6 +179,11 @@ public class AppInstance extends CommonProperties {
   @JsonIgnore
   public void setPortal_id(String portal_id) {
     this.portal_id = ClientIds.PORTAL.equals(portal_id) ? null : portal_id;
+  }
+
+  @JsonIgnore
+  public String getBrandId() {
+    return portal_id == null ? BrandInfo.DEFAULT_BRAND : portal_id;
   }
 
   public static class NeededScope {
