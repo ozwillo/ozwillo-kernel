@@ -47,7 +47,8 @@ import oasis.model.accounts.UserAccount;
 import oasis.model.authn.AccessToken;
 import oasis.model.authz.Scopes;
 import oasis.security.KeyPairLoader;
-import oasis.urls.ImmutableUrls;
+import oasis.urls.ImmutableBaseUrls;
+import oasis.urls.ImmutablePathUrls;
 import oasis.urls.UrlsModule;
 import oasis.web.authn.testing.TestOAuthFilter;
 
@@ -58,7 +59,7 @@ public class UserInfoEndpointTest {
     protected void configureTest() {
       bind(UserInfoEndpoint.class);
 
-      install(new UrlsModule(ImmutableUrls.builder().build()));
+      install(new UrlsModule(ImmutableBaseUrls.builder().build(), ImmutablePathUrls.builder().build()));
 
       bind(AuthModule.Settings.class).toInstance(AuthModule.Settings.builder()
           .setKeyPair(KeyPairLoader.generateRandomKeyPair())

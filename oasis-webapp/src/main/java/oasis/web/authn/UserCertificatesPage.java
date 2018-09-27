@@ -51,6 +51,7 @@ import oasis.model.branding.BrandRepository;
 import oasis.services.branding.BrandHelper;
 import oasis.soy.SoyTemplate;
 import oasis.soy.templates.UserCertificatesSoyInfo;
+import oasis.urls.UrlsFactory;
 import oasis.urls.Urls;
 import oasis.web.authn.ClientCertificateHelper.ClientCertificateData;
 import oasis.web.security.StrictReferer;
@@ -62,7 +63,7 @@ public class UserCertificatesPage {
   @Inject AccountRepository accountRepository;
   @Inject ClientCertificateRepository clientCertificateRepository;
   @Inject ClientCertificateHelper clientCertificateHelper;
-  @Inject Urls urls;
+  @Inject UrlsFactory urlsFactory;
   @Inject BrandRepository brandRepository;
 
   @Context SecurityContext securityContext;
@@ -200,6 +201,7 @@ public class UserCertificatesPage {
     if (currentCert != null) {
       data.put(UserCertificatesSoyInfo.UserCertificatesSoyTemplateInfo.CURRENT_CERT, currentCert);
     }
+    Urls urls = urlsFactory.create(brandInfo.getPortal_base_uri());
     urls.myProfile().ifPresent(url -> data.put(UserCertificatesSoyInfo.UserCertificatesSoyTemplateInfo.PORTAL_URL, url.toString()));
 
     return (error ? Response.status(Response.Status.BAD_REQUEST) : Response.ok())

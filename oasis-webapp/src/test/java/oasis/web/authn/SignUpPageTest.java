@@ -61,7 +61,9 @@ import oasis.model.branding.BrandRepository;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.UserPasswordAuthenticator;
 import oasis.soy.SoyGuiceModule;
-import oasis.urls.ImmutableUrls;
+import oasis.urls.ImmutableBaseUrls;
+import oasis.urls.ImmutablePathUrls;
+import oasis.urls.UrlsFactory;
 import oasis.urls.Urls;
 import oasis.urls.UrlsModule;
 import oasis.web.authz.AuthorizationEndpoint;
@@ -79,10 +81,13 @@ public class SignUpPageTest {
 
       install(new NoopAuditLogModule());
       install(new SoyGuiceModule());
-      install(new UrlsModule(ImmutableUrls.builder()
+      install(new UrlsModule(ImmutableBaseUrls.builder()
           .landingPage(URI.create("https://oasis/landing-page"))
-          .myOasis(URI.create("https://oasis/my"))
-          .build()));
+          .portalBaseUri(URI.create("https://oasis"))
+          .build(),
+          ImmutablePathUrls.builder()
+            .myOasis("/my").build()
+      ));
       bind(AuthModule.Settings.class).toInstance(AuthModule.Settings.builder()
           .setPasswordMinimumLength(6)
           .build());
@@ -106,9 +111,12 @@ public class SignUpPageTest {
 
   @Inject @Rule public InProcessResteasy resteasy;
 
-  @Inject Urls urls;
+  @Inject UrlsFactory urlsFactory;
+  Urls urls;
 
   @Before public void setupMocks(AccountRepository accountRepository, TokenHandler tokenHandler, BrandRepository brandRepository) {
+    urls = urlsFactory.create("https://oasis");
+
     when(accountRepository.createUserAccount(refEq(someUserAccount, "id"), eq(false)))
         .thenReturn(someUserAccount);
 

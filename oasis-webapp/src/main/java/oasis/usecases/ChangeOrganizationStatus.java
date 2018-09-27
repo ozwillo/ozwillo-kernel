@@ -21,6 +21,8 @@ import java.net.URI;
 import java.time.Instant;
 
 import javax.inject.Inject;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.SecurityContext;
 
 import org.immutables.value.Value;
 import org.slf4j.Logger;
@@ -35,6 +37,8 @@ import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.applications.v2.ApplicationRepository;
+import oasis.model.authn.AccessToken;
+import oasis.model.branding.BrandRepository;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Organization;
 import oasis.model.directory.OrganizationMembership;
@@ -48,6 +52,8 @@ import oasis.soy.templates.ChangedOrganizationStatusSoyInfo.RestoredOrganization
 import oasis.soy.templates.ChangedOrganizationStatusSoyInfo.SoftlyDeletedOrganizationMessageForAdminsSoyTemplateInfo;
 import oasis.soy.templates.ChangedOrganizationStatusSoyInfo.SoftlyDeletedOrganizationMessageForRequesterSoyTemplateInfo;
 import oasis.urls.Urls;
+import oasis.urls.UrlsFactory;
+import oasis.web.authn.OAuthPrincipal;
 import oasis.web.i18n.LocaleHelper;
 
 @Value.Enclosing
@@ -61,7 +67,10 @@ public class ChangeOrganizationStatus {
   @Inject NotificationRepository notificationRepository;
   @Inject OrganizationMembershipRepository organizationMembershipRepository;
   @Inject SoyTemplateRenderer templateRenderer;
-  @Inject Urls urls;
+  @Inject UrlsFactory urlsFactory;
+  @Inject BrandRepository brandRepository;
+
+  @Context SecurityContext securityContext;
 
   public Response updateStatus(Request request) {
     ImmutableChangeOrganizationStatus.Response.Builder responseBuilder = ImmutableChangeOrganizationStatus.Response.builder();
@@ -117,15 +126,18 @@ public class ChangeOrganizationStatus {
         notifyOrganizationAdminsForRestoredOrganization(organization);
         break;
       case DELETED:
-        notifyOrganizationAdminsForStoppedOrganization(requesterId, organization);
-        notifyRequesterForStoppedOrganization(requesterId, organization);
+        AccessToken accessToken = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken();
+        Urls urls = urlsFactory.create(brandRepository.getBrandInfo(accessToken.getBrandId()).getPortal_base_uri());
+
+        notifyOrganizationAdminsForStoppedOrganization(requesterId, organization, urls);
+        notifyRequesterForStoppedOrganization(requesterId, organization, urls);
         break;
       default:
         // noop
     }
   }
 
-  private void notifyOrganizationAdminsForStoppedOrganization(String requesterId, Organization organization) {
+  private void notifyOrganizationAdminsForStoppedOrganization(String requesterId, Organization organization, Urls urls) {
     Notification notificationPrototype = new Notification();
     notificationPrototype.setTime(Instant.now());
     notificationPrototype.setStatus(Notification.Status.UNREAD);
@@ -165,7 +177,7 @@ public class ChangeOrganizationStatus {
     }
   }
 
-  private void notifyRequesterForStoppedOrganization(String requesterId, Organization organization) {
+  private void notifyRequesterForStoppedOrganization(String requesterId, Organization organization, Urls urls) {
     Notification notification = new Notification();
     notification.setTime(Instant.now());
     notification.setStatus(Notification.Status.UNREAD);

@@ -47,6 +47,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.html.HtmlEscapers;
 import com.google.common.net.UrlEscapers;
 import com.google.inject.Inject;
+import com.google.inject.Provides;
 import com.ibm.icu.util.ULocale;
 
 import oasis.auth.AuthModule;
@@ -66,7 +67,9 @@ import oasis.model.i18n.LocalizableString;
 import oasis.security.KeyPairLoader;
 import oasis.services.cookies.CookieFactory;
 import oasis.soy.SoyGuiceModule;
-import oasis.urls.ImmutableUrls;
+import oasis.urls.ImmutableBaseUrls;
+import oasis.urls.ImmutablePathUrls;
+import oasis.urls.UrlsFactory;
 import oasis.urls.Urls;
 import oasis.urls.UrlsModule;
 import oasis.web.authn.testing.TestUserFilter;
@@ -82,15 +85,20 @@ public class LogoutPageTest {
       bind(LogoutPage.class);
 
       install(new SoyGuiceModule());
-      install(new UrlsModule(ImmutableUrls.builder()
+      install(new UrlsModule(ImmutableBaseUrls.builder()
           .landingPage(URI.create("https://oasis/landing-page"))
-          .build()));
+          .build(), ImmutablePathUrls.builder().build()));
 
       bind(AuthModule.Settings.class).toInstance(AuthModule.Settings.builder()
           .setKeyPair(KeyPairLoader.generateRandomKeyPair())
           .build());
 
       bindMock(SessionManagementHelper.class).in(TestSingleton.class);
+    }
+
+    @Provides
+    public Urls provideUrls(UrlsFactory urlsFactory){
+      return urlsFactory.create("https://oasis");
     }
   }
 

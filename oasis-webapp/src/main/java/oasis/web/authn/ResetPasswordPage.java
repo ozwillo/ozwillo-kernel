@@ -51,6 +51,7 @@ import oasis.services.authn.TokenHandler;
 import oasis.soy.SoyTemplate;
 import oasis.soy.templates.ChangePasswordSoyInfo;
 import oasis.soy.templates.RecoverSoyInfo;
+import oasis.urls.UrlsFactory;
 import oasis.urls.Urls;
 import oasis.web.i18n.LocaleHelper;
 import oasis.web.security.StrictReferer;
@@ -63,8 +64,8 @@ public class ResetPasswordPage {
   @Inject TokenHandler tokenHandler;
   @Inject TokenRepository tokenRepository;
   @Inject CredentialsService credentialsService;
-  @Inject Urls urls;
   @Inject LocaleHelper localeHelper;
+  @Inject UrlsFactory urlsFactory;
   @Inject BrandRepository brandRepository;
 
   @Context Request request;
@@ -126,6 +127,7 @@ public class ResetPasswordPage {
     // revoke all sessions / tokens
     tokenRepository.revokeTokensForAccount(changePasswordToken.getAccountId());
 
+    Urls urls = urlsFactory.create(brandInfo.getPortal_base_uri());
     return Response.ok()
         .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store")
         .header("Pragma", "no-cache")

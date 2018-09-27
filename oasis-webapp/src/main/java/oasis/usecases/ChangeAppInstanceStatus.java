@@ -46,6 +46,8 @@ import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.ServiceRepository;
 import oasis.model.authn.TokenRepository;
+import oasis.model.branding.BrandInfo;
+import oasis.model.branding.BrandRepository;
 import oasis.model.notification.Notification;
 import oasis.model.notification.NotificationRepository;
 import oasis.services.authz.AppAdminHelper;
@@ -56,6 +58,7 @@ import oasis.soy.templates.ChangedAppInstanceStatusSoyInfo.RestoredAppInstanceMe
 import oasis.soy.templates.ChangedAppInstanceStatusSoyInfo.StoppedAppInstanceMessageForAdminsSoyTemplateInfo;
 import oasis.soy.templates.ChangedAppInstanceStatusSoyInfo.StoppedAppInstanceMessageForRequesterSoyTemplateInfo;
 import oasis.urls.Urls;
+import oasis.urls.UrlsFactory;
 import oasis.web.i18n.LocaleHelper;
 
 @Value.Enclosing
@@ -69,8 +72,9 @@ public class ChangeAppInstanceStatus {
   @Inject TokenRepository tokenRepository;
   @Inject AppAdminHelper appAdminHelper;
   @Inject SoyTemplateRenderer templateRenderer;
-  @Inject Urls urls;
   @Inject Provider<Client> clientProvider;
+  @Inject UrlsFactory urlsFactory;
+  @Inject BrandRepository brandRepository;
 
   @SuppressWarnings("FutureReturnValueIgnored")
   public Response updateStatus(final Request request) {
@@ -159,8 +163,9 @@ public class ChangeAppInstanceStatus {
         notifyAdminsForRunningInstance(requesterId, instance);
         break;
       case STOPPED:
-        notifyAdminsForStoppedInstance(requesterId, instance);
-        notifyRequesterForStoppedInstance(requesterId, instance);
+        Urls urls = urlsFactory.create(brandRepository.getBrandInfo(instance.getBrandId()).getPortal_base_uri());
+        notifyAdminsForStoppedInstance(requesterId, instance, urls);
+        notifyRequesterForStoppedInstance(requesterId, instance, urls);
         break;
       case PENDING:
       default:
@@ -199,7 +204,7 @@ public class ChangeAppInstanceStatus {
     });
   }
 
-  private void notifyAdminsForStoppedInstance(String requesterId, AppInstance instance) {
+  private void notifyAdminsForStoppedInstance(String requesterId, AppInstance instance, Urls urls) {
     Notification notificationPrototype = new Notification();
     notificationPrototype.setTime(Instant.now());
     notificationPrototype.setStatus(Notification.Status.UNREAD);
@@ -248,7 +253,7 @@ public class ChangeAppInstanceStatus {
         });
   }
 
-  private void notifyRequesterForStoppedInstance(String requesterId, AppInstance instance) {
+  private void notifyRequesterForStoppedInstance(String requesterId, AppInstance instance, Urls urls) {
     Notification notification = new Notification();
     notification.setTime(Instant.now());
     notification.setStatus(Notification.Status.UNREAD);

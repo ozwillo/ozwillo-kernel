@@ -65,6 +65,7 @@ import oasis.services.authn.UserPasswordAuthenticator;
 import oasis.soy.SoyTemplate;
 import oasis.soy.templates.LoginSoyInfo;
 import oasis.soy.templates.SignUpSoyInfo;
+import oasis.urls.UrlsFactory;
 import oasis.urls.Urls;
 import oasis.web.i18n.LocaleHelper;
 import oasis.web.security.StrictReferer;
@@ -79,12 +80,12 @@ public class SignUpPage {
   @Inject UserPasswordAuthenticator userPasswordAuthenticator;
   @Inject CredentialsRepository credentialsRepository;
   @Inject TokenHandler tokenHandler;
-  @Inject Urls urls;
   @Inject MailSender mailSender;
   @Inject LocaleHelper localeHelper;
   @Inject AuthModule.Settings authSettings;
   @Inject @Nullable FranceConnectModule.Settings franceConnectSettings;
   @Inject ServiceRepository serviceRepository;
+  @Inject UrlsFactory urlsFactory;
   @Inject BrandRepository brandRepository;
 
   @Context SecurityContext securityContext;
@@ -135,6 +136,8 @@ public class SignUpPage {
           .queryParam(BrandHelper.BRAND_PARAM, BrandHelper.getBrandIdFromUri(uriInfo))
           .build(TokenSerializer.serialize(accountActivationToken, pass));
 
+      Urls urls = urlsFactory.create(brandInfo.getPortal_base_uri());
+
       mailSender.send(new MailMessage()
           .setRecipient(email, nickname)
           .setLocale(account.getLocale())
@@ -160,6 +163,7 @@ public class SignUpPage {
 
   private Response signupForm(Response.ResponseBuilder builder, @Nullable URI continueUrl, ULocale locale, LoginPage.SignupError error, BrandInfo brandInfo) {
     if (continueUrl == null) {
+      Urls urls = urlsFactory.create(brandInfo.getPortal_base_uri());
       continueUrl = LoginPage.defaultContinueUrl(urls.myOasis(), uriInfo);
     }
     return LoginPage.signupForm(builder, continueUrl, locale, authSettings, franceConnectSettings != null, error,

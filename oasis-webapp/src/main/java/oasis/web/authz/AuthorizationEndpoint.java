@@ -116,6 +116,8 @@ import oasis.soy.templates.AuthorizeSoyInfo;
 import oasis.soy.templates.AuthorizeSoyInfo.AskForClientCertificateSoyTemplateInfo;
 import oasis.soy.templates.AuthorizeSoyInfo.AuthorizeSoyTemplateInfo;
 import oasis.soy.templates.UserCertificatesSoyInfo;
+import oasis.urls.BaseUrls;
+import oasis.urls.UrlsFactory;
 import oasis.urls.Urls;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.ClientCertificateHelper;
@@ -225,10 +227,11 @@ public class AuthorizationEndpoint {
   @Inject TokenHandler tokenHandler;
   @Inject LocaleHelper localeHelper;
   @Inject Clock clock;
-  @Inject Urls urls;
+  @Inject BaseUrls baseUrls;
   @Inject SessionManagementHelper sessionManagementHelper;
   @Inject ClientCertificateHelper helper;
   @Inject ClientCertificateRepository clientCertificateRepository;
+  @Inject UrlsFactory urlsFactory;
   @Inject BrandRepository brandRepository;
 
   private MultivaluedMap<String, String> params;
@@ -620,6 +623,8 @@ public class AuthorizationEndpoint {
     if (askForClientCertificate) {
       data.put(AuthorizeSoyTemplateInfo.ASK_FOR_CLIENT_CERTIFICATE, getAskForClientCertificateData(uriInfo, accountId));
     }
+    final BrandInfo brandInfo = brandRepository.getBrandInfo(serviceProvider.getBrandId());
+    Urls urls = urlsFactory.create(brandInfo.getPortal_base_uri());
     urls.popupProfile().ifPresent(uri -> {
       String updateProfileUrl = UriBuilder.fromUri(uri)
           .queryParam("essential_claims", parsedClaims.entrySet()
@@ -647,7 +652,7 @@ public class AuthorizationEndpoint {
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
         .entity(new SoyTemplate(AuthorizeSoyInfo.AUTHORIZE, account.getLocale(), data.build(),
-            brandRepository.getBrandInfo(serviceProvider.getBrandId())))
+            brandInfo))
         .build();
   }
 
@@ -820,8 +825,8 @@ public class AuthorizationEndpoint {
   }
 
   private String getIssuer(UriInfo uriInfo) {
-    if (urls.canonicalBaseUri().isPresent()) {
-      return urls.canonicalBaseUri().get().toString();
+    if (baseUrls.canonicalBaseUri().isPresent()) {
+      return baseUrls.canonicalBaseUri().get().toString();
     }
     return uriInfo.getBaseUri().toString();
   }

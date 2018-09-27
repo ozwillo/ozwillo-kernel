@@ -53,7 +53,8 @@ import oasis.model.i18n.LocalizableString;
 import oasis.security.KeyPairLoader;
 import oasis.services.cookies.CookieFactory;
 import oasis.soy.SoyGuiceModule;
-import oasis.urls.ImmutableUrls;
+import oasis.urls.ImmutableBaseUrls;
+import oasis.urls.ImmutablePathUrls;
 import oasis.urls.UrlsModule;
 import oasis.web.authn.franceconnect.FranceConnectLogoutCallback;
 import oasis.web.authn.franceconnect.FranceConnectLogoutState;
@@ -70,9 +71,9 @@ public class LogoutPageFranceConnectTest {
       bind(LogoutPage.class);
 
       install(new SoyGuiceModule());
-      install(new UrlsModule(ImmutableUrls.builder()
+      install(new UrlsModule(ImmutableBaseUrls.builder()
           .landingPage(URI.create("https://oasis/landing-page"))
-          .build()));
+          .build(), ImmutablePathUrls.builder().build()));
       install(new FranceConnectModule(ImmutableFranceConnectModule.Settings.builder()
           .issuer("https://fcp/")
           .authorizationEndpoint(HttpUrl.parse("https://fcp/authorize"))

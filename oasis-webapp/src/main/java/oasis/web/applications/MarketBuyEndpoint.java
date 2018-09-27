@@ -70,7 +70,7 @@ import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Organization;
 import oasis.services.authn.CredentialsService;
 import oasis.services.authn.PasswordGenerator;
-import oasis.urls.Urls;
+import oasis.urls.BaseUrls;
 import oasis.usecases.DeleteAppInstance;
 import oasis.usecases.ImmutableDeleteAppInstance;
 import oasis.web.authn.Authenticated;
@@ -96,7 +96,7 @@ public class MarketBuyEndpoint {
   @Inject DeleteAppInstance deleteAppInstance;
   @Inject Client client;
   @Inject AuthModule.Settings settings;
-  @Inject Urls urls;
+  @Inject BaseUrls baseUrls;
   @Inject Clock clock;
 
   @Context UriInfo uriInfo;
@@ -241,8 +241,8 @@ public class MarketBuyEndpoint {
   }
 
   private String getIssuer() {
-    if (urls.canonicalBaseUri().isPresent()) {
-      return urls.canonicalBaseUri().get().toString();
+    if (baseUrls.canonicalBaseUri().isPresent()) {
+      return baseUrls.canonicalBaseUri().get().toString();
     }
     return uriInfo.getBaseUri().toString();
   }

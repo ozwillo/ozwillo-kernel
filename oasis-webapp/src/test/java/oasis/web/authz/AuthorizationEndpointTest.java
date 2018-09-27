@@ -66,7 +66,6 @@ import com.google.inject.Inject;
 import com.ibm.icu.util.ULocale;
 
 import oasis.auth.AuthModule;
-import oasis.auth.ScopesAndClaims;
 import oasis.http.testing.InProcessResteasy;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
@@ -98,7 +97,8 @@ import oasis.services.authz.AppAdminHelper;
 import oasis.services.branding.BrandHelper;
 import oasis.services.cookies.CookieFactory;
 import oasis.soy.SoyGuiceModule;
-import oasis.urls.ImmutableUrls;
+import oasis.urls.ImmutableBaseUrls;
+import oasis.urls.ImmutablePathUrls;
 import oasis.urls.UrlsModule;
 import oasis.web.authn.ClientCertificateHelper;
 import oasis.web.authn.ClientCertificateHelper.ClientCertificateData;
@@ -117,7 +117,7 @@ public class AuthorizationEndpointTest {
       bind(AuthorizationEndpoint.class);
 
       install(new SoyGuiceModule());
-      install(new UrlsModule(ImmutableUrls.builder().build()));
+      install(new UrlsModule(ImmutableBaseUrls.builder().build(), ImmutablePathUrls.builder().build()));
 
       bind(Clock.class).toInstance(Clock.fixed(now, zone));
 

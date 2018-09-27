@@ -22,6 +22,7 @@ import java.net.URI;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.mail.MessagingException;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -45,8 +46,12 @@ import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.authn.AccountActivationToken;
 import oasis.model.authn.TokenRepository;
+import oasis.model.branding.BrandInfo;
+import oasis.model.branding.BrandRepository;
 import oasis.services.authn.TokenHandler;
+import oasis.services.branding.BrandHelper;
 import oasis.soy.templates.SignUpSoyInfo;
+import oasis.urls.UrlsFactory;
 import oasis.urls.Urls;
 import oasis.web.utils.ResponseFactory;
 
@@ -58,8 +63,9 @@ public class ActivateAccountPage {
   @Inject AccountRepository accountRepository;
   @Inject TokenHandler tokenHandler;
   @Inject TokenRepository tokenRepository;
-  @Inject Urls urls;
   @Inject MailSender mailSender;
+  @Inject UrlsFactory urlsFactory;
+  @Inject BrandRepository brandRepository;
 
   @Context UriInfo uriInfo;
 
@@ -67,7 +73,9 @@ public class ActivateAccountPage {
   @QueryParam(LoginPage.LOCALE_PARAM) @Nullable ULocale locale;
 
   @GET
-  public Response activate() {
+  public Response activate(@QueryParam(BrandHelper.BRAND_PARAM) @DefaultValue(BrandInfo.DEFAULT_BRAND) String brandId) {
+    BrandInfo brandInfo = brandRepository.getBrandInfo(brandId);
+
     AccountActivationToken accountActivationToken = tokenHandler.getCheckedToken(token, AccountActivationToken.class);
     if (accountActivationToken == null) {
       // XXX: return error message rather than blank page
@@ -81,6 +89,7 @@ public class ActivateAccountPage {
 
     tokenRepository.revokeTokensForAccount(accountActivationToken.getAccountId());
 
+    Urls urls = urlsFactory.create(brandInfo.getPortal_base_uri());
     URI portalUrl = LoginPage.defaultContinueUrl(urls.myOasis(), uriInfo);
     try {
       mailSender.send(new MailMessage()

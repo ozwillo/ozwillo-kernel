@@ -39,7 +39,7 @@ import com.ibm.icu.util.ULocale;
 
 import oasis.model.branding.BrandInfo;
 import oasis.services.branding.BrandHelper;
-import oasis.urls.Urls;
+import oasis.urls.BaseUrls;
 import oasis.web.i18n.LocaleHelper;
 
 public class SoyTemplateRenderer {
@@ -103,12 +103,12 @@ public class SoyTemplateRenderer {
 
   private final SoyTofu soyTofu;
   private final SoyMsgBundleLoader soyMsgBundleLoader;
-  private final Urls urls;
+  private final BaseUrls baseUrls;
 
-  @Inject SoyTemplateRenderer(SoyTofu soyTofu, SoyMsgBundleLoader soyMsgBundleLoader, Urls urls) {
+  @Inject SoyTemplateRenderer(SoyTofu soyTofu, SoyMsgBundleLoader soyMsgBundleLoader, BaseUrls baseUrls) {
     this.soyTofu = soyTofu;
     this.soyMsgBundleLoader = soyMsgBundleLoader;
-    this.urls = urls;
+    this.baseUrls = baseUrls;
   }
 
   public void render(SoyTemplate template, Appendable writer) {
@@ -122,7 +122,7 @@ public class SoyTemplateRenderer {
         .setData(template.getData())
         .setMsgBundle(msgBundle)
         .setIjData(ImmutableMap.of(
-            "landing_page_url", urls.landingPage().map(URI::toString).orElse(""),
+            "landing_page_url", baseUrls.landingPage().map(URI::toString).orElse(""),
             "current_locale", msgBundle.getLocaleString(),
             "locale_name_map", LOCALE_NAMES,
             "supported_locales", SUPPORTED_LOCALES.getUnchecked(msgBundle.getLocaleString()),

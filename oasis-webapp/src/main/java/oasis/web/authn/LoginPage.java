@@ -66,7 +66,7 @@ import oasis.soy.SoyTemplate;
 import oasis.soy.templates.LoginSoyInfo;
 import oasis.soy.templates.LoginSoyInfo.LoginSoyTemplateInfo;
 import oasis.soy.templates.LoginSoyInfo.ReauthSoyTemplateInfo;
-import oasis.urls.Urls;
+import oasis.urls.BaseUrls;
 import oasis.web.StaticResources;
 import oasis.web.authn.franceconnect.FranceConnectLogin;
 import oasis.web.i18n.LocaleHelper;
@@ -87,7 +87,7 @@ public class LoginPage {
   @Inject AccountRepository accountRepository;
   @Inject CredentialsRepository credentialsRepository;
   @Inject AuditLogService auditLogService;
-  @Inject Urls urls;
+  @Inject BaseUrls baseUrls;
   @Inject LocaleHelper localeHelper;
   @Inject ClientCertificateHelper clientCertificateHelper;
   @Inject LoginHelper loginHelper;
@@ -265,7 +265,7 @@ public class LoginPage {
   }
 
   private URI defaultContinueUrl() {
-    return defaultContinueUrl(urls.landingPage(), uriInfo);
+    return defaultContinueUrl(baseUrls.landingPage(), uriInfo);
   }
 
   public static URI defaultContinueUrl(Optional<URI> landingPage, UriInfo uriInfo) {

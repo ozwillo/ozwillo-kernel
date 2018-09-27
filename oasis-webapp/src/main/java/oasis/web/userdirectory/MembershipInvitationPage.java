@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -80,6 +81,7 @@ import oasis.soy.templates.OrgMembershipInvitationNotificationSoyInfo.RejectedMe
 import oasis.soy.templates.OrgMembershipInvitationSoyInfo;
 import oasis.soy.templates.OrgMembershipInvitationSoyInfo.MembershipInvitationAlreadyMemberErrorSoyTemplateInfo;
 import oasis.soy.templates.OrgMembershipInvitationSoyInfo.MembershipInvitationSoyTemplateInfo;
+import oasis.urls.UrlsFactory;
 import oasis.urls.Urls;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.LogoutPage;
@@ -105,7 +107,7 @@ public class MembershipInvitationPage {
   @Inject TokenRepository tokenRepository;
   @Inject SoyTemplateRenderer templateRenderer;
   @Inject TokenHandler tokenHandler;
-  @Inject Urls urls;
+  @Inject UrlsFactory urlsFactory;
   @Inject BrandRepository brandRepository;
 
   @Context Request request;
@@ -152,7 +154,9 @@ public class MembershipInvitationPage {
   @StrictReferer
   @Path("/accept")
   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-  public Response acceptInvitation() {
+  public Response acceptInvitation(@FormParam(BrandHelper.BRAND_PARAM) @DefaultValue(BrandInfo.DEFAULT_BRAND) String brandId) {
+    BrandInfo brandInfo = brandRepository.getBrandInfo(brandId);
+
     MembershipInvitationToken membershipInvitationToken = tokenHandler.getCheckedToken(serializedToken, MembershipInvitationToken.class);
     if (membershipInvitationToken == null) {
       return goBackToFirstStep();
@@ -197,6 +201,7 @@ public class MembershipInvitationPage {
       tokenRepository.revokeInvitationTokensForAppInstance(ace.getId());
     }
 
+    Urls urls = urlsFactory.create(brandInfo.getPortal_base_uri());
     return Response.seeOther(
         urls.myNetwork().orElse(uriInfo.getBaseUri())
     ).build();
@@ -206,7 +211,9 @@ public class MembershipInvitationPage {
   @StrictReferer
   @Path("/refuse")
   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-  public Response refuseInvitation() {
+  public Response refuseInvitation(@FormParam(BrandHelper.BRAND_PARAM) @DefaultValue(BrandInfo.DEFAULT_BRAND) String brandId) {
+    BrandInfo brandInfo = brandRepository.getBrandInfo(brandId);
+
     MembershipInvitationToken membershipInvitationToken = tokenHandler.getCheckedToken(serializedToken, MembershipInvitationToken.class);
     if (membershipInvitationToken == null) {
       return goBackToFirstStep();
@@ -245,6 +252,7 @@ public class MembershipInvitationPage {
         tokenRepository.revokeInvitationTokensForAppInstance(ace.getId());
     }
 
+    Urls urls = urlsFactory.create(brandInfo.getPortal_base_uri());
     return Response.seeOther(
         urls.myNetwork().orElse(uriInfo.getBaseUri())
     ).build();

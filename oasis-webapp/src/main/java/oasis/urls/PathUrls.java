@@ -1,6 +1,6 @@
 /**
  * Ozwillo Kernel
- * Copyright (C) 2015  The Ozwillo Kernel Authors
+ * Copyright (C) 2018  The Ozwillo Kernel Authors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -17,19 +17,21 @@
  */
 package oasis.urls;
 
-import java.net.URI;
 import java.util.Optional;
 
-public interface Urls extends BaseUrls {
+import org.immutables.value.Value;
 
-  Optional<URI> myOasis();
+@Value.Immutable
+public interface PathUrls {
 
-  Optional<URI> myProfile();
+  Optional<String> myOasis();
 
-  Optional<URI> popupProfile();
+  Optional<String> myProfile();
 
-  Optional<URI> myApps();
+  Optional<String> popupProfile();
 
-  Optional<URI> myNetwork();
+  Optional<String> myApps();
+
+  Optional<String> myNetwork();
 
 }

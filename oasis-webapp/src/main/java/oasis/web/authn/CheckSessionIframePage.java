@@ -27,19 +27,19 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import oasis.urls.Urls;
+import oasis.urls.BaseUrls;
 import oasis.web.StaticResources;
 
 @Path("/a/check_session_iframe")
 public class CheckSessionIframePage {
 
-  @Inject Urls urls;
+  @Inject BaseUrls baseUrls;
 
   @Context UriInfo uriInfo;
 
   @GET
   public Response get() throws IOException {
-    @Nullable Response redirectResponse = UserCanonicalBaseUriFilter.maybeRedirectToCanonicalUri(urls, uriInfo);
+    @Nullable Response redirectResponse = UserCanonicalBaseUriFilter.maybeRedirectToCanonicalUri(baseUrls, uriInfo);
     if (redirectResponse != null) {
       return redirectResponse;
     }

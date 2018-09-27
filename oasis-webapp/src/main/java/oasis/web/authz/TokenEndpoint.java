@@ -84,7 +84,7 @@ import oasis.model.authz.Scopes;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.services.authz.AppAdminHelper;
-import oasis.urls.Urls;
+import oasis.urls.BaseUrls;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.Client;
 import oasis.web.authn.ClientPrincipal;
@@ -115,7 +115,7 @@ public class TokenEndpoint {
   @Inject AccessControlRepository accessControlRepository;
   @Inject AppAdminHelper appAdminHelper;
   @Inject AuditLogService auditLogService;
-  @Inject Urls urls;
+  @Inject BaseUrls baseUrls;
 
   @Context UriInfo uriInfo;
   @Context SecurityContext securityContext;
@@ -389,8 +389,8 @@ public class TokenEndpoint {
   }
 
   private String getIssuer() {
-    if (urls.canonicalBaseUri().isPresent()) {
-      return urls.canonicalBaseUri().get().toString();
+    if (baseUrls.canonicalBaseUri().isPresent()) {
+      return baseUrls.canonicalBaseUri().get().toString();
     }
     return uriInfo.getBaseUri().toString();
   }

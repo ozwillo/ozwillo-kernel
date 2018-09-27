@@ -24,14 +24,14 @@ import com.google.template.soy.SoyFileSet;
 import com.google.template.soy.SoyModule;
 import com.google.template.soy.tofu.SoyTofu;
 
-import oasis.urls.Urls;
+import oasis.urls.BaseUrls;
 
 public class SoyGuiceModule extends AbstractModule {
   @Override
   protected void configure() {
     install(new SoyModule());
 
-    requireBinding(Urls.class);
+    requireBinding(BaseUrls.class);
   }
 
   @Provides @Singleton SoyTofu provideSoyTofu(SoyFileSet.Builder builder) {

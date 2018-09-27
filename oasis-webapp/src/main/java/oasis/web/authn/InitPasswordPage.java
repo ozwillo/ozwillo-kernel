@@ -41,6 +41,7 @@ import oasis.model.branding.BrandInfo;
 import oasis.model.branding.BrandRepository;
 import oasis.services.branding.BrandHelper;
 import oasis.services.authn.TokenHandler;
+import oasis.urls.UrlsFactory;
 import oasis.urls.Urls;
 
 @Path("/a/initpwd/{token}")
@@ -51,8 +52,8 @@ public class InitPasswordPage {
   @Inject CredentialsRepository credentialsRepository;
   @Inject TokenRepository tokenRepository;
   @Inject TokenHandler tokenHandler;
-  @Inject Urls urls;
   @Inject AuthModule.Settings authSettings;
+  @Inject UrlsFactory urlsFactory;
   @Inject BrandRepository brandRepository;
 
   @Context SecurityContext securityContext;
@@ -63,6 +64,7 @@ public class InitPasswordPage {
   @GET
   public Response get(@QueryParam(BrandHelper.BRAND_PARAM) @DefaultValue(BrandInfo.DEFAULT_BRAND) String brandId) {
     BrandInfo brandInfo = brandRepository.getBrandInfo(brandId);
+    Urls urls = urlsFactory.create(brandInfo.getPortal_base_uri());
 
     String userId = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken().getAccountId();
 

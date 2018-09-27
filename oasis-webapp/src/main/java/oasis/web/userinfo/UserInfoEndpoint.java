@@ -51,7 +51,7 @@ import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
 import oasis.model.authn.AccessToken;
 import oasis.model.authz.Scopes;
-import oasis.urls.Urls;
+import oasis.urls.BaseUrls;
 import oasis.web.authn.Authenticated;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
@@ -103,7 +103,7 @@ public class UserInfoEndpoint {
 
   @Inject AuthModule.Settings settings;
   @Inject AccountRepository accountRepository;
-  @Inject Urls urls;
+  @Inject BaseUrls baseUrls;
 
   @GET
   @Produces(APPLICATION_JWT)
@@ -124,8 +124,8 @@ public class UserInfoEndpoint {
   }
 
   private String getIssuer() {
-    if (urls.canonicalBaseUri().isPresent()) {
-      return urls.canonicalBaseUri().get().toString();
+    if (baseUrls.canonicalBaseUri().isPresent()) {
+      return baseUrls.canonicalBaseUri().get().toString();
     }
     return uriInfo.getBaseUri().toString();
   }

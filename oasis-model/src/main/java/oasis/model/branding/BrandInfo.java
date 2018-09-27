@@ -68,6 +68,12 @@ public class BrandInfo {
 
   private String success_text_color = "#5cb85c";
 
+  private String portal_base_uri;
+
+  public String getPortal_base_uri() {
+    return portal_base_uri;
+  }
+
   public String getMain_color() {
     return main_color;
   }

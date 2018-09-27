@@ -50,6 +50,7 @@ import oasis.soy.SoyTemplate;
 import oasis.soy.templates.ChangePasswordSoyInfo;
 import oasis.soy.templates.ChangePasswordSoyInfo.ChangePasswordSoyTemplateInfo;
 import oasis.soy.templates.ChangePasswordSoyInfo.PasswordChangedSoyTemplateInfo;
+import oasis.urls.UrlsFactory;
 import oasis.urls.Urls;
 import oasis.web.security.StrictReferer;
 
@@ -62,19 +63,20 @@ public class ChangePasswordPage {
   @Inject CredentialsRepository credentialsRepository;
   @Inject TokenRepository tokenRepository;
   @Inject AuthModule.Settings authSettings;
-  @Inject Urls urls;
   @Inject SessionManagementHelper sessionManagementHelper;
+  @Inject UrlsFactory urlsFactory;
   @Inject BrandRepository brandRepository;
 
   @Context SecurityContext securityContext;
 
   @GET
-  public Response get(@QueryParam(BrandHelper.BRAND_PARAM) @Nullable String brandId) {
+  public Response get(@QueryParam(BrandHelper.BRAND_PARAM) @DefaultValue(BrandInfo.DEFAULT_BRAND) String brandId) {
     BrandInfo brandInfo = brandRepository.getBrandInfo(brandId);
 
     String userId = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken().getAccountId();
     UserAccount account = accountRepository.getUserAccountById(userId);
     if (credentialsRepository.getCredentials(ClientType.USER, account.getId()) == null) {
+      Urls urls = urlsFactory.create(brandInfo.getPortal_base_uri());
       return SetPasswordPage.form(Response.ok(), authSettings, urls, account, null, brandInfo);
     }
     return form(Response.ok(), account, null, brandInfo);
@@ -102,6 +104,8 @@ public class ChangePasswordPage {
     // revoke all sessions / tokens
     tokenRepository.revokeTokensForAccount(userId);
 
+    Urls urls = urlsFactory.create(brandInfo.getPortal_base_uri());
+
     return Response.ok()
         .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store")
         .header("Pragma", "no-cache")
@@ -122,6 +126,7 @@ public class ChangePasswordPage {
   }
 
   private Response form(Response.ResponseBuilder builder, UserAccount account, @Nullable PasswordChangeError error, BrandInfo brandInfo) {
+    Urls urls = urlsFactory.create(brandInfo.getPortal_base_uri());
     return form(builder, authSettings, urls, account, error, brandInfo);
   }
 

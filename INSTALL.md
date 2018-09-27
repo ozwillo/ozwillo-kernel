@@ -84,11 +84,12 @@ Properties that should generally be configured on a production server are:
    The default value is the current user at the current machine (as computed by [`InternetAddress.getLocalAddress(null)`](https://docs.oracle.com/javaee/7/api/javax/mail/internet/InternetAddress.html#getLocalAddress-javax.mail.Session-)).
  * `oasis.urls.landing-page`: the URL to redirect to when reaching the root path of the server;
    will generally be the public Ozwillo website, e.g. `https://www.ozwillo.com`.
- * `oasis.urls.my-oasis`: the URL to the Ozwillo Portal's _My Ozwillo_ page
- * `oasis.urls.my-profile`: the URL to the Ozwillo Portal's _My Profile_ page
- * `oasis.urls.popup-profile`: the URL to the Ozwillo Portal's page to edit the user's profile in a popup window
- * `oasis.urls.my-apps`: the URL to the Ozwillo Portal's _My Applications_ page
- * `oasis.urls.my-network`: the URL to the Ozwillo Portal's _My Network_ page
+ * `oasis.urls.portal-base-uri`: the URL to the Ozwillo Portal
+ * `oasis.urls.path.my-oasis`: the path (relative to oasis.urls.portal-base-uri) to the Ozwillo Portal's _My Ozwillo_ page
+ * `oasis.urls.path.my-profile`: the path (relative to oasis.urls.portal-base-uri) to the Ozwillo Portal's _My Profile_ page
+ * `oasis.urls.path.popup-profile`: the path (relative to oasis.urls.portal-base-uri) to the Ozwillo Portal's page to edit the user's profile in a popup window
+ * `oasis.urls.path.my-apps`: the path (relative to oasis.urls.portal-base-uri) to the Ozwillo Portal's _My Applications_ page
+ * `oasis.urls.path.my-network`: the path (relative to oasis.urls.portal-base-uri) to the Ozwillo Portal's _My Network_ page
  * `oasis.urls.developer-doc`: the URL to the developer documention's website
  * `oasis.urls.privacy-policy`: the URL to Ozwillo's Privacy Policy page
  * `oasis.urls.terms-of-service`: the URL to Ozwillo's Terms Of Service page

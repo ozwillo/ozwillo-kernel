@@ -61,6 +61,7 @@ import oasis.soy.templates.InitPasswordMailSoyInfo;
 import oasis.soy.templates.InitPasswordMailSoyInfo.ActivatePasswordSoyTemplateInfo;
 import oasis.soy.templates.InitPasswordSoyInfo;
 import oasis.soy.templates.InitPasswordSoyInfo.InitPasswordSoyTemplateInfo;
+import oasis.urls.UrlsFactory;
 import oasis.urls.Urls;
 
 @Path("/a/setpassword")
@@ -73,8 +74,8 @@ public class SetPasswordPage {
   @Inject CredentialsRepository credentialsRepository;
   @Inject TokenHandler tokenHandler;
   @Inject AuthModule.Settings authSettings;
-  @Inject Urls urls;
   @Inject MailSender mailSender;
+  @Inject UrlsFactory urlsFactory;
   @Inject BrandRepository brandRepository;
 
   @Context SecurityContext securityContext;
@@ -93,6 +94,7 @@ public class SetPasswordPage {
     if (credentialsRepository.getCredentials(ClientType.USER, userId) != null) {
       // If the account already has a password, this is most likely a race condition (or tampered form)
       UserAccount account = accountRepository.getUserAccountById(userId);
+      Urls urls = urlsFactory.create(brandInfo.getPortal_base_uri());
       return ChangePasswordPage.form(Response.status(Response.Status.CONFLICT), authSettings, urls,
           account, ChangePasswordPage.PasswordChangeError.BAD_PASSWORD, brandInfo);
     }
@@ -145,6 +147,7 @@ public class SetPasswordPage {
   }
 
   private Response form(Response.ResponseBuilder builder, UserAccount account, @Nullable PasswordInitError error, BrandInfo brandInfo) {
+    Urls urls = urlsFactory.create(brandInfo.getPortal_base_uri());
     return form(builder, authSettings, urls, account, error, brandInfo);
   }
 

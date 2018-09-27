@@ -32,20 +32,20 @@ import javax.ws.rs.core.Response;
 
 import com.google.common.io.Resources;
 
-import oasis.urls.Urls;
+import oasis.urls.BaseUrls;
 import oasis.web.utils.ResponseFactory;
 
 @Path("/")
 public class StaticResources {
 
-  @Inject Urls urls;
+  @Inject BaseUrls baseUrls;
 
   @GET
   @Path("")
   @Produces(MediaType.TEXT_HTML)
   public Response home() {
-    if (urls.landingPage().isPresent()) {
-      return Response.seeOther(urls.landingPage().get()).build();
+    if (baseUrls.landingPage().isPresent()) {
+      return Response.seeOther(baseUrls.landingPage().get()).build();
     }
     return ResponseFactory.NOT_FOUND;
   }

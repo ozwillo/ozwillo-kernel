@@ -70,7 +70,8 @@ import oasis.services.authn.TokenSerializer;
 import oasis.services.authn.UserPasswordAuthenticator;
 import oasis.services.cookies.CookieFactory;
 import oasis.soy.SoyGuiceModule;
-import oasis.urls.ImmutableUrls;
+import oasis.urls.ImmutableBaseUrls;
+import oasis.urls.ImmutablePathUrls;
 import oasis.urls.UrlsModule;
 import oasis.web.authn.franceconnect.FranceConnectCallback;
 import oasis.web.authn.franceconnect.FranceConnectLoginState;
@@ -88,7 +89,7 @@ public class LoginPageTest {
 
       install(new NoopAuditLogModule());
       install(new SoyGuiceModule());
-      install(new UrlsModule(ImmutableUrls.builder().build()));
+      install(new UrlsModule(ImmutableBaseUrls.builder().build(), ImmutablePathUrls.builder().build()));
       install(new FranceConnectModule(ImmutableFranceConnectModule.Settings.builder()
           .issuer("https://fcp/")
           .authorizationEndpoint(HttpUrl.parse("https://fcp/authorize"))

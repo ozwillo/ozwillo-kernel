@@ -21,29 +21,35 @@ import java.net.URI;
 import java.util.Optional;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.typesafe.config.Config;
 
 public class UrlsModule extends AbstractModule {
 
-  private final Urls urls;
+  private final BaseUrls baseUrls;
+  private final PathUrls pathUrls;
 
-  public UrlsModule(Urls urls) {
-    this.urls = urls;
+  public UrlsModule(BaseUrls baseUrls, PathUrls pathUrls) {
+    this.baseUrls = baseUrls;
+    this.pathUrls = pathUrls;
   }
 
   public static UrlsModule create(Config config) {
-    return new UrlsModule(ImmutableUrls.builder()
+    return new UrlsModule(ImmutableBaseUrls.builder()
         .canonicalBaseUri(get(config, "canonical-base-uri"))
         .landingPage(get(config, "landing-page"))
-        .myOasis(get(config, "my-oasis"))
-        .myProfile(get(config, "my-profile"))
-        .popupProfile(get(config, "popup-profile"))
-        .myApps(get(config, "my-apps"))
-        .myNetwork(get(config, "my-network"))
+        .portalBaseUri(get(config, "portal-base-uri"))
         .developerDoc(get(config, "developer-doc"))
         .privacyPolicy(get(config, "privacy-policy"))
         .termsOfService(get(config, "terms-of-service"))
-        .build());
+        .build(),
+        ImmutablePathUrls.builder()
+            .myOasis(getStr(config, "path.my-oasis"))
+            .myProfile(getStr(config, "path.my-profile"))
+            .popupProfile(getStr(config, "path.popup-profile"))
+            .myApps(getStr(config, "path.my-apps"))
+            .myNetwork(getStr(config, "path.my-network"))
+            .build());
   }
 
   private static Optional<URI> get(Config config, String key) {
@@ -53,8 +59,20 @@ public class UrlsModule extends AbstractModule {
     return Optional.of(URI.create(config.getString(key)));
   }
 
+  private static Optional<String> getStr(Config config, String key) {
+    if (!config.hasPath(key)) {
+      return Optional.empty();
+    }
+    return Optional.of(config.getString(key));
+  }
+
   @Override
   protected void configure() {
-    bind(Urls.class).toInstance(urls);
+    bind(BaseUrls.class).toInstance(baseUrls);
+    bind(PathUrls.class).toInstance(pathUrls);
+
+    install(new FactoryModuleBuilder()
+        .implement(Urls.class, MyUrls.class)
+        .build(UrlsFactory.class));
   }
 }

@@ -58,6 +58,8 @@ import oasis.model.applications.v2.Service;
 import oasis.model.applications.v2.ServiceRepository;
 import oasis.model.applications.v2.UserSubscription;
 import oasis.model.applications.v2.UserSubscriptionRepository;
+import oasis.model.branding.BrandInfo;
+import oasis.model.branding.BrandRepository;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Organization;
 import oasis.model.notification.Notification;
@@ -65,6 +67,7 @@ import oasis.model.notification.NotificationRepository;
 import oasis.soy.SoyTemplate;
 import oasis.soy.SoyTemplateRenderer;
 import oasis.soy.templates.AppProvisioningSoyInfo;
+import oasis.urls.UrlsFactory;
 import oasis.urls.Urls;
 import oasis.usecases.CleanupAppInstance;
 import oasis.usecases.DeleteAppInstance;
@@ -91,7 +94,8 @@ public class InstanceRegistrationEndpoint {
   @Inject DeleteAppInstance deleteAppInstance;
   @Inject ServiceValidator serviceValidator;
   @Inject SoyTemplateRenderer templateRenderer;
-  @Inject Urls urls;
+  @Inject UrlsFactory urlsFactory;
+  @Inject BrandRepository brandRepository;
 
   @PathParam("instance_id") String instanceId;
 
@@ -185,6 +189,8 @@ public class InstanceRegistrationEndpoint {
     }
 
     // If everything's OK, notify the instantiator
+    BrandInfo brandInfo = brandRepository.getBrandInfo(instance.getBrandId());
+    Urls urls = urlsFactory.create(brandInfo.getPortal_base_uri());
     if (urls.myApps().isPresent()) {
       try {
         Notification notification = new Notification();

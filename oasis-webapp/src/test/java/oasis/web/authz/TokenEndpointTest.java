@@ -72,7 +72,8 @@ import oasis.security.KeyPairLoader;
 import oasis.services.authn.TokenHandler;
 import oasis.services.authn.TokenSerializer;
 import oasis.services.authz.AppAdminHelper;
-import oasis.urls.ImmutableUrls;
+import oasis.urls.ImmutableBaseUrls;
+import oasis.urls.ImmutablePathUrls;
 import oasis.urls.UrlsModule;
 import oasis.web.authn.testing.TestClientAuthenticationFilter;
 import oasis.web.authz.TokenEndpoint.TokenResponse;
@@ -87,7 +88,7 @@ public class TokenEndpointTest {
       bind(TokenEndpoint.class);
 
       install(new NoopAuditLogModule());
-      install(new UrlsModule(ImmutableUrls.builder().build()));
+      install(new UrlsModule(ImmutableBaseUrls.builder().build(), ImmutablePathUrls.builder().build()));
 
       bindMock(TokenHandler.class).in(TestSingleton.class);
       bindMock(AppAdminHelper.class).in(TestSingleton.class);

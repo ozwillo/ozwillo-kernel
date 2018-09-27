@@ -25,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import oasis.model.bootstrap.ClientIds;
+import oasis.model.branding.BrandInfo;
 
 public abstract class AbstractOAuthToken extends AbstractAccountToken {
   @JsonProperty
@@ -68,6 +69,11 @@ public abstract class AbstractOAuthToken extends AbstractAccountToken {
     return Boolean.TRUE.equals(portal)
         // backwards compatibility
         || (portal == null && ClientIds.PORTAL.equals(serviceProviderId));
+  }
+
+  @JsonIgnore
+  public String getBrandId() {
+    return ClientIds.PORTAL.equals(serviceProviderId) ? BrandInfo.DEFAULT_BRAND : serviceProviderId;
   }
 
   @JsonIgnore

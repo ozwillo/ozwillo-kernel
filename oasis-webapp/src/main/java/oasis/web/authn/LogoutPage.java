@@ -63,6 +63,8 @@ import oasis.services.cookies.CookieFactory;
 import oasis.soy.SoyTemplate;
 import oasis.soy.templates.LogoutSoyInfo;
 import oasis.soy.templates.LogoutSoyInfo.LogoutSoyTemplateInfo;
+import oasis.urls.BaseUrls;
+import oasis.urls.UrlsFactory;
 import oasis.urls.Urls;
 import oasis.web.authn.franceconnect.FranceConnectLogoutCallback;
 import oasis.web.authn.franceconnect.FranceConnectLogoutState;
@@ -80,12 +82,13 @@ public class LogoutPage {
   @Inject TokenRepository tokenRepository;
   @Inject AuthModule.Settings settings;
   @Inject @Nullable FranceConnectModule.Settings franceConnectSettings;
-  @Inject Urls urls;
+  @Inject BaseUrls baseUrls;
   @Inject AppInstanceRepository appInstanceRepository;
   @Inject ServiceRepository serviceRepository;
   @Inject AccountRepository accountRepository;
   @Inject SessionManagementHelper sessionManagementHelper;
   @Inject SecureRandom secureRandom;
+  @Inject UrlsFactory urlsFactory;
   @Inject BrandRepository brandRepository;
 
   @GET
@@ -169,9 +172,11 @@ public class LogoutPage {
     otherApps.sort(Collator.getInstance(account.getLocale()));
     viewModel.put(LogoutSoyTemplateInfo.OTHER_APPS, otherApps);
     viewModel.put(LogoutSoyTemplateInfo.IS_PORTAL, appInstance != null && appInstance.getId().equals(ClientIds.PORTAL));
-    urls.myOasis().ifPresent(url -> viewModel.put(LogoutSoyTemplateInfo.PORTAL_URL, url.toString()));
 
     BrandInfo brandInfo = brandRepository.getBrandInfo(appInstance == null ? BrandInfo.DEFAULT_BRAND : appInstance.getBrandId());
+
+    Urls urls = urlsFactory.create(brandInfo.getPortal_base_uri());
+    urls.myOasis().ifPresent(url -> viewModel.put(LogoutSoyTemplateInfo.PORTAL_URL, url.toString()));
 
     return Response.ok(new SoyTemplate(LogoutSoyInfo.LOGOUT, account.getLocale(), viewModel.build(),
         brandInfo)).build();
@@ -179,7 +184,7 @@ public class LogoutPage {
 
   private Response redirectTo(@Nullable URI continueUrl) {
     if (continueUrl == null) {
-      continueUrl = LoginPage.defaultContinueUrl(urls.landingPage(), uriInfo);
+      continueUrl = LoginPage.defaultContinueUrl(baseUrls.landingPage(), uriInfo);
     }
     return Response.seeOther(continueUrl).build();
   }
@@ -193,8 +198,8 @@ public class LogoutPage {
   }
 
   private String getIssuer() {
-    if (urls.canonicalBaseUri().isPresent()) {
-      return urls.canonicalBaseUri().get().toString();
+    if (baseUrls.canonicalBaseUri().isPresent()) {
+      return baseUrls.canonicalBaseUri().get().toString();
     }
     return uriInfo.getBaseUri().toString();
   }
@@ -241,7 +246,7 @@ public class LogoutPage {
         continueUrl = URI.create(post_logout_redirect_uri);
       }
     } else {
-      continueUrl = LoginPage.defaultContinueUrl(urls.landingPage(), uriInfo);
+      continueUrl = LoginPage.defaultContinueUrl(baseUrls.landingPage(), uriInfo);
     }
     return Response.seeOther(continueUrl)
         .cookie(CookieFactory.createExpiredCookie(UserFilter.COOKIE_NAME, securityContext.isSecure(), true))

@@ -38,7 +38,7 @@ import com.google.common.base.Strings;
 
 import oasis.auth.RedirectUri;
 import oasis.model.applications.v2.ServiceRepository;
-import oasis.urls.Urls;
+import oasis.urls.BaseUrls;
 import oasis.web.authn.LoginPage;
 
 @Path("/a/franceconnect/postlogout")
@@ -46,7 +46,7 @@ public class FranceConnectLogoutCallback {
   private static final Logger logger = LoggerFactory.getLogger(FranceConnectLogoutCallback.class);
 
   @Inject ServiceRepository serviceRepository;
-  @Inject Urls urls;
+  @Inject BaseUrls baseUrls;
 
   @Context UriInfo uriInfo;
   @Context HttpHeaders httpHeaders;
@@ -95,7 +95,7 @@ public class FranceConnectLogoutCallback {
 
   private Response redirectTo(@Nullable URI continueUrl) {
     if (continueUrl == null) {
-      continueUrl = LoginPage.defaultContinueUrl(urls.landingPage(), uriInfo);
+      continueUrl = LoginPage.defaultContinueUrl(baseUrls.landingPage(), uriInfo);
     }
     return Response.seeOther(continueUrl)
         .cookie(FranceConnectLogoutState.createExpiredCookie(stateKey, securityContext.isSecure()))
