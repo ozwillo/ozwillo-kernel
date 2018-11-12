@@ -23,9 +23,11 @@ import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
 
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -44,6 +46,7 @@ import com.google.inject.Inject;
 
 import oasis.http.testing.InProcessResteasy;
 import oasis.model.authn.SidToken;
+import oasis.model.branding.BrandInfo;
 import oasis.services.branding.BrandHelper;
 import oasis.services.cookies.CookieFactory;
 import oasis.web.authn.testing.TestUserFilter;
@@ -170,10 +173,13 @@ public class UserAuthenticationFilterTest {
     @Path("/qux/quux")
     @GET
     @User
-    public Response redirectToLogin(@Context UriInfo uriInfo) {
+    public Response redirectToLogin(
+        @Context UriInfo uriInfo,
+        @QueryParam(BrandHelper.BRAND_PARAM) @DefaultValue(BrandInfo.DEFAULT_BRAND) String brandId
+    ) {
       assertThat(securityContext.getUserPrincipal()).isNotNull();
 
-      return UserAuthenticationFilter.loginResponse(uriInfo.getRequestUri(), null, null, BrandHelper.getBrandIdFromUri(uriInfo));
+      return UserAuthenticationFilter.loginResponse(uriInfo.getRequestUri(), null, null, brandId);
     }
   }
 }

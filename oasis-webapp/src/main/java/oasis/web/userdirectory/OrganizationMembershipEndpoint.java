@@ -208,7 +208,7 @@ public class OrganizationMembershipEndpoint {
     // Body data
     URI uri = uriInfo.getBaseUriBuilder().path(MembershipInvitationPage.class)
         .path(MembershipInvitationPage.class, "showInvitation")
-        .queryParam(BrandHelper.BRAND_PARAM, BrandHelper.getBrandIdFromUri(uriInfo))
+        .queryParam(BrandHelper.BRAND_PARAM, brandInfo.getBrand_id())
         .build(TokenSerializer.serialize(membershipInvitationToken, tokenPass));
     data.put(NewMembershipInvitationBodySoyTemplateInfo.MEMBERSHIP_INVITATION_URL, uri.toString());
     // This is actually the same key as above (and the same value), so would create a duplicate:

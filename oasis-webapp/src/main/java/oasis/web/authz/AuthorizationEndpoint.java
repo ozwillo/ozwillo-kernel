@@ -293,7 +293,7 @@ public class AuthorizationEndpoint {
       if (!prompt.interactive) {
         throw error("login_required", null);
       }
-      return redirectToLogin(uriInfo, prompt);
+      return redirectToLogin(uriInfo, prompt, brandRepository.getBrandInfo(appInstance.getBrandId()));
     }
 
     // Ignore offline_access without prompt=consent
@@ -326,7 +326,7 @@ public class AuthorizationEndpoint {
         throw invalidParam("max_age");
       }
       if (sidToken.getAuthenticationTime().plusSeconds(maxAge).isBefore(clock.instant())) {
-        return redirectToLogin(uriInfo, prompt);
+        return redirectToLogin(uriInfo, prompt, brandRepository.getBrandInfo(appInstance.getBrandId()));
       }
     }
 
@@ -418,7 +418,7 @@ public class AuthorizationEndpoint {
     return generateAuthorizationCodeAndRedirect(sidToken, scopeIds, claimNames, client_id, nonce, redirect_uri, code_challenge);
   }
 
-  private Response redirectToLogin(UriInfo uriInfo, Prompt prompt) {
+  private Response redirectToLogin(UriInfo uriInfo, Prompt prompt, BrandInfo brandInfo) {
     String ui_locales = getParameter("ui_locales");
     ULocale locale = (ui_locales == null)
         ? localeHelper.selectLocale(request)
@@ -436,7 +436,7 @@ public class AuthorizationEndpoint {
       continueUrl.replaceQueryParam("prompt", promptValue);
     }
     return UserAuthenticationFilter.loginResponse(continueUrl.build(), locale,
-        redirectUri.toString(), BrandHelper.getBrandIdFromUri(uriInfo)); // TODO : get brandId from AppInstance
+        redirectUri.toString(), brandInfo.getBrand_id());
   }
 
   private Response generateAuthorizationCodeAndRedirect(SidToken sidToken, Set<String> scopeIds, Set<String> claims, String client_id,

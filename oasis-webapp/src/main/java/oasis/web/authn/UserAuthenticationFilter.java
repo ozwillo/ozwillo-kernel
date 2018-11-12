@@ -29,11 +29,13 @@ import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Provider;
 
 import com.google.common.net.UrlEscapers;
 import com.ibm.icu.util.ULocale;
 
+import oasis.model.branding.BrandInfo;
 import oasis.services.branding.BrandHelper;
 
 @Authenticated @User
@@ -50,8 +52,10 @@ public class UserAuthenticationFilter implements ContainerRequestFilter {
   }
 
   private void loginResponse(ContainerRequestContext requestContext) {
+    String brandId = requestContext.getUriInfo().getQueryParameters().getFirst(BrandHelper.BRAND_PARAM);
+
     requestContext.abortWith(loginResponse(requestContext.getUriInfo().getRequestUri(), null, null,
-        BrandHelper.getBrandIdFromUri(requestContext.getUriInfo())));
+        brandId == null ? BrandInfo.DEFAULT_BRAND : brandId));
   }
 
   public static Response loginResponse(URI continueUrl, ULocale locale, @Nullable String cancelUrl, String brandId) {

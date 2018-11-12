@@ -270,7 +270,7 @@ public class AppInstanceAccessControlEndpoint {
     // Body data
     URI uri = uriInfo.getBaseUriBuilder().path(AppInstanceInvitationPage.class)
         .path(AppInstanceInvitationPage.class, "showInvitation")
-        .queryParam(BrandHelper.BRAND_PARAM, BrandHelper.getBrandIdFromUri(uriInfo))
+        .queryParam(BrandHelper.BRAND_PARAM, brandInfo.getBrand_id())
         .build(TokenSerializer.serialize(appInstanceInvitationToken, tokenPass));
     data.put(NewAppInstanceInvitationBodySoyTemplateInfo.APP_INSTANCE_INVITATION_URL, uri.toString());
     // These are actually the same keys as above (and the same values), so would create duplicates:

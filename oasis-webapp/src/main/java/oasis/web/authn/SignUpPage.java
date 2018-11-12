@@ -133,7 +133,7 @@ public class SignUpPage {
       URI activationLink = uriInfo.getBaseUriBuilder()
           .path(ActivateAccountPage.class)
           .queryParam(LoginPage.LOCALE_PARAM, account.getLocale().toLanguageTag())
-          .queryParam(BrandHelper.BRAND_PARAM, BrandHelper.getBrandIdFromUri(uriInfo))
+          .queryParam(BrandHelper.BRAND_PARAM, brandInfo.getBrand_id())
           .build(TokenSerializer.serialize(accountActivationToken, pass));
 
       Urls urls = urlsFactory.create(brandInfo.getPortal_base_uri());

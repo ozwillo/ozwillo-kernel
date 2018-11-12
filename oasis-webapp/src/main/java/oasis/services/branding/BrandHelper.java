@@ -17,8 +17,6 @@
  */
 package oasis.services.branding;
 
-import javax.ws.rs.core.UriInfo;
-
 import com.google.common.collect.ImmutableMap;
 
 import oasis.model.branding.BrandInfo;
@@ -46,11 +44,6 @@ public class BrandHelper {
         .put("success_text_color", brandInfo.getSuccess_text_color())
         .put("brand_id", brandInfo.getBrand_id())
         .build();
-  }
-
-  public static String getBrandIdFromUri(UriInfo uriInfo){
-    String brandId = uriInfo.getQueryParameters().getFirst(BRAND_PARAM);
-    return brandId == null ? BrandInfo.DEFAULT_BRAND : brandId;
   }
 
 }
