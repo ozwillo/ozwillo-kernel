@@ -26,6 +26,7 @@ import javax.mail.URLName;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 
+import org.immutables.value.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,16 +36,20 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.typesafe.config.Config;
 
+@Value.Enclosing
 public class MailModule extends AbstractModule {
   private static Logger logger = LoggerFactory.getLogger(MailModule.class);
 
-  public static class Settings {
+  @Value.Immutable
+  public interface Settings {
 
-    public static Builder builder() {
-      return new Builder();
-    }
+    InternetAddress from_();
 
-    public static Settings fromConfig(Config config) {
+    URLName server();
+
+    boolean useStartTls();
+
+    static Settings fromConfig(Config config) {
       InternetAddress from;
       if (config.hasPath("from")) {
         try {
@@ -59,47 +64,11 @@ public class MailModule extends AbstractModule {
       if (from == null) {
         throw new RuntimeException("Unable to determine sender address.");
       }
-      return Settings.builder()
-          .setFrom(from)
-          .setServer(new URLName(config.getString("server")))
-          .setUseStartTls(config.getBoolean("starttls.enable"))
+      return ImmutableMailModule.Settings.builder()
+          .from_(from)
+          .server(new URLName(config.getString("server")))
+          .useStartTls(config.getBoolean("starttls.enable"))
           .build();
-    }
-
-    public static class Builder {
-
-      private InternetAddress from;
-      private URLName server;
-      private boolean useStartTls;
-
-      public Settings build() {
-        return new Settings(this);
-      }
-
-      public Builder setFrom(InternetAddress from) {
-        this.from = from;
-        return this;
-      }
-
-      public Builder setServer(URLName server) {
-        this.server = server;
-        return this;
-      }
-
-      public Builder setUseStartTls(boolean useStartTls) {
-        this.useStartTls = useStartTls;
-        return this;
-      }
-    }
-
-    public final InternetAddress from;
-    public final URLName server;
-    public final boolean useStartTls;
-
-    private Settings(Builder builder) {
-      this.from = builder.from;
-      this.server = builder.server;
-      this.useStartTls = builder.useStartTls;
     }
   }
 
@@ -107,6 +76,8 @@ public class MailModule extends AbstractModule {
     Settings settings = Settings.fromConfig(config);
     return new MailModule(settings);
   }
+
+
 
   protected final Settings settings;
 
@@ -120,22 +91,22 @@ public class MailModule extends AbstractModule {
   }
 
   @Provides @Singleton Session provideSession() {
-    String protocol = settings.server.getProtocol();
+    String protocol = settings.server().getProtocol();
     Properties props = new Properties();
-    props.setProperty("mail." + protocol + ".starttls.enable", settings.useStartTls ? "true" : "false");
+    props.setProperty("mail." + protocol + ".starttls.enable", settings.useStartTls() ? "true" : "false");
     // TODO: add a require-StartTLS config option
-    props.setProperty("mail." + protocol + ".host", settings.server.getHost());
-    if (settings.server.getPort() >= 0) {
-      props.setProperty("mail." + protocol + ".port", Integer.toString(settings.server.getPort()));
+    props.setProperty("mail." + protocol + ".host", settings.server().getHost());
+    if (settings.server().getPort() >= 0) {
+      props.setProperty("mail." + protocol + ".port", Integer.toString(settings.server().getPort()));
     }
     Authenticator authenticator;
-    if (!Strings.isNullOrEmpty(settings.server.getUsername()) && !Strings.isNullOrEmpty(settings.server.getPassword())) {
+    if (!Strings.isNullOrEmpty(settings.server().getUsername()) && !Strings.isNullOrEmpty(settings.server().getPassword())) {
       props.setProperty("mail." + protocol + ".auth", "true");
-      props.setProperty("mail." + protocol + ".user", settings.server.getUsername());
+      props.setProperty("mail." + protocol + ".user", settings.server().getUsername());
       authenticator = new Authenticator() {
         @Override
         protected PasswordAuthentication getPasswordAuthentication() {
-          return new PasswordAuthentication(settings.server.getUsername(), settings.server.getPassword());
+          return new PasswordAuthentication(settings.server().getUsername(), settings.server().getPassword());
         }
       };
     } else {
