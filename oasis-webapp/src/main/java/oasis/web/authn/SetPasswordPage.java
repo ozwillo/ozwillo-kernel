@@ -27,7 +27,6 @@ import javax.ws.rs.FormParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -122,6 +121,7 @@ public class SetPasswordPage {
     try {
       mailSender.send(new MailMessage()
           .setRecipient(account.getEmail_address(), account.getDisplayName())
+          .setFrom(brandInfo.getMail_from())
           .setLocale(account.getLocale())
           .setSubject(InitPasswordMailSoyInfo.ACTIVATE_PASSWORD_SUBJECT)
           .setBody(InitPasswordMailSoyInfo.ACTIVATE_PASSWORD)

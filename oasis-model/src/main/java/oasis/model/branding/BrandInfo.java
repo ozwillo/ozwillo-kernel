@@ -70,6 +70,12 @@ public class BrandInfo {
 
   private String portal_base_uri;
 
+  private String mail_from;
+
+  public String getMail_from() {
+    return mail_from;
+  }
+
   public String getPortal_base_uri() {
     return portal_base_uri;
   }

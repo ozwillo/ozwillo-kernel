@@ -35,6 +35,7 @@ public class MailMessage {
   private SoyTemplateInfo body;
   private boolean html = true;
   private ImmutableMap<String, ?> data;
+  private InternetAddress from;
 
   public ULocale getLocale() {
     return locale;
@@ -107,6 +108,15 @@ public class MailMessage {
 
   public MailMessage setData(ImmutableMap<String, ?> data) {
     this.data = data;
+    return this;
+  }
+
+  public InternetAddress getFrom() {
+    return from;
+  }
+
+  public MailMessage setFrom(@Nullable String from) throws AddressException {
+    this.from = (from != null) ? new InternetAddress(from) : null;
     return this;
   }
 }

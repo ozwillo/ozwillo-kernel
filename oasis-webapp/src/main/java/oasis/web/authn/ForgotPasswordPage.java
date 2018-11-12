@@ -106,6 +106,7 @@ public class ForgotPasswordPage {
       if (account == null || credentialsRepository.getCredentials(ClientType.USER, account.getId()) == null) {
         mailSender.send(new MailMessage()
           .setRecipient(email, null)
+          .setFrom(brandInfo.getMail_from())
           .setLocale(locale)
           .setSubject(RecoverMailSoyInfo.FORGOT_PASSWORD_UNKNOWN_ACCOUNT_SUBJECT)
           .setBody(RecoverMailSoyInfo.FORGOT_PASSWORD_UNKNOWN_ACCOUNT)
@@ -121,6 +122,7 @@ public class ForgotPasswordPage {
 
         mailSender.send(new MailMessage()
             .setRecipient(account.getEmail_address(), account.getDisplayName())
+            .setFrom(brandInfo.getMail_from())
             .setLocale(locale)
             .setSubject(RecoverMailSoyInfo.FORGOT_PASSWORD_EXISTING_ACCOUNT_SUBJECT)
             .setBody(RecoverMailSoyInfo.FORGOT_PASSWORD_EXISTING_ACCOUNT)

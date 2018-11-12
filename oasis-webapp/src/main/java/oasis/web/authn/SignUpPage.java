@@ -140,6 +140,7 @@ public class SignUpPage {
 
       mailSender.send(new MailMessage()
           .setRecipient(email, nickname)
+          .setFrom(brandInfo.getMail_from())
           .setLocale(account.getLocale())
           .setSubject(SignUpSoyInfo.ACTIVATE_ACCOUNT_SUBJECT)
           .setBody(SignUpSoyInfo.ACTIVATE_ACCOUNT)

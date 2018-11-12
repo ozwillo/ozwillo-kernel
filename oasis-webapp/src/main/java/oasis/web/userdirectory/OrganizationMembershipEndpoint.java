@@ -51,8 +51,11 @@ import oasis.mail.MailMessage;
 import oasis.mail.MailSender;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
+import oasis.model.authn.AccessToken;
 import oasis.model.authn.MembershipInvitationToken;
 import oasis.model.authn.TokenRepository;
+import oasis.model.branding.BrandInfo;
+import oasis.model.branding.BrandRepository;
 import oasis.model.directory.DirectoryRepository;
 import oasis.model.directory.Organization;
 import oasis.model.directory.OrganizationMembership;
@@ -93,6 +96,7 @@ public class OrganizationMembershipEndpoint {
   @Inject MailSender mailSender;
   @Inject SoyTemplateRenderer templateRenderer;
   @Inject TokenHandler tokenHandler;
+  @Inject BrandRepository brandRepository;
 
   @Context UriInfo uriInfo;
   @Context SecurityContext securityContext;
@@ -142,7 +146,8 @@ public class OrganizationMembershipEndpoint {
 
   @POST
   public Response post(MembershipRequest request) {
-    String requesterId = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId();
+    AccessToken accessToken = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken();
+    String requesterId = accessToken.getAccountId();
     OrganizationMembership ownerMembership = organizationMembershipRepository.getOrganizationMembership(requesterId, organizationId);
     if (ownerMembership == null || !ownerMembership.isAdmin()) {
       return Response.status(Response.Status.FORBIDDEN).build();
@@ -169,8 +174,10 @@ public class OrganizationMembershipEndpoint {
     MembershipInvitationToken membershipInvitationToken = tokenHandler.createInvitationToken(membership.getId(), pass);
 
     UserAccount requester = accountRepository.getUserAccountById(requesterId);
+
+    BrandInfo brandInfo = brandRepository.getBrandInfo(accessToken.getBrandId());
     try {
-      notifyUserForNewMembershipInvitation(request.email, organization, requester, membershipInvitationToken, pass);
+      notifyUserForNewMembershipInvitation(request.email, organization, requester, membershipInvitationToken, pass, brandInfo);
     } catch (Exception e) {
       logger.error("Error notifying a user about an invitation for joining an organization", e);
       // The user needs to be notified or he may never accept the invitation
@@ -194,7 +201,7 @@ public class OrganizationMembershipEndpoint {
   }
 
   private void notifyUserForNewMembershipInvitation(String invitedUserEmail, Organization organization, UserAccount requester,
-      MembershipInvitationToken membershipInvitationToken, String tokenPass) {
+      MembershipInvitationToken membershipInvitationToken, String tokenPass, BrandInfo brandInfo) {
     ImmutableMap.Builder<String, String> data = ImmutableMap.builderWithExpectedSize(4);
     // Subject data
     data.put(OrgMembershipInvitationMailSoyInfo.NewMembershipInvitationSubjectSoyTemplateInfo.ORGANIZATION_NAME, organization.getName());
@@ -211,6 +218,7 @@ public class OrganizationMembershipEndpoint {
     try {
       mailSender.send(new MailMessage()
           .setRecipient(invitedUserEmail, null)
+          .setFrom(brandInfo.getMail_from())
           .setLocale(requester.getLocale())
           .setSubject(OrgMembershipInvitationMailSoyInfo.NEW_MEMBERSHIP_INVITATION_SUBJECT)
           .setBody(OrgMembershipInvitationMailSoyInfo.NEW_MEMBERSHIP_INVITATION_BODY)
@@ -269,5 +277,7 @@ public class OrganizationMembershipEndpoint {
 
   static class MembershipRequest {
     @JsonProperty String email;
+    @JsonProperty String brand_id;
+
   }
 }

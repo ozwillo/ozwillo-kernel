@@ -19,14 +19,17 @@ package oasis.mail;
 
 import java.nio.charset.StandardCharsets;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
 import com.google.common.base.CharMatcher;
+import com.google.common.base.MoreObjects;
 import com.google.template.soy.data.SanitizedContent;
 
 import oasis.soy.SoyTemplate;
@@ -51,7 +54,7 @@ public class MailSender {
         new SoyTemplate(message.getBody(), message.getLocale(), message.isHtml() ? SanitizedContent.ContentKind.HTML : SanitizedContent.ContentKind.TEXT, message.getData()));
 
     MimeMessage msg = new MimeMessage(session);
-    msg.setFrom(settings.from_());
+    msg.setFrom(MoreObjects.firstNonNull(message.getFrom(), settings.from_()));
     msg.setRecipient(Message.RecipientType.TO, message.getRecipient());
     msg.setSubject(CharMatcher.whitespace().trimAndCollapseFrom(subject.toString(), ' '));
     msg.setText(body.toString(), StandardCharsets.UTF_8.name(), message.isHtml() ? "html" : "plain");

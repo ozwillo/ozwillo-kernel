@@ -60,6 +60,8 @@ import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.authn.AccessToken;
 import oasis.model.authn.AppInstanceInvitationToken;
 import oasis.model.authn.TokenRepository;
+import oasis.model.branding.BrandInfo;
+import oasis.model.branding.BrandRepository;
 import oasis.model.directory.OrganizationMembershipRepository;
 import oasis.model.notification.Notification;
 import oasis.model.notification.NotificationRepository;
@@ -100,6 +102,7 @@ public class AppInstanceAccessControlEndpoint {
   @Inject TokenHandler tokenHandler;
   @Inject TokenRepository tokenRepository;
   @Inject NotificationRepository notificationRepository;
+  @Inject BrandRepository brandRepository;
 
   @Context SecurityContext securityContext;
   @Context UriInfo uriInfo;
@@ -202,7 +205,8 @@ public class AppInstanceAccessControlEndpoint {
     if (instance == null) {
       return ResponseFactory.NOT_FOUND;
     }
-    String currentUserId = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken().getAccountId();
+    AccessToken accessToken = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken();
+    String currentUserId = accessToken.getAccountId();
     if (!appAdminHelper.isAdmin(currentUserId, instance)) {
       return ResponseFactory.forbidden("Current user is not an app_admin for the application instance");
     }
@@ -221,8 +225,10 @@ public class AppInstanceAccessControlEndpoint {
       AppInstanceInvitationToken appInstanceInvitationToken = tokenHandler.createAppInstanceInvitationToken(ace.getId(), pass);
 
       UserAccount requester = accountRepository.getUserAccountById(currentUserId);
+
+      BrandInfo brandInfo = brandRepository.getBrandInfo(accessToken.isPortal() ? accessToken.getServiceProviderId() : instance.getPortal_id());
       try {
-        notifyUserForNewAppInstanceInvitation(ace.getEmail(), instance, requester, appInstanceInvitationToken, pass);
+        notifyUserForNewAppInstanceInvitation(ace.getEmail(), instance, requester, appInstanceInvitationToken, pass, brandInfo);
       } catch (Exception e) {
         logger.error("Error notifying a user about an invitation for using an app-instance", e);
         // The user needs to be notified or he may never accept the invitation
@@ -256,7 +262,7 @@ public class AppInstanceAccessControlEndpoint {
   }
 
   private void notifyUserForNewAppInstanceInvitation(String invitedUserEmail, AppInstance appInstance, UserAccount requester,
-      AppInstanceInvitationToken appInstanceInvitationToken, String tokenPass) {
+      AppInstanceInvitationToken appInstanceInvitationToken, String tokenPass, BrandInfo brandInfo) {
     ImmutableMap.Builder<String, String> data = ImmutableMap.builderWithExpectedSize(5);
     // Subject data
     data.put(NewAppInstanceInvitationSubjectSoyTemplateInfo.APP_INSTANCE_NAME, appInstance.getName().get(requester.getLocale()));
@@ -274,6 +280,7 @@ public class AppInstanceAccessControlEndpoint {
     try {
       mailSender.send(new MailMessage()
           .setRecipient(invitedUserEmail, null)
+          .setFrom(brandInfo.getMail_from())
           .setLocale(requester.getLocale())
           .setSubject(AppInstanceInvitationMailSoyInfo.NEW_APP_INSTANCE_INVITATION_SUBJECT)
           .setBody(AppInstanceInvitationMailSoyInfo.NEW_APP_INSTANCE_INVITATION_BODY)

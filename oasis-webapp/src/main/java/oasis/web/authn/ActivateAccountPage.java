@@ -94,6 +94,7 @@ public class ActivateAccountPage {
     try {
       mailSender.send(new MailMessage()
           .setRecipient(userAccount.getEmail_address(), userAccount.getDisplayName())
+          .setFrom(brandInfo.getMail_from())
           .setLocale(userAccount.getLocale())
           .setSubject(SignUpSoyInfo.ACCOUNT_ACTIVATED_SUBJECT)
           .setBody(SignUpSoyInfo.ACCOUNT_ACTIVATED)
