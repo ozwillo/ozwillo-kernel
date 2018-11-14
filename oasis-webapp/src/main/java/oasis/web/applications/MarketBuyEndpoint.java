@@ -180,7 +180,8 @@ public class MarketBuyEndpoint {
             .setUser(accountRepository.getUserAccountById(userId))
             .setOrganization(organization)
             .setInstance_registration_uri(uriInfo.getBaseUriBuilder().path(InstanceRegistrationEndpoint.class).build(instance.getId()))
-            .setAuthorization_grant(new AuthorizationGrant(createJwtBearer(instance)))));
+            .setAuthorization_grant(new AuthorizationGrant(createJwtBearer(instance)))
+            .setPortal(instance.getPortal_id())));
     Response response;
     try {
       response = future.get(1, TimeUnit.MINUTES);
@@ -258,6 +259,7 @@ public class MarketBuyEndpoint {
     @JsonProperty Organization organization;
     @JsonProperty URI instance_registration_uri;
     @JsonProperty AuthorizationGrant authorization_grant;
+    @JsonProperty String portal;
 
     public CreateInstanceRequest setInstance_id(String instance_id) {
       this.instance_id = instance_id;
@@ -302,6 +304,11 @@ public class MarketBuyEndpoint {
 
     public CreateInstanceRequest setAuthorization_grant(AuthorizationGrant authorization_grant) {
       this.authorization_grant = authorization_grant;
+      return this;
+    }
+
+    public CreateInstanceRequest setPortal(String portal) {
+      this.portal = portal;
       return this;
     }
   }
