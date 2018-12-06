@@ -269,7 +269,7 @@ public class AppInstanceInvitationPage {
         .header("X-Frame-Options", "DENY")
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
-        .entity(new SoyTemplate(AppInstanceInvitationSoyInfo.APP_INSTANCE_INVITATION_TOKEN_ERROR, locale, null, brandInfo))
+        .entity(new SoyTemplate(AppInstanceInvitationSoyInfo.APP_INSTANCE_INVITATION_TOKEN_ERROR, locale, brandInfo))
         .build();
   }
 

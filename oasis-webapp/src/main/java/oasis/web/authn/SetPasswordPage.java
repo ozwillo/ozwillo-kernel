@@ -140,8 +140,7 @@ public class SetPasswordPage {
         .header("X-Frame-Options", "DENY")
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
-        .entity(new SoyTemplate(InitPasswordSoyInfo.PASSWORD_PENDING_ACTIVATION, account.getLocale(), null,
-            brandInfo))
+        .entity(new SoyTemplate(InitPasswordSoyInfo.PASSWORD_PENDING_ACTIVATION, account.getLocale(), brandInfo))
         .build();
   }
 

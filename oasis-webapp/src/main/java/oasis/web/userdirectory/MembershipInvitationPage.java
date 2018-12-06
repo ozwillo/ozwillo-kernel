@@ -303,8 +303,7 @@ public class MembershipInvitationPage {
         .header("X-Frame-Options", "DENY")
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
-        .entity(new SoyTemplate(OrgMembershipInvitationSoyInfo.MEMBERSHIP_INVITATION_TOKEN_ERROR, locale, null,
-            brandInfo))
+        .entity(new SoyTemplate(OrgMembershipInvitationSoyInfo.MEMBERSHIP_INVITATION_TOKEN_ERROR, locale, brandInfo))
         .build();
   }
 

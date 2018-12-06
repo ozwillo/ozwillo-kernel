@@ -177,7 +177,7 @@ public class FranceConnectCallback {
       return Response.status(Response.Status.BAD_REQUEST)
           .type(MediaType.TEXT_HTML_TYPE)
           .entity(new SoyTemplate(FranceConnectSoyInfo.FRANCECONNECT_ALREADY_LINKED,
-              localeHelper.selectLocale(state.locale(), request), null, brandInfo));
+              localeHelper.selectLocale(state.locale(), request), brandInfo));
     } else {
       // FranceConnect identity unknown
       if (securityContext.getUserPrincipal() != null) {

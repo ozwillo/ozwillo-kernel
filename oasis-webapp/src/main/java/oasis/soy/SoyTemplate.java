@@ -44,6 +44,10 @@ public class SoyTemplate {
     this(templateInfo, locale, null, null, null);
   }
 
+  public SoyTemplate(SoyTemplateInfo templateInfo, ULocale locale, BrandInfo brandInfo) {
+    this(templateInfo, locale, null, null, brandInfo);
+  }
+
   public SoyTemplate(SoyTemplateInfo templateInfo, ULocale locale, @Nullable ImmutableMap<String, ?> data) {
     this(templateInfo, locale, null, data, null);
   }
@@ -57,7 +61,12 @@ public class SoyTemplate {
   }
 
   public SoyTemplate(SoyTemplateInfo templateInfo, ULocale locale, @Nullable SanitizedContent.ContentKind contentKind,
-                     @Nullable ImmutableMap<String, ?> data) {
+      BrandInfo brandInfo) {
+    this(templateInfo, locale, contentKind, null, brandInfo);
+  }
+
+  public SoyTemplate(SoyTemplateInfo templateInfo, ULocale locale, @Nullable SanitizedContent.ContentKind contentKind,
+      @Nullable ImmutableMap<String, ?> data) {
     this(templateInfo, locale, contentKind, data, null);
   }
 
