@@ -39,17 +39,19 @@ import oasis.auth.AuthModule;
 abstract class FranceConnectLinkState {
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-  public static FranceConnectLinkState create(String access_token, String id_token, String franceconnect_sub) {
+  public static FranceConnectLinkState create(String access_token, String id_token, String franceconnect_sub, String brand_id) {
     return ImmutableFranceConnectLinkState.builder()
         .access_token(access_token)
         .id_token(id_token)
         .franceconnect_sub(franceconnect_sub)
+        .brand_id(brand_id)
         .build();
   }
 
   abstract String access_token();
   abstract String id_token();
   abstract String franceconnect_sub();
+  abstract String brand_id();
 
   String encrypt(AuthModule.Settings settings) throws JoseException, JsonProcessingException {
     JsonWebEncryption jwe = new JsonWebEncryption();

@@ -281,7 +281,7 @@ public class LoginPageTest {
         .doesNotContainKeys(cookieName, browserStateCookieName)
         .containsEntry(
             FranceConnectLoginState.getCookieName(state, true),
-            FranceConnectLoginState.createCookie(state, passwordlessAccount.getLocale(), nonce, URI.create(continueUrl), true));
+            FranceConnectLoginState.createCookie(state, passwordlessAccount.getLocale(), nonce, BrandInfo.DEFAULT_BRAND, URI.create(continueUrl), true));
   }
 
   @SuppressWarnings("unchecked")

@@ -84,25 +84,23 @@ public class FranceConnectSignUpPage {
       @FormParam("state") @DefaultValue("") String encryptedState,
       @FormParam(BrandHelper.BRAND_PARAM) @DefaultValue(BrandInfo.DEFAULT_BRAND) String brandId
   ) {
-    BrandInfo brandInfo = brandRepository.getBrandInfo(brandId);
-
     locale = localeHelper.selectLocale(locale, request);
 
     if (continueUrl == null || encryptedState.isEmpty()) {
-      return FranceConnectCallback.badRequest(locale, Objects.toString(continueUrl, null), brandInfo);
+      return FranceConnectCallback.badRequest(locale, Objects.toString(continueUrl, null), brandRepository.getBrandInfo(brandId));
     }
 
     final FranceConnectLinkState state;
     try {
       state = FranceConnectLinkState.decrypt(authSettings, encryptedState);
     } catch (JoseException | IOException e) {
-      return FranceConnectCallback.badRequest(locale, continueUrl.toString(), brandInfo);
+      return FranceConnectCallback.badRequest(locale, continueUrl.toString(), brandRepository.getBrandInfo(brandId));
     }
 
     if (securityContext.getUserPrincipal() != null) {
       // User has signed in since we displayed the form; error out to let him retry
       // XXX: directly reprocess the FC response (encoded in 'state') as in FranceConnectCallback, for better UX
-      return FranceConnectCallback.badRequest(locale, continueUrl.toString(), brandInfo);
+      return FranceConnectCallback.badRequest(locale, continueUrl.toString(), brandRepository.getBrandInfo(brandId));
     }
 
     Response response = httpClient.target(fcSettings.userinfoEndpoint())
@@ -111,16 +109,16 @@ public class FranceConnectSignUpPage {
         .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
         .get();
     if (response.getStatusInfo().getFamily() != Response.Status.Family.SUCCESSFUL) {
-      return FranceConnectCallback.serverError(locale, continueUrl.toString(), brandInfo);
+      return FranceConnectCallback.serverError(locale, continueUrl.toString(), brandRepository.getBrandInfo(brandId));
     }
     UserInfoResponse userInfo;
     try {
       userInfo = response.readEntity(UserInfoResponse.class);
     } catch (ProcessingException e) {
-      return FranceConnectCallback.serverError(locale, continueUrl.toString(), brandInfo);
+      return FranceConnectCallback.serverError(locale, continueUrl.toString(), brandRepository.getBrandInfo(brandId));
     }
     if (!state.franceconnect_sub().equals(userInfo.sub)) {
-      return FranceConnectCallback.serverError(locale, continueUrl.toString(), brandInfo);
+      return FranceConnectCallback.serverError(locale, continueUrl.toString(), brandRepository.getBrandInfo(brandId));
     }
     final UserAccount accountFromClaims = new UserAccount();
     accountFromClaims.setFranceconnect_sub(userInfo.sub);
@@ -160,7 +158,7 @@ public class FranceConnectSignUpPage {
       if (account == null) {
         // Must be that the FC identity has been linked to another account since the form was displayed.
         // XXX: directly reprocess the FC response (encoded in 'state') as in FranceConnectCallback, for better UX
-        return FranceConnectCallback.serverError(locale, continueUrl.toString(), brandInfo);
+        return FranceConnectCallback.serverError(locale, continueUrl.toString(), brandRepository.getBrandInfo(brandId));
       }
     }
 

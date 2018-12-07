@@ -22,12 +22,10 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
-import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Context;
@@ -66,7 +64,6 @@ import oasis.model.authn.SidToken;
 import oasis.model.authn.TokenRepository;
 import oasis.model.branding.BrandInfo;
 import oasis.model.branding.BrandRepository;
-import oasis.services.branding.BrandHelper;
 import oasis.soy.SoyTemplate;
 import oasis.soy.templates.FranceConnectSoyInfo;
 import oasis.soy.templates.FranceConnectSoyInfo.FranceconnectErrorSoyTemplateInfo;
@@ -97,12 +94,8 @@ public class FranceConnectCallback {
   @Context SecurityContext securityContext;
   @Context Request request;
 
-  BrandInfo brandInfo;
-
   @GET
-  public Response get(@QueryParam(BrandHelper.BRAND_PARAM) @DefaultValue(BrandInfo.DEFAULT_BRAND) String brandId) {
-    brandInfo = brandRepository.getBrandInfo(brandId);
-
+  public Response get() {
     final ImmutableMap<String, String> params = validateParams(uriInfo.getQueryParameters());
     if (params == null) {
       return badRequest(null).build();
@@ -117,12 +110,12 @@ public class FranceConnectCallback {
       // XXX: add "check that cookies are enabled in your browser" message?
       return badRequest(null).build();
     }
-    return doGet(params, stateCookie.getValue(), brandInfo)
+    return doGet(params, stateCookie.getValue())
         .cookie(FranceConnectLoginState.createExpiredCookie(stateKey, securityContext.isSecure()))
         .build();
   }
 
-  private Response.ResponseBuilder doGet(final ImmutableMap<String, String> params, final String serializedState, BrandInfo brandInfo) {
+  private Response.ResponseBuilder doGet(final ImmutableMap<String, String> params, final String serializedState) {
     FranceConnectLoginState state = FranceConnectLoginState.parse(serializedState);
     if (state == null) {
       return badRequest(null);
@@ -177,7 +170,8 @@ public class FranceConnectCallback {
       return Response.status(Response.Status.BAD_REQUEST)
           .type(MediaType.TEXT_HTML_TYPE)
           .entity(new SoyTemplate(FranceConnectSoyInfo.FRANCECONNECT_ALREADY_LINKED,
-              localeHelper.selectLocale(state.locale(), request), brandInfo));
+              localeHelper.selectLocale(state.locale(), request),
+              brandRepository.getBrandInfo(state.brandId())));
     } else {
       // FranceConnect identity unknown
       if (securityContext.getUserPrincipal() != null) {
@@ -215,7 +209,7 @@ public class FranceConnectCallback {
       return FranceConnectLinkPage.linkForm(authSettings,
           localeHelper.selectLocale(state.locale(), request),
           email_address, alreadyLinked, state.continueUrl().toString(),
-          FranceConnectLinkState.create(tokenResponse.access_token, tokenResponse.id_token, franceconnect_sub));
+          FranceConnectLinkState.create(tokenResponse.access_token, tokenResponse.id_token, franceconnect_sub, state.brandId()), brandRepository.getBrandInfo(state.brandId()));
     }
   }
 
@@ -323,7 +317,8 @@ public class FranceConnectCallback {
   private Response.ResponseBuilder error(Response.ResponseBuilder rb, @Nullable FranceConnectLoginState state) {
     return error(rb,
         localeHelper.selectLocale(state == null ? null : state.locale(), request),
-        state == null ? null : state.continueUrl().toString(), brandInfo);
+        state == null ? null : state.continueUrl().toString(),
+        brandRepository.getBrandInfo(state == null ? BrandInfo.DEFAULT_BRAND : state.brandId()));
   }
 
   static Response badRequest(ULocale locale, @Nullable String continueUrl, BrandInfo brandInfo) {

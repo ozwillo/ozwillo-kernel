@@ -116,7 +116,7 @@ public class FranceConnectLinkPage {
       account = userPasswordAuthenticator.authenticate(userName, password);
     } catch (LoginException e) {
       LoginPage.log(auditLogService, userName, LoginPage.LoginLogEvent.LoginResult.AUTHENTICATION_FAILED);
-      return linkForm(locale, continueUrl, encryptedState, LoginError.INCORRECT_USERNAME_OR_PASSWORD);
+      return linkForm(locale, continueUrl, encryptedState, LoginError.INCORRECT_USERNAME_OR_PASSWORD, brandInfo);
     }
 
     try {
@@ -133,20 +133,20 @@ public class FranceConnectLinkPage {
     }).build();
   }
 
-  private Response linkForm(ULocale locale, URI continueUrl, String state, @Nullable LoginError error) {
-    return linkForm(Response.status(Response.Status.BAD_REQUEST), locale, null, false, continueUrl.toString(), state, error)
+  private Response linkForm(ULocale locale, URI continueUrl, String state, @Nullable LoginError error, BrandInfo brandInfo) {
+    return linkForm(Response.status(Response.Status.BAD_REQUEST), locale, null, false, continueUrl.toString(), state, error, brandInfo)
         .build();
   }
 
-  static Response.ResponseBuilder linkForm(AuthModule.Settings settings, ULocale locale, @Nullable String email, boolean alreadyLinked, String continueUrl, FranceConnectLinkState state) {
+  static Response.ResponseBuilder linkForm(AuthModule.Settings settings, ULocale locale, @Nullable String email, boolean alreadyLinked, String continueUrl, FranceConnectLinkState state, BrandInfo brandInfo) {
     try {
-      return linkForm(Response.ok(), locale, email, alreadyLinked, continueUrl, state.encrypt(settings), null);
+      return linkForm(Response.ok(), locale, email, alreadyLinked, continueUrl, state.encrypt(settings), null, brandInfo);
     } catch (JoseException | JsonProcessingException e) {
       return Response.serverError();
     }
   }
 
-  private static Response.ResponseBuilder linkForm(Response.ResponseBuilder rb, ULocale locale, @Nullable String email, boolean alreadyLinked, String continueUrl, String state, @Nullable LoginError error) {
+  private static Response.ResponseBuilder linkForm(Response.ResponseBuilder rb, ULocale locale, @Nullable String email, boolean alreadyLinked, String continueUrl, String state, @Nullable LoginError error, BrandInfo brandInfo) {
     ImmutableMap.Builder<String, Object> data = ImmutableMap.<String, Object>builderWithExpectedSize(8)
         .put(FranceconnectLinkSoyTemplateInfo.SIGN_UP_FORM_ACTION, UriBuilder.fromResource(FranceConnectSignUpPage.class).build().toString())
         .put(FranceconnectLinkSoyTemplateInfo.LOGIN_FORM_ACTION, UriBuilder.fromResource(FranceConnectLinkPage.class).build().toString())
@@ -163,7 +163,7 @@ public class FranceConnectLinkPage {
 
     return rb
         .type(MediaType.TEXT_HTML_TYPE)
-        .entity(new SoyTemplate(FranceConnectSoyInfo.FRANCECONNECT_LINK, locale, data.build()));
+        .entity(new SoyTemplate(FranceConnectSoyInfo.FRANCECONNECT_LINK, locale, data.build(), brandInfo));
   }
 
   enum LoginError {

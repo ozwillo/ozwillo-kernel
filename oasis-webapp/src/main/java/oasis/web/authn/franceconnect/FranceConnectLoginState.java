@@ -55,8 +55,8 @@ public abstract class FranceConnectLoginState {
     return CookieFactory.getCookieName(COOKIE_NAME_PREFIX + state, secure);
   }
 
-  public static NewCookie createCookie(String state, ULocale locale, String nonce, URI continueUrl, boolean secure) {
-    return CookieFactory.createSessionCookie(COOKIE_NAME_PREFIX + state, toString(locale, nonce, continueUrl), secure, true);
+  public static NewCookie createCookie(String state, ULocale locale, String nonce, String brandId, URI continueUrl, boolean secure) {
+    return CookieFactory.createSessionCookie(COOKIE_NAME_PREFIX + state, toString(locale, nonce, brandId, continueUrl), secure, true);
   }
 
   static NewCookie createExpiredCookie(String state, boolean secure) {
@@ -77,25 +77,31 @@ public abstract class FranceConnectLoginState {
     if (idx2 < 0) {
       return null;
     }
+    int idx3 = serialized.indexOf(SEPARATOR, idx2 + 1);
+    if (idx3 < 0) {
+      return null;
+    }
     return ImmutableFranceConnectLoginState.builder()
         // XXX: use ULocale.Builder#setLanguageTag for stricter parsing?
         .locale(ULocale.forLanguageTag(serialized.substring(0, idx1)))
         .nonce(serialized.substring(idx1 + 1, idx2))
+        .brandId(serialized.substring(idx2 + 1, idx3))
         // XXX: use same logic as in UriParamConverter? use galimatias as in OriginHelper?
-        .continueUrl(URI.create(serialized.substring(idx2 + 1)))
+        .continueUrl(URI.create(serialized.substring(idx3 + 1)))
         .build();
   }
 
   abstract ULocale locale();
   abstract String nonce();
+  abstract String brandId();
   abstract URI continueUrl();
 
   @Override
   public String toString() {
-    return toString(locale(), nonce(), continueUrl());
+    return toString(locale(), nonce(), brandId(), continueUrl());
   }
 
-  private static String toString(ULocale locale, String nonce, URI continueUrl) {
-    return BASE_ENCODING.encode((locale.toLanguageTag() + SEPARATOR + nonce + SEPARATOR + continueUrl.toString()).getBytes(StandardCharsets.UTF_8));
+  private static String toString(ULocale locale, String nonce, String brandId, URI continueUrl) {
+    return BASE_ENCODING.encode((locale.toLanguageTag() + SEPARATOR + nonce + SEPARATOR + brandId + SEPARATOR + continueUrl.toString()).getBytes(StandardCharsets.UTF_8));
   }
 }

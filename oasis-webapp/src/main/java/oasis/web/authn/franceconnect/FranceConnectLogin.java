@@ -20,6 +20,8 @@ package oasis.web.authn.franceconnect;
 import static oasis.web.authn.LoginPage.LOCALE_PARAM;
 
 import oasis.auth.FranceConnectModule;
+import oasis.model.branding.BrandInfo;
+import oasis.services.branding.BrandHelper;
 import oasis.web.authn.User;
 import oasis.web.authn.UserSessionPrincipal;
 import oasis.web.i18n.LocaleHelper;
@@ -28,6 +30,7 @@ import okhttp3.HttpUrl;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -57,13 +60,14 @@ public class FranceConnectLogin {
   @POST
   public Response post(
       @FormParam(LOCALE_PARAM) @Nullable ULocale locale,
-      @FormParam("continue") URI continueUrl
+      @FormParam("continue") URI continueUrl,
+      @FormParam(BrandHelper.BRAND_PARAM) @DefaultValue(BrandInfo.DEFAULT_BRAND) String brandId
   ) {
     locale = localeHelper.selectLocale(locale, request);
-    return redirectToFranceConnect(settings, secureRandom, securityContext, uriInfo, locale, continueUrl);
+    return redirectToFranceConnect(settings, secureRandom, securityContext, uriInfo, locale, continueUrl, brandId);
   }
 
-  public static Response redirectToFranceConnect(FranceConnectModule.Settings settings, SecureRandom secureRandom, SecurityContext securityContext, UriInfo uriInfo, ULocale locale, URI continueUrl) {
+  public static Response redirectToFranceConnect(FranceConnectModule.Settings settings, SecureRandom secureRandom, SecurityContext securityContext, UriInfo uriInfo, ULocale locale, URI continueUrl, String brandId) {
     final String state = FranceConnectLoginState.generateStateKey(secureRandom);
     final String nonce = FranceConnectLoginState.generateNonce(secureRandom);
 
@@ -81,7 +85,7 @@ public class FranceConnectLogin {
       }
     }
     return Response.seeOther(builder.build().uri())
-        .cookie(FranceConnectLoginState.createCookie(state, locale, nonce, continueUrl, securityContext.isSecure()))
+        .cookie(FranceConnectLoginState.createCookie(state, locale, nonce, brandId, continueUrl, securityContext.isSecure()))
         .build();
   }
 }

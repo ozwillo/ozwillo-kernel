@@ -93,7 +93,6 @@ public class FranceConnectUnlinkPage {
       @FormParam("pwd") @DefaultValue("") String password,
       @FormParam(BrandHelper.BRAND_PARAM) @DefaultValue(BrandInfo.DEFAULT_BRAND) String brandId
   ) {
-    BrandInfo brandInfo = brandRepository.getBrandInfo(brandId);
 
     SidToken sidToken = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken();
     if (sidToken.getFranceconnectIdToken() != null) {
@@ -104,7 +103,8 @@ public class FranceConnectUnlinkPage {
         if (account.getFranceconnect_sub() == null) {
           return redirectAfterSuccess(); // nothing to do
         }
-        return unlinkForm(Response.status(Response.Status.BAD_REQUEST), sidToken, account, null, brandInfo);
+        return unlinkForm(Response.status(Response.Status.BAD_REQUEST), sidToken, account, null,
+            brandRepository.getBrandInfo(brandId));
       }
 
       UserAccount account;
@@ -112,13 +112,15 @@ public class FranceConnectUnlinkPage {
         account = userPasswordAuthenticator.authenticate(userName, password);
       } catch (LoginException e) {
         log(auditLogService, userName, LoginPage.LoginLogEvent.LoginResult.AUTHENTICATION_FAILED);
-        return unlinkForm(Response.status(Response.Status.BAD_REQUEST), sidToken, null, LoginError.INCORRECT_USERNAME_OR_PASSWORD, brandInfo);
+        return unlinkForm(Response.status(Response.Status.BAD_REQUEST), sidToken, null, LoginError.INCORRECT_USERNAME_OR_PASSWORD,
+            brandRepository.getBrandInfo(brandId));
       }
 
       if (!account.getId().equals(sidToken.getAccountId())) {
         // Form has been tampered with, or user signed in with another account since the form was generated
         // Re-display the form: if user signed out/in, it will show the new (current) user.
-        return unlinkForm(Response.status(Response.Status.BAD_REQUEST), sidToken, null, null, brandInfo);
+        return unlinkForm(Response.status(Response.Status.BAD_REQUEST), sidToken, null, null,
+            brandRepository.getBrandInfo(brandId));
       }
       if (!tokenRepository.reAuthSidToken(sidToken.getId(), null, null)) {
         logger.error("Error when updating SidToken {} for Account {}.", sidToken.getId(), account.getId());
@@ -128,7 +130,7 @@ public class FranceConnectUnlinkPage {
 
     if (!accountRepository.unlinkFranceConnect(sidToken.getAccountId())) {
       UserAccount account = accountRepository.getUserAccountById(sidToken.getAccountId());
-      return FranceConnectCallback.serverError(account.getLocale(), null, brandInfo);
+      return FranceConnectCallback.serverError(account.getLocale(), null, brandRepository.getBrandInfo(brandId));
     }
     return redirectAfterSuccess();
   }

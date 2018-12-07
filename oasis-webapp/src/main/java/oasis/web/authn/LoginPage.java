@@ -196,7 +196,7 @@ public class LoginPage {
     if (credentialsRepository.getCredentials(ClientType.USER, userAccount.getId()) == null) {
       assert franceConnectSettings != null;
       assert userAccount.getFranceconnect_sub() != null;
-      return FranceConnectLogin.redirectToFranceConnect(franceConnectSettings, secureRandom, securityContext, uriInfo, userAccount.getLocale(), continueUrl);
+      return FranceConnectLogin.redirectToFranceConnect(franceConnectSettings, secureRandom, securityContext, uriInfo, userAccount.getLocale(), continueUrl, brandInfo.getBrand_id());
     }
     assert userAccount.getEmail_address() != null;
 
