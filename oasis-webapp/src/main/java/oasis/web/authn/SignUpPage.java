@@ -148,7 +148,7 @@ public class SignUpPage {
           )));
       // TODO: redirect to a bookmarkable URI (with form to resend the activation mail)
       return Response.ok()
-          .entity(new SoyTemplate(LoginSoyInfo.ACCOUNT_PENDING_ACTIVATION, account.getLocale()))
+          .entity(new SoyTemplate(LoginSoyInfo.ACCOUNT_PENDING_ACTIVATION, account.getLocale(), null, brandInfo))
           .build();
     } catch (MessagingException e) {
       logger.error("Error sending activation email", e);
