@@ -207,3 +207,19 @@ tasks.register("extractMessagesFromTemplates", JavaExec) {
     }
   }
 }
+
+tasks.register("migratePortalAppId", JavaExec) {
+  dependsOn("classes")
+
+  main = "oasis.tools.MigratePortalAppId"
+  classpath = sourceSets.main.runtimeClasspath
+  systemProperties = System.getProperties().findAll { it.key.startsWith("oasis.") } \
+      + [ "oasis.conf-dir": "${buildDir}" ]
+  args = [
+      "-c", "${rootDir}/dev.conf",
+      "-l", "${rootDir}/log4j2-dev.xml",
+    ]
+  if (project.hasProperty("dryRun")) {
+    args("--dry-run")
+  }
+}

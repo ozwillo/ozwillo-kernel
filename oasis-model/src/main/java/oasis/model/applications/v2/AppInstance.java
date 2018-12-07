@@ -186,6 +186,13 @@ public class AppInstance extends CommonProperties {
     return portal_id == null ? BrandInfo.DEFAULT_BRAND : portal_id;
   }
 
+  @JsonIgnore
+  public boolean isPortal() {
+    return ClientIds.PORTAL.equals(application_id)
+        // backwards compatibility
+        || ClientIds.PORTAL.equals(id);
+  }
+
   public static class NeededScope {
     private String scope_id;
     private LocalizableString motivation;

@@ -306,7 +306,7 @@ public class AuthorizationEndpoint {
     final String id_token_hint = getParameter("id_token_hint");
     validateIdTokenHint(uriInfo, sidToken, id_token_hint);
 
-    final boolean isPortal = ClientIds.PORTAL.equals(client_id);
+    final boolean isPortal = appInstance.isPortal();
 
     // Check ACL if the service is "private" (unless it's the Portal)
     if ((service != null && service.isAccessRestricted()) && !isPortal) {

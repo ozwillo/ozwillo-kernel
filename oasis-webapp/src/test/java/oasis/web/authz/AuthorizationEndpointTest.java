@@ -245,6 +245,7 @@ public class AuthorizationEndpointTest {
 
   private static final AppInstance portalAppInstance = new AppInstance() {{
     setId(ClientIds.PORTAL);
+    setApplication_id(ClientIds.PORTAL);
     setName(new LocalizableString("Test Application Instance"));
     setProvider_id("organizationId");
     for (String scopeId : new String[] { Scopes.OPENID, Scopes.PROFILE}) {

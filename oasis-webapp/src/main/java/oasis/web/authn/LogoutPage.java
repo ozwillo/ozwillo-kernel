@@ -171,7 +171,7 @@ public class LogoutPage {
     }
     otherApps.sort(Collator.getInstance(account.getLocale()));
     viewModel.put(LogoutSoyTemplateInfo.OTHER_APPS, otherApps);
-    viewModel.put(LogoutSoyTemplateInfo.IS_PORTAL, appInstance != null && appInstance.getId().equals(ClientIds.PORTAL));
+    viewModel.put(LogoutSoyTemplateInfo.IS_PORTAL, appInstance != null && appInstance.isPortal());
 
     BrandInfo brandInfo = brandRepository.getBrandInfo(appInstance == null ? BrandInfo.DEFAULT_BRAND : appInstance.getBrandId());
 

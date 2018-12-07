@@ -295,6 +295,7 @@ public class Bootstrap extends CommandLineTool {
 
   private String createPortal(String oasisOrgId, String adminAccountId) {
     Application app = new Application();
+    app.setId(ClientIds.PORTAL);
     app.getName().set(ULocale.ROOT, "Ozwillo Portal");
     app.setProvider_id(oasisOrgId);
     app.setVisible(false);
@@ -332,6 +333,7 @@ public class Bootstrap extends CommandLineTool {
 
   private String createDatacore(String oasisOrgId, String adminAccountId) {
     Application app = new Application();
+    app.setId(ClientIds.DATACORE);
     app.getName().set(ULocale.ROOT, "Ozwillo Datacore");
     app.setProvider_id(oasisOrgId);
     app.setVisible(false);
