@@ -39,12 +39,14 @@ import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Streams;
+import com.google.common.primitives.Longs;
 import com.ibm.icu.text.Collator;
 import com.ibm.icu.util.LocaleMatcher;
 import com.ibm.icu.util.LocalePriorityList;
 import com.ibm.icu.util.ULocale;
 
 import oasis.jongo.JongoBootstrapper;
+import oasis.model.InvalidVersionException;
 import oasis.model.applications.v2.CatalogEntry;
 import oasis.model.applications.v2.CatalogEntryRepository;
 import oasis.model.applications.v2.Service;
@@ -67,6 +69,34 @@ public class JongoCatalogEntryRepository implements CatalogEntryRepository, Jong
 
   private MongoCollection getServicesCollection() {
     return jongo.getCollection(JongoServiceRepository.SERVICES_COLLECTION);
+  }
+
+  static <T extends CatalogEntry> T addPortal(MongoCollection collection, Class<T> clazz, String type, String catalogEntryId, String portalId, long[] versions) throws InvalidVersionException {
+    T result = collection.findAndModify("{ id: #, modified: { $in: # } }", catalogEntryId, Longs.asList(versions))
+        .with("{ $addToSet: { portals: # } }", portalId)
+        .returnNew()
+        .as(clazz);
+    if (result == null) {
+      if (collection.count("{ id: # }", catalogEntryId) > 0) {
+        throw new InvalidVersionException(type, catalogEntryId);
+      }
+      return null;
+    }
+    return result;
+  }
+
+  static <T extends CatalogEntry> T removePortal(MongoCollection collection, Class<T> clazz, String type, String catalogEntryId, String portalId, long[] versions) throws InvalidVersionException {
+    T result = collection.findAndModify("{ id: #, modified: { $in: # } }", catalogEntryId, Longs.asList(versions))
+        .with("{ $pull: { portals: # } }", portalId)
+        .returnNew()
+        .as(clazz);
+    if (result == null) {
+      if (collection.count("{ id: # }", catalogEntryId) > 0) {
+        throw new InvalidVersionException(type, catalogEntryId);
+      }
+      return null;
+    }
+    return result;
   }
 
   @Override

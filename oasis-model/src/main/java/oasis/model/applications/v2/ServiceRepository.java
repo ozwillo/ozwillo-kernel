@@ -37,4 +37,8 @@ public interface ServiceRepository {
   int deleteServicesOfInstance(String instanceId);
 
   int changeServicesStatusForInstance(String instanceId, Service.Status status);
+
+  Service addPortal(String serviceId, String portalId, long[] versions) throws InvalidVersionException;
+
+  Service removePortal(String serviceId, String portalId, long[] versions) throws InvalidVersionException;
 }

@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import com.mongodb.DuplicateKeyException;
 
 import oasis.jongo.JongoBootstrapper;
+import oasis.model.InvalidVersionException;
 import oasis.model.applications.v2.Application;
 import oasis.model.applications.v2.ApplicationRepository;
 
@@ -69,6 +70,16 @@ public class JongoApplicationRepository implements ApplicationRepository, JongoB
   public long getCountByProvider(String providerId) {
     return getApplicationsCollection()
         .count("{ provider_id: # }", providerId);
+  }
+
+  @Override
+  public Application addPortal(String applicationId, String portalId, long[] versions) throws InvalidVersionException {
+    return JongoCatalogEntryRepository.addPortal(getApplicationsCollection(), JongoApplication.class, "application", applicationId, portalId, versions);
+  }
+
+  @Override
+  public Application removePortal(String applicationId, String portalId, long[] versions) throws InvalidVersionException {
+    return JongoCatalogEntryRepository.removePortal(getApplicationsCollection(), JongoApplication.class, "application", applicationId, portalId, versions);
   }
 
   @Override

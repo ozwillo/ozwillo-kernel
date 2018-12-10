@@ -129,6 +129,26 @@ public class IndexingServiceRepository implements ServiceRepository {
     return count;
   }
 
+  @Override
+  public Service addPortal(String serviceId, String portalId, long[] versions) throws InvalidVersionException {
+    Service service = jongoServiceRepository.addPortal(serviceId, portalId, versions);
+    if (service != null && shouldIndex(service)) {
+      jestCatalogEntryRepository.asyncIndex(service)
+          .whenComplete(indexedFutureCallback(service.getId(), CatalogEntry.EntryType.SERVICE));
+    }
+    return service;
+  }
+
+  @Override
+  public Service removePortal(String serviceId, String portalId, long[] versions) throws InvalidVersionException {
+    Service service = jongoServiceRepository.removePortal(serviceId, portalId, versions);
+    if (service != null && shouldIndex(service)) {
+      jestCatalogEntryRepository.asyncIndex(service)
+          .whenComplete(indexedFutureCallback(service.getId(), CatalogEntry.EntryType.SERVICE));
+    }
+    return service;
+  }
+
   private boolean shouldIndex(Service service) {
     return service.isVisible() && service.getStatus() != Service.Status.NOT_AVAILABLE;
   }

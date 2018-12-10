@@ -17,25 +17,42 @@
  */
 package oasis.web.applications;
 
+import java.util.List;
+
 import javax.inject.Inject;
+import javax.inject.Provider;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.EntityTag;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import oasis.model.InvalidVersionException;
+import oasis.model.applications.v2.AppInstance;
+import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.applications.v2.Application;
 import oasis.model.applications.v2.ApplicationRepository;
 import oasis.model.authn.AccessToken;
+import oasis.model.bootstrap.ClientIds;
 import oasis.model.directory.OrganizationMembership;
 import oasis.model.directory.OrganizationMembershipRepository;
+import oasis.services.authz.AppAdminHelper;
+import oasis.services.etag.EtagService;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthAuthenticationFilter;
 import oasis.web.authn.OAuthPrincipal;
+import oasis.web.authn.Portal;
 import oasis.web.utils.ResponseFactory;
 
 @Path("/apps/app/{application_id}")
@@ -45,6 +62,9 @@ import oasis.web.utils.ResponseFactory;
 public class ApplicationEndpoint {
   @Inject ApplicationRepository applicationRepository;
   @Inject OrganizationMembershipRepository organizationMembershipRepository;
+  @Inject Provider<AppInstanceRepository> appInstanceRepository;
+  @Inject Provider<AppAdminHelper> appAdminHelper;
+  @Inject Provider<EtagService> etagService;
 
   @Context SecurityContext securityContext;
   @PathParam("application_id") String applicationId;
@@ -91,5 +111,94 @@ public class ApplicationEndpoint {
 
     // TODO: send back the link to the MarketBuyEndpoint
     return Response.ok(application).build();
+  }
+
+  @POST
+  @Path("/portals")
+  @Portal
+  public Response addPortal(
+      @HeaderParam(HttpHeaders.IF_MATCH) List<EntityTag> ifMatch,
+      AddPortalRequest request
+  ) {
+    if (ifMatch == null || ifMatch.isEmpty()) {
+      return ResponseFactory.preconditionRequiredIfMatch();
+    }
+
+    AccessToken accessToken = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken();
+    if (!ClientIds.PORTAL.equals(accessToken.getServiceProviderId()) && !accessToken.getServiceProviderId().equals(request.portalId)) {
+      return ResponseFactory.forbidden("Only the canonical portal can add other portals");
+    }
+
+    Application application = applicationRepository.getApplication(applicationId);
+    if (application == null) {
+      return ResponseFactory.NOT_FOUND;
+    }
+    if (!application.isVisible()) {
+      return Response.status(Response.Status.FORBIDDEN).build();
+    }
+
+    AppInstance portal = appInstanceRepository.get().getAppInstance(request.portalId);
+    if (portal == null) {
+      return ResponseFactory.unprocessableEntity("Unknown app instance: " + request.portalId);
+    }
+    if (!portal.isPortal()) {
+      return ResponseFactory.unprocessableEntity("Not a portal: " + request.portalId);
+    }
+    if (!appAdminHelper.get().isAdmin(accessToken.getAccountId(), portal)) {
+      return ResponseFactory.forbidden("Current user is not an app_admin for the portal");
+    }
+
+    try {
+      applicationRepository.addPortal(applicationId, request.portalId, etagService.get().parseEtag(ifMatch));
+    } catch (InvalidVersionException e) {
+      return ResponseFactory.preconditionFailed(e.getMessage());
+    }
+
+    return ResponseFactory.NO_CONTENT;
+  }
+
+  @DELETE
+  @Path("/portals/{portalId}")
+  @Portal
+  public Response removePortal(
+      @HeaderParam(HttpHeaders.IF_MATCH) List<EntityTag> ifMatch,
+      @PathParam("portalId") String portalId
+  ) {
+    if (ifMatch == null || ifMatch.isEmpty()) {
+      return ResponseFactory.preconditionRequiredIfMatch();
+    }
+
+    AccessToken accessToken = ((OAuthPrincipal) securityContext.getUserPrincipal()).getAccessToken();
+    if (!ClientIds.PORTAL.equals(accessToken.getServiceProviderId()) && !accessToken.getServiceProviderId().equals(portalId)) {
+      return ResponseFactory.forbidden("Only the canonical portal can remove other portals");
+    }
+
+    Application application = applicationRepository.getApplication(applicationId);
+    if (application == null) {
+      return ResponseFactory.NOT_FOUND;
+    }
+    if (!application.isVisible()) {
+      return Response.status(Response.Status.FORBIDDEN).build();
+    }
+
+    AppInstance portal = appInstanceRepository.get().getAppInstance(portalId);
+    if (portal == null || !portal.isPortal()) {
+      return ResponseFactory.NOT_FOUND;
+    }
+    if (!appAdminHelper.get().isAdmin(accessToken.getAccountId(), portal)) {
+      return ResponseFactory.forbidden("Current user is not an app_admin for the portal");
+    }
+
+    try {
+      applicationRepository.removePortal(applicationId, portalId, etagService.get().parseEtag(ifMatch));
+    } catch (InvalidVersionException e) {
+      return ResponseFactory.preconditionFailed(e.getMessage());
+    }
+
+    return ResponseFactory.NO_CONTENT;
+  }
+
+  public static class AddPortalRequest {
+    @JsonProperty String portalId;
   }
 }

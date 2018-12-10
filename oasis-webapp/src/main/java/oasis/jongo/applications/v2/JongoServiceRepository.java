@@ -177,6 +177,16 @@ public class JongoServiceRepository implements ServiceRepository, JongoBootstrap
   }
 
   @Override
+  public Service addPortal(String serviceId, String portalId, long[] versions) throws InvalidVersionException {
+    return JongoCatalogEntryRepository.addPortal(getServicesCollection(), JongoService.class, "service", serviceId, portalId, versions);
+  }
+
+  @Override
+  public Service removePortal(String serviceId, String portalId, long[] versions) throws InvalidVersionException {
+    return JongoCatalogEntryRepository.removePortal(getServicesCollection(), JongoService.class, "service", serviceId, portalId, versions);
+  }
+
+  @Override
   public void bootstrap() {
     getServicesCollection().ensureIndex("{ id: 1 }", "{ unique: 1 }");
     getServicesCollection().ensureIndex("{ instance_id: 1, local_id: 1 }", "{ unique: 1, sparse: 1 }");

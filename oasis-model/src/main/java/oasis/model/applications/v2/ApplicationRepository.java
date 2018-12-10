@@ -17,10 +17,16 @@
  */
 package oasis.model.applications.v2;
 
+import oasis.model.InvalidVersionException;
+
 public interface ApplicationRepository {
   Application getApplication(String applicationId);
 
   Application createApplication(Application application);
 
   long getCountByProvider(String providerId);
+
+  Application addPortal(String applicationId, String portalId, long[] versions) throws InvalidVersionException;
+
+  Application removePortal(String applicationId, String portalId, long[] versions) throws InvalidVersionException;
 }
