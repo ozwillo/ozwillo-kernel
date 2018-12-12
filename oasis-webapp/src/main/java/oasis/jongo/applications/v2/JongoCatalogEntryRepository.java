@@ -146,7 +146,7 @@ public class JongoCatalogEntryRepository implements CatalogEntryRepository, Jong
       // TODO: return entries with visible:false / visibility:HIDDEN/NEVER_VISIBLE but which are visible to the current user
       // visible:true is for applications (and old services); visibility:'VISIBLE' for newer services
       query.add("$or: [ { visible: true }, { visibility: 'VISIBLE' } ]");
-      query.add("status: { $ne: # } }");
+      query.add("status: { $ne: # }");
       params.add(Service.Status.NOT_AVAILABLE);
 
       ImmutableMap.Builder<String, Integer> fields = ImmutableMap.builder();
