@@ -17,40 +17,24 @@
  */
 package oasis.web.applications;
 
-import java.util.Iterator;
-import java.util.stream.Stream;
-
+import javax.annotation.Nullable;
 import javax.ws.rs.Path;
 
-import com.google.common.collect.Streams;
+import com.google.common.base.Strings;
 
-import oasis.model.applications.v2.ImmutableCatalogEntryRepository;
-import oasis.model.applications.v2.SimpleCatalogEntry;
 import oasis.model.authn.AccessToken;
 import oasis.model.bootstrap.ClientIds;
 
 @Path("/m/search")
 public class MarketSearchEndpoint extends AbstractMarketSearchEndpoint {
+  @Nullable
   @Override
-  protected Iterator<SimpleCatalogEntry> doSearch(
-      AccessToken accessToken, ImmutableCatalogEntryRepository.SearchRequest.Builder requestBuilder) {
-    // TODO: add information about apps the user has already "bought" (XXX: limit to client_id=portal! to avoid leaking data)
-    Iterable<SimpleCatalogEntry> results = catalogEntryRepository.search(requestBuilder
-        // Behave like the canonical portal for non-portal clients
-        // XXX: should this endpoint only be accessible to portals?
-        .portal(accessToken.isPortal() ? accessToken.getServiceProviderId() : ClientIds.PORTAL)
-        .build());
-    if (accessToken.isPortal()) {
-      return results.iterator();
-    } else {
-      // hide 'portals' to non-portal clients
-      // XXX: should this endpoint only be accessible to portals?
-      return Streams.stream(results)
-          .map(entry -> {
-            entry.setPortals(null);
-            return entry;
-          })
-          .iterator();
+  protected String getPortal(@Nullable AccessToken accessToken, @Nullable String portal) {
+    if (!Strings.isNullOrEmpty(portal)) {
+      return portal;
     }
+    // Behave like the canonical portal for non-portal (including anonymous) clients.
+    // XXX: should this endpoint only be accessible to portals? (or anonymous clients)
+    return accessToken != null && accessToken.isPortal() ? accessToken.getServiceProviderId() : ClientIds.PORTAL;
   }
 }

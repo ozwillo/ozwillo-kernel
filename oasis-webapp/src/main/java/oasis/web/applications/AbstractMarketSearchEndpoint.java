@@ -45,13 +45,11 @@ import com.google.common.collect.Streams;
 import com.ibm.icu.util.ULocale;
 
 import oasis.model.accounts.AccountRepository;
-import oasis.model.accounts.UserAccount;
 import oasis.model.applications.v2.CatalogEntry;
 import oasis.model.applications.v2.CatalogEntryRepository;
 import oasis.model.applications.v2.ImmutableCatalogEntryRepository;
 import oasis.model.applications.v2.SimpleCatalogEntry;
 import oasis.model.authn.AccessToken;
-import oasis.model.bootstrap.ClientIds;
 import oasis.web.authn.OAuth;
 import oasis.web.authn.OAuthPrincipal;
 
@@ -74,9 +72,10 @@ public abstract class AbstractMarketSearchEndpoint {
       @Nullable @QueryParam("restricted_areas") Set<URI> restricted_areas,
       @Nullable @QueryParam("target_audience") Set<CatalogEntry.TargetAudience> target_audience,
       @Nullable @QueryParam("payment_option") Set<CatalogEntry.PaymentOption> payment_option,
-      @Nullable @QueryParam("category_id") Set<String> category_id
+      @Nullable @QueryParam("category_id") Set<String> category_id,
+      @Nullable @QueryParam("portal") String portal
   ) {
-    return post(locale, start, limit, query, supported_locale, geographical_areas, restricted_areas, target_audience, payment_option, category_id);
+    return post(locale, start, limit, query, supported_locale, geographical_areas, restricted_areas, target_audience, payment_option, category_id, portal);
   }
 
   @POST
@@ -93,14 +92,18 @@ public abstract class AbstractMarketSearchEndpoint {
       @Nullable @QueryParam("restricted_area") Set<URI> restricted_area,
       @Nullable @FormParam("target_audience") Set<CatalogEntry.TargetAudience> target_audience,
       @Nullable @FormParam("payment_option") Set<CatalogEntry.PaymentOption> payment_option,
-      @Nullable @FormParam("category_id") Set<String> category_id
+      @Nullable @FormParam("category_id") Set<String> category_id,
+      @Nullable @FormParam("portal") String portal
   ) {
-    final AccessToken accessToken = ((OAuthPrincipal) context.getUserPrincipal()).getAccessToken();
+    final @Nullable AccessToken accessToken;
 
-    if (locale == null && context.getUserPrincipal() != null) {
-      String accountId = accessToken.getAccountId();
-      UserAccount account = accountRepository.getUserAccountById(accountId);
-      locale = account.getLocale();
+    if (context.getUserPrincipal() != null) {
+      accessToken = ((OAuthPrincipal) context.getUserPrincipal()).getAccessToken();
+      if (locale == null) {
+        locale = accountRepository.getUserAccountById(accessToken.getAccountId()).getLocale();
+      }
+    } else {
+      accessToken = null;
     }
 
     String trimmedQuery = query;
@@ -118,15 +121,23 @@ public abstract class AbstractMarketSearchEndpoint {
         .addAllRestricted_area(preProcess(restricted_area))
         .addAllTarget_audience(preProcess(target_audience))
         .addAllPayment_option(preProcess(payment_option))
-        .addAllCategory_id(preProcessStr(category_id));
-    final Iterator<SimpleCatalogEntry> results = doSearch(accessToken, requestBuilder);
+        .addAllCategory_id(preProcessStr(category_id))
+        .portal(getPortal(accessToken, portal));
+    // TODO: add information about apps the user has already "bought" (XXX: limit to accessToken.isPortal! to avoid leaking data)
+    Iterator<SimpleCatalogEntry> results = catalogEntryRepository.search(requestBuilder.build()).iterator();
+    if (accessToken == null || !accessToken.isPortal()) {
+      // hide 'portals' to non-portal clients
+      // XXX: should this endpoint only be accessible to portals?
+      results = Streams.stream(results)
+          .peek(entry -> entry.setPortals(null))
+          .iterator();
+    }
     return Response.ok()
         .entity(new GenericEntity<Iterator<SimpleCatalogEntry>>(results) {})
         .build();
   }
 
-  protected abstract Iterator<SimpleCatalogEntry> doSearch(
-      AccessToken accessToken, ImmutableCatalogEntryRepository.SearchRequest.Builder requestBuilder);
+  @Nullable protected abstract String getPortal(@Nullable AccessToken accessToken, @Nullable String portal);
 
   private Iterable<String> preProcessStr(@Nullable Collection<String> strings) {
     return preProcessToStream(strings)

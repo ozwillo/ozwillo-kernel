@@ -17,23 +17,18 @@
  */
 package oasis.web.applications;
 
-import java.util.Iterator;
-
+import javax.annotation.Nullable;
 import javax.ws.rs.Path;
 
-import oasis.model.applications.v2.ImmutableCatalogEntryRepository;
-import oasis.model.applications.v2.SimpleCatalogEntry;
 import oasis.model.authn.AccessToken;
 import oasis.web.authn.Portal;
 
 @Path("/p/m/search")
 @Portal
 public class PortalMarketSearchEndpoint extends AbstractMarketSearchEndpoint {
+  @Nullable
   @Override
-  protected Iterator<SimpleCatalogEntry> doSearch(
-      AccessToken accessToken, ImmutableCatalogEntryRepository.SearchRequest.Builder requestBuilder) {
-    return catalogEntryRepository.search(
-        requestBuilder.portal(null).build()
-    ).iterator();
+  protected String getPortal(@Nullable AccessToken accessToken, @Nullable String portal) {
+    return null;
   }
 }
