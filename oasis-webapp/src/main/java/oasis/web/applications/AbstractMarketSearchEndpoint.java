@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
@@ -124,16 +125,16 @@ public abstract class AbstractMarketSearchEndpoint {
         .addAllCategory_id(preProcessStr(category_id))
         .portal(getPortal(accessToken, portal));
     // TODO: add information about apps the user has already "bought" (XXX: limit to accessToken.isPortal! to avoid leaking data)
-    Iterator<SimpleCatalogEntry> results = catalogEntryRepository.search(requestBuilder.build()).iterator();
+    Iterable<SimpleCatalogEntry> results = catalogEntryRepository.search(requestBuilder.build());
     if (accessToken == null || !accessToken.isPortal()) {
       // hide 'portals' to non-portal clients
       // XXX: should this endpoint only be accessible to portals?
       results = Streams.stream(results)
           .peek(entry -> entry.setPortals(null))
-          .iterator();
+          ::iterator;
     }
     return Response.ok()
-        .entity(new GenericEntity<Iterator<SimpleCatalogEntry>>(results) {})
+        .entity(new GenericEntity<Iterable<SimpleCatalogEntry>>(results) {})
         .build();
   }
 
