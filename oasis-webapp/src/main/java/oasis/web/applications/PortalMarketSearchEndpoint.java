@@ -21,10 +21,12 @@ import javax.annotation.Nullable;
 import javax.ws.rs.Path;
 
 import oasis.model.authn.AccessToken;
+import oasis.web.authn.Authenticated;
+import oasis.web.authn.OAuth;
 import oasis.web.authn.Portal;
 
 @Path("/p/m/search")
-@Portal
+@Authenticated @OAuth @Portal
 public class PortalMarketSearchEndpoint extends AbstractMarketSearchEndpoint {
   @Nullable
   @Override
