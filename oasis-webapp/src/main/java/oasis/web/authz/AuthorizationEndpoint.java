@@ -46,7 +46,6 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.RedirectionException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
@@ -102,7 +101,6 @@ import oasis.model.authn.SidToken;
 import oasis.model.authz.AuthorizationRepository;
 import oasis.model.authz.AuthorizedScopes;
 import oasis.model.authz.Scopes;
-import oasis.model.bootstrap.ClientIds;
 import oasis.model.branding.BrandInfo;
 import oasis.model.branding.BrandRepository;
 import oasis.services.branding.BrandHelper;
@@ -380,7 +378,7 @@ public class AuthorizationEndpoint {
         // that is, unless we need to ask the user for a client certificate
         return askForClientCertificate(uriInfo, sidToken.getAccountId(), appInstance, scopeIds, parsedClaims.keySet(), redirect_uri, state, nonce, code_challenge);
       }
-      return generateAuthorizationCodeAndRedirect(sidToken, scopeIds, scopesAndClaims.getClaimNames(), appInstance.getId(), nonce, redirect_uri, code_challenge);
+      return generateAuthorizationCodeAndRedirect(sidToken, scopeIds, scopesAndClaims.getClaimNames(), appInstance.getId(), isPortal, nonce, redirect_uri, code_challenge);
     }
 
     if (!prompt.interactive) {
@@ -408,6 +406,8 @@ public class AuthorizationEndpoint {
     BrandInfo brandInfo = brandRepository.getBrandInfo(brandId);
 
     // TODO: check XSS (check data hasn't been tampered since generation of the form, so we can skip some validations we had already done)
+    // In the mean time (at least), load app instance from DB to determine whether it's a portal
+    boolean isPortal = getAppInstance(client_id).isPortal();
 
     redirectUri = new RedirectUri(redirect_uri).setState(state);
 
@@ -415,7 +415,7 @@ public class AuthorizationEndpoint {
 
     authorizationRepository.authorize(sidToken.getAccountId(), client_id, selectedScopeIds, claimNames);
 
-    return generateAuthorizationCodeAndRedirect(sidToken, scopeIds, claimNames, client_id, nonce, redirect_uri, code_challenge);
+    return generateAuthorizationCodeAndRedirect(sidToken, scopeIds, claimNames, client_id, isPortal, nonce, redirect_uri, code_challenge);
   }
 
   private Response redirectToLogin(UriInfo uriInfo, Prompt prompt, BrandInfo brandInfo) {
@@ -439,10 +439,10 @@ public class AuthorizationEndpoint {
         redirectUri.toString(), brandInfo.getBrand_id());
   }
 
-  private Response generateAuthorizationCodeAndRedirect(SidToken sidToken, Set<String> scopeIds, Set<String> claims, String client_id,
+  private Response generateAuthorizationCodeAndRedirect(SidToken sidToken, Set<String> scopeIds, Set<String> claims, String client_id, boolean isPortal,
       @Nullable String nonce, String redirect_uri, @Nullable String code_challenge) {
     String pass = tokenHandler.generateRandom();
-    AuthorizationCode authCode = tokenHandler.createAuthorizationCode(sidToken, scopeIds, claims, client_id, nonce, redirect_uri, code_challenge, pass);
+    AuthorizationCode authCode = tokenHandler.createAuthorizationCode(sidToken, scopeIds, claims, client_id, isPortal, nonce, redirect_uri, code_challenge, pass);
 
     String auth_code = TokenSerializer.serialize(authCode, pass);
     if (auth_code == null) {

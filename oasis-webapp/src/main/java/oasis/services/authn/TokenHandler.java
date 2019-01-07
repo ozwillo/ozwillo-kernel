@@ -193,7 +193,7 @@ public class TokenHandler {
     return accessToken;
   }
 
-  public AuthorizationCode createAuthorizationCode(SidToken sidToken, Set<String> scopeIds, Set<String> claimNames, String serviceProviderId,
+  public AuthorizationCode createAuthorizationCode(SidToken sidToken, Set<String> scopeIds, Set<String> claimNames, String serviceProviderId, boolean isPortal,
       @Nullable String nonce, String redirectUri, @Nullable String codeChallenge, String pass) {
     AuthorizationCode authorizationCode = new AuthorizationCode();
     authorizationCode.setAccountId(sidToken.getAccountId());
@@ -201,6 +201,7 @@ public class TokenHandler {
     authorizationCode.setScopeIds(scopeIds);
     authorizationCode.setClaimNames(claimNames);
     authorizationCode.setServiceProviderId(serviceProviderId);
+    authorizationCode.setPortal(isPortal);
     authorizationCode.setNonce(nonce);
     authorizationCode.setRedirectUri(redirectUri);
     authorizationCode.setCodeChallenge(codeChallenge);

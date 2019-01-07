@@ -244,7 +244,7 @@ public class AuthorizationEndpointTest {
   }};
 
   private static final AppInstance portalAppInstance = new AppInstance() {{
-    setId(ClientIds.PORTAL);
+    setId("portal-instance");
     setApplication_id(ClientIds.PORTAL);
     setName(new LocalizableString("Test Application Instance"));
     setProvider_id("organizationId");
@@ -307,17 +307,17 @@ public class AuthorizationEndpointTest {
 
     when(tokenHandler.generateRandom()).thenReturn("pass");
     when(tokenHandler.createAuthorizationCode(eq(sidToken), anySet(), anySet(), eq(appInstance.getId()),
-        or(isNull(), anyString()), eq(Iterables.getOnlyElement(service.getRedirect_uris())), or(isNull(), anyString()), anyString())).thenReturn(authorizationCode);
+        eq(false), or(isNull(), anyString()), eq(Iterables.getOnlyElement(service.getRedirect_uris())), or(isNull(), anyString()), anyString())).thenReturn(authorizationCode);
     when(tokenHandler.createAuthorizationCode(eq(sidToken), anySet(), anySet(), eq(appInstance.getId()),
-        or(isNull(), anyString()), eq(Iterables.getOnlyElement(privateService.getRedirect_uris())), or(isNull(), anyString()), anyString())).thenReturn(authorizationCode);
+        eq(false), or(isNull(), anyString()), eq(Iterables.getOnlyElement(privateService.getRedirect_uris())), or(isNull(), anyString()), anyString())).thenReturn(authorizationCode);
     when(tokenHandler.createAuthorizationCode(eq(sidTokenUsingClientCertificate), anySet(), anySet(), eq(appInstance.getId()),
-        or(isNull(), anyString()), eq(Iterables.getOnlyElement(service.getRedirect_uris())), or(isNull(), anyString()), anyString())).thenReturn(authorizationCode);
+        eq(false), or(isNull(), anyString()), eq(Iterables.getOnlyElement(service.getRedirect_uris())), or(isNull(), anyString()), anyString())).thenReturn(authorizationCode);
 
     // Portal special-case
     when(appInstanceRepository.getAppInstance(portalAppInstance.getId())).thenReturn(portalAppInstance);
     when(serviceRepository.getServiceByRedirectUri(portalAppInstance.getId(), Iterables.getOnlyElement(portalService.getRedirect_uris()))).thenReturn(portalService);
     when(tokenHandler.createAuthorizationCode(eq(sidToken), anySet(), anySet(), eq(portalAppInstance.getId()),
-        or(isNull(), anyString()), eq(Iterables.getOnlyElement(portalService.getRedirect_uris())), or(isNull(), anyString()), anyString())).thenReturn(authorizationCode);
+        eq(true), or(isNull(), anyString()), eq(Iterables.getOnlyElement(portalService.getRedirect_uris())), or(isNull(), anyString()), anyString())).thenReturn(authorizationCode);
 
     when(sessionManagementHelper.generateBrowserState()).thenReturn("browser-state");
     when(sessionManagementHelper.computeSessionState(appInstance.getId(), Iterables.getOnlyElement(service.getRedirect_uris()), "browser-state"))
@@ -369,7 +369,7 @@ public class AuthorizationEndpointTest {
     assertThat(response.getCookies())
         .containsEntry(browserStateCookieName, SessionManagementHelper.createBrowserStateCookie(true, "browser-state"));
 
-    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(Scopes.OPENID), ImmutableSet.of(), appInstance.getId(), null,
+    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(Scopes.OPENID), ImmutableSet.of(), appInstance.getId(), false, null,
         Iterables.getOnlyElement(service.getRedirect_uris()), null, "pass");
   }
 
@@ -389,7 +389,7 @@ public class AuthorizationEndpointTest {
     assertThat(response.getCookies())
         .containsEntry(browserStateCookieName, SessionManagementHelper.createBrowserStateCookie(true, "browser-state"));
 
-    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(Scopes.OPENID), ImmutableSet.of("name"), appInstance.getId(), null,
+    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(Scopes.OPENID), ImmutableSet.of("name"), appInstance.getId(), false, null,
         Iterables.getOnlyElement(service.getRedirect_uris()), null, "pass");
   }
 
@@ -409,7 +409,7 @@ public class AuthorizationEndpointTest {
     assertThat(response.getCookies())
         .containsEntry(browserStateCookieName, SessionManagementHelper.createBrowserStateCookie(true, "browser-state"));
 
-    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(Scopes.OPENID), ImmutableSet.of("nickname"), appInstance.getId(), null,
+    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(Scopes.OPENID), ImmutableSet.of("nickname"), appInstance.getId(), false, null,
         Iterables.getOnlyElement(service.getRedirect_uris()), null, "pass");
   }
 
@@ -429,7 +429,7 @@ public class AuthorizationEndpointTest {
     assertRedirectToApplication(response, service);
     assertThat(response.getCookies()).doesNotContainKey(SessionManagementHelper.COOKIE_NAME);
 
-    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(Scopes.OPENID), ImmutableSet.of(), appInstance.getId(), null,
+    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(Scopes.OPENID), ImmutableSet.of(), appInstance.getId(), false, null,
         Iterables.getOnlyElement(service.getRedirect_uris()), null, "pass");
   }
 
@@ -448,7 +448,7 @@ public class AuthorizationEndpointTest {
 
     assertRedirectToApplication(response, service);
 
-    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(Scopes.OPENID), ImmutableSet.of(), appInstance.getId(), null,
+    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(Scopes.OPENID), ImmutableSet.of(), appInstance.getId(), false, null,
         Iterables.getOnlyElement(service.getRedirect_uris()), codeChallenge, "pass");
   }
 
@@ -596,7 +596,7 @@ public class AuthorizationEndpointTest {
         Scopes.mapScopesToClaims(ImmutableSet.of(Scopes.OPENID, Scopes.PROFILE)).collect(ImmutableSet.toImmutableSet()));
     verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(Scopes.OPENID, Scopes.PROFILE),
         Scopes.mapScopesToClaims(ImmutableSet.of(Scopes.OPENID, Scopes.PROFILE)).collect(ImmutableSet.toImmutableSet()),
-        portalAppInstance.getId(), null, Iterables.getOnlyElement(portalService.getRedirect_uris()), null, "pass");
+        portalAppInstance.getId(), true, null, Iterables.getOnlyElement(portalService.getRedirect_uris()), null, "pass");
   }
 
   @Test public void testPromptForPortalForNonNeededScopes(AuthorizationRepository authorizationRepository) {
@@ -994,7 +994,7 @@ public class AuthorizationEndpointTest {
 
     assertRedirectToApplication(response, service);
 
-    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(Scopes.OPENID), ImmutableSet.of(), appInstance.getId(), null,
+    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(Scopes.OPENID), ImmutableSet.of(), appInstance.getId(), false, null,
         Iterables.getOnlyElement(service.getRedirect_uris()), null, "pass");
   }
 
@@ -1172,7 +1172,7 @@ public class AuthorizationEndpointTest {
 
     assertRedirectToApplication(response, service);
 
-    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(Scopes.OPENID), ImmutableSet.of(), appInstance.getId(), null,
+    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(Scopes.OPENID), ImmutableSet.of(), appInstance.getId(), false, null,
         Iterables.getOnlyElement(service.getRedirect_uris()), null, "pass");
   }
 
@@ -1192,7 +1192,7 @@ public class AuthorizationEndpointTest {
 
     assertRedirectToApplication(response, privateService);
 
-    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(Scopes.OPENID), ImmutableSet.of(), appInstance.getId(), null,
+    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(Scopes.OPENID), ImmutableSet.of(), appInstance.getId(), false, null,
         Iterables.getOnlyElement(privateService.getRedirect_uris()), null, "pass");
   }
 
@@ -1217,7 +1217,7 @@ public class AuthorizationEndpointTest {
 
     assertRedirectToApplication(response, privateService);
 
-    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(Scopes.OPENID), ImmutableSet.of(), appInstance.getId(), null,
+    verify(tokenHandler).createAuthorizationCode(sidToken, ImmutableSet.of(Scopes.OPENID), ImmutableSet.of(), appInstance.getId(), false, null,
         Iterables.getOnlyElement(privateService.getRedirect_uris()), null, "pass");
   }
 
