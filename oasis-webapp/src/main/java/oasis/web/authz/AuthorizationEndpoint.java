@@ -400,11 +400,8 @@ public class AuthorizationEndpoint {
       @FormParam("redirect_uri") String redirect_uri,
       @Nullable @FormParam("state") String state,
       @Nullable @FormParam("nonce") String nonce,
-      @Nullable @FormParam("code_challenge") String code_challenge,
-      @FormParam(BrandHelper.BRAND_PARAM) @DefaultValue(BrandInfo.DEFAULT_BRAND) String brandId
+      @Nullable @FormParam("code_challenge") String code_challenge
   ) {
-    BrandInfo brandInfo = brandRepository.getBrandInfo(brandId);
-
     // TODO: check XSS (check data hasn't been tampered since generation of the form, so we can skip some validations we had already done)
     // In the mean time (at least), load app instance from DB to determine whether it's a portal
     boolean isPortal = getAppInstance(client_id).isPortal();
