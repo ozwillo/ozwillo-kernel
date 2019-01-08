@@ -136,6 +136,7 @@ public class TokenHandler {
     accessToken.setScopeIds(authorizationCode.getScopeIds());
     accessToken.setClaimNames(authorizationCode.getClaimNames());
     accessToken.setServiceProviderId(authorizationCode.getServiceProviderId());
+    accessToken.setPortal(authorizationCode.isPortal());
     // Note: store the authorizationCode ID although it's been revoked to be able to
     // detect code reuse, and revoke all previously issued tokens based on the reused code.
     // (see http://tools.ietf.org/html/rfc6749#section-4.1.2)
