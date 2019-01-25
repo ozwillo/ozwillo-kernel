@@ -79,9 +79,11 @@ form {lb}
     </div>
   {/if}
   <form method="POST" action="{$acceptFormAction}">
+    <input type="hidden" name="brand" value="{$brand_info['brand_id']}">
     <button type="submit">{msg desc="Accept membership invitation form submit button"}Accept{/msg}</button>
   </form>
   <form method="POST" action="{$refuseFormAction}">
+    <input type="hidden" name="brand" value="{$brand_info['brand_id']}">
     <button type="submit">{msg desc="Reject membership invitation form submit button"}Reject{/msg}</button>
   </form>
 </div>
@@ -163,6 +165,7 @@ form {lb}
 <div>
   <a class=logout href="{$logoutPageUrl}">{msg desc="Sign out form submit button"}Sign out{/msg}</a>
   <form method="POST" action="{$refuseFormAction}">
+    <input type="hidden" name="brand" value="{$brand_info['brand_id']}">
     <button type="submit">{msg desc="Delete membership invitation form submit button"}Delete invitation{/msg}</button>
   </form>
 </div>
