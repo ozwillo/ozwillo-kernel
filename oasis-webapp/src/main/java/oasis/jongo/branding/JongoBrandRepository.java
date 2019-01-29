@@ -60,11 +60,11 @@ public class JongoBrandRepository implements BrandRepository, JongoBootstrapper 
   }
 
   @Override
-  public byte[] getLargeLogo(String brandId) {
+  public String getLargeLogo(String brandId) {
     return getBrandCollection()
         .findOne("{ brand_id: #}", brandId)
         .projection("{large_logo: 1}")
-        .map(result -> (byte[]) result.get("large_logo"));
+        .map(result -> (String) result.get("large_logo"));
   }
 
   @Override

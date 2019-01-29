@@ -23,5 +23,5 @@ public interface BrandRepository {
 
   byte[] getSmallLogo(String brandId);
 
-  byte[] getLargeLogo(String brandId);
+  String getLargeLogo(String brandId);
 }
