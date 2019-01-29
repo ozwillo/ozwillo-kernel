@@ -60,11 +60,11 @@ public class Logo {
       return StaticResources.getResource("oasis-ui/images/logo/large_ozwillo.png");
     }
 
-    byte[] logo = brandRepository.getLargeLogo(brandId);
+    String logo = brandRepository.getLargeLogo(brandId);
     if (logo == null) {
       return ResponseFactory.NOT_FOUND;
     }
 
-    return Response.ok().entity(logo).build();
+    return StaticResources.getResource(logo);
   }
 }
