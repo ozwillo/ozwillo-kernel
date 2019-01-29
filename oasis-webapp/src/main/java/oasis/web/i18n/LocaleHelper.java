@@ -29,7 +29,7 @@ import oasis.model.i18n.LocalizableValue;
 
 public class LocaleHelper {
 
-  public static final ULocale DEFAULT_LOCALE = ULocale.UK;
+  public static final ULocale DEFAULT_LOCALE = ULocale.FRANCE;
 
   public static final ImmutableList<ULocale> SUPPORTED_LOCALES = ImmutableList.of(
       ULocale.UK,
