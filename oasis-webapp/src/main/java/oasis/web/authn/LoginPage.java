@@ -228,6 +228,7 @@ public class LoginPage {
       URI uri = UriBuilder.fromResource(LoginPage.class)
           .queryParam(LoginPage.CONTINUE_PARAM, continueUrl)
           .queryParam(LoginPage.LOCALE_PARAM, languageTag)
+          .queryParam(BrandHelper.BRAND_PARAM, brandInfo.getBrand_id())
           .build();
       localeUrlMap.put(languageTag, uri.toString());
     }
@@ -235,7 +236,10 @@ public class LoginPage {
     ImmutableMap.Builder<String, Object> data = ImmutableMap.<String, Object>builder()
         .put(LoginSoyTemplateInfo.SIGN_UP_FORM_ACTION, UriBuilder.fromResource(SignUpPage.class).build().toString())
         .put(LoginSoyTemplateInfo.LOGIN_FORM_ACTION, UriBuilder.fromResource(LoginPage.class).build().toString())
-        .put(LoginSoyTemplateInfo.FORGOT_PASSWORD, UriBuilder.fromResource(ForgotPasswordPage.class).queryParam(LOCALE_PARAM, locale.toLanguageTag()).build().toString())
+        .put(LoginSoyTemplateInfo.FORGOT_PASSWORD, UriBuilder.fromResource(ForgotPasswordPage.class)
+                .queryParam(LOCALE_PARAM, locale.toLanguageTag())
+                .queryParam(BrandHelper.BRAND_PARAM, brandInfo.getBrand_id())
+                .build().toString())
         .put(LoginSoyTemplateInfo.CONTINUE, continueUrl.toString())
         .put(LoginSoyTemplateInfo.LOCALE_URL_MAP, localeUrlMap.build());
     if (withFranceConnect) {
