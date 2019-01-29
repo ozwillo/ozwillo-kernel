@@ -37,21 +37,21 @@
 <style>
 main {lb} text-align: center; {rb}
 h1 {lb} font-weight: lighter; font-size: 1.8em; {rb}
-button, a.portal {lb}
+button {lb}
   margin: 5px 1em;
   padding: .5em 2em;
-  border: 1px solid {$brand_info['main_color_dark']};
+  border: 1px solid {$brand_info['button_text_color']};
   cursor: pointer;
   text-decoration: none;
   display: inline-block;
 {rb}
 button {lb}
-  background: {$brand_info['main_color']}; color: {$brand_info['button_text_color']};
+  background: {$brand_info['main_color_dark']}; color: {$brand_info['button_text_color']};
 {rb}
 a.portal {lb}
-  background: {$brand_info['main_background_color']}; color: {$brand_info['main_color']};
+  background: {$brand_info['main_color']}; color: {$brand_info['button_text_color']};
 {rb}
-a {lb} color: {$brand_info['main_color']}; {rb}
+a {lb} color: {$brand_info['text_color']}; {rb}
 p {lb} margin: 0; {rb}
 </style>
   {if $appName and not $isPortal}

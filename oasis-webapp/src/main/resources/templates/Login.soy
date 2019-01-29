@@ -56,17 +56,20 @@ main>div {lb} line-height: 1.5em; {rb}
 
 .btn-row {lb} margin-top: 1.8em; text-align: center; {rb}
 .btn-row button {lb}
-  border: 1px solid {$brand_info['main_color_dark']};
-  background: {$brand_info['main_color']}; color: {$brand_info['button_text_color']};
+  border: 1px solid {$brand_info['button_text_color']};
+  background: {$brand_info['main_color_dark']}; color: {$brand_info['button_text_color']};
   cursor: pointer;
   margin: 5px 1em;
   padding: .5em 2em;
   display: inline-block;
 {rb}
+.link{lb}
+  color: {$brand_info['text_color']};
+{rb}
 
 small {lb} display: block; margin-top: 2em; font-size: .65em; line-height: initial; {rb}
 </style>
-  <h1><img src="/images/logo/large_{$brand_info['brand_id']}.png" alt="Ozwillo" width=200 height=55></h1>
+  <h1><img src="/images/logo/large_{$brand_info['brand_id']}.png" alt="Logo {$brand_info['brand_id']}" width=200></h1>
   {call .webviewDetector /}
   {if $error}
     <p style="color: {$brand_info['error_text_color']}; background: {$brand_info['error_background_color']}; font-weight: bold; padding: 10px; text-align: center;">
@@ -77,7 +80,7 @@ small {lb} display: block; margin-top: 2em; font-size: .65em; line-height: initi
       {msg desc="Error message during sign-up"}Some required fields are not filled.{/msg}
     {case 'ACCOUNT_ALREADY_EXISTS'}
       {if $forgotPassword}
-        {msg desc="Error message during sign-up"}An account with that email address already exists. Did you <a href="{$forgotPassword}">forgot your password?</a>{/msg}
+        {msg desc="Error message during sign-up"}An account with that email address already exists. Did you <a class="link" href="{$forgotPassword}">forgot your password?</a>{/msg}
       {else}
         {msg desc="Error message during sign-up"}An account with that email address already exists.{/msg}
       {/if}
@@ -92,7 +95,7 @@ small {lb} display: block; margin-top: 2em; font-size: .65em; line-height: initi
   {/if}
   <div class=two-cols style="align-items: baseline">
     <section>
-      <h2><img alt="" src="/images/picto_user.png" width=30 height=30> {msg desc="Login form heading"}Login{/msg}</h2>
+      <h2><i class="fas fa-user"></i> {msg desc="Login form heading"}Login{/msg}</h2>
       <form method=post action="{$loginFormAction}">
         <input type="hidden" name="_utf8" value="&#9731;">
         <input type="hidden" name="continue" value="{$continue}">
@@ -107,7 +110,7 @@ small {lb} display: block; margin-top: 2em; font-size: .65em; line-height: initi
           <input id=pwd type=password  name=pwd required autocomplete=current-password>
         </div>
         <div style="text-align: right; font-size: smaller;">
-          <a href="{$forgotPassword}">{msg desc="Link to the 'forgot my password' page"}
+          <a class="link" href="{$forgotPassword}">{msg desc="Link to the 'forgot my password' page"}
             I forgot my password.
           {/msg}</a>
         </div>
@@ -131,7 +134,7 @@ small {lb} display: block; margin-top: 2em; font-size: .65em; line-height: initi
             <img alt="S'identifier avec FranceConnect" src="/images/franceconnect.svg" width=172 height=50>
           </button>
           <div style="text-align: right; font-size: smaller;">
-            <a href="https://app.franceconnect.gouv.fr/en-savoir-plus" target="_blank" rel="noreferrer">
+            <a class="link" href="https://app.franceconnect.gouv.fr/en-savoir-plus" target="_blank" rel="noreferrer">
                 Qu'est-ce que FranceConnect ?
             </a>
           </div>
@@ -139,7 +142,7 @@ small {lb} display: block; margin-top: 2em; font-size: .65em; line-height: initi
       {/if}
     </section>
     <section>
-      <h2><img alt="" src="/images/picto_pen.png" width=26 height=30> {msg desc="Sign-up form heading"}Join Us!{/msg}</h2>
+      <h2><i class="fas fa-sign-in-alt"></i>  {msg desc="Sign-up form heading"}Join Us!{/msg}</h2>
       <form method=post action="{$signUpFormAction}">
         <input type="hidden" name="_utf8" value="&#9731;">
         <input type="hidden" name="continue" value="{$continue}">
@@ -159,7 +162,7 @@ small {lb} display: block; margin-top: 2em; font-size: .65em; line-height: initi
         </div>
         {let $terms_of_use kind="text"}{msg desc="terms of use URL"}https://www.ozwillo.com/en/terms{/msg}{/let}
         <small>{msg desc="Accept terms of use when signing up"}
-          By completing your registration you acknowledge having read the <a href="{$terms_of_use}" target=_blank>Terms of Use</a> and you accept them.
+          By completing your registration you acknowledge having read the <a class="link" href="{$terms_of_use}" target=_blank>Terms of Use</a> and you accept them.
         {/msg}</small>
         <div class=btn-row>
           <button>
@@ -206,15 +209,15 @@ h2 {lb} margin-bottom: 2.5em; {rb}
 
 .btn-row {lb} margin-top: 1.8em; text-align: center; {rb}
 .btn-row button {lb}
-  border: 1px solid {$brand_info['main_color_dark']};
-  background: {$brand_info['main_color']}; color: {$brand_info['button_text_color']};
+  border: 1px solid {$brand_info['button_text_color']};
+  background: {$brand_info['main_color_dark']}; color: {$brand_info['button_text_color']};
   cursor: pointer;
   margin: 5px 1em;
   padding: .5em 2em;
   display: inline-block;
 {rb}
 </style>
-  <h1><img src="/images/logo/large_{$brand_info['brand_id']}.png" alt="Ozwillo" width=200 height=55></h1>
+  <h1><img src="/images/logo/large_{$brand_info['brand_id']}.png" alt="Logo {$brand_info['brand_id']}" width=200></h1>
   {if $error}
     <p style="color: {$brand_info['error_text_color']}; background: {$brand_info['error_background_color']}; font-weight: bold; padding: 10px; text-align: center;">
     {switch $error}
