@@ -150,6 +150,7 @@ public class ForgotPasswordPage {
       String languageTag = supportedLocale.toLanguageTag();
       URI uri = UriBuilder.fromResource(ForgotPasswordPage.class)
           .queryParam(LoginPage.LOCALE_PARAM, languageTag)
+          .queryParam(BrandHelper.BRAND_PARAM, brandInfo.getBrand_id())
           .build();
       localeUrlMap.put(languageTag, uri.toString());
     }

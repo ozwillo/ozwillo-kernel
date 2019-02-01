@@ -159,24 +159,24 @@ public class MembershipInvitationPage {
 
     MembershipInvitationToken membershipInvitationToken = tokenHandler.getCheckedToken(serializedToken, MembershipInvitationToken.class);
     if (membershipInvitationToken == null) {
-      return goBackToFirstStep();
+      return goBackToFirstStep(brandInfo);
     }
 
     String currentAccountId = ((UserSessionPrincipal) securityContext.getUserPrincipal()).getSidToken().getAccountId();
     OrganizationMembership pendingOrganizationMembership = organizationMembershipRepository.getPendingOrganizationMembership(
         membershipInvitationToken.getOrganizationMembershipId());
     if (pendingOrganizationMembership == null) {
-      return goBackToFirstStep();
+      return goBackToFirstStep(brandInfo);
     }
     OrganizationMembership membership;
     try {
       membership = organizationMembershipRepository
           .acceptPendingOrganizationMembership(membershipInvitationToken.getOrganizationMembershipId(), currentAccountId);
     } catch (DuplicateKeyException e) {
-      return goBackToFirstStep();
+      return goBackToFirstStep(brandInfo);
     }
     if (membership == null) {
-      return goBackToFirstStep();
+      return goBackToFirstStep(brandInfo);
     }
 
     try {
@@ -216,18 +216,18 @@ public class MembershipInvitationPage {
 
     MembershipInvitationToken membershipInvitationToken = tokenHandler.getCheckedToken(serializedToken, MembershipInvitationToken.class);
     if (membershipInvitationToken == null) {
-      return goBackToFirstStep();
+      return goBackToFirstStep(brandInfo);
     }
 
     OrganizationMembership pendingOrganizationMembership = organizationMembershipRepository
         .getPendingOrganizationMembership(membershipInvitationToken.getOrganizationMembershipId());
     if (pendingOrganizationMembership == null) {
-      return goBackToFirstStep();
+      return goBackToFirstStep(brandInfo);
     }
 
     boolean deleted = organizationMembershipRepository.deletePendingOrganizationMembership(membershipInvitationToken.getOrganizationMembershipId());
     if (!deleted) {
-      return goBackToFirstStep();
+      return goBackToFirstStep(brandInfo);
     }
 
     try {
@@ -315,12 +315,13 @@ public class MembershipInvitationPage {
         .build();
   }
 
-  private Response goBackToFirstStep() {
+  private Response goBackToFirstStep(BrandInfo brandInfo) {
     // The token was expired between showInvitation page loading and form action
     // So let's restart the process by sending the user to the showInvitation page which should display an error
     URI showInvitationUri = uriInfo.getBaseUriBuilder()
         .path(MembershipInvitationPage.class)
         .path(MembershipInvitationPage.class, "showInvitation")
+        .queryParam(BrandHelper.BRAND_PARAM, brandInfo.getBrand_id())
         .build(serializedToken);
     return Response.seeOther(showInvitationUri).build();
   }
@@ -328,7 +329,9 @@ public class MembershipInvitationPage {
   private Response generateAlreadyMemberErrorPage(UserAccount user, OrganizationMembership pendingOrganizationMembership, Organization organization, BrandInfo brandInfo) {
     UserAccount requester = accountRepository.getUserAccountById(pendingOrganizationMembership.getCreator_id());
 
-    URI logoutPageUrl = uriInfo.getBaseUriBuilder().path(LogoutPage.class).build();
+    URI logoutPageUrl = uriInfo.getBaseUriBuilder().path(LogoutPage.class)
+        .queryParam(BrandHelper.BRAND_PARAM, brandInfo.getBrand_id())
+        .build();
     URI refuseFormAction = uriInfo.getBaseUriBuilder()
         .path(MembershipInvitationPage.class)
         .path(MembershipInvitationPage.class, "refuseInvitation")

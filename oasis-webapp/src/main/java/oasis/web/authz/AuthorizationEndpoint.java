@@ -40,7 +40,6 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -473,6 +472,7 @@ public class AuthorizationEndpoint {
     Response.ResponseBuilder rb = Response.ok();
     setSessionState(rb, serviceProvider.getId(), redirect_uri);
 
+    final BrandInfo brandInfo = brandRepository.getBrandInfo(serviceProvider.getBrandId());
     ImmutableMap.Builder<String, Object> data = ImmutableMap.<String, Object>builderWithExpectedSize(10)
         .put(AskForClientCertificateSoyTemplateInfo.APP_ID, serviceProvider.getId())
         .put(AskForClientCertificateSoyTemplateInfo.APP_NAME, serviceProvider.getName().get(account.getLocale()))
@@ -481,7 +481,7 @@ public class AuthorizationEndpoint {
         .put(AskForClientCertificateSoyTemplateInfo.SCOPES, requiredScopeIds)
         .put(AskForClientCertificateSoyTemplateInfo.CLAIMS, claims)
         .put(AskForClientCertificateSoyTemplateInfo.REDIRECT_URI, redirect_uri)
-        .put(AskForClientCertificateSoyTemplateInfo.ASK_FOR_CLIENT_CERTIFICATE, getAskForClientCertificateData(uriInfo, accountId));
+        .put(AskForClientCertificateSoyTemplateInfo.ASK_FOR_CLIENT_CERTIFICATE, getAskForClientCertificateData(uriInfo, accountId, brandInfo));
     if (state != null) {
       data.put(AskForClientCertificateSoyTemplateInfo.STATE, state);
     }
@@ -501,7 +501,7 @@ public class AuthorizationEndpoint {
         .header("X-Content-Type-Options", "nosniff")
         .header("X-XSS-Protection", "1; mode=block")
         .entity(new SoyTemplate(AuthorizeSoyInfo.ASK_FOR_CLIENT_CERTIFICATE, account.getLocale(), data.build(),
-            brandRepository.getBrandInfo(serviceProvider.getBrandId())))
+            brandInfo))
         .build();
   }
 
@@ -595,6 +595,7 @@ public class AuthorizationEndpoint {
     Response.ResponseBuilder rb = Response.ok();
     setSessionState(rb, serviceProvider.getId(), redirect_uri);
 
+    final BrandInfo brandInfo = brandRepository.getBrandInfo(serviceProvider.getBrandId());
     ImmutableMap.Builder<String, Object> data = ImmutableMap.<String, Object>builderWithExpectedSize(17)
         .put(AuthorizeSoyTemplateInfo.APP_ID, serviceProvider.getId())
         .put(AuthorizeSoyTemplateInfo.APP_NAME, serviceProvider.getName().get(account.getLocale()))
@@ -618,9 +619,8 @@ public class AuthorizationEndpoint {
       data.put(AuthorizeSoyTemplateInfo.CODE_CHALLENGE, code_challenge);
     }
     if (askForClientCertificate) {
-      data.put(AuthorizeSoyTemplateInfo.ASK_FOR_CLIENT_CERTIFICATE, getAskForClientCertificateData(uriInfo, accountId));
+      data.put(AuthorizeSoyTemplateInfo.ASK_FOR_CLIENT_CERTIFICATE, getAskForClientCertificateData(uriInfo, accountId, brandInfo));
     }
-    final BrandInfo brandInfo = brandRepository.getBrandInfo(serviceProvider.getBrandId());
     Urls urls = urlsFactory.create(brandInfo.getPortal_base_uri());
     urls.popupProfile().ifPresent(uri -> {
       String updateProfileUrl = UriBuilder.fromUri(uri)
@@ -665,10 +665,13 @@ public class AuthorizationEndpoint {
         .map(f -> f.apply(account)).allMatch(Objects::nonNull);
   }
 
-  private ImmutableMap<String, Object> getAskForClientCertificateData(UriInfo uriInfo, String accountId) {
+  private ImmutableMap<String, Object> getAskForClientCertificateData(UriInfo uriInfo, String accountId, BrandInfo brandInfo) {
     final ImmutableMap.Builder<String, Object> askForClientCertificateData = ImmutableMap.<String, Object>builderWithExpectedSize(3)
         .put(AuthorizeSoyInfo.Param.MANAGE_CERTIFICATES_URL,
-            UriBuilder.fromResource(UserCertificatesPage.class).path(UserCertificatesPage.class, "get").build().toString())
+            UriBuilder.fromResource(UserCertificatesPage.class)
+                .path(UserCertificatesPage.class, "get")
+                .queryParam(BrandHelper.BRAND_PARAM, brandInfo.getBrand_id())
+                .build().toString())
         .put(AuthorizeSoyInfo.Param.HAS_REGISTERED_CERTIFICATE,
             !Iterables.isEmpty(clientCertificateRepository.getClientCertificatesForClient(ClientType.USER, accountId)));
 

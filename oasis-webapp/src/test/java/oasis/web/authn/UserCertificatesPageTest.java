@@ -50,6 +50,7 @@ import oasis.model.authn.ClientType;
 import oasis.model.authn.SidToken;
 import oasis.model.branding.BrandInfo;
 import oasis.model.branding.BrandRepository;
+import oasis.services.branding.BrandHelper;
 import oasis.soy.SoyGuiceModule;
 import oasis.urls.ImmutableBaseUrls;
 import oasis.urls.ImmutablePathUrls;
@@ -134,6 +135,7 @@ public class UserCertificatesPageTest {
     assertThat(response.getLocation()).isEqualTo(resteasy.getBaseUriBuilder()
         .path(UserCertificatesPage.class)
         .path(UserCertificatesPage.class, "get")
+        .queryParam(BrandHelper.BRAND_PARAM, BrandInfo.DEFAULT_BRAND)
         .build());
 
     ArgumentCaptor<ClientCertificate> clientCert = ArgumentCaptor.forClass(ClientCertificate.class);
@@ -189,6 +191,7 @@ public class UserCertificatesPageTest {
     assertThat(response.getLocation()).isEqualTo(resteasy.getBaseUriBuilder()
         .path(UserCertificatesPage.class)
         .path(UserCertificatesPage.class, "get")
+        .queryParam(BrandHelper.BRAND_PARAM, BrandInfo.DEFAULT_BRAND)
         .build());
 
     ArgumentCaptor<ClientCertificate> clientCert = ArgumentCaptor.forClass(ClientCertificate.class);
@@ -221,6 +224,7 @@ public class UserCertificatesPageTest {
     assertThat(response.getLocation()).isEqualTo(resteasy.getBaseUriBuilder()
         .path(UserCertificatesPage.class)
         .path(UserCertificatesPage.class, "get")
+        .queryParam(BrandHelper.BRAND_PARAM, BrandInfo.DEFAULT_BRAND)
         .build());
 
     verify(clientCertificateRepository, never()).saveClientCertificate(any(ClientCertificate.class));
@@ -385,6 +389,7 @@ public class UserCertificatesPageTest {
     assertThat(response.getLocation()).isEqualTo(resteasy.getBaseUriBuilder()
         .path(UserCertificatesPage.class)
         .path(UserCertificatesPage.class, "get")
+        .queryParam(BrandHelper.BRAND_PARAM, BrandInfo.DEFAULT_BRAND)
         .build());
 
     verify(clientCertificateRepository).deleteClientCertificate(ClientType.USER, someUserAccount.getId(), someCertificate.getId());

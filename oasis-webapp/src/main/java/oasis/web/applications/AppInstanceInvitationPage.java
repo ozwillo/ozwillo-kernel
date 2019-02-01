@@ -294,7 +294,9 @@ public class AppInstanceInvitationPage {
   private Response generateAlreadyUserErrorPage(UserAccount user, AccessControlEntry pendingAccessControlEntry, AppInstance appInstance, BrandInfo brandInfo) {
     UserAccount requester = accountRepository.getUserAccountById(pendingAccessControlEntry.getCreator_id());
 
-    URI logoutPageUrl = uriInfo.getBaseUriBuilder().path(LogoutPage.class).build();
+    URI logoutPageUrl = uriInfo.getBaseUriBuilder().path(LogoutPage.class)
+        .queryParam(BrandHelper.BRAND_PARAM, brandInfo.getBrand_id())
+        .build();
     URI refuseFormAction = uriInfo.getBaseUriBuilder()
         .path(AppInstanceInvitationPage.class)
         .path(AppInstanceInvitationPage.class, "refuseInvitation")

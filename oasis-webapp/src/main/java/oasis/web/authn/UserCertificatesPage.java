@@ -112,7 +112,7 @@ public class UserCertificatesPage {
 
     if (sidToken.isUsingClientCertificate()) {
       // Certificate already registered with the account
-      return redirect(continueUrl);
+      return redirect(continueUrl, brandInfo);
     }
 
     ClientCertificate clientCertificate = new ClientCertificate();
@@ -125,13 +125,16 @@ public class UserCertificatesPage {
       // Certificate already linked (must be to other account), reject (we shouldn't have received that request)
       return redirectOrErrorForm(continueUrl, sidToken.getAccountId(), clientCertificateData, brandInfo);
     }
-    return redirect(continueUrl);
+    return redirect(continueUrl, brandInfo);
   }
 
-  private Response redirect(@Nullable URI continueUrl) {
+  private Response redirect(@Nullable URI continueUrl, BrandInfo brandInfo) {
     return Response.seeOther(continueUrl != null
         ? continueUrl
-        : UriBuilder.fromResource(UserCertificatesPage.class).path(UserCertificatesPage.class, "get").build()
+        : UriBuilder.fromResource(UserCertificatesPage.class)
+                .path(UserCertificatesPage.class, "get")
+                .queryParam(BrandHelper.BRAND_PARAM, brandInfo.getBrand_id())
+                .build()
     ).build();
   }
 
@@ -153,7 +156,10 @@ public class UserCertificatesPage {
 
     boolean success = clientCertificateRepository.deleteClientCertificate(ClientType.USER, accountId, id);
     if (success) {
-      return Response.seeOther(UriBuilder.fromResource(UserCertificatesPage.class).path(UserCertificatesPage.class, "get").build()).build();
+      return Response.seeOther(UriBuilder.fromResource(UserCertificatesPage.class)
+          .path(UserCertificatesPage.class, "get")
+          .queryParam(BrandHelper.BRAND_PARAM, brandInfo.getBrand_id())
+          .build()).build();
     }
     return form(true, accountId, clientCertificateHelper.getClientCertificateData(headers.getRequestHeaders()), brandInfo);
   }

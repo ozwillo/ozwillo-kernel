@@ -149,7 +149,9 @@ public class FranceConnectUnlinkPage {
 
     ImmutableMap.Builder<String, Object> data = ImmutableMap.<String, Object>builderWithExpectedSize(7)
         .put(FranceconnectUnlinkSoyTemplateInfo.FORM_ACTION, UriBuilder.fromResource(FranceConnectUnlinkPage.class).build().toString())
-        .put(FranceconnectUnlinkSoyTemplateInfo.INIT_PWD_URL, UriBuilder.fromResource(ChangePasswordPage.class).build().toString())
+        .put(FranceconnectUnlinkSoyTemplateInfo.INIT_PWD_URL, UriBuilder.fromResource(ChangePasswordPage.class)
+                .queryParam(BrandHelper.BRAND_PARAM, brandInfo.getBrand_id())
+                .build().toString())
         .put(FranceconnectUnlinkSoyTemplateInfo.AUTHND_WITHFC, sidToken.getFranceconnectIdToken() != null)
         .put(FranceconnectUnlinkSoyTemplateInfo.HAS_PASSWORD, hasPassword);
 

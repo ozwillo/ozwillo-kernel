@@ -150,7 +150,10 @@ public class FranceConnectLinkPage {
     ImmutableMap.Builder<String, Object> data = ImmutableMap.<String, Object>builderWithExpectedSize(8)
         .put(FranceconnectLinkSoyTemplateInfo.SIGN_UP_FORM_ACTION, UriBuilder.fromResource(FranceConnectSignUpPage.class).build().toString())
         .put(FranceconnectLinkSoyTemplateInfo.LOGIN_FORM_ACTION, UriBuilder.fromResource(FranceConnectLinkPage.class).build().toString())
-        .put(FranceconnectLinkSoyTemplateInfo.FORGOT_PASSWORD, UriBuilder.fromResource(ForgotPasswordPage.class).queryParam(LOCALE_PARAM, locale.toLanguageTag()).build().toString())
+        .put(FranceconnectLinkSoyTemplateInfo.FORGOT_PASSWORD, UriBuilder.fromResource(ForgotPasswordPage.class)
+                .queryParam(LOCALE_PARAM, locale.toLanguageTag())
+                .queryParam(BrandHelper.BRAND_PARAM, brandInfo.getBrand_id())
+                .build().toString())
         .put(FranceconnectLinkSoyTemplateInfo.ALREADY_LINKED, alreadyLinked)
         .put(FranceconnectLinkSoyTemplateInfo.CONTINUE, continueUrl)
         .put(FranceconnectLinkSoyTemplateInfo.ENCRYPTED_STATE, state);
