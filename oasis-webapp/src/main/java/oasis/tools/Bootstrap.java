@@ -74,13 +74,33 @@ public class Bootstrap extends CommandLineTool {
       usage = "Administrator's password")
   private String adminPassword;
 
-  @Option(name = "-r", aliases = "--redirect-uri", required = true,
+  @Option(name = "-pr", aliases = "--portal-redirect-uri", required = true,
       usage = "Portal's redirect_uri")
   private String portalRedirectUri;
 
-  @Option(name = "-plr", aliases = "--post-logout-redirect-uri", required = true,
+  @Option(name = "-plr", aliases = "--portal-post-logout-redirect-uri", required = true,
       usage = "Portal's post_logout_redirect_uri")
   private String portalPostLogoutRedirectUri;
+
+  @Option(name = "-dr", aliases = "--datacore-redirect-uri", required = true,
+      usage = "Datacore Playground's redirect_uri")
+  private String datacoreRedirectUri;
+
+  @Option(name = "-ds", aliases = "--datacore-service-uri", required = true,
+      usage = "Datacore Playground's service_uri")
+  private String datacoreServiceUri;
+
+  @Option(name = "-di", aliases = "--datacore-icon", required = true,
+      usage = "Datacore Playground's icon")
+  private String datacoreIcon;
+
+  @Option(name = "-der", aliases = "--dcexporter-redirect-uri",
+      usage = "Datacore Exporter's redirect_uri")
+  private String dcexporterRedirectUri;
+
+  @Option(name = "-des", aliases = "--dcexporter-service-uri",
+      usage = "Datacore Exporter's service_uri")
+  private String dcexporterServiceUri;
 
   @Inject JongoService jongoService;
   @Inject Provider<Jongo> jongoProvider;
@@ -135,6 +155,10 @@ public class Bootstrap extends CommandLineTool {
       logger().info("Generated client_secret for {} instance: {}", ClientIds.PORTAL, portalSecret);
       String dcSecret = createDatacore(oasisOrgId, adminAccountId);
       logger().info("Generated client_secret for {} instance: {}", ClientIds.DATACORE, dcSecret);
+      if (!Strings.isNullOrEmpty(dcexporterRedirectUri) && !Strings.isNullOrEmpty(dcexporterServiceUri)) {
+        String dcExporterSecret = createDcExporter(oasisOrgId, adminAccountId);
+        logger().info("Generated client_secret for {} instance: {}", ClientIds.DCEXPORTER, dcExporterSecret);
+      }
     } finally {
       jongoService.stop();
     }
@@ -307,6 +331,7 @@ public class Bootstrap extends CommandLineTool {
     instance.setApplication_id(app.getId());
     instance.setStatus(AppInstance.InstantiationStatus.RUNNING);
     instance.setInstantiator_id(adminAccountId);
+    instance.setProvider_id(oasisOrgId);
     for (String scopeId : new String[] { Scopes.OPENID, Scopes.PROFILE, Scopes.EMAIL, Scopes.ADDRESS, Scopes.PHONE, "datacore" }) {
       AppInstance.NeededScope neededScope = new AppInstance.NeededScope();
       neededScope.setScope_id(scopeId);
@@ -320,6 +345,7 @@ public class Bootstrap extends CommandLineTool {
     Service service = new Service();
     service.setLocal_id("front");
     service.setInstance_id(instance.getId());
+    service.setProvider_id(instance.getProvider_id());
     service.setVisibility(Service.Visibility.HIDDEN);
     service.setAccess_control(Service.AccessControl.ANYONE);
     service.setStatus(Service.Status.AVAILABLE);
@@ -345,6 +371,7 @@ public class Bootstrap extends CommandLineTool {
     instance.setApplication_id(app.getId());
     instance.setStatus(AppInstance.InstantiationStatus.RUNNING);
     instance.setInstantiator_id(adminAccountId);
+    instance.setProvider_id(oasisOrgId);
     jongoProvider.get().getCollection(JongoAppInstanceRepository.COLLECTION_NAME).insert(instance);
 
     String clientSecret = passwordGeneratorProvider.get().generate();
@@ -359,8 +386,59 @@ public class Bootstrap extends CommandLineTool {
     scope.getName().set(ULocale.ROOT, "Datacore");
     scopeRepositoryProvider.get().createOrUpdateScope(scope);
 
-    // XXX: do we need a service?
+    Service service = new Service();
+    service.setLocal_id("playground");
+    service.setInstance_id(instance.getId());
+    service.setProvider_id(instance.getProvider_id());
+    service.setVisibility(Service.Visibility.HIDDEN);
+    service.setAccess_control(Service.AccessControl.RESTRICTED);
+    service.setStatus(Service.Status.AVAILABLE);
+    service.getName().set(ULocale.ROOT, "Ozwillo Datacore Playground");
+    service.getRedirect_uris().add(datacoreRedirectUri);
+    service.setService_uri(datacoreServiceUri);
+    service.getIcon().set(ULocale.ROOT, datacoreIcon);
+    serviceRepositoryProvider.get().createService(service);
 
     return clientSecret;
+  }
+
+  private String createDcExporter(String oasisOrgId, String adminAccountId) {
+    Application app = new Application();
+    app.getName().set(ULocale.ROOT, "Ozwillo Datacore Exporter");
+    app.setProvider_id(oasisOrgId);
+    app.setVisible(false);
+    app = applicationRepositoryProvider.get().createApplication(app);
+
+    JongoAppInstance instance = new JongoAppInstance();
+    instance.setId(ClientIds.DCEXPORTER);
+    instance.getName().set(ULocale.ROOT, "Ozwillo Datacore Exporter");
+    instance.setApplication_id(app.getId());
+    instance.setStatus(AppInstance.InstantiationStatus.RUNNING);
+    instance.setInstantiator_id(adminAccountId);
+    instance.setProvider_id(oasisOrgId);
+    for (String scopeId : new String[] { Scopes.OPENID, Scopes.PROFILE, Scopes.EMAIL, "datacore" }) {
+      AppInstance.NeededScope neededScope = new AppInstance.NeededScope();
+      neededScope.setScope_id(scopeId);
+      instance.getNeeded_scopes().add(neededScope);
+    }
+    jongoProvider.get().getCollection(JongoAppInstanceRepository.COLLECTION_NAME).insert(instance);
+
+    String clientSecret = passwordGeneratorProvider.get().generate();
+    credentialsServiceProvider.get().setPassword(ClientType.PROVIDER, instance.getId(), clientSecret);
+
+    Service service = new Service();
+    service.setLocal_id("dcexporter");
+    service.setInstance_id(instance.getId());
+    service.setProvider_id(instance.getProvider_id());
+    service.setVisibility(Service.Visibility.HIDDEN);
+    service.setAccess_control(Service.AccessControl.RESTRICTED);
+    service.setStatus(Service.Status.AVAILABLE);
+    service.getName().set(ULocale.ROOT, "Ozwillo Datacore Exporter");
+    service.getRedirect_uris().add(dcexporterRedirectUri);
+    service.setService_uri(dcexporterServiceUri);
+    serviceRepositoryProvider.get().createService(service);
+
+    return clientSecret;
+
   }
 }
