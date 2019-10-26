@@ -133,20 +133,18 @@ and streams audit logs both to `localhost` on port 11111, and to disk in `/var/l
 Storing audit logs to disk allows _replaying_ them in case Logstash fails;
 the audit logs are generated one event per line, in JSON.
 
-A typical Logstash configuration would be to stream the events to an ElasticSearch server (here on `localhost`):
+A typical Logstash configuration would be to stream the events to an ElasticSearch server (here on `localhost` for Logstash 7.4):
 ```
 input {
   tcp {
-    format => "json"
+    codec => "json"
     port => 11111
     type => "oasis"
   }
 }
 output {
   elasticsearch {
-    host => "localhost"
-    protocol => "http"
-    workers => "2"
+    hosts => "http://127.0.0.1"
   }
 }
 ```
