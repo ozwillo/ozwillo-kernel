@@ -137,14 +137,13 @@ A typical Logstash configuration would be to stream the events to an ElasticSear
 ```
 input {
   tcp {
-    codec => "json"
+    codec => json
     port => 11111
-    type => "oasis"
   }
 }
 output {
   elasticsearch {
-    hosts => "http://127.0.0.1"
+    hosts => "localhost:9200"
   }
 }
 ```
