@@ -38,8 +38,8 @@ Internet access (to download dependencies, including the build tool itself),
 and Git (necessary to compute the version number).
 
 Just run `./gradlew build` to download all dependencies and build the project;
-the Debian package will be created in `oasis-dist/build/dists/oasis_{version}.deb`,
-along with an `oasis-dist/build/dists/oasis_{version}.changes` file
+the Debian package will be created in `oasis-dist/build/distributions/oasis_{version}.deb`,
+along with an `oasis-dist/build/distributions/oasis_{version}.changes` file
 for easy deployment to a Debian repository (such as reprepro).
 
 Installing the package
