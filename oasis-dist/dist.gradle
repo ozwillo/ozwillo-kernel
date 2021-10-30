@@ -40,7 +40,7 @@ tasks.register("deb", Deb) {
   user = oasis.user
   permissionGroup = oasis.group
 
-  requires("openjdk-8-jdk-headless")
+  requires("default-jre")
   requires("adduser", "3.11", GREATER | EQUAL)
   requires("lsb-base", "3.2-14", GREATER | EQUAL)
 

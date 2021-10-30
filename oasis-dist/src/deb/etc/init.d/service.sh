@@ -38,7 +38,7 @@ DAEMON_ARGS="-l $CONF_DIR/log4j2.xml -c $CONF_DIR/oasis.conf $EXTRA_ARGS"
 export LOG_DIR
 
 TIMESTAMP=`date +%Y%m%d-%H%M%S`
-export JAVA_OPTS="-Xloggc:$LOG_DIR/gc-$TIMESTAMP.log -XX:+PrintGCDetails -XX:+PrintTenuringDistribution $JAVA_OPTS"
+export JAVA_OPTS="-Xloggc:$LOG_DIR/gc-$TIMESTAMP.log -XX:+PrintGCDetails $JAVA_OPTS"
 
 # Load the VERBOSE setting and other rcS variables
 . /lib/init/vars.sh
