@@ -19,6 +19,7 @@ package oasis.web.applications;
 
 import java.net.URI;
 import java.time.Instant;
+import java.util.Iterator;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -40,6 +41,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import oasis.model.applications.v2.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,10 +54,6 @@ import com.ibm.icu.util.ULocale;
 import oasis.model.DuplicateKeyException;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
-import oasis.model.applications.v2.AccessControlEntry;
-import oasis.model.applications.v2.AccessControlRepository;
-import oasis.model.applications.v2.AppInstance;
-import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.authn.AppInstanceInvitationToken;
 import oasis.model.authn.TokenRepository;
 import oasis.model.branding.BrandInfo;
@@ -94,6 +92,7 @@ public class AppInstanceInvitationPage {
 
   @Inject AccountRepository accountRepository;
   @Inject AppInstanceRepository appInstanceRepository;
+  @Inject ServiceRepository serviceRepository;
   @Inject NotificationRepository notificationRepository;
   @Inject AccessControlRepository accessControlRepository;
   @Inject TokenRepository tokenRepository;
@@ -173,8 +172,15 @@ public class AppInstanceInvitationPage {
       return goBackToFirstStep();
     }
 
+    URI serviceUri = null;
     try {
       AppInstance appInstance = appInstanceRepository.getAppInstance(pendingAccessControlEntry.getInstance_id());
+      // after an invitation to join an app instance is accepted, redirect to the 1st service of the app instance
+      // it improves the global UX as the user does not have to search for the service on its dashboard
+      // (in case the instance has more than one service, just take the 1st found one...)
+      Iterator<Service> services = serviceRepository.getServicesOfInstance(appInstance.getId()).iterator();
+      if (services.hasNext())
+        serviceUri = URI.create(services.next().getService_uri());
       if (appInstance.getStatus() == AppInstance.InstantiationStatus.RUNNING) {
         UserAccount requester = accountRepository.getUserAccountById(pendingAccessControlEntry.getCreator_id());
         notifyRequester(appInstance, pendingAccessControlEntry.getEmail(), requester.getId(), true);
@@ -187,10 +193,14 @@ public class AppInstanceInvitationPage {
 
     tokenRepository.revokeToken(appInstanceInvitationToken.getId());
 
-    Urls urls = urlsFactory.create(brandInfo.getPortal_base_uri());
-    return Response.seeOther(
-        urls.myNetwork().orElse(uriInfo.getBaseUri())
-    ).build();
+    if (serviceUri != null)
+      return Response.seeOther(serviceUri).build();
+    else {
+      Urls urls = urlsFactory.create(brandInfo.getPortal_base_uri());
+      return Response.seeOther(
+              urls.myNetwork().orElse(uriInfo.getBaseUri())
+      ).build();
+    }
   }
 
   @POST
