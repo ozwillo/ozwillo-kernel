@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="153573648835304242" datatype="html">
         <source>Account Access Attempted</source>
-        <target>Tentative d'accès à un compte Ozwillo</target>
+        <target>Tentative d'accès à un compte France Data Réseau</target>
         <note priority="1" from="description">Forgot-password email subject, for an unknown account</note>
       </trans-unit>
       <trans-unit id="235553805622646291" datatype="html">
@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="250539212474752292" datatype="html">
         <source>By completing your registration you acknowledge having read the <x id="START_LINK"/>Terms of Use<x id="END_LINK"/> and you accept them.</source>
-        <target>En finalisant votre inscription, vous déclarez avoir pris connaissance des <x id="START_LINK"/>CGU<x id="END_LINK"/> d'Ozwillo et que vous les acceptez.</target>
+        <target>En finalisant votre inscription, vous déclarez avoir pris connaissance des <x id="START_LINK"/>CGU<x id="END_LINK"/> de France Data Réseau et que vous les acceptez.</target>
         <note priority="1" from="description">Accept terms of use when signing up</note>
       </trans-unit>
       <trans-unit id="589090359214125348" datatype="html">
@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="3804394114013945675" datatype="html">
         <source><x id="START_PARAGRAPH"/>Congratulations <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>Your Ozwillo account has been validated.<x id="START_PARAGRAPH"/>The Ozwillo team<x id="START_BREAK"/><x id="START_SMALL"/>Discover <x id="START_LINK_1"/>Ozwillo<x id="END_LINK"/><x id="END_SMALL"/><x id="START_BREAK"/><x id="START_SMALL"/>Go to <x id="START_LINK_2"/>your Ozwillo dashboard<x id="END_LINK"/><x id="END_SMALL"/></source>
-        <target><x id="START_PARAGRAPH"/>Félicitations <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>Vous venez de valider votre compte Ozwillo.<x id="START_PARAGRAPH"/>L'équipe d'Ozwillo<x id="START_BREAK"/><x id="START_SMALL"/>Découvrez <x id="START_LINK_1"/>Ozwillo<x id="END_LINK"/><x id="END_SMALL"/><x id="START_BREAK"/><x id="START_SMALL"/>Accédez à <x id="START_LINK_2"/>votre environnement Ozwillo<x id="END_LINK"/><x id="END_SMALL"/></target>
+        <target><x id="START_PARAGRAPH"/>Félicitations <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>Vous venez de valider votre compte France Data Réseau.<x id="START_PARAGRAPH"/>L'équipe de France Data Réseau<x id="START_BREAK"/><x id="START_SMALL"/>Découvrez <x id="START_LINK_1"/>France Data Réseau<x id="END_LINK"/><x id="END_SMALL"/><x id="START_BREAK"/><x id="START_SMALL"/>Accédez à <x id="START_LINK_2"/>votre environnement France Data Réseau<x id="END_LINK"/><x id="END_SMALL"/></target>
         <note priority="1" from="description">Welcome email body</note>
       </trans-unit>
       <trans-unit id="667496017372169371" datatype="html">
@@ -44,7 +44,7 @@
       </trans-unit>
       <trans-unit id="706458367103369348" datatype="html">
         <source>Ozwillo password reset</source>
-        <target>Réinitialisation de mot de passe Ozwillo</target>
+        <target>Réinitialisation de mot de passe France Data Réseau</target>
         <note priority="1" from="description">Forgot-password email subject, for an existing account</note>
       </trans-unit>
       <trans-unit id="865768820644927420" datatype="html">
@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="953108370004911682" datatype="html">
         <source>Go back to Ozwillo</source>
-        <target>Retourner à Ozwillo</target>
+        <target>Retourner à France Data Réseau</target>
         <note priority="1" from="description">Cancel erroneous sign-out from the Portal</note>
       </trans-unit>
       <trans-unit id="1287914925960251751" datatype="html">
@@ -94,7 +94,7 @@
       </trans-unit>
       <trans-unit id="1399441502629336200" datatype="html">
         <source>Sign-out from Ozwillo</source>
-        <target>Déconnexion d'Ozwillo</target>
+        <target>Déconnexion de France Data Réseau</target>
         <note priority="1" from="description">logout page heading</note>
       </trans-unit>
       <trans-unit id="1431416938026210429" datatype="html">
@@ -213,7 +213,7 @@
       </trans-unit>
       <trans-unit id="2577214670075765110" datatype="html">
         <source>Welcome to Ozwillo</source>
-        <target>Bienvenue sur Ozwillo</target>
+        <target>Bienvenue sur France Data Réseau</target>
         <note priority="1" from="description">Welcome email subject</note>
       </trans-unit>
       <trans-unit id="2614607010577950577" datatype="html">
@@ -243,7 +243,7 @@
       </trans-unit>
       <trans-unit id="2904061631873939197" datatype="html">
         <source>Go back to My Ozwillo</source>
-        <target>Retourner à My Ozwillo</target>
+        <target>Retourner au portail France Data Réseau</target>
         <note priority="1" from="description">Cancel changing password</note>
       </trans-unit>
       <trans-unit id="2912423960746840762" datatype="html">
@@ -288,7 +288,7 @@
       </trans-unit>
       <trans-unit id="3509186499908180001" datatype="html">
         <source><x id="START_PARAGRAPH"/>Hello <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>You are receiving this e-mail because you have created an Ozwillo account.<x id="START_PARAGRAPH"/>In order to activate your account, please click on the following link:<x id="START_BREAK"/><x id="START_LINK_1"/><x id="ACTIVATION_LINK"/><x id="END_LINK"/><x id="START_PARAGRAPH"/>The Ozwillo team<x id="START_BREAK"/><x id="START_SMALL"/>Discover <x id="START_LINK_2"/>Ozwillo<x id="END_LINK"/><x id="END_SMALL"/></source>
-        <target><x id="START_PARAGRAPH"/>Bonjour <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>Vous recevez ce message parce que vous avez créé un compte Ozwillo.<x id="START_PARAGRAPH"/>Pour activer votre compte, cliquez sur le lien suivant :<x id="START_BREAK"/><x id="START_LINK_1"/><x id="ACTIVATION_LINK"/><x id="END_LINK"/><x id="START_PARAGRAPH"/>L'équipe d'Ozwillo<x id="START_BREAK"/><x id="START_SMALL"/>Découvrez <x id="START_LINK_2"/>Ozwillo<x id="END_LINK"/><x id="END_SMALL"/></target>
+        <target><x id="START_PARAGRAPH"/>Bonjour <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>Vous recevez ce message parce que vous avez créé un compte France Data Réseau.<x id="START_PARAGRAPH"/>Pour activer votre compte, cliquez sur le lien suivant :<x id="START_BREAK"/><x id="START_LINK_1"/><x id="ACTIVATION_LINK"/><x id="END_LINK"/><x id="START_PARAGRAPH"/>L'équipe de France Data Réseau<x id="START_BREAK"/><x id="START_SMALL"/>Découvrez <x id="START_LINK_2"/>France Data Réseau<x id="END_LINK"/><x id="END_SMALL"/></target>
         <note priority="1" from="description">Sign-up email body</note>
       </trans-unit>
       <trans-unit id="3510526964471104374" datatype="html">
@@ -318,7 +318,7 @@
       </trans-unit>
       <trans-unit id="3883051557997593200" datatype="html">
         <source>Go to the Ozwillo portal</source>
-        <target>Aller au portail Ozwillo</target>
+        <target>Aller au portail France Data Réseau</target>
         <note priority="1" from="description">link title on header logo</note>
       </trans-unit>
       <trans-unit id="3883458945142779741" datatype="html">
@@ -353,7 +353,7 @@
       </trans-unit>
       <trans-unit id="4305129592726519825" datatype="html">
         <source>This FranceConnect identity is already linked to another Ozwillo account.</source>
-        <target>Cette identité FranceConnect est déjà liée à un autre compte Ozwillo.</target>
+        <target>Cette identité FranceConnect est déjà liée à un autre compte France Data Réseau.</target>
         <note priority="1" from="description">FranceConnect already linked error page heading</note>
       </trans-unit>
       <trans-unit id="4378227938065070603" datatype="html">
@@ -363,7 +363,7 @@
       </trans-unit>
       <trans-unit id="441471097694116396" datatype="html">
         <source>Activate your Ozwillo password</source>
-        <target>Activez votre mot de passe Ozwillo</target>
+        <target>Activez votre mot de passe France Data Réseau</target>
         <note priority="1" from="description">Init password email subject</note>
       </trans-unit>
       <trans-unit id="4435870627193845877" datatype="html">
@@ -433,7 +433,7 @@
       </trans-unit>
       <trans-unit id="4951272053741212415" datatype="html">
         <source><x id="START_PARAGRAPH"/>Hello <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>You are receiving this e-mail because you have requested to initialize an password for your Ozwillo account.<x id="START_PARAGRAPH"/>In order to activate your password, please click on the following link:<x id="START_BREAK"/><x id="START_LINK"/><x id="ACTIVATION_LINK"/><x id="END_LINK"/><x id="START_PARAGRAPH"/>The Ozwillo team<x id="START_BREAK"/></source>
-        <target><x id="START_PARAGRAPH"/>Bonjour <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>Vous recevez ce message parce que vous avez demandé à définir un mot de passe pour votre compte Ozwillo.<x id="START_PARAGRAPH"/>Pour activer votre mot de passe, cliquez sur le lien suivant :<x id="START_BREAK"/><x id="START_LINK"/><x id="ACTIVATION_LINK"/><x id="END_LINK"/><x id="START_PARAGRAPH"/>L'équipe d'Ozwillo<x id="START_BREAK"/></target>
+        <target><x id="START_PARAGRAPH"/>Bonjour <x id="NICKNAME"/>,<x id="START_PARAGRAPH"/>Vous recevez ce message parce que vous avez demandé à définir un mot de passe pour votre compte France Data Réseau.<x id="START_PARAGRAPH"/>Pour activer votre mot de passe, cliquez sur le lien suivant :<x id="START_BREAK"/><x id="START_LINK"/><x id="ACTIVATION_LINK"/><x id="END_LINK"/><x id="START_PARAGRAPH"/>L'équipe de France Data Réseau<x id="START_BREAK"/></target>
         <note priority="1" from="description">Init password email body</note>
       </trans-unit>
       <trans-unit id="5025457187887640726" datatype="html">
@@ -448,7 +448,7 @@
       </trans-unit>
       <trans-unit id="5309305695211754551" datatype="html">
         <source>This will sign you out of Ozwillo, on all your devices.</source>
-        <target>Ceci vous déconnectera d'Ozwillo, sur tous vos appareils.</target>
+        <target>Ceci vous déconnectera de France Data Réseau, sur tous vos appareils.</target>
         <note priority="1" from="description">Consequence of changing password</note>
       </trans-unit>
       <trans-unit id="5321335688371682440" datatype="html">
@@ -463,7 +463,7 @@
       </trans-unit>
       <trans-unit id="5384260819180900680" datatype="html">
         <source>Go to My Ozwillo</source>
-        <target>Aller à My Ozwillo</target>
+        <target>Aller au portail France Data Réseau</target>
         <note priority="1" from="description">Continue to Ozwillo after sign-out from some app</note>
       </trans-unit>
       <trans-unit id="5506569422969383542" datatype="html">
@@ -473,7 +473,7 @@
       </trans-unit>
       <trans-unit id="5510273297432154416" datatype="html">
         <source>You may want to sign out from Ozwillo (or FranceConnect) and try again.</source>
-        <target>Vous pouvez vous déconnecter d'Ozwillo (ou de FranceConnect) et essayer à nouveau.</target>
+        <target>Vous pouvez vous déconnecter de France Data Réseau (ou de FranceConnect) et essayer à nouveau.</target>
         <note priority="1" from="description">FranceConnect already linked error; logout from Ozwillo message</note>
       </trans-unit>
       <trans-unit id="5580292871018316143" datatype="html">
@@ -488,7 +488,7 @@
       </trans-unit>
       <trans-unit id="5641262489600335225" datatype="html">
         <source><x id="START_PARAGRAPH"/>You (or someone else) entered this email address when trying to change the password of an Ozwillo account.<x id="START_PARAGRAPH"/>However, this email address is not on our database of registered users and therefore the attempted password change has failed.<x id="START_PARAGRAPH"/>If you have an Ozwillo account and were expecting this email, please try again using the email address you gave when opening your account.<x id="START_PARAGRAPH"/>If you don't have an Ozwillo account, please ignore this email.<x id="START_PARAGRAPH"/>The Ozwillo team</source>
-        <target><x id="START_PARAGRAPH"/>Vous (ou quelqu'un d'autre) avez saisi cette adresse email dans une demande de changement de mot de passe d'un compte Ozwillo.<x id="START_PARAGRAPH"/>Cependant, cette adresse n'est pas dans notre base de données utilisateurs et la tentative de changement de mot de passe a échoué.<x id="START_PARAGRAPH"/>Si vous êtes un utilisateur d'Ozwillo et que vous attendiez ce message, refaites la demande en utilisant l'adresse email que vous aviez donné à la création de votre compte.<x id="START_PARAGRAPH"/>Si vous n'êtes pas un utilisateur d'Ozwillo, ignorez ce message.<x id="START_PARAGRAPH"/>L'équipe d'Ozwillo</target>
+        <target><x id="START_PARAGRAPH"/>Vous (ou quelqu'un d'autre) avez saisi cette adresse email dans une demande de changement de mot de passe d'un compte France Data Réseau.<x id="START_PARAGRAPH"/>Cependant, cette adresse n'est pas dans notre base de données utilisateurs et la tentative de changement de mot de passe a échoué.<x id="START_PARAGRAPH"/>Si vous êtes un utilisateur de France Data Réseau et que vous attendiez ce message, refaites la demande en utilisant l'adresse email que vous aviez donné à la création de votre compte.<x id="START_PARAGRAPH"/>Si vous n'êtes pas un utilisateur de France Data Réseau, ignorez ce message.<x id="START_PARAGRAPH"/>L'équipe de France Data Réseau</target>
         <note priority="1" from="description">Forgot-password email body, for an unknown account</note>
       </trans-unit>
       <trans-unit id="5667840900782067941" datatype="html">
@@ -508,7 +508,7 @@
       </trans-unit>
       <trans-unit id="5962776201852038125" datatype="html">
         <source><x id="START_PARAGRAPH"/>You are also logged in to these Ozwillo services:<x id="END_PARAGRAPH"/><x id="APPS"/><x id="START_PARAGRAPH"/>Signing out of Ozwillo will sign you out of these.<x id="END_PARAGRAPH"/></source>
-        <target><x id="START_PARAGRAPH"/>Vous êtes aussi connecté à ces services Ozwillo :<x id="END_PARAGRAPH"/><x id="APPS"/><x id="START_PARAGRAPH"/>En vous déconnectant d'Ozwillo, vous vous déconnecterez aussi de ces services.<x id="END_PARAGRAPH"/></target>
+        <target><x id="START_PARAGRAPH"/>Vous êtes aussi connecté à ces services France Data Réseau :<x id="END_PARAGRAPH"/><x id="APPS"/><x id="START_PARAGRAPH"/>En vous déconnectant de France Data Réseau, vous vous déconnecterez aussi de ces services.<x id="END_PARAGRAPH"/></target>
         <note priority="1" from="description">List of other apps you're signed in to, displayed during sign-out</note>
       </trans-unit>
       <trans-unit id="6159587099290300397" datatype="html">
@@ -523,7 +523,7 @@
       </trans-unit>
       <trans-unit id="6263536566459432245" datatype="html">
         <source>Activate your Ozwillo account</source>
-        <target>Activez votre compte Ozwillo</target>
+        <target>Activez votre compte France Data Réseau</target>
         <note priority="1" from="description">Sign-up email subject</note>
       </trans-unit>
       <trans-unit id="6283914624769804238" datatype="html">
@@ -608,7 +608,7 @@
       </trans-unit>
       <trans-unit id="7601564290921092628" datatype="html">
         <source><x id="START_PARAGRAPH"/>You (or someone else) entered this email address when trying to change the password of an Ozwillo account.<x id="START_PARAGRAPH"/>To continue with the password reset process, please proceed to:<x id="START_BREAK"/><x id="START_LINK"/><x id="RESET_PASSWORD_LINK"/><x id="END_LINK"/><x id="START_PARAGRAPH"/>The Ozwillo team</source>
-        <target><x id="START_PARAGRAPH"/>Vous (ou quelqu'un d'autre) avez saisi cette adresse email dans une demande de changement de mot de passe d'un compte Ozwillo.<x id="START_PARAGRAPH"/>Pour modifier votre mot de passe, cliquez sur le lien suivant :<x id="START_PARAGRAPH"/><x id="START_LINK"/><x id="RESET_PASSWORD_LINK"/><x id="END_LINK"/><x id="START_PARAGRAPH"/>L'équipe d'Ozwillo</target>
+        <target><x id="START_PARAGRAPH"/>Vous (ou quelqu'un d'autre) avez saisi cette adresse email dans une demande de changement de mot de passe d'un compte France Data Réseau.<x id="START_PARAGRAPH"/>Pour modifier votre mot de passe, cliquez sur le lien suivant :<x id="START_PARAGRAPH"/><x id="START_LINK"/><x id="RESET_PASSWORD_LINK"/><x id="END_LINK"/><x id="START_PARAGRAPH"/>L'équipe de France Data Réseau</target>
         <note priority="1" from="description">Forgot-password email body, for an existing account</note>
       </trans-unit>
       <trans-unit id="7603232694942911189" datatype="html">
@@ -643,7 +643,7 @@
       </trans-unit>
       <trans-unit id="7771855748190435213" datatype="html">
         <source>You can now <x id="START_LINK"/>go back to the Ozwillo portal<x id="END_LINK"/> to sign in again with your new password.</source>
-        <target>Vous pouvez maintenant <x id="START_LINK"/>retourner au portail Ozwillo<x id="END_LINK"/> pour vous connecter avec votre nouveau mot de passe.</target>
+        <target>Vous pouvez maintenant <x id="START_LINK"/>retourner au portail France Data Réseau<x id="END_LINK"/> pour vous connecter avec votre nouveau mot de passe.</target>
         <note priority="1" from="description">Password successfully changed: next steps</note>
       </trans-unit>
       <trans-unit id="7790636738913620508" datatype="html">
@@ -688,7 +688,7 @@
       </trans-unit>
       <trans-unit id="8175006045572546420" datatype="html">
         <source><x id="START_PARAGRAPH"/><x id="REQUESTER_NAME"/> has invited you to join the <x id="ORGANIZATION_NAME"/> organization on Ozwillo.<x id="START_PARAGRAPH"/>To accept or reject the invitation, follow this link: <x id="START_LINK"/><x id="MEMBERSHIP_INVITATION_URL"/><x id="END_LINK"/>.<x id="START_PARAGRAPH"/>If you were not expecting this invitation, you can ignore this email.<x id="START_PARAGRAPH"/>The Ozwillo team</source>
-        <target><x id="START_PARAGRAPH"/><x id="REQUESTER_NAME"/> vous a invité à rejoindre l'organisation <x id="ORGANIZATION_NAME"/> sur Ozwillo.<x id="START_PARAGRAPH"/>Pour accepter ou refuser l'invitation, suivez ce lien: <x id="START_LINK"/><x id="MEMBERSHIP_INVITATION_URL"/><x id="END_LINK"/>.<x id="START_PARAGRAPH"/>Si vous n'attendiez pas cette invitation, vous pouvez ignorer cet e-mail.<x id="START_PARAGRAPH"/>L'équipe d'Ozwillo</target>
+        <target><x id="START_PARAGRAPH"/><x id="REQUESTER_NAME"/> vous a invité à rejoindre l'organisation <x id="ORGANIZATION_NAME"/> sur France Data Réseau.<x id="START_PARAGRAPH"/>Pour accepter ou refuser l'invitation, suivez ce lien: <x id="START_LINK"/><x id="MEMBERSHIP_INVITATION_URL"/><x id="END_LINK"/>.<x id="START_PARAGRAPH"/>Si vous n'attendiez pas cette invitation, vous pouvez ignorer cet e-mail.<x id="START_PARAGRAPH"/>L'équipe de France Data Réseau</target>
         <note priority="1" from="description">Organization membership invitation email body</note>
       </trans-unit>
       <trans-unit id="8181179154368686793" datatype="html">
@@ -753,7 +753,7 @@
       </trans-unit>
       <trans-unit id="8684213669198888405" datatype="html">
         <source>The information collected will be computer processed for the management of the website’s users and its services. The recipient of data is Ozwillo.<x id="START_BREAK"/>In accordance with the EU Data Protection Directive (95/46/EC), you benefit from an access and modification right for the information concerning you, which you can exercise by contacting Ozwillo, 2323 Chemin de Saint-Bernard, 06225 Vallauris, FRANCE.<x id="START_BREAK"/>You can also, for legitimate reasons, object to the processing of your personal data.</source>
-        <target>Les informations recueillies font l’objet d’un traitement informatique destiné à la gestion des utilisateurs du site communautaire et à ses services. Le destinataire des données est Ozwillo.<x id="START_BREAK"/>Conformément à la loi française n°78-17 du 6 janvier 1978 modifiée et à la directive européenne 95/46/EC sur la protection des données, vous bénéficiez d’un droit d’accès et de rectification aux informations qui vous concernent, que vous pouvez exercer en vous adressant à Ozwillo, 2323 Chemin de Saint-Bernard, 06225 Vallauris.<x id="START_BREAK"/>Vous pouvez également, pour des motifs légitimes, vous opposer au traitement des données vous concernant.</target>
+        <target>Les informations recueillies font l’objet d’un traitement informatique destiné à la gestion des utilisateurs du site communautaire et à ses services. Le destinataire des données est France Data Réseau.<x id="START_BREAK"/>Conformément à la loi française n°78-17 du 6 janvier 1978 modifiée et à la directive européenne 95/46/EC sur la protection des données, vous bénéficiez d’un droit d’accès et de rectification aux informations qui vous concernent, que vous pouvez exercer en vous adressant à France Data Réseau, 20 bd Latour-Maubourg, 75007 Paris.<x id="START_BREAK"/>Vous pouvez également, pour des motifs légitimes, vous opposer au traitement des données vous concernant.</target>
         <note priority="1" from="description">privacy notice / small prints</note>
       </trans-unit>
       <trans-unit id="8901230246167053053" datatype="html">
