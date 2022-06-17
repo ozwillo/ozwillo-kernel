@@ -113,7 +113,7 @@ ext.libs = [
 
   galimatias:          "io.mola.galimatias:galimatias:0.2.1",
 
-  mail:                "org.apache.geronimo.javamail:geronimo-javamail_1.4_mail:1.8.4",
+  mail:                "org.apache.geronimo.javamail:geronimo-javamail_1.6_mail:1.0.1",
 
   slf4j:               "org.slf4j:slf4j-api:1.7.25",
 
