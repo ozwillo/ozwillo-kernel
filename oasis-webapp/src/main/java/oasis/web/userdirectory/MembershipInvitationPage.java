@@ -19,6 +19,7 @@ package oasis.web.userdirectory;
 
 import java.net.URI;
 import java.time.Instant;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -41,6 +42,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import oasis.model.applications.v2.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,9 +58,6 @@ import com.ibm.icu.util.ULocale;
 import oasis.model.DuplicateKeyException;
 import oasis.model.accounts.AccountRepository;
 import oasis.model.accounts.UserAccount;
-import oasis.model.applications.v2.AccessControlEntry;
-import oasis.model.applications.v2.AccessControlRepository;
-import oasis.model.applications.v2.AppInstanceRepository;
 import oasis.model.authn.MembershipInvitationToken;
 import oasis.model.authn.TokenRepository;
 import oasis.model.branding.BrandInfo;
@@ -100,6 +99,7 @@ public class MembershipInvitationPage {
 
   @Inject AccountRepository accountRepository;
   @Inject AppInstanceRepository appInstanceRepository;
+  @Inject ServiceRepository serviceRepository;
   @Inject AccessControlRepository accessControlRepository;
   @Inject DirectoryRepository directoryRepository;
   @Inject NotificationRepository notificationRepository;
@@ -193,18 +193,42 @@ public class MembershipInvitationPage {
 
     tokenRepository.revokeToken(membershipInvitationToken.getId());
 
-    // Accept all the application invitations and remove token
     Iterable<AccessControlEntry> accessControlEntries = accessControlRepository
         .getPendingAccessControlEntriesForUser(pendingOrganizationMembership.getEmail(), pendingOrganizationMembership.getOrganizationId());
+
+    // Automatically redirect to the first service of the first app instance for which the user has been invited
+    URI serviceUri = null;
+    Iterator<AccessControlEntry> aceIterator = accessControlEntries.iterator();
+    if (aceIterator.hasNext()) {
+      logger.error("Searching for app instance to redirect to");
+      AccessControlEntry ace = aceIterator.next();
+      AppInstance appInstance = appInstanceRepository.getAppInstance(ace.getInstance_id());
+      logger.error("Got app instance: {}", appInstance.getId());
+      Iterator<Service> services = serviceRepository.getServicesOfInstance(appInstance.getId()).iterator();
+      if (services.hasNext()) {
+        Service service = services.next();
+        logger.error("App instance has a service ({}): {}", service.getId(), service.getService_uri());
+        serviceUri = URI.create(service.getService_uri());
+      }
+
+    }
+
+    // Accept all the application invitations and remove token
+    String instanceId = null;
     for (AccessControlEntry ace : accessControlEntries) {
       accessControlRepository.acceptPendingAccessControlEntry(ace.getId(), currentAccountId);
       tokenRepository.revokeInvitationTokensForAppInstance(ace.getId());
+      instanceId = ace.getInstance_id();
     }
 
-    Urls urls = urlsFactory.create(brandInfo.getPortal_base_uri());
-    return Response.seeOther(
-        urls.myNetwork().orElse(uriInfo.getBaseUri())
-    ).build();
+    if (serviceUri != null)
+      return Response.seeOther(serviceUri).build();
+    else {
+      Urls urls = urlsFactory.create(brandInfo.getPortal_base_uri());
+      return Response.seeOther(
+              urls.myNetwork().orElse(uriInfo.getBaseUri())
+      ).build();
+    }
   }
 
   @POST
